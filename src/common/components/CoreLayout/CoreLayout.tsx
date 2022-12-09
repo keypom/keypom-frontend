@@ -1,3 +1,10 @@
+import { Navbar } from '@/common/components/Navbar/Navbar';
+import { Box } from '@chakra-ui/react';
+
 export const CoreLayout = ({ children }) => {
-  return <div className="min-h-full h-full relative">{children}</div>;
+  return (
+    <Box minH="100vh" bgColor="#EFFAFD">
+      <Navbar>{children}</Navbar>
+    </Box>
+  );
 };
