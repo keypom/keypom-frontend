@@ -1,5 +1,6 @@
-import { Box, Button, HStack, Text } from '@chakra-ui/react';
+import { Box, HStack, Text } from '@chakra-ui/react';
 import Link from 'next/link';
+import { Button } from '../Button/Button';
 
 interface INavbar {}
 
