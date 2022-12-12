@@ -5,14 +5,15 @@ import NEAR_LOGO from 'assets/near_logo_wht.svg';
 
 interface IFooter extends ChakraProps {}
 
-const TWITTER_LINK = '';
+const TWITTER_LINK = 'https://www.twitter.com';
+const NEAR_LINK = 'https://near.org/';
 
 export const Footer: React.FC<IFooter> = (props) => {
   return (
     <Box bgColor="#222734" {...props}>
       <HStack marginX="auto" maxW={[400, 1000]} h="100px" spacing="auto">
         {/* Powered by NEAR */}
-        <Link href="https:www.twitter.com" target="_blank">
+        <Link href={NEAR_LINK} target="_blank">
           <HStack>
             <Text color="white" fontSize="20px" whiteSpace="nowrap" mr="14px">
               Powered by
@@ -22,7 +23,7 @@ export const Footer: React.FC<IFooter> = (props) => {
         </Link>
 
         {/* Follow us Twitter */}
-        <Link href="https:www.twitter.com" target="_blank">
+        <Link href={TWITTER_LINK} target="_blank">
           <HStack align="center" justify="center">
             <TwitterLogoIcon h="24" w="27" mr="9px" mt="1px" />
             <Text m={0} color="white" fontSize="20px">
