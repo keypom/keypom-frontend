@@ -1,5 +1,4 @@
-import { Box, ChakraProps, HStack, Image, Text } from '@chakra-ui/react';
-import Link from 'next/link';
+import { Box, ChakraProps, HStack, Image, Text, Link } from '@chakra-ui/react';
 import { TwitterLogoIcon } from '@/common/components/Icons/TwitterLogoIcon';
 import NEAR_LOGO from 'assets/near_logo_wht.svg';
 
