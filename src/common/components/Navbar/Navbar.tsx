@@ -39,10 +39,10 @@ export const Navbar: React.FC<INavbar> = () => {
         {/* Menu Items */}
         <HStack spacing="40px">
           {menuItems}
+
+          {/* Wallet Connect */}
           <Button>Connect Wallet</Button>
         </HStack>
-
-        {/* Wallet Connect */}
       </HStack>
     </Box>
   );
