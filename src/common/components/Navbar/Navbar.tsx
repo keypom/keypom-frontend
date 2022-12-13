@@ -1,6 +1,6 @@
 import { Box, HStack, Text } from '@chakra-ui/react';
 import Link from 'next/link';
-import { Button } from '../Button/Button';
+import { Button } from '@/common/components/Button/Button';
 
 interface INavbar {}
 
@@ -41,7 +41,9 @@ export const Navbar: React.FC<INavbar> = () => {
           {menuItems}
 
           {/* Wallet Connect */}
-          <Button>Connect Wallet</Button>
+          <Button type="secondary" dark>
+            Connect Wallet
+          </Button>
         </HStack>
       </HStack>
     </Box>
