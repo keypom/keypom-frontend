@@ -4,8 +4,8 @@ import { ChakraProps, Icon } from '@chakra-ui/react';
 export const TwitterLogoIcon = ({ fill = 'white', ...props }: ChakraProps) => {
   return (
     <Icon
-      height="6"
-      width="7"
+      h="6"
+      w="7"
       viewBox="0 0 28 24"
       xmlns="http://www.w3.org/2000/svg"
       {...props}

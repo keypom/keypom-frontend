@@ -30,7 +30,7 @@ export const Footer = (props: FooterProps) => {
         {/* Follow us Twitter */}
         <Link href={TWITTER_LINK} target="_blank">
           <HStack align="center" justify="center">
-            <TwitterLogoIcon h="24" w="27" mr="9px" mt="1px" fill="white" />
+            <TwitterLogoIcon mr="2.5" mt="1px" fill="white" />
             <Text m={0} color="white" fontSize="20px">
               Follow us
             </Text>

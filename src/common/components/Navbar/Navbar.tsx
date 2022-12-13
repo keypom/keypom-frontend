@@ -52,9 +52,7 @@ export const Navbar = () => {
           {menuItems}
 
           {/* Wallet Connect */}
-          <Button type="secondary" dark>
-            Connect Wallet
-          </Button>
+          <Button variant="primary">Connect Wallet</Button>
         </HStack>
       </HStack>
     </Box>
