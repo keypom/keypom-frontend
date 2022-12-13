@@ -1,7 +1,7 @@
 import { PropsWithChildren } from 'react';
 import { Flex } from '@chakra-ui/react';
-import { Navbar } from '@/common/components/Navbar/Navbar';
-import { Footer } from '@/common/components/Footer/Footer';
+import { Navbar } from '@/common/components/Navbar';
+import { Footer } from '@/common/components/Footer';
 
 interface CoreLayoutProps {}
 
