@@ -2,15 +2,21 @@ import { Box, ChakraProps, HStack, Image, Text, Link } from '@chakra-ui/react';
 import { TwitterLogoIcon } from '@/common/components/Icons/TwitterLogoIcon';
 import NEAR_LOGO from 'assets/near_logo_wht.svg';
 
-interface IFooter extends ChakraProps {}
+interface FooterProps extends ChakraProps {}
 
 const TWITTER_LINK = 'https://www.twitter.com';
 const NEAR_LINK = 'https://near.org/';
 
-export const Footer: React.FC<IFooter> = (props) => {
+export const Footer = (props: FooterProps) => {
   return (
+    // TODO: ask designer for color coded in design system
     <Box bgColor="#222734" {...props}>
-      <HStack marginX="auto" maxW={[400, 1000]} h="100px" spacing="auto">
+      <HStack
+        marginX="auto"
+        maxW={{ base: '400px', md: '1000px' }}
+        h="100px"
+        spacing="auto"
+      >
         {/* Powered by NEAR */}
         <Link href={NEAR_LINK} target="_blank">
           <HStack>

@@ -1,8 +1,13 @@
+import { PropsWithChildren } from 'react';
+import { Flex } from '@chakra-ui/react';
 import { Navbar } from '@/common/components/Navbar/Navbar';
-import { Box, Flex } from '@chakra-ui/react';
 import { Footer } from '@/common/components/Footer/Footer';
 
-export const CoreLayout = ({ children }) => {
+interface CoreLayoutProps {}
+
+export const CoreLayout = ({
+  children,
+}: PropsWithChildren<CoreLayoutProps>) => {
   return (
     <Flex
       minH="100vh"
