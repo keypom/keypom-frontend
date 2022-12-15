@@ -1,1 +1,2 @@
-export * from './TwitterLogoIcon';
+export * from "./TwitterLogoIcon";
+export * from "./MenuIcon";
