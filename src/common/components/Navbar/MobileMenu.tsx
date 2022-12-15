@@ -27,7 +27,7 @@ export const MobileMenu = () => {
       <Box ref={btnRef} aria-label="menu Button" as="button" onClick={onOpen}>
         <MenuIcon />
       </Box>
-      {/* TODO */}
+      {/* // TODO: remove when design is confirmed */}
       <Drawer
         finalFocusRef={btnRef}
         isOpen={isOpen}
@@ -57,7 +57,7 @@ export const MobileMenu = () => {
               })}
             </VStack>
           </DrawerBody>
-          <DrawerFooter>
+          <DrawerFooter pb="10">
             <ConnectWalletButton w="full" />
           </DrawerFooter>
         </DrawerContent>
