@@ -4,8 +4,8 @@ export const TwitterLogoIcon = ({ fill = "white", ...props }: IconProps) => {
   return (
     <Icon
       h="6"
-      w="7"
       viewBox="0 0 28 24"
+      w="7"
       xmlns="http://www.w3.org/2000/svg"
       {...props}
     >

@@ -4,17 +4,17 @@ export const MenuIcon = ({ ...props }: IconProps) => {
   return (
     <Icon
       h="3"
-      w="18px"
       viewBox="0 0 18 12"
+      w="18px"
       xmlns="http://www.w3.org/2000/svg"
       {...props}
     >
       <path
         d="M1.5 6H16.5M1.5 1H16.5M6.5 11H16.5"
         stroke="currentColor"
-        stroke-width="2"
         strokeLinecap="round"
         strokeLinejoin="round"
+        strokeWidth="2"
       />
     </Icon>
   );
