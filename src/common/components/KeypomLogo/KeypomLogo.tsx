@@ -5,7 +5,6 @@ export const KeypomLogo = () => {
     <HStack spacing={{ base: 2, md: "2.5" }}>
       <Box
         bgColor="gray.800"
-        borderRadius="100%"
         h={{ base: 5, md: "7" }}
         rounded="full"
         w={{ base: 5, md: "7" }}
