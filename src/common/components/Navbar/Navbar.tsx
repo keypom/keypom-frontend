@@ -1,24 +1,13 @@
-import { Box, Button, Flex, HStack } from "@chakra-ui/react";
+import { Box, Flex, HStack } from "@chakra-ui/react";
 import Link from "next/link";
 
-import { Logo } from "@/common/components/Logo";
+import { KeypomLogo } from "@/common/components/KeypomLogo";
+
+import { ConnectWalletButton } from "../ConnectWalletButton";
+
+import { MobileMenu, MENU_ITEMS } from ".";
 
 interface NavbarProps {}
-
-const MENU_ITEMS = [
-  {
-    name: "Drops",
-    href: "",
-  },
-  {
-    name: "Docs",
-    href: "",
-  },
-  {
-    name: "Get in touch",
-    href: "",
-  },
-];
 
 export const Navbar = ({}: NavbarProps) => {
   const menuItems = MENU_ITEMS.map((item) => (
@@ -32,6 +21,7 @@ export const Navbar = ({}: NavbarProps) => {
   return (
     <Box position="sticky">
       <Flex
+        alignItems="center"
         h="4rem"
         justifyContent="space-between"
         marginX="auto"
@@ -40,22 +30,18 @@ export const Navbar = ({}: NavbarProps) => {
         px={5}
       >
         {/* Logo */}
-        <Logo />
+        <KeypomLogo />
         {/* Menu Items */}
         <HStack
           display={{ base: "none", sm: "flex" }}
           spacing={{ sm: "4", md: "10" }}
         >
           {menuItems}
-          {/* Wallet Connect */}
-          <Button
-            fontSize={{ sm: "sm", md: "md" }}
-            px={{ sm: "2", md: "6" }}
-            variant="primary"
-          >
-            Connect Wallet
-          </Button>
+          <ConnectWalletButton />
         </HStack>
+        <Box display={{ base: "block", sm: "none" }}>
+          <MobileMenu />
+        </Box>
       </Flex>
     </Box>
   );

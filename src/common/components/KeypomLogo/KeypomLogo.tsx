@@ -1,6 +1,6 @@
 import { HStack, Box, Text } from "@chakra-ui/react";
 
-export const Logo = () => {
+export const KeypomLogo = () => {
   return (
     <HStack spacing={{ base: 2, md: "2.5" }}>
       <Box
