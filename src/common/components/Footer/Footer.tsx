@@ -1,4 +1,12 @@
-import { Box, ChakraProps, HStack, Image, Text, Link } from "@chakra-ui/react";
+import {
+  Box,
+  ChakraProps,
+  HStack,
+  Image,
+  Text,
+  Link,
+  Flex,
+} from "@chakra-ui/react";
 
 import { TwitterLogoIcon } from "@/common/components/Icons/TwitterLogoIcon";
 
@@ -13,16 +21,24 @@ export const Footer = (props: FooterProps) => {
   return (
     // TODO: ask designer for color coded in design system
     <Box bgColor="#222734" {...props}>
-      <HStack
-        h="100px"
+      <Flex
+        color="white"
+        flexWrap="wrap"
+        gap="2"
+        justifyContent="space-between"
         marginX="auto"
-        maxW={{ base: "400px", md: "1000px" }}
-        spacing="auto"
+        maxW="75rem"
+        px="5"
+        py="6"
       >
         {/* Powered by NEAR */}
         <Link href={NEAR_LINK} target="_blank">
           <HStack>
-            <Text color="white" fontSize="20px" mr="14px" whiteSpace="nowrap">
+            <Text
+              fontSize={{ base: "md", md: "xl" }}
+              mr="3.5"
+              whiteSpace="nowrap"
+            >
               Powered by
             </Text>
             <Image alt="" h="25px" src={NEAR_LOGO.src} w="95px" />
@@ -32,13 +48,13 @@ export const Footer = (props: FooterProps) => {
         {/* Follow us Twitter */}
         <Link href={TWITTER_LINK} target="_blank">
           <HStack align="center" justify="center">
-            <TwitterLogoIcon fill="white" mr="2.5" mt="1px" />
-            <Text color="white" fontSize="20px" m={0}>
+            <TwitterLogoIcon mr="2.5" mt="1px" />
+            <Text fontSize={{ base: "md", md: "xl" }} m={0}>
               Follow us
             </Text>
           </HStack>
         </Link>
-      </HStack>
+      </Flex>
     </Box>
   );
 };
