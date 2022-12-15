@@ -18,7 +18,7 @@ export const CoreLayout = ({
       bgBlendMode="overlay, normal, normal"
     >
       <Navbar />
-      <Box maxW="62.125rem" mx="auto" as="main" flex="1">
+      <Box w="full" px="5" maxW="62.125rem" mx="auto" as="main" flex="1">
         {children}
       </Box>
       <Footer />
