@@ -1,5 +1,5 @@
-import Head from "next/head";
-import { PropsWithChildren, useMemo } from "react";
+import Head from 'next/head';
+import { PropsWithChildren, useMemo } from 'react';
 
 export interface PageHeadProps {
   name?: string;
@@ -7,7 +7,7 @@ export interface PageHeadProps {
   removeTitleAppend?: boolean;
 }
 
-const appName = "Thala Labs";
+const appName = 'Keypom';
 
 export const PageHead = ({
   name,
