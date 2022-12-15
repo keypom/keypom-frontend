@@ -2,6 +2,12 @@ module.exports = {
   extends: ["plugin:react/recommended", "next/core-web-vitals"],
   env: { es6: true },
   rules: {
+    "prefer-const": [
+      "error",
+      {
+        destructuring: "any",
+      },
+    ],
     "react/no-unknown-property": ["error", { ignore: ["css"] }],
     "@next/next/no-img-element": "off",
     "react/jsx-sort-props": [
