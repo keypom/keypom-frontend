@@ -8,6 +8,7 @@ module.exports = {
         destructuring: "any",
       },
     ],
+    "no-console": ["warn"],
     "react/no-unknown-property": ["error", { ignore: ["css"] }],
     "@next/next/no-img-element": "off",
     "react/jsx-sort-props": [
