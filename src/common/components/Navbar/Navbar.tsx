@@ -1,60 +1,62 @@
-import { Box, HStack, Text } from '@chakra-ui/react';
-import Link from 'next/link';
-import { Button } from '@/common/components/Button/Button';
+import { Box, Button, Flex, HStack } from "@chakra-ui/react";
+import Link from "next/link";
+
+import { Logo } from "@/common/components/Logo";
 
 interface NavbarProps {}
 
 const MENU_ITEMS = [
   {
-    name: 'Drops',
-    href: '',
+    name: "Drops",
+    href: "",
   },
   {
-    name: 'Docs',
-    href: '',
+    name: "Docs",
+    href: "",
   },
   {
-    name: 'Get in touch',
-    href: '',
+    name: "Get in touch",
+    href: "",
   },
 ];
 
-export const Navbar = () => {
+export const Navbar = ({}: NavbarProps) => {
   const menuItems = MENU_ITEMS.map((item) => (
     <Link key={item.name} href={item.href} passHref>
-      {item.name}
+      <Box as="a" fontSize={{ base: "sm", md: "md" }}>
+        {item.name}
+      </Box>
     </Link>
   ));
+
   return (
     <Box position="sticky">
-      <HStack
+      <Flex
         marginX="auto"
-        maxW={{ base: '400px', md: '1000px' }}
-        h="100px"
-        spacing="auto"
+        maxW="75rem"
+        h="4rem"
+        mt={{ mt: 2, md: "4" }}
+        justifyContent="space-between"
+        px={5}
       >
         {/* Logo */}
-        <HStack spacing="2.5">
-          <Box
-            h="7"
-            w="7"
-            rounded="full"
-            borderRadius="100%"
-            bgColor="gray.800"
-          />
-          <Text as="b" fontSize="2xl">
-            Keypom
-          </Text>
-        </HStack>
-
+        <Logo />
         {/* Menu Items */}
-        <HStack spacing="10">
+        <HStack
+          display={{ base: "none", sm: "flex" }}
+          spacing={{ sm: "4", md: "10" }}
+        >
           {menuItems}
-
           {/* Wallet Connect */}
-          <Button variant="primary">Connect Wallet</Button>
+          <Button
+            fontSize={{ sm: "sm", md: "md" }}
+            px={{ sm: "2", md: "6" }}
+            variant="primary"
+          >
+            Connect Wallet
+          </Button>
         </HStack>
-      </HStack>
+      </Flex>
     </Box>
   );
 };
