@@ -22,7 +22,7 @@ const MENU_ITEMS = [
 
 export const Navbar = ({}: NavbarProps) => {
   const menuItems = MENU_ITEMS.map((item) => (
-    <Link key={item.name} href={item.href} passHref>
+    <Link key={item.name} passHref href={item.href}>
       <Box as="a" fontSize={{ base: "sm", md: "md" }}>
         {item.name}
       </Box>
@@ -32,11 +32,11 @@ export const Navbar = ({}: NavbarProps) => {
   return (
     <Box position="sticky">
       <Flex
+        h="4rem"
+        justifyContent="space-between"
         marginX="auto"
         maxW="75rem"
-        h="4rem"
         mt={{ mt: 2, md: "4" }}
-        justifyContent="space-between"
         px={5}
       >
         {/* Logo */}

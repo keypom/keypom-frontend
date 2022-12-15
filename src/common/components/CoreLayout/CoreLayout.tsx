@@ -1,5 +1,6 @@
 import { PropsWithChildren } from "react";
 import { Box, Flex } from "@chakra-ui/react";
+
 import { Navbar } from "@/common/components/Navbar";
 import { Footer } from "@/common/components/Footer";
 
@@ -12,13 +13,13 @@ export const CoreLayout = ({
     "url(.png), linear-gradient(180deg, rgba(239, 250, 253, 0.4) 0%, rgba(239, 250, 253, 0.6) 27.41%), #FFFFFF;";
   return (
     <Flex
-      minH="100vh"
-      flexDir="column"
       bg={layoutBg}
       bgBlendMode="overlay, normal, normal"
+      flexDir="column"
+      minH="100vh"
     >
       <Navbar />
-      <Box w="full" px="5" maxW="62.125rem" mx="auto" as="main" flex="1">
+      <Box as="main" flex="1" maxW="62.125rem" mx="auto" px="5" w="full">
         {children}
       </Box>
       <Footer />
