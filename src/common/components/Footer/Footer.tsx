@@ -1,12 +1,4 @@
-import {
-  Box,
-  ChakraProps,
-  HStack,
-  Image,
-  Text,
-  Link,
-  Flex,
-} from '@chakra-ui/react';
+import { Box, ChakraProps, HStack, Image, Text, Link, Flex } from '@chakra-ui/react';
 
 import { TwitterLogoIcon } from '@/common/components/Icons/TwitterLogoIcon';
 
@@ -34,11 +26,7 @@ export const Footer = (props: FooterProps) => {
         {/* Powered by NEAR */}
         <Link href={NEAR_LINK} target="_blank">
           <HStack>
-            <Text
-              fontSize={{ base: 'md', md: 'xl' }}
-              mr="3.5"
-              whiteSpace="nowrap"
-            >
+            <Text fontSize={{ base: 'md', md: 'xl' }} mr="3.5" whiteSpace="nowrap">
               Powered by
             </Text>
             <Image alt="" h="25px" src={NEAR_LOGO.src} w="95px" />
