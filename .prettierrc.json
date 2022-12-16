@@ -1,0 +1,8 @@
+{
+  "trailingComma": "all",
+  "arrowParens": "always",
+  "singleQuote": true,
+  "jsxSingleQuote": false,
+  "semi": true,
+  "printWidth": 100
+}
