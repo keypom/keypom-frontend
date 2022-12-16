@@ -12,12 +12,13 @@ export const CoreLayout = ({
     <Flex
       minH="100vh"
       flexDir="column"
+      alignItems="flex-start"
       bg="url(.png), linear-gradient(180deg, rgba(239, 250, 253, 0.4) 0%, rgba(239, 250, 253, 0.6) 27.41%), #FFFFFF;"
       bgBlendMode="overlay, normal, normal"
     >
-      <Navbar />
+      <Navbar w="100%" />
       {children}
-      <Footer mt="auto" />
+      <Footer mt="auto" w="100%" />
     </Flex>
   );
 };

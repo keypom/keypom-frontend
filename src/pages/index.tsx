@@ -1,16 +1,16 @@
-import { PageHead } from "@/common/components/PageHead";
+import { IconBox } from '@/common/components/IconBox';
+import { PageHead } from '@/common/components/PageHead';
+import { Box } from '@chakra-ui/react';
 
 export default function Home() {
   return (
-    <div className="h-full">
+    <Box minH="100%">
       <PageHead
         removeTitleAppend
         description="Home page description"
         name="Home"
       />
-      <section className="grid place-content-center h-full">
-        <span>Hello world</span>
-      </section>
-    </div>
+      Home page in progress
+    </Box>
   );
 }

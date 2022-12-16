@@ -1,8 +1,7 @@
-import { Box, HStack, Text } from '@chakra-ui/react';
+import { Box, HStack, Text, Button, BoxProps } from '@chakra-ui/react';
 import Link from 'next/link';
-import { Button } from '@/common/components/Button/Button';
 
-interface NavbarProps {}
+interface NavbarProps extends BoxProps {}
 
 const MENU_ITEMS = [
   {
@@ -19,14 +18,14 @@ const MENU_ITEMS = [
   },
 ];
 
-export const Navbar = () => {
+export const Navbar = (props: NavbarProps) => {
   const menuItems = MENU_ITEMS.map((item) => (
     <Link key={item.name} href={item.href} passHref>
       {item.name}
     </Link>
   ));
   return (
-    <Box position="sticky">
+    <Box position="sticky" {...props}>
       <HStack
         marginX="auto"
         maxW={{ base: '400px', md: '1000px' }}
@@ -52,7 +51,9 @@ export const Navbar = () => {
           {menuItems}
 
           {/* Wallet Connect */}
-          <Button variant="primary">Connect Wallet</Button>
+          <Link href="/sign-in">
+            <Button variant="primary">Connect Wallet</Button>
+          </Link>
         </HStack>
       </HStack>
     </Box>
