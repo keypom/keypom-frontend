@@ -1,16 +1,12 @@
-import { IconBox } from '@/common/components/IconBox';
-import { PageHead } from '@/common/components/PageHead';
-import { Box } from '@chakra-ui/react';
+import { Box } from "@chakra-ui/react";
+
+import { PageHead } from "@/common/components/PageHead";
 
 export default function Home() {
   return (
-    <Box minH="100%">
-      <PageHead
-        removeTitleAppend
-        description="Home page description"
-        name="Home"
-      />
-      Home page in progress
+    <Box mt={{ base: 6, md: 14 }}>
+      <PageHead description="Home page description" name="Home" />
+      Hello World
     </Box>
   );
 }
