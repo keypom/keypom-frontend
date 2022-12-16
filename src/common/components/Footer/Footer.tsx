@@ -6,16 +6,16 @@ import {
   Text,
   Link,
   Flex,
-} from "@chakra-ui/react";
+} from '@chakra-ui/react';
 
-import { TwitterLogoIcon } from "@/common/components/Icons/TwitterLogoIcon";
+import { TwitterLogoIcon } from '@/common/components/Icons/TwitterLogoIcon';
 
-import NEAR_LOGO from "assets/near_logo_wht.svg";
+import NEAR_LOGO from 'assets/near_logo_wht.svg';
 
-interface FooterProps extends ChakraProps {}
+type FooterProps = ChakraProps;
 
-const TWITTER_LINK = "https://www.twitter.com";
-const NEAR_LINK = "https://near.org/";
+const TWITTER_LINK = 'https://www.twitter.com';
+const NEAR_LINK = 'https://near.org/';
 
 export const Footer = (props: FooterProps) => {
   return (
@@ -35,7 +35,7 @@ export const Footer = (props: FooterProps) => {
         <Link href={NEAR_LINK} target="_blank">
           <HStack>
             <Text
-              fontSize={{ base: "md", md: "xl" }}
+              fontSize={{ base: 'md', md: 'xl' }}
               mr="3.5"
               whiteSpace="nowrap"
             >
@@ -49,7 +49,7 @@ export const Footer = (props: FooterProps) => {
         <Link href={TWITTER_LINK} target="_blank">
           <HStack align="center" justify="center">
             <TwitterLogoIcon mr="2.5" mt="1px" />
-            <Text fontSize={{ base: "md", md: "xl" }} m={0}>
+            <Text fontSize={{ base: 'md', md: 'xl' }} m={0}>
               Follow us
             </Text>
           </HStack>

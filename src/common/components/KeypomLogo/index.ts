@@ -1,1 +1,1 @@
-export * from "./KeypomLogo";
+export * from './KeypomLogo';

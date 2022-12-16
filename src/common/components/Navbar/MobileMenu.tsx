@@ -9,15 +9,15 @@ import {
   DrawerOverlay,
   useDisclosure,
   VStack,
-} from "@chakra-ui/react";
-import Link from "next/link";
-import { useRef } from "react";
+} from '@chakra-ui/react';
+import Link from 'next/link';
+import { useRef } from 'react';
 
-import { ConnectWalletButton } from "../ConnectWalletButton";
-import { MenuIcon } from "../Icons";
-import { KeypomLogo } from "../KeypomLogo";
+import { ConnectWalletButton } from '../ConnectWalletButton';
+import { MenuIcon } from '../Icons';
+import { KeypomLogo } from '../KeypomLogo';
 
-import { MENU_ITEMS } from "./menuItems";
+import { MENU_ITEMS } from './menuItems';
 
 export const MobileMenu = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -47,7 +47,7 @@ export const MobileMenu = () => {
                   <Link key={name} passHref href={href}>
                     <Box
                       as="a"
-                      fontSize={{ base: "sm", md: "md" }}
+                      fontSize={{ base: 'sm', md: 'md' }}
                       fontWeight="medium"
                     >
                       {name}

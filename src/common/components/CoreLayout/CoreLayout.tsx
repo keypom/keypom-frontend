@@ -6,22 +6,18 @@ import { Footer } from '@/common/components/Footer';
 
 interface CoreLayoutProps {}
 
-export const CoreLayout = ({
-  children,
-}: PropsWithChildren<CoreLayoutProps>) => {
+export const CoreLayout = ({ children }: PropsWithChildren<CoreLayoutProps>) => {
   const layoutBg =
     'url(.png), linear-gradient(180deg, rgba(239, 250, 253, 0.4) 0%, rgba(239, 250, 253, 0.6) 27.41%), #FFFFFF;';
   return (
     <Flex
-      minH="100vh"
-      flexDir="column"
       alignItems="flex-start"
       bg={layoutBg}
       bgBlendMode="overlay, normal, normal"
       flexDir="column"
       minH="100vh"
     >
-      <Navbar />
+      <Navbar w="full" />
       <Box as="main" flex="1" maxW="62.125rem" mx="auto" px="5" w="full">
         {children}
       </Box>

@@ -1,1 +1,1 @@
-export * from "./chakra-theme"
+export * from './chakra-theme';

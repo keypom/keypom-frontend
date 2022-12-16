@@ -8,8 +8,8 @@ interface Text extends CTextProps {
 export const Text = ({ children, ...props }: PropsWithChildren<Text>) => {
   return (
     <CText
-      fontSize={{ base: 'sm', md: 'md' }}
       color="gray.600"
+      fontSize={{ base: 'sm', md: 'md' }}
       fontWeight="normal"
       {...props}
     >

@@ -1,50 +1,31 @@
-import { Box, BoxProps } from '@chakra-ui/react';
+import { Box, BoxProps, useToken } from '@chakra-ui/react';
 import React, { PropsWithChildren } from 'react';
+
 import { RoundIcon } from './RoundIcon';
 
 interface IconBoxProps extends BoxProps {
   icon: React.ReactNode;
-  outerBoxProps?: BoxProps;
-  boxContentProps?: BoxProps;
 }
 
-export const IconBox = ({
-  w,
-  outerBoxProps,
-  boxContentProps,
-  icon,
-  children,
-}: PropsWithChildren<IconBoxProps>) => {
+export const IconBox = ({ children, icon, ...props }: PropsWithChildren<IconBoxProps>) => {
+  const borderBgColor = useToken('colors', 'border.box');
+
   return (
     <Box
+      // https://dev.to/rumansaleem/gradient-borders-with-css-3mnk
+      bg={`linear-gradient(white, white) padding-box, ${borderBgColor} border-box`}
+      border="2px solid transparent"
       borderRadius="3xl"
-      padding="0.5"
+      p="16"
+      pb="8"
       position="relative"
-      background="border.box"
-      w={w}
-      {...outerBoxProps}
+      textAlign="center"
+      {...props}
     >
-      {/* Icon */}
-      <Box
-        position="absolute"
-        top="0"
-        left="50%"
-        transform="translate(-50%, -50%)"
-      >
+      <Box left="50%" position="absolute" top="0" transform="translate(-50%, -50%)">
         <RoundIcon icon={icon} />
       </Box>
-
-      {/* Box Content */}
-      <Box
-        borderRadius="3xl"
-        bgColor="white"
-        p="16"
-        pb="8"
-        {...boxContentProps}
-        w="initial"
-      >
-        {children}
-      </Box>
+      {children}
     </Box>
   );
 };
