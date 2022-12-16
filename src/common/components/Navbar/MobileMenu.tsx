@@ -28,12 +28,7 @@ export const MobileMenu = () => {
         <MenuIcon />
       </Box>
       {/* // TODO: remove when design is confirmed */}
-      <Drawer
-        finalFocusRef={btnRef}
-        isOpen={isOpen}
-        placement="right"
-        onClose={onClose}
-      >
+      <Drawer finalFocusRef={btnRef} isOpen={isOpen} placement="right" onClose={onClose}>
         <DrawerOverlay />
         <DrawerContent>
           <DrawerCloseButton mt="2" />
@@ -45,11 +40,7 @@ export const MobileMenu = () => {
               {MENU_ITEMS.map(({ name, href }) => {
                 return (
                   <Link key={name} passHref href={href}>
-                    <Box
-                      as="a"
-                      fontSize={{ base: 'sm', md: 'md' }}
-                      fontWeight="medium"
-                    >
+                    <Box as="a" fontSize={{ base: 'sm', md: 'md' }} fontWeight="medium">
                       {name}
                     </Box>
                   </Link>

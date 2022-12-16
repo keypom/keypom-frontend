@@ -1,9 +1,7 @@
 const Error404 = (): JSX.Element => {
   return (
     <div className="container bg-white">
-      <p className="text-base font-semibold text-gray-800">
-        404: Page not found
-      </p>
+      <p className="text-base font-semibold text-gray-800">404: Page not found</p>
     </div>
   );
 };

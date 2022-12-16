@@ -32,10 +32,7 @@ export const Navbar = (props: NavbarProps) => {
         {/* Logo */}
         <KeypomLogo />
         {/* Menu Items */}
-        <HStack
-          display={{ base: 'none', sm: 'flex' }}
-          spacing={{ sm: '4', md: '10' }}
-        >
+        <HStack display={{ base: 'none', sm: 'flex' }} spacing={{ sm: '4', md: '10' }}>
           {menuItems}
           <ConnectWalletButton />
         </HStack>
