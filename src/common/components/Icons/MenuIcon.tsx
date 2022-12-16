@@ -5,7 +5,7 @@ export const MenuIcon = ({ ...props }: IconProps) => {
     <Icon
       h="3"
       viewBox="0 0 18 12"
-      w="18px"
+      w="1.125rem"
       xmlns="http://www.w3.org/2000/svg"
       {...props}
     >
