@@ -1,16 +1,12 @@
+import { Box } from "@chakra-ui/react";
+
 import { PageHead } from "@/common/components/PageHead";
 
 export default function Home() {
   return (
-    <div className="h-full">
-      <PageHead
-        removeTitleAppend
-        description="Home page description"
-        name="Home"
-      />
-      <section className="grid place-content-center h-full">
-        <span>Hello world</span>
-      </section>
-    </div>
+    <Box mt={{ base: 6, md: 14 }}>
+      <PageHead description="Home page description" name="Home" />
+      Hello World
+    </Box>
   );
 }

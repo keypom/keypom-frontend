@@ -1,60 +1,48 @@
-import { Box, HStack, Text } from '@chakra-ui/react';
-import Link from 'next/link';
-import { Button } from '@/common/components/Button/Button';
+import { Box, Flex, HStack } from "@chakra-ui/react";
+import Link from "next/link";
+
+import { KeypomLogo } from "@/common/components/KeypomLogo";
+
+import { ConnectWalletButton } from "../ConnectWalletButton";
+
+import { MobileMenu, MENU_ITEMS } from ".";
 
 interface NavbarProps {}
 
-const MENU_ITEMS = [
-  {
-    name: 'Drops',
-    href: '',
-  },
-  {
-    name: 'Docs',
-    href: '',
-  },
-  {
-    name: 'Get in touch',
-    href: '',
-  },
-];
-
-export const Navbar = () => {
+export const Navbar = ({}: NavbarProps) => {
   const menuItems = MENU_ITEMS.map((item) => (
-    <Link key={item.name} href={item.href} passHref>
-      {item.name}
+    <Link key={item.name} passHref href={item.href}>
+      <Box as="a" fontSize={{ base: "sm", md: "md" }}>
+        {item.name}
+      </Box>
     </Link>
   ));
+
   return (
     <Box position="sticky">
-      <HStack
+      <Flex
+        alignItems="center"
+        h="4rem"
+        justifyContent="space-between"
         marginX="auto"
-        maxW={{ base: '400px', md: '1000px' }}
-        h="100px"
-        spacing="auto"
+        maxW="75rem"
+        mt={{ mt: 2, md: "4" }}
+        px={5}
       >
         {/* Logo */}
-        <HStack spacing="2.5">
-          <Box
-            h="7"
-            w="7"
-            rounded="full"
-            borderRadius="100%"
-            bgColor="gray.800"
-          />
-          <Text as="b" fontSize="2xl">
-            Keypom
-          </Text>
-        </HStack>
-
+        <KeypomLogo />
         {/* Menu Items */}
-        <HStack spacing="10">
+        <HStack
+          display={{ base: "none", sm: "flex" }}
+          spacing={{ sm: "4", md: "10" }}
+        >
           {menuItems}
-
-          {/* Wallet Connect */}
-          <Button variant="primary">Connect Wallet</Button>
+          <ConnectWalletButton />
         </HStack>
-      </HStack>
+        <Box display={{ base: "block", sm: "none" }}>
+          <MobileMenu />
+        </Box>
+      </Flex>
     </Box>
   );
 };

@@ -1,12 +1,11 @@
-import React from 'react';
-import { ChakraProps, Icon } from '@chakra-ui/react';
+import { Icon, IconProps } from "@chakra-ui/react";
 
-export const TwitterLogoIcon = ({ fill = 'white', ...props }: ChakraProps) => {
+export const TwitterLogoIcon = ({ fill = "white", ...props }: IconProps) => {
   return (
     <Icon
       h="6"
-      w="7"
       viewBox="0 0 28 24"
+      w="7"
       xmlns="http://www.w3.org/2000/svg"
       {...props}
     >
