@@ -11,7 +11,8 @@
     "prettier": "prettier --write 'src/**/*.{js,jsx,ts,tsx,scss}'",
     "prepare": "husky install",
     "check-types": "tsc",
-    "validate": "npm run prettier & npm run lint:eslint & npm run check-types & npm run build"
+    "validate": "npm run prettier & npm run lint:eslint & npm run check-types & npm run build",
+    "export": "next build && next export"
   },
   "dependencies": {
     "@babel/core": "^7.20.5",
