@@ -1,7 +1,7 @@
 export const MENU_ITEMS = [
   {
     name: 'Drops',
-    href: '',
+    href: '/drops',
   },
   {
     name: 'Docs',
