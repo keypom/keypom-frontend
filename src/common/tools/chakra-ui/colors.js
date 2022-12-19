@@ -1,6 +1,6 @@
 export const colors = {
   border: {
-    box: 'linear-gradient(0deg, rgba(255,207,234,1) 0%, rgba(182,232,247,1) 100%)',
+    box: 'linear-gradient(white, white) padding-box, linear-gradient(0deg, rgba(255,207,234,1) 0%, rgba(182,232,247,1) 100%) border-box',
     round:
       'linear-gradient(0deg, #B6E8F7, #B6E8F7), linear-gradient(344.12deg, #EFFAFD 10.78%, #DDF4FA 88.63%)',
   },
