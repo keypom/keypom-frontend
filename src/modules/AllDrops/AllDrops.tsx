@@ -31,7 +31,7 @@ const TABLE_DATA = [
   },
   {
     name: 'The International',
-    type: 'Token',
+    type: 'Ticket',
     claimed: '10000 / 20000',
   },
   {

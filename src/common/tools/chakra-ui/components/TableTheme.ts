@@ -16,10 +16,10 @@ export const TableTheme = helpers.defineMultiStyleConfig({
     th: {
       textTransform: 'capitalize',
       _first: {
-        borderTopLeftRadius: '3xl',
+        borderTopLeftRadius: '26px',
       },
       _last: {
-        borderTopRightRadius: '3xl',
+        borderTopRightRadius: '26px',
       },
     },
     tr: {
@@ -54,6 +54,7 @@ export const TableTheme = helpers.defineMultiStyleConfig({
         bg: 'gray.100',
         color: 'gray.600',
         fontWeight: 'medium',
+        overflow: 'hidden',
       },
     },
   },
