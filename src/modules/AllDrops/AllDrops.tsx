@@ -10,6 +10,7 @@ import {
   Thead,
   Tr,
 } from '@chakra-ui/react';
+import { ChevronDownIcon } from '@chakra-ui/icons';
 
 import { PageHead } from '@/common/components/PageHead';
 import { Heading, Text } from '@/common/components/Typography';
@@ -89,8 +90,8 @@ export default function AllDrops() {
             </Badge>
           </Text>
         </Td>
-        <Td display="flex" justifyContent="right">
-          <Button size="sm" variant="action">
+        <Td verticalAlign="middle">
+          <Button float="right" size="sm" variant="action">
             <DeleteIcon color="red" />
           </Button>
         </Td>
@@ -107,12 +108,22 @@ export default function AllDrops() {
       {/* Header Bar */}
       <HStack alignItems="center" display="flex" spacing="auto">
         <Heading>All drops</Heading>
-        {/* Menu */}
-        <Menu items={MENU_ITEMS}>Create a drop</Menu>
+
+        {/* Desktop Dropdown Menu */}
+        <Show above="sm">
+          <Menu items={MENU_ITEMS}>Create a drop</Menu>
+        </Show>
+
+        {/* Mobile Menu Button */}
+        <Show below="sm">
+          <Button px="6" py="3" rightIcon={<ChevronDownIcon />} variant="secondary">
+            Create a drop
+          </Button>
+        </Show>
       </HStack>
 
       {/* Desktop Table */}
-      <Show above="md">
+      <Show above="sm">
         <TableContainer>
           <Table mt="30px">
             <Thead>
@@ -130,7 +141,7 @@ export default function AllDrops() {
       </Show>
 
       {/* Mobile Table */}
-      <Show below="md">
+      <Show below="sm">
         <TableContainer>
           <Table mt="30px">
             <Tbody>{getMobileTableBody()}</Tbody>
