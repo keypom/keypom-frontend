@@ -19,7 +19,7 @@ export const Footer = (props: FooterProps) => {
         gap="2"
         justifyContent="space-between"
         marginX="auto"
-        maxW="75rem"
+        maxW="63rem"
         px="5"
         py="6"
       >
