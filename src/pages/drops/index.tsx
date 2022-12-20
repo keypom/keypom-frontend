@@ -12,9 +12,7 @@ export default function AllDropsPage() {
         description="Page containing all drops created by user"
         name="All Drops"
       />
-      {/* Header Bar */}
       <AllDrops />
-      {/* Table */}
     </Box>
   );
 }
