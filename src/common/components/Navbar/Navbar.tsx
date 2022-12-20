@@ -25,7 +25,7 @@ export const Navbar = (props: NavbarProps) => {
         h="4rem"
         justifyContent="space-between"
         marginX="auto"
-        maxW="64rem"
+        maxW="75rem"
         mt={{ mt: 2, md: '4' }}
         px={5}
       >

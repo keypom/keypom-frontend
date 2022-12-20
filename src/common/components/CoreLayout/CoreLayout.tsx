@@ -18,7 +18,7 @@ export const CoreLayout = ({ children }: PropsWithChildren<CoreLayoutProps>) => 
       minH="100vh"
     >
       <Navbar w="full" />
-      <Box as="main" flex="1" maxW="63rem" mx="auto" px="5" w="full">
+      <Box as="main" flex="1" maxW="75rem" mx="auto" px="5" w="full">
         {children}
       </Box>
       <Footer w="full" />
