@@ -1,6 +1,6 @@
 import { defineStyleConfig } from '@chakra-ui/react';
 
-export const Button = defineStyleConfig({
+export const ButtonTheme = defineStyleConfig({
   baseStyle: {
     borderRadius: 'xl',
     fontWeight: 'medium',

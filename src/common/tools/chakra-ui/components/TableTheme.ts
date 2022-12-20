@@ -3,7 +3,7 @@ import { createMultiStyleConfigHelpers } from '@chakra-ui/styled-system';
 // This function creates a set of function that helps us create multipart component styles.
 const helpers = createMultiStyleConfigHelpers(['table', 'th', 'td']);
 
-export const Table = helpers.defineMultiStyleConfig({
+export const TableTheme = helpers.defineMultiStyleConfig({
   baseStyle: {
     table: {
       bg: 'border.box',
