@@ -19,8 +19,27 @@ import { PageHead } from '@/common/components/PageHead';
 import { Heading } from '@/common/components/Typography';
 import { Td } from '@/common/components/Table/Td';
 import { Table } from '@/common/components/Table/Table';
+import { DeleteIcon } from '@/common/components/Icons';
 
 import { DROPS_MENU_ITEMS } from './dropsMenuItems';
+
+const TABLE_DATA = [
+  {
+    name: 'Star Invader 3',
+    type: 'Token',
+    claimed: '90 / 100',
+  },
+  {
+    name: 'The International',
+    type: 'Token',
+    claimed: '10000 / 20000',
+  },
+  {
+    name: 'Trumpy Apes',
+    type: 'NFT',
+    claimed: '10 / 444',
+  },
+];
 
 export default function AllDrops() {
   const dropMenuItems = DROPS_MENU_ITEMS.map((item) => (
@@ -28,6 +47,22 @@ export default function AllDrops() {
       {item.name}
     </MenuItem>
   ));
+
+  const tableBody = TABLE_DATA.map((drop) => (
+    <Tr key={drop.name}>
+      <Td>{drop.name}</Td>
+      <Td>{drop.type}</Td>
+      <Td>
+        <Badge colorScheme="green">{drop.claimed} Claimed</Badge>
+      </Td>
+      <Td display="flex" justifyContent="right">
+        <Button size="sm" variant="action">
+          <DeleteIcon color="red" />
+        </Button>
+      </Td>
+    </Tr>
+  ));
+
   return (
     <Box minH="100%" minW="100%" mt="20">
       <PageHead
@@ -63,24 +98,11 @@ export default function AllDrops() {
               <Th>Drop name</Th>
               <Th>Drop Type</Th>
               <Th>Claimed</Th>
+              {/* Actions header */}
+              <Th></Th>
             </Tr>
           </Thead>
-          <Tbody>
-            <Tr>
-              <Td>Star Invader 3</Td>
-              <Td>Token</Td>
-              <Td>
-                <Badge colorScheme="green">90 / 100 Claimed</Badge>
-              </Td>
-            </Tr>
-            <Tr>
-              <Td>Maplestory vs DoTA</Td>
-              <Td>Ticket</Td>
-              <Td>
-                <Badge colorScheme="green">2000 / 3000 Claimed</Badge>
-              </Td>
-            </Tr>
-          </Tbody>
+          <Tbody>{tableBody}</Tbody>
         </Table>
       </TableContainer>
     </Box>

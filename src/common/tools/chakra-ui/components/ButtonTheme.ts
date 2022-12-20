@@ -45,6 +45,22 @@ export const ButtonTheme = defineStyleConfig({
         borderColor: 'blue.400',
       },
     },
+    action: {
+      border: '2px solid',
+      borderColor: 'gray.200',
+      color: 'gray.800',
+      bgColor: 'white',
+      borderRadius: '100%',
+      px: '8px',
+      _hover: {
+        bgColor: 'gray.200',
+      },
+      _focus: {
+        bgColor: 'gray.200',
+        border: '2px solid',
+        borderColor: 'blue.400',
+      },
+    },
   },
   defaultProps: {
     variant: 'primary',
