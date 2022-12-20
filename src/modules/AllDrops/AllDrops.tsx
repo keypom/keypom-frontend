@@ -65,7 +65,7 @@ export default function AllDrops() {
         <Td>{drop.name}</Td>
         <Td>{drop.type}</Td>
         <Td>
-          <Badge colorScheme="green">{drop.claimed} Claimed</Badge>
+          <Badge variant="lightgreen">{drop.claimed} Claimed</Badge>
         </Td>
         <Td display="flex" justifyContent="right">
           <Button size="sm" variant="action">
@@ -84,7 +84,7 @@ export default function AllDrops() {
             {drop.type}
           </Text>
           <Text>
-            <Badge colorScheme="green" mt="3">
+            <Badge mt="3" size="sm" variant="lightgreen">
               {drop.claimed} Claimed
             </Badge>
           </Text>
