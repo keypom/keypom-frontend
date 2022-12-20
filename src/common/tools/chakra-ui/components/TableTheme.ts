@@ -1,7 +1,7 @@
 import { createMultiStyleConfigHelpers } from '@chakra-ui/styled-system';
 
 // This function creates a set of function that helps us create multipart component styles.
-const helpers = createMultiStyleConfigHelpers(['table', 'th', 'td']);
+const helpers = createMultiStyleConfigHelpers(['table', 'th', 'td', 'tr']);
 
 export const TableTheme = helpers.defineMultiStyleConfig({
   baseStyle: {
@@ -10,27 +10,29 @@ export const TableTheme = helpers.defineMultiStyleConfig({
       border: '2px solid transparent',
       borderRadius: '3xl',
       variant: 'unstyled',
-      borderCollapse: 'separate',
+      borderCollapse: 'collapse',
       borderSpacing: 0,
     },
-    // table header row
     th: {
       textTransform: 'capitalize',
       _first: {
-        borderTopLeftRadius: '22px',
+        borderTopLeftRadius: '3xl',
       },
       _last: {
-        borderTopRightRadius: '22px',
+        borderTopRightRadius: '3xl',
       },
+    },
+    tr: {
+      borderBottom: '1px solid',
+      borderBottomColor: 'gray.100',
+      borderStyle: 'solid',
     },
   },
   sizes: {
     sm: {
-      td: {
-        fontSize: 'sm',
-      },
-      th: {
-        fontSize: 'sm',
+      tr: {
+        borderBottom: '2px solid',
+        borderBottomColor: 'gray.100',
       },
     },
     md: {

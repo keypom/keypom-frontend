@@ -1,7 +1,18 @@
-import { Badge, Box, Button, HStack, TableContainer, Tbody, Th, Thead, Tr } from '@chakra-ui/react';
+import {
+  Badge,
+  Box,
+  Button,
+  HStack,
+  Show,
+  TableContainer,
+  Tbody,
+  Th,
+  Thead,
+  Tr,
+} from '@chakra-ui/react';
 
 import { PageHead } from '@/common/components/PageHead';
-import { Heading } from '@/common/components/Typography';
+import { Heading, Text } from '@/common/components/Typography';
 import { Td } from '@/common/components/Table/Td';
 import { Table } from '@/common/components/Table/Table';
 import { DeleteIcon, LinkIcon } from '@/common/components/Icons';
@@ -48,21 +59,43 @@ const MENU_ITEMS: MenuItemProps[] = [
 ];
 
 export default function AllDrops() {
-  const tableBody = TABLE_DATA.map((drop) => (
-    <Tr key={drop.name}>
-      <Td>{drop.name}</Td>
-      <Td>{drop.type}</Td>
-      <Td>
-        <Badge colorScheme="green">{drop.claimed} Claimed</Badge>
-      </Td>
-      <Td display="flex" justifyContent="right">
-        <Button size="sm" variant="action">
-          <DeleteIcon color="red" />
-        </Button>
-      </Td>
-    </Tr>
-  ));
+  const getDesktopTableBody = () =>
+    TABLE_DATA.map((drop) => (
+      <Tr key={drop.name}>
+        <Td>{drop.name}</Td>
+        <Td>{drop.type}</Td>
+        <Td>
+          <Badge colorScheme="green">{drop.claimed} Claimed</Badge>
+        </Td>
+        <Td display="flex" justifyContent="right">
+          <Button size="sm" variant="action">
+            <DeleteIcon color="red" />
+          </Button>
+        </Td>
+      </Tr>
+    ));
 
+  const getMobileTableBody = () =>
+    TABLE_DATA.map((drop) => (
+      <Tr key={drop.name}>
+        <Td>
+          <Text color="gray.800">{drop.name}</Text>
+          <Text fontWeight="normal" mt="0.5">
+            {drop.type}
+          </Text>
+          <Text>
+            <Badge colorScheme="green" mt="3">
+              {drop.claimed} Claimed
+            </Badge>
+          </Text>
+        </Td>
+        <Td display="flex" justifyContent="right">
+          <Button size="sm" variant="action">
+            <DeleteIcon color="red" />
+          </Button>
+        </Td>
+      </Tr>
+    ));
   return (
     <Box minH="100%" minW="100%" mt="20">
       <PageHead
@@ -78,21 +111,32 @@ export default function AllDrops() {
         <Menu items={MENU_ITEMS}>Create a drop</Menu>
       </HStack>
 
-      {/* Table */}
-      <TableContainer>
-        <Table mt="30px">
-          <Thead>
-            <Tr>
-              <Th>Drop name</Th>
-              <Th>Drop Type</Th>
-              <Th>Claimed</Th>
-              {/* Actions header */}
-              <Th></Th>
-            </Tr>
-          </Thead>
-          <Tbody>{tableBody}</Tbody>
-        </Table>
-      </TableContainer>
+      {/* Desktop Table */}
+      <Show above="md">
+        <TableContainer>
+          <Table mt="30px">
+            <Thead>
+              <Tr>
+                <Th>Drop name</Th>
+                <Th>Drop Type</Th>
+                <Th>Claimed</Th>
+                {/* Actions header */}
+                <Th></Th>
+              </Tr>
+            </Thead>
+            <Tbody>{getDesktopTableBody()}</Tbody>
+          </Table>
+        </TableContainer>
+      </Show>
+
+      {/* Mobile Table */}
+      <Show below="md">
+        <TableContainer>
+          <Table mt="30px">
+            <Tbody>{getMobileTableBody()}</Tbody>
+          </Table>
+        </TableContainer>
+      </Show>
     </Box>
   );
 }
