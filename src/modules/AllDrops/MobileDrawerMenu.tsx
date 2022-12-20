@@ -36,11 +36,11 @@ export const MobileDrawerMenu = ({ isOpen, onClose }) => {
         bg="border.box"
         border="2px solid transparent"
         borderRadius="2xl"
-        bottom="0"
+        bottom="6px !important"
         marginX="auto"
         position="absolute"
         transform="translateX(0) translateY(0); !important"
-        w="99%"
+        w="99%" // to add gap on the side
       >
         <DrawerHeader fontSize="md" fontWeight="medium" pb="0" pt="6">
           Create a drop
