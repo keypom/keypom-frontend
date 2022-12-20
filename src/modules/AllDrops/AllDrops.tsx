@@ -15,8 +15,7 @@ import { ChevronDownIcon } from '@chakra-ui/icons';
 
 import { PageHead } from '@/common/components/PageHead';
 import { Heading, Text } from '@/common/components/Typography';
-import { Td } from '@/common/components/Table/Td';
-import { Table } from '@/common/components/Table/Table';
+import { Td, Table } from '@/common/components/Table';
 import { DeleteIcon } from '@/common/components/Icons';
 import { Menu } from '@/common/components/Menu';
 
