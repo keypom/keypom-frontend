@@ -1,27 +1,11 @@
-import {
-  Badge,
-  Box,
-  Button,
-  HStack,
-  Menu,
-  MenuButton,
-  MenuItem,
-  MenuList,
-  TableContainer,
-  Tbody,
-  Th,
-  Thead,
-  Tr,
-} from '@chakra-ui/react';
-import { ChevronDownIcon } from '@chakra-ui/icons';
+import { Badge, Box, Button, HStack, TableContainer, Tbody, Th, Thead, Tr } from '@chakra-ui/react';
 
 import { PageHead } from '@/common/components/PageHead';
 import { Heading } from '@/common/components/Typography';
 import { Td } from '@/common/components/Table/Td';
 import { Table } from '@/common/components/Table/Table';
-import { DeleteIcon } from '@/common/components/Icons';
-
-import { DROPS_MENU_ITEMS } from './dropsMenuItems';
+import { DeleteIcon, LinkIcon } from '@/common/components/Icons';
+import { Menu, MenuItemProps } from '@/common/components/Menu';
 
 const TABLE_DATA = [
   // sample data until we integrate with SDK
@@ -42,13 +26,28 @@ const TABLE_DATA = [
   },
 ];
 
-export default function AllDrops() {
-  const dropMenuItems = DROPS_MENU_ITEMS.map((item) => (
-    <MenuItem key={item.name} as="a" href={item.href}>
-      {item.name}
-    </MenuItem>
-  ));
+const MENU_ITEMS: MenuItemProps[] = [
+  {
+    label: 'Token drop',
+    as: 'a',
+    href: '/drop/new',
+    icon: <LinkIcon h="4" w="4" />,
+  },
+  {
+    label: 'NFT drop',
+    as: 'a',
+    href: '/drop/new',
+    icon: <LinkIcon h="4" w="4" />,
+  },
+  {
+    label: 'Ticket drop',
+    as: 'a',
+    href: '/drop/new',
+    icon: <LinkIcon h="4" w="4" />,
+  },
+];
 
+export default function AllDrops() {
   const tableBody = TABLE_DATA.map((drop) => (
     <Tr key={drop.name}>
       <Td>{drop.name}</Td>
@@ -71,24 +70,12 @@ export default function AllDrops() {
         description="Page containing all drops created by user"
         name="All Drops"
       />
+
       {/* Header Bar */}
-      <HStack spacing="auto">
+      <HStack alignItems="center" display="flex" spacing="auto">
         <Heading>All drops</Heading>
-        <Menu>
-          {({ isOpen }) => (
-            <>
-              <MenuButton
-                as={Button}
-                isActive={isOpen}
-                rightIcon={<ChevronDownIcon />}
-                variant="secondary"
-              >
-                Create a drop
-              </MenuButton>
-              <MenuList>{dropMenuItems}</MenuList>
-            </>
-          )}
-        </Menu>
+        {/* Menu */}
+        <Menu items={MENU_ITEMS}>Create a drop</Menu>
       </HStack>
 
       {/* Table */}
