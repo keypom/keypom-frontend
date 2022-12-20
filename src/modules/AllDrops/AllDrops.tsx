@@ -9,6 +9,7 @@ import {
   Th,
   Thead,
   Tr,
+  useDisclosure,
 } from '@chakra-ui/react';
 import { ChevronDownIcon } from '@chakra-ui/icons';
 
@@ -16,8 +17,11 @@ import { PageHead } from '@/common/components/PageHead';
 import { Heading, Text } from '@/common/components/Typography';
 import { Td } from '@/common/components/Table/Td';
 import { Table } from '@/common/components/Table/Table';
-import { DeleteIcon, LinkIcon } from '@/common/components/Icons';
-import { Menu, MenuItemProps } from '@/common/components/Menu';
+import { DeleteIcon } from '@/common/components/Icons';
+import { Menu } from '@/common/components/Menu';
+
+import { MobileDrawerMenu } from './MobileDrawerMenu';
+import { MENU_ITEMS } from './menuItems';
 
 const TABLE_DATA = [
   // sample data until we integrate with SDK
@@ -38,28 +42,8 @@ const TABLE_DATA = [
   },
 ];
 
-const MENU_ITEMS: MenuItemProps[] = [
-  {
-    label: 'Token drop',
-    as: 'a',
-    href: '/drop/new',
-    icon: <LinkIcon h="4" w="4" />,
-  },
-  {
-    label: 'NFT drop',
-    as: 'a',
-    href: '/drop/new',
-    icon: <LinkIcon h="4" w="4" />,
-  },
-  {
-    label: 'Ticket drop',
-    as: 'a',
-    href: '/drop/new',
-    icon: <LinkIcon h="4" w="4" />,
-  },
-];
-
 export default function AllDrops() {
+  const { isOpen, onOpen, onClose } = useDisclosure();
   const getDesktopTableBody = () =>
     TABLE_DATA.map((drop) => (
       <Tr key={drop.name}>
@@ -97,6 +81,7 @@ export default function AllDrops() {
         </Td>
       </Tr>
     ));
+
   return (
     <Box minH="100%" minW="100%" mt="20">
       <PageHead
@@ -116,7 +101,13 @@ export default function AllDrops() {
 
         {/* Mobile Menu Button */}
         <Show below="sm">
-          <Button px="6" py="3" rightIcon={<ChevronDownIcon />} variant="secondary">
+          <Button
+            px="6"
+            py="3"
+            rightIcon={<ChevronDownIcon />}
+            variant="secondary"
+            onClick={onOpen}
+          >
             Create a drop
           </Button>
         </Show>
@@ -147,6 +138,11 @@ export default function AllDrops() {
             <Tbody>{getMobileTableBody()}</Tbody>
           </Table>
         </TableContainer>
+      </Show>
+
+      {/* Mobile Menu For Creating Drop */}
+      <Show below="sm">
+        <MobileDrawerMenu isOpen={isOpen} onClose={onClose} />
       </Show>
     </Box>
   );
