@@ -1,23 +1,23 @@
-import { LinkIcon } from '@/common/components/Icons';
+import { LinkIcon, NFTIcon, TicketIcon } from '@/common/components/Icons';
 import { MenuItemProps } from '@/common/components/Menu';
 
 export const MENU_ITEMS: MenuItemProps[] = [
   {
-    label: 'Token drop',
+    label: 'Token Drop',
     as: 'a',
     href: '/drop/new',
     icon: <LinkIcon h="4" w="4" />,
   },
   {
-    label: 'NFT drop',
+    label: 'NFT Drop',
     as: 'a',
     href: '/drop/new',
-    icon: <LinkIcon h="4" w="4" />,
+    icon: <NFTIcon h="4" w="4" />,
   },
   {
-    label: 'Ticket drop',
+    label: 'Ticket Drop',
     as: 'a',
     href: '/drop/new',
-    icon: <LinkIcon h="4" w="4" />,
+    icon: <TicketIcon h="4" w="4" />,
   },
 ];

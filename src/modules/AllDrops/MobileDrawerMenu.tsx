@@ -16,14 +16,15 @@ export const MobileDrawerMenu = ({ isOpen, onClose }) => {
     MENU_ITEMS.map((item) => (
       <Button
         key={item.label}
-        as="a"
         borderRadius="lg"
         cursor="pointer"
         fontSize="sm"
         justifyContent="left"
         leftIcon={item.icon}
+        py="10px"
         variant="secondary"
         w="full"
+        {...item}
       >
         {item.label}
       </Button>
