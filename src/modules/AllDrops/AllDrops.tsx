@@ -24,6 +24,7 @@ import { DeleteIcon } from '@/common/components/Icons';
 import { DROPS_MENU_ITEMS } from './dropsMenuItems';
 
 const TABLE_DATA = [
+  // sample data until we integrate with SDK
   {
     name: 'Star Invader 3',
     type: 'Token',
@@ -37,7 +38,7 @@ const TABLE_DATA = [
   {
     name: 'Trumpy Apes',
     type: 'NFT',
-    claimed: '10 / 444',
+    claimed: '10 / 444', // Need to figure out what determines the badge color
   },
 ];
 
