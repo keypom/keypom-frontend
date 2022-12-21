@@ -1,5 +1,5 @@
-import { Box, BoxProps, Flex, HStack } from '@chakra-ui/react';
-import Link from 'next/link';
+import { Box, BoxProps, Flex, HStack, Link } from '@chakra-ui/react';
+import NextLink from 'next/link';
 
 import { KeypomLogo } from '@/common/components/KeypomLogo';
 
@@ -11,11 +11,11 @@ type NavbarProps = BoxProps;
 
 export const Navbar = (props: NavbarProps) => {
   const menuItems = MENU_ITEMS.map((item) => (
-    <Link key={item.name} passHref href={item.href}>
-      <Box as="a" fontSize={{ base: 'sm', md: 'md' }}>
+    <NextLink key={item.name} passHref href={item.href}>
+      <Box as={Link} fontSize={{ base: 'sm', md: 'md' }}>
         {item.name}
       </Box>
-    </Link>
+    </NextLink>
   ));
 
   return (

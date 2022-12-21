@@ -9,8 +9,9 @@ import {
   DrawerOverlay,
   useDisclosure,
   VStack,
+  Link,
 } from '@chakra-ui/react';
-import Link from 'next/link';
+import NextLink from 'next/link';
 import { useRef } from 'react';
 
 import { ConnectWalletButton } from '../ConnectWalletButton';
@@ -39,11 +40,11 @@ export const MobileMenu = () => {
             <VStack mt="10" spacing="4">
               {MENU_ITEMS.map(({ name, href }) => {
                 return (
-                  <Link key={name} passHref href={href}>
-                    <Box as="a" fontSize={{ base: 'sm', md: 'md' }} fontWeight="medium">
+                  <NextLink key={name} href={href}>
+                    <Box as={Link} fontSize={{ base: 'sm', md: 'md' }} fontWeight="medium">
                       {name}
                     </Box>
-                  </Link>
+                  </NextLink>
                 );
               })}
             </VStack>
