@@ -1,4 +1,4 @@
-import { Box, BoxProps, useToken } from '@chakra-ui/react';
+import { Box, BoxProps } from '@chakra-ui/react';
 import React, { PropsWithChildren } from 'react';
 
 import { RoundIcon } from './RoundIcon';
@@ -8,12 +8,10 @@ interface IconBoxProps extends BoxProps {
 }
 
 export const IconBox = ({ children, icon, ...props }: PropsWithChildren<IconBoxProps>) => {
-  const borderBgColor = useToken('colors', 'border.box');
-
   return (
     <Box
       // https://dev.to/rumansaleem/gradient-borders-with-css-3mnk
-      bg={`linear-gradient(white, white) padding-box, ${borderBgColor} border-box`}
+      bg="border.box"
       border="2px solid transparent"
       borderRadius="3xl"
       p="16"
