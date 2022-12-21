@@ -7,11 +7,11 @@ export const TableTheme = helpers.defineMultiStyleConfig({
   baseStyle: {
     table: {
       bg: 'border.box',
-      border: '2px solid transparent',
+      border: '2px solid',
       borderRadius: '3xl',
-      variant: 'unstyled',
       borderCollapse: 'collapse',
       borderSpacing: 0,
+      overflow: 'hidden',
     },
     th: {
       textTransform: 'capitalize',
