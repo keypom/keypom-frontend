@@ -26,7 +26,7 @@ export const Navbar = (props: NavbarProps) => {
         justifyContent="space-between"
         marginX="auto"
         maxW="75rem"
-        mt={{ mt: 2, md: '4' }}
+        mt={{ md: '4' }}
         px={5}
       >
         {/* Logo */}

@@ -82,7 +82,7 @@ export default function AllDrops() {
     ));
 
   return (
-    <Box minH="100%" minW="100%" mt="20">
+    <Box minH="100%" minW="100%">
       <PageHead
         removeTitleAppend
         description="Page containing all drops created by user"
@@ -133,7 +133,7 @@ export default function AllDrops() {
       {/* Mobile Table */}
       <Show below="sm">
         <TableContainer>
-          <Table mt="30px">
+          <Table mt="6">
             <Tbody>{getMobileTableBody()}</Tbody>
           </Table>
         </TableContainer>
