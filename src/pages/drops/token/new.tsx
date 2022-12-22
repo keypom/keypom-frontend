@@ -3,9 +3,11 @@ import { Box } from '@chakra-ui/react';
 import { PageHead } from '@/common/components/PageHead';
 import { IconBox } from '@/common/components/IconBox';
 import { LinkIcon } from '@/common/components/Icons';
+import { IBreadcrumbItem } from '@/common/components/Breadcrumbs';
 
-import { DropFlow, FlowPage } from '@/modules/CreateDrops/DropFlow';
+import { DropFlow } from '@/modules/CreateDrops/DropFlow';
 import { DropFlowProvider } from '@/modules/CreateDrops/contexts/DropFlowContext';
+import { FlowPage } from '@/modules/CreateDrops/types/types';
 
 const flowPages: FlowPage[] = [
   {
@@ -24,7 +26,7 @@ const flowPages: FlowPage[] = [
   },
 ];
 
-const breadcrumbs = [
+const breadcrumbs: IBreadcrumbItem[] = [
   {
     name: 'All drops',
     href: '/drops',

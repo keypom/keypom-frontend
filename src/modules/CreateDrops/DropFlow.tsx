@@ -6,12 +6,7 @@ import { useState } from 'react';
 import { IBreadcrumbItem } from '@/common/components/Breadcrumbs';
 
 import { DropLayout } from './DropLayout';
-
-export interface FlowPage {
-  name: string;
-  description: string;
-  component: React.ReactNode; // forms, summary. etc
-}
+import { FlowPage } from './types/types';
 
 interface DropFlowProps {
   flow: FlowPage[];
