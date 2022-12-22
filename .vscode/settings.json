@@ -6,5 +6,8 @@
   "files.autoSave": "onFocusChange",
   "[javascript]": {
     "editor.defaultFormatter": "dbaeumer.vscode-eslint"
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "dbaeumer.vscode-eslint"
   }, // optional but recommended
 }
