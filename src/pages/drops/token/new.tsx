@@ -6,16 +6,31 @@ import { LinkIcon } from '@/common/components/Icons';
 
 import { DropFlow } from '@/modules/drops/DropFlow';
 
-const FLOW = [
+const flow = [
   {
     name: 'form',
     description: 'Enter the details for your new Token Drop',
-    component: <IconBox icon={<LinkIcon />}>Create New Token Drop</IconBox>,
+    component: (
+      <IconBox icon={<LinkIcon />} width="full">
+        Create New Token Drop
+      </IconBox>
+    ),
   },
   {
     name: 'summary',
     description: 'Let’s make sure all your details are correct',
     component: <IconBox icon={<LinkIcon />}>Create New Token Drop</IconBox>,
+  },
+];
+
+const breadcrumbs = [
+  {
+    name: 'All drops',
+    href: '/drops',
+  },
+  {
+    name: 'New Token Drop',
+    href: '/drops/token/new',
   },
 ];
 
@@ -27,7 +42,7 @@ export default function NewTokenDrop() {
         description="Keypom create new token drop"
         name="New Token Drop"
       />
-      <DropFlow flow={FLOW} />
+      <DropFlow breadcrumbs={breadcrumbs} flow={flow} />
     </Box>
   );
 }

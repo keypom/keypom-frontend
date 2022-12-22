@@ -1,23 +1,32 @@
 // Generic layout for all drop
 
-import { ChevronRightIcon } from '@chakra-ui/icons';
-import { Box, Breadcrumb, BreadcrumbItem, BreadcrumbLink, Stack } from '@chakra-ui/react';
+import { Box, Flex } from '@chakra-ui/react';
+import { PropsWithChildren } from 'react';
 
-export const DropLayout = ({ children }) => {
+import { Breadcrumbs, IBreadcrumbItem } from '@/common/components/Breadcrumbs';
+import { Heading } from '@/common/components/Typography';
+
+interface DropLayoutProps {
+  breadcrumbs: IBreadcrumbItem[];
+  description: string;
+}
+
+export const DropLayout = ({
+  children,
+  breadcrumbs,
+  description,
+}: PropsWithChildren<DropLayoutProps>) => {
   return (
-    <Stack direction={{ base: 'column', md: 'row' }} maxW="1000px" spacing="auto">
-      <Box>
-        <Breadcrumb separator={<ChevronRightIcon color="gray.500" />} spacing="8px">
-          <BreadcrumbItem>
-            <BreadcrumbLink href="#">All drops</BreadcrumbLink>
-          </BreadcrumbItem>
-
-          <BreadcrumbItem>
-            <BreadcrumbLink href="#">New Token Drop</BreadcrumbLink>
-          </BreadcrumbItem>
-        </Breadcrumb>
+    <Flex
+      direction={{ base: 'column', md: 'row' }}
+      maxW={{ base: '21.5rem', md: '62.125rem' }}
+      mx="auto"
+    >
+      <Box flexGrow="1" maxW={{ base: 'full', md: '26.625rem' }}>
+        <Breadcrumbs items={breadcrumbs} />
+        <Heading mt="4">{description}</Heading>
       </Box>
-      <Box>{children}</Box>
-    </Stack>
+      <Box flexGrow="1">{children}</Box>
+    </Flex>
   );
 };

@@ -3,6 +3,8 @@
 
 import { useState } from 'react';
 
+import { IBreadcrumbItem } from '@/common/components/Breadcrumbs';
+
 import { DropLayout } from './DropLayout';
 
 export interface FlowPage {
@@ -13,10 +15,16 @@ export interface FlowPage {
 
 interface DropFlowProps {
   flow: FlowPage[];
+  breadcrumbs: IBreadcrumbItem[];
 }
 
-export const DropFlow = ({ flow }: DropFlowProps) => {
+// Flow controller component for navigating pages
+export const DropFlow = ({ flow, breadcrumbs }: DropFlowProps) => {
   const [currentPage, setPage] = useState(0);
 
-  return <DropLayout>Form</DropLayout>;
+  return (
+    <DropLayout breadcrumbs={breadcrumbs} description={flow[currentPage].description}>
+      {flow[currentPage].component}
+    </DropLayout>
+  );
 };
