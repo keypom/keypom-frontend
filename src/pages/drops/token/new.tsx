@@ -39,7 +39,7 @@ const breadcrumbs: IBreadcrumbItem[] = [
 
 export default function NewTokenDrop() {
   return (
-    <Box minH="100%" minW="100%" mt="20">
+    <Box minH="100%" minW="100%" mt={{ base: '52px', md: '100px' }}>
       <PageHead
         removeTitleAppend
         description="Keypom create new token drop"

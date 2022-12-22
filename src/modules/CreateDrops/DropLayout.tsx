@@ -26,9 +26,11 @@ export const DropLayout = ({ children }: PropsWithChildren) => {
     >
       <Box flexGrow="1" maxW={{ base: 'full', md: '26.625rem' }}>
         <Breadcrumbs items={breadcrumbs} />
-        <Heading mt="4">{description}</Heading>
+        <Heading mt={{ base: '2', md: '4' }}>{description}</Heading>
       </Box>
-      <Box flexGrow="1">{children}</Box>
+      <Box flexGrow="1" mt={{ base: '3.5rem', md: '0' }}>
+        {children}
+      </Box>
     </Flex>
   );
 };
