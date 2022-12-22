@@ -8,11 +8,6 @@ import { Heading } from '@/common/components/Typography';
 
 import { useDropFlowContext } from './contexts/DropFlowContext';
 
-// interface DropLayoutProps {
-//   breadcrumbs: IBreadcrumbItem[];
-//   description: string;
-// }
-
 export const DropLayout = ({ children }: PropsWithChildren) => {
   const {
     breadcrumbs,
