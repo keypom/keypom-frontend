@@ -4,9 +4,10 @@ import { PageHead } from '@/common/components/PageHead';
 import { IconBox } from '@/common/components/IconBox';
 import { LinkIcon } from '@/common/components/Icons';
 
-import { DropFlow } from '@/modules/drops/DropFlow';
+import { DropFlow, FlowPage } from '@/modules/CreateDrops/DropFlow';
+import { DropFlowProvider } from '@/modules/CreateDrops/contexts/DropFlowContext';
 
-const flow = [
+const flowPages: FlowPage[] = [
   {
     name: 'form',
     description: 'Enter the details for your new Token Drop',
@@ -42,7 +43,9 @@ export default function NewTokenDrop() {
         description="Keypom create new token drop"
         name="New Token Drop"
       />
-      <DropFlow breadcrumbs={breadcrumbs} flow={flow} />
+      <DropFlowProvider breadcrumbs={breadcrumbs} flowPages={flowPages}>
+        <DropFlow breadcrumbs={breadcrumbs} flow={flowPages} />
+      </DropFlowProvider>
     </Box>
   );
 }
