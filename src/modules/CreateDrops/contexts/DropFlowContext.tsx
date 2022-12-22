@@ -2,7 +2,7 @@ import React, { createContext, PropsWithChildren, useContext, useReducer } from 
 
 import { IBreadcrumbItem } from '@/common/components/Breadcrumbs';
 
-import { FlowPage } from '../DropFlow';
+import { IFlowPage } from '../types/types';
 
 interface IState {
   currentPageIndex: number;
@@ -10,7 +10,7 @@ interface IState {
 }
 
 interface DropFlowProviderProps {
-  flowPages: FlowPage[];
+  flowPages: IFlowPage[];
   breadcrumbs: IBreadcrumbItem[];
 }
 
@@ -20,6 +20,7 @@ const DropFlowContext = createContext({
   breadcrumbs: [],
   onNext: undefined,
   onPrevious: undefined,
+  currentFlowPage: undefined,
 });
 
 const dropFlowReducer = (state: IState, action): IState => {
@@ -71,6 +72,7 @@ export const DropFlowProvider = ({
     breadcrumbs,
     onNext,
     onPrevious,
+    currentFlowPage: flowPages[currentPageIndex],
   };
 
   return <DropFlowContext.Provider value={values}>{children}</DropFlowContext.Provider>;

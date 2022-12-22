@@ -3,19 +3,21 @@
 import { Box, Flex } from '@chakra-ui/react';
 import { PropsWithChildren } from 'react';
 
-import { Breadcrumbs, IBreadcrumbItem } from '@/common/components/Breadcrumbs';
+import { Breadcrumbs } from '@/common/components/Breadcrumbs';
 import { Heading } from '@/common/components/Typography';
 
-interface DropLayoutProps {
-  breadcrumbs: IBreadcrumbItem[];
-  description: string;
-}
+import { useDropFlowContext } from './contexts/DropFlowContext';
 
-export const DropLayout = ({
-  children,
-  breadcrumbs,
-  description,
-}: PropsWithChildren<DropLayoutProps>) => {
+// interface DropLayoutProps {
+//   breadcrumbs: IBreadcrumbItem[];
+//   description: string;
+// }
+
+export const DropLayout = ({ children }: PropsWithChildren) => {
+  const {
+    breadcrumbs,
+    currentFlowPage: { description },
+  } = useDropFlowContext();
   return (
     <Flex
       direction={{ base: 'column', md: 'row' }}

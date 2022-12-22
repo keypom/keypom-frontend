@@ -7,9 +7,9 @@ import { IBreadcrumbItem } from '@/common/components/Breadcrumbs';
 
 import { DropFlow } from '@/modules/CreateDrops/DropFlow';
 import { DropFlowProvider } from '@/modules/CreateDrops/contexts/DropFlowContext';
-import { FlowPage } from '@/modules/CreateDrops/types/types';
+import { IFlowPage } from '@/modules/CreateDrops/types/types';
 
-const flowPages: FlowPage[] = [
+const flowPages: IFlowPage[] = [
   {
     name: 'form',
     description: 'Enter the details for your new Token Drop',
@@ -46,7 +46,7 @@ export default function NewTokenDrop() {
         name="New Token Drop"
       />
       <DropFlowProvider breadcrumbs={breadcrumbs} flowPages={flowPages}>
-        <DropFlow breadcrumbs={breadcrumbs} flow={flowPages} />
+        <DropFlow />
       </DropFlowProvider>
     </Box>
   );
