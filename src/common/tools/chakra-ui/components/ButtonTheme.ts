@@ -45,7 +45,7 @@ export const ButtonTheme = defineStyleConfig({
         borderColor: 'blue.400',
       },
     },
-    action: {
+    icon: {
       border: '2px solid',
       borderColor: 'gray.200',
       color: 'gray.800',
@@ -61,6 +61,7 @@ export const ButtonTheme = defineStyleConfig({
         borderColor: 'blue.400',
       },
     },
+    pill: {},
   },
   defaultProps: {
     variant: 'primary',

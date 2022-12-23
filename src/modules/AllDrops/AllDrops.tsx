@@ -52,7 +52,7 @@ export default function AllDrops() {
           <Badge variant="lightgreen">{drop.claimed} Claimed</Badge>
         </Td>
         <Td display="flex" justifyContent="right">
-          <Button size="sm" variant="action">
+          <Button size="sm" variant="icon">
             <DeleteIcon color="red" />
           </Button>
         </Td>
@@ -74,7 +74,7 @@ export default function AllDrops() {
           </Text>
         </Td>
         <Td verticalAlign="middle">
-          <Button float="right" size="sm" variant="action">
+          <Button float="right" size="sm" variant="icon">
             <DeleteIcon color="red" />
           </Button>
         </Td>
