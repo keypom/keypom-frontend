@@ -66,12 +66,11 @@ export const WalletBalanceInput = ({
               borderRadius="md"
               height="8"
               isActive={isOpen}
-              position="absolute"
-
-              width="7.125rem"
               p="0"
-              // rightIcon={<ChevronDownIcon />}
+              position="absolute"
               variant="secondary"
+              width="7.125rem"
+              // rightIcon={<ChevronDownIcon />}
             >
               <HStack px="3">
                 {selectedWallet.icon}
