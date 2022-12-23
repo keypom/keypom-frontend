@@ -1,3 +1,4 @@
+export * from './CheckedIcon';
 export * from './DeleteIcon';
 export * from './HereLogoIcon';
 export * from './LinkIcon';
@@ -7,3 +8,4 @@ export * from './NearLogoIcon';
 export * from './NFTIcon';
 export * from './TicketIcon';
 export * from './TwitterLogoIcon';
+export * from './UncheckedIcon';

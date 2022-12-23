@@ -1,4 +1,5 @@
 import { Box, HStack, Input } from '@chakra-ui/react';
+import { useState } from 'react';
 
 import { IconBox } from '@/common/components/IconBox';
 import { HereLogoIcon, LinkIcon, MyNearLogoIcon, NearLogoIcon } from '@/common/components/Icons';
@@ -13,7 +14,7 @@ const WALLET_OPTIONS: ICheckbox[] = [
     icon: <NearLogoIcon height="7" width="5" />,
   },
   {
-    name: 'my NEAR Wallet',
+    name: 'My NEAR Wallet',
     value: 'my_near_wallet',
     icon: <MyNearLogoIcon height="6" width="5" />,
   },
@@ -25,6 +26,16 @@ const WALLET_OPTIONS: ICheckbox[] = [
 ];
 
 export const CreateTokenDropForm = () => {
+  const [checkboxes, setCheckboxes] = useState({
+    near_wallet: true,
+    my_near_wallet: false,
+    here_wallet: false,
+  });
+
+  const handleCheckboxChange = (value: string, isChecked: boolean) => {
+    setCheckboxes({ ...checkboxes, [value]: isChecked });
+  };
+
   return (
     <IconBox icon={<LinkIcon />} maxW={{ base: '21.5rem', md: '36rem' }}>
       <Box>
@@ -49,12 +60,7 @@ export const CreateTokenDropForm = () => {
         </FormControl>
 
         <FormControl helperText="Choose which wallet to set people up with." label="Wallets">
-          <Checkboxes
-            items={WALLET_OPTIONS}
-            onChange={(value, isChecked) => {
-              console.log(value, isChecked);
-            }}
-          />
+          <Checkboxes items={WALLET_OPTIONS} values={checkboxes} onChange={handleCheckboxChange} />
         </FormControl>
 
         <FormControl
