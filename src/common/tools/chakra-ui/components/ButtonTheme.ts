@@ -61,7 +61,11 @@ export const ButtonTheme = defineStyleConfig({
         borderColor: 'blue.400',
       },
     },
-    pill: {},
+    pill: {
+      borderRadius: '52px',
+      bg: 'border.box',
+      border: '1px solid transparent',
+    },
   },
   defaultProps: {
     variant: 'primary',
