@@ -29,10 +29,9 @@ export const DropFlowProvider = ({
   flowPages,
 }: PropsWithChildren<DropFlowProviderProps>) => {
   const [currentPageIndex, setCurrentPageIndex] = useState(0);
-  const [maxPages] = useState(flowPages.length);
 
   const onNext = () => {
-    if (currentPageIndex + 1 < maxPages) {
+    if (currentPageIndex + 1 < flowPages.length) {
       setCurrentPageIndex(currentPageIndex + 1);
     }
   };
