@@ -3,6 +3,10 @@ import {
   Box,
   Button,
   HStack,
+  Menu,
+  MenuButton,
+  MenuItem,
+  MenuList,
   Show,
   TableContainer,
   Tbody,
@@ -12,12 +16,12 @@ import {
   useDisclosure,
 } from '@chakra-ui/react';
 import { ChevronDownIcon } from '@chakra-ui/icons';
+import { useMemo } from 'react';
 
 import { PageHead } from '@/common/components/PageHead';
 import { Heading, Text } from '@/common/components/Typography';
 import { Td, Table } from '@/common/components/Table';
 import { DeleteIcon } from '@/common/components/Icons';
-import { Menu } from '@/common/components/Menu';
 
 import { MobileDrawerMenu } from './MobileDrawerMenu';
 import { MENU_ITEMS } from './menuItems';
@@ -43,6 +47,17 @@ const TABLE_DATA = [
 
 export default function AllDrops() {
   const { isOpen, onOpen, onClose } = useDisclosure();
+
+  const dropMenuItems = useMemo(
+    () =>
+      MENU_ITEMS.map((item) => (
+        <MenuItem key={item.label} {...item}>
+          {item.label}
+        </MenuItem>
+      )),
+    [],
+  );
+
   const getDesktopTableBody = () =>
     TABLE_DATA.map((drop) => (
       <Tr key={drop.name}>
@@ -95,7 +110,23 @@ export default function AllDrops() {
 
         {/* Desktop Dropdown Menu */}
         <Show above="sm">
-          <Menu items={MENU_ITEMS}>Create a drop</Menu>
+          <Menu>
+            {({ isOpen }) => (
+              <Box>
+                <MenuButton
+                  as={Button}
+                  isActive={isOpen}
+                  px="6"
+                  py="3"
+                  rightIcon={<ChevronDownIcon />}
+                  variant="secondary"
+                >
+                  Create a drop
+                </MenuButton>
+                <MenuList>{dropMenuItems}</MenuList>
+              </Box>
+            )}
+          </Menu>
         </Show>
 
         {/* Mobile Menu Button */}

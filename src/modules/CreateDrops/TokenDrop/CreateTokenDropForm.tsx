@@ -1,11 +1,11 @@
-import { Box, HStack, Input } from '@chakra-ui/react';
-import { useState } from 'react';
+import { Box, Input } from '@chakra-ui/react';
+import { useEffect, useState } from 'react';
 
 import { IconBox } from '@/common/components/IconBox';
 import { HereLogoIcon, LinkIcon, MyNearLogoIcon, NearLogoIcon } from '@/common/components/Icons';
 import { FormControl } from '@/common/components/FormControl';
-import { Text } from '@/common/components/Typography';
 import { Checkboxes, ICheckbox } from '@/common/components/Checkboxes';
+import { IWalletBalance, WalletBalanceInput } from '@/common/components/WalletBalanceInput';
 
 const WALLET_OPTIONS: ICheckbox[] = [
   {
@@ -25,15 +25,49 @@ const WALLET_OPTIONS: ICheckbox[] = [
   },
 ];
 
+const WALLET_BALANCES = [
+  {
+    amount: 500,
+    symbol: 'NEAR',
+    icon: <NearLogoIcon height="4" width="4" />,
+  },
+  {
+    amount: 1000,
+    symbol: 'USDC',
+    icon: <MyNearLogoIcon height="5" width="5" />,
+  },
+  {
+    amount: 10,
+    symbol: 'ETH',
+    icon: <HereLogoIcon height="4" width="4" />,
+  },
+];
+
 export const CreateTokenDropForm = () => {
+  const [selectedWallet, setSelectedWallet] = useState<IWalletBalance>(WALLET_BALANCES[0]);
+  const [amountPerLink, setAmountPerLink] = useState<number | undefined>();
+  const [totalCost, setTotalCost] = useState(0);
+
+  const [totalLinks, setTotalLinks] = useState(0);
+
   const [checkboxes, setCheckboxes] = useState({
     near_wallet: true,
     my_near_wallet: false,
     here_wallet: false,
   });
 
+  useEffect(() => {
+    if (totalLinks && amountPerLink) {
+      setTotalCost(totalLinks * amountPerLink);
+    }
+  }, [totalLinks, amountPerLink]);
+
   const handleCheckboxChange = (value: string, isChecked: boolean) => {
     setCheckboxes({ ...checkboxes, [value]: isChecked });
+  };
+
+  const handleWalletChange = (walletSymbol: string) => {
+    setSelectedWallet(WALLET_BALANCES.find((wallet) => wallet.symbol === walletSymbol));
   };
 
   return (
@@ -44,19 +78,22 @@ export const CreateTokenDropForm = () => {
         </FormControl>
 
         <FormControl label="Number of links">
-          <Input placeholder="1 - 10,000" type="number" />
+          <Input
+            placeholder="1 - 10,000"
+            type="number"
+            onChange={(e) => setTotalLinks(parseInt(e.target.value))}
+          />
         </FormControl>
 
         <FormControl label="Amount per link">
-          <Input placeholder="Enter an amount" type="number" />
-          <HStack mt="1.5" spacing="auto">
-            <Text color="gray.400" fontSize="sm">
-              Total cost 50 NEAR
-            </Text>
-            <Text color="gray.400" fontSize="sm">
-              Balance: 500 NEAR
-            </Text>
-          </HStack>
+          <WalletBalanceInput
+            amountValue={amountPerLink}
+            selectedWallet={selectedWallet}
+            totalCost={totalCost}
+            walletBalances={WALLET_BALANCES}
+            onAmountChange={(val) => setAmountPerLink(parseFloat(val))}
+            onOptionClick={handleWalletChange}
+          />
         </FormControl>
 
         <FormControl helperText="Choose which wallet to set people up with." label="Wallets">
