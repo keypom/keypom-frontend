@@ -8,6 +8,7 @@ export const InputTheme = helpers.defineMultiStyleConfig({
     md: {
       field: {
         borderRadius: 'xl',
+        height: '12',
       },
     },
   },

@@ -56,8 +56,13 @@ export const WalletBalanceInput = ({
       : '';
 
   return (
-    <Box>
-      <Input type="number" value={amountValue} onChange={(e) => onAmountChange(e.target.value)} />
+    <Box position="relative">
+      <Input
+        placeholder="Enter an amount"
+        type="number"
+        value={amountValue}
+        onChange={(e) => onAmountChange(e.target.value)}
+      />
       <Menu>
         {({ isOpen }) => (
           <Box>
@@ -68,13 +73,17 @@ export const WalletBalanceInput = ({
               isActive={isOpen}
               p="0"
               position="absolute"
+              right="3"
+              top="2"
               variant="secondary"
               width="7.125rem"
-              // rightIcon={<ChevronDownIcon />}
+              zIndex="2"
             >
               <HStack px="3">
                 {selectedWallet.icon}
-                <Text fontWeight="medium">{selectedWallet.symbol}</Text>
+                <Text fontWeight="medium" lineHeight="2">
+                  {selectedWallet.symbol}
+                </Text>
                 <ChevronDownIcon />
               </HStack>
             </MenuButton>
