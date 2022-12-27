@@ -20,7 +20,6 @@ export interface IWalletBalance {
 }
 
 interface WalletBalanceInputProps {
-  name: string;
   selectedWallet: IWalletBalance;
   walletBalances: IWalletBalance[];
   onAmountChange: (amountValue: string) => void;

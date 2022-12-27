@@ -1,5 +1,6 @@
 import { Box, Input } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
 
 import { IconBox } from '@/common/components/IconBox';
 import { HereLogoIcon, LinkIcon, MyNearLogoIcon, NearLogoIcon } from '@/common/components/Icons';
@@ -44,6 +45,13 @@ const WALLET_BALANCES = [
 ];
 
 export const CreateTokenDropForm = () => {
+  const {
+    register,
+    setValue,
+    handleSubmit,
+    formState: { errors },
+  } = useForm();
+
   const [selectedWallet, setSelectedWallet] = useState<IWalletBalance>(WALLET_BALANCES[0]);
   const [amountPerLink, setAmountPerLink] = useState<number | undefined>();
   const [totalCost, setTotalCost] = useState(0);
@@ -64,6 +72,7 @@ export const CreateTokenDropForm = () => {
 
   const handleCheckboxChange = (value: string, isChecked: boolean) => {
     setCheckboxes({ ...checkboxes, [value]: isChecked });
+    setValue('checkbox', isChecked, { shouldValidate: true });
   };
 
   const handleWalletChange = (walletSymbol: string) => {
@@ -74,7 +83,7 @@ export const CreateTokenDropForm = () => {
     <IconBox icon={<LinkIcon />} maxW={{ base: '21.5rem', md: '36rem' }}>
       <Box>
         <FormControl helperText="Will be shown on the claim page" label="Token Drop name">
-          <Input placeholder="Star Invasion Beta Invites" type="text" />
+          <Input placeholder="Star Invasion Beta Invites" type="text" {...register('dropName')} />
         </FormControl>
 
         <FormControl label="Number of links">
@@ -82,6 +91,7 @@ export const CreateTokenDropForm = () => {
             placeholder="1 - 10,000"
             type="number"
             onChange={(e) => setTotalLinks(parseInt(e.target.value))}
+            {...register('numberOfLinks')}
           />
         </FormControl>
 
@@ -93,6 +103,7 @@ export const CreateTokenDropForm = () => {
             walletBalances={WALLET_BALANCES}
             onAmountChange={(val) => setAmountPerLink(parseFloat(val))}
             onOptionClick={handleWalletChange}
+            {...register('amountPerLink')}
           />
         </FormControl>
 
@@ -104,7 +115,7 @@ export const CreateTokenDropForm = () => {
           helperText="Where should the user be sent after signing up?"
           label="Redirect link (optional)"
         >
-          <Input placeholder="mark@hotmail.com" type="number" />
+          <Input placeholder="mark@hotmail.com" type="text" {...register('directLink')} />
         </FormControl>
       </Box>
     </IconBox>
