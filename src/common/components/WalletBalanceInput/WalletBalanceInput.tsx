@@ -20,6 +20,7 @@ export interface IWalletBalance {
 }
 
 interface WalletBalanceInputProps {
+  name: string;
   selectedWallet: IWalletBalance;
   walletBalances: IWalletBalance[];
   onAmountChange: (amountValue: string) => void;
@@ -27,6 +28,9 @@ interface WalletBalanceInputProps {
   amountValue: number;
   totalCost: number;
 }
+
+// TODO: Refactor to use Multi part config so that parent container
+// can directly access MenuButton props directly
 
 export const WalletBalanceInput = ({
   amountValue,

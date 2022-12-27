@@ -25,7 +25,8 @@
     "framer-motion": "^7.6.19",
     "next": "^12.3.4",
     "react": "^18.1.0",
-    "react-dom": "^18.1.0"
+    "react-dom": "^18.1.0",
+    "react-hook-form": "^7.41.1"
   },
   "devDependencies": {
     "@tsconfig/next": "^1.0.2",
