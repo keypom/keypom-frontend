@@ -58,7 +58,7 @@ export const CreateTokenDropForm = () => {
   const { register, setValue, getValues } = methods;
   const [totalCost, setTotalCost] = useState(0);
 
-  const { selectedFromWallet, amountPerLink, totalLinks, selectedToWallets } = getValues();
+  const { selectedFromWallet, amountPerLink, totalLinks } = getValues();
 
   useEffect(() => {
     if (totalLinks && amountPerLink) {
@@ -78,7 +78,7 @@ export const CreateTokenDropForm = () => {
     );
   };
 
-  console.log(getValues());
+  // console.log(getValues());
 
   return (
     <FormProvider {...methods}>
