@@ -25,17 +25,17 @@ export const WALLET_OPTIONS: ICheckbox[] = [
 
 export const TOKEN_BALANCES = [
   {
-    amount: 500,
+    amount: '500',
     symbol: 'NEAR',
     icon: <NearLogoIcon height="4" width="4" />,
   },
   {
-    amount: 1000,
+    amount: '1000',
     symbol: 'USDC',
     icon: <MyNearLogoIcon height="5" width="5" />,
   },
   {
-    amount: 10,
+    amount: '10',
     symbol: 'ETH',
     icon: <HereLogoIcon height="4" width="4" />,
   },

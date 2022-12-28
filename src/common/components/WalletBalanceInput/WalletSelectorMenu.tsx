@@ -14,7 +14,7 @@ import { Text } from '../Typography';
 
 export interface ITokenBalance {
   symbol: string;
-  amount: number;
+  amount: string;
   icon: React.ReactNode;
 }
 
