@@ -1,6 +1,6 @@
 import { Button, Input } from '@chakra-ui/react';
 import { useMemo } from 'react';
-import { Controller, useForm } from 'react-hook-form';
+import { Controller, useFormContext } from 'react-hook-form';
 
 import { IconBox } from '@/common/components/IconBox';
 import { LinkIcon } from '@/common/components/Icons';
@@ -11,16 +11,7 @@ import { WalletBalanceInput } from '@/common/components/WalletBalanceInput';
 import { TOKEN_BALANCES, WALLET_OPTIONS } from './data';
 
 export const CreateTokenDropForm = () => {
-  const { setValue, handleSubmit, control, watch } = useForm({
-    defaultValues: {
-      dropName: '',
-      selectedFromWallet: TOKEN_BALANCES[0],
-      selectedToWallets: [],
-      totalLinks: undefined,
-      amountPerLink: undefined,
-      redirectLink: '',
-    },
-  });
+  const { setValue, handleSubmit, control, watch } = useFormContext();
 
   const [selectedFromWallet, amountPerLink, totalLinks] = watch([
     'selectedFromWallet',

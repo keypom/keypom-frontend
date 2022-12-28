@@ -3,6 +3,7 @@ import { Box } from '@chakra-ui/react';
 import { PageHead } from '@/common/components/PageHead';
 
 import { CreateTokenDropForm } from '@/modules/CreateDrops/TokenDrop/CreateTokenDropForm';
+import { CreateTokenDropProvider } from '@/modules/CreateDrops/TokenDrop/CreateTokenDropContext';
 
 export default function NewDropPage() {
   return (
@@ -12,7 +13,9 @@ export default function NewDropPage() {
         description="Page containing all drops created by user"
         name="All Drops"
       />
-      <CreateTokenDropForm />
+      <CreateTokenDropProvider>
+        <CreateTokenDropForm />
+      </CreateTokenDropProvider>
     </Box>
   );
 }
