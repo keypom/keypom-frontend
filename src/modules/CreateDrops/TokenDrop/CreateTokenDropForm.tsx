@@ -27,10 +27,8 @@ export const CreateTokenDropForm = () => {
   }, [amountPerLink, totalLinks]);
 
   const handleWalletChange = (walletSymbol: string) => {
-    setValue(
-      'selectedFromWallet',
-      TOKEN_BALANCES.find((wallet) => wallet.symbol === walletSymbol),
-    );
+    const { symbol, amount } = TOKEN_BALANCES.find((wallet) => wallet.symbol === walletSymbol);
+    setValue('selectedFromWallet', { symbol, amount });
   };
 
   const handleSubmitClick = (data) => console.log(data);
