@@ -1,4 +1,4 @@
-import { Button, Input } from '@chakra-ui/react';
+import { Box, Button, Input } from '@chakra-ui/react';
 import { useMemo } from 'react';
 import { Controller, useFormContext } from 'react-hook-form';
 
@@ -41,11 +41,18 @@ export const CreateTokenDropForm = () => {
         <Controller
           control={control}
           name="dropName"
-          render={({ field }) => (
-            <FormControl helperText="Will be shown on the claim page" label="Token Drop name">
-              <Input placeholder="Star Invasion Beta Invites" type="text" {...field} />
-            </FormControl>
-          )}
+          render={({ field, fieldState: { error } }) => {
+            console.log({ error });
+            return (
+              <FormControl
+                // errorText={error.message}
+                helperText="Will be shown on the claim page"
+                label="Token Drop name"
+              >
+                <Input placeholder="Star Invasion Beta Invites" type="text" {...field} />
+              </FormControl>
+            );
+          }}
         />
 
         <Controller
@@ -107,8 +114,11 @@ export const CreateTokenDropForm = () => {
             </FormControl>
           )}
         />
-
-        <Button type="submit">Continue to summary</Button>
+        <Box>
+          <Button ml="auto" mt="10" type="submit">
+            Continue to summary
+          </Button>
+        </Box>
       </form>
     </IconBox>
   );

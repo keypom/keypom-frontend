@@ -1,9 +1,14 @@
-import React, { createContext, PropsWithChildren, useContext } from 'react';
+import React, { PropsWithChildren } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
 
 import { TOKEN_BALANCES } from './data';
 
-const CreateTokenDropContext = createContext({});
+const schema = z.object({
+  name: z.string(),
+  age: z.number(),
+});
 
 /**
  *
@@ -19,9 +24,8 @@ export const CreateTokenDropProvider = ({ children }: PropsWithChildren) => {
       amountPerLink: undefined,
       redirectLink: '',
     },
+    resolver: zodResolver,
   });
 
   return <FormProvider {...methods}>{children}</FormProvider>;
 };
-
-export const useCreateTokenDropContext = () => useContext(CreateTokenDropContext);
