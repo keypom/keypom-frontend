@@ -3,46 +3,12 @@ import { useMemo } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 
 import { IconBox } from '@/common/components/IconBox';
-import { HereLogoIcon, LinkIcon, MyNearLogoIcon, NearLogoIcon } from '@/common/components/Icons';
+import { LinkIcon } from '@/common/components/Icons';
 import { FormControl } from '@/common/components/FormControl';
-import { Checkboxes, ICheckbox } from '@/common/components/Checkboxes';
+import { Checkboxes } from '@/common/components/Checkboxes';
 import { WalletBalanceInput } from '@/common/components/WalletBalanceInput';
 
-const WALLET_OPTIONS: ICheckbox[] = [
-  {
-    name: 'NEAR Wallet',
-    value: 'near_wallet',
-    icon: <NearLogoIcon height="7" width="5" />,
-  },
-  {
-    name: 'My NEAR Wallet',
-    value: 'my_near_wallet',
-    icon: <MyNearLogoIcon height="6" width="5" />,
-  },
-  {
-    name: 'HERE Wallet',
-    value: 'here_wallet',
-    icon: <HereLogoIcon height="7" width="5" />,
-  },
-];
-
-const TOKEN_BALANCES = [
-  {
-    amount: 500,
-    symbol: 'NEAR',
-    icon: <NearLogoIcon height="4" width="4" />,
-  },
-  {
-    amount: 1000,
-    symbol: 'USDC',
-    icon: <MyNearLogoIcon height="5" width="5" />,
-  },
-  {
-    amount: 10,
-    symbol: 'ETH',
-    icon: <HereLogoIcon height="4" width="4" />,
-  },
-];
+import { TOKEN_BALANCES, WALLET_OPTIONS } from './data';
 
 export const CreateTokenDropForm = () => {
   const { setValue, handleSubmit, control, watch } = useForm({
