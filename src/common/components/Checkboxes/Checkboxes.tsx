@@ -1,4 +1,5 @@
-import { Box, Checkbox, VStack } from '@chakra-ui/react';
+import { Box, Checkbox, useCheckboxGroup, VStack } from '@chakra-ui/react';
+import { useEffect } from 'react';
 
 import { CheckedIcon, UncheckedIcon } from '../Icons';
 
@@ -9,20 +10,33 @@ export interface ICheckbox {
 }
 
 interface CheckboxesProps {
-  items: ICheckbox[]; //
-  values: {
-    // Map of value:boolean pairs for checkboxes values
-    [key: string]: boolean;
-  };
-  onChange: (value: string, isChecked: boolean) => void;
+  items: ICheckbox[];
+  defaultValues: string[];
+  onChange: (value: (string | number)[]) => void;
 }
 
-export const Checkboxes = ({ items = [], values = {}, onChange }: CheckboxesProps) => {
+/**
+ *
+ * values would be array
+ *
+ */
+
+export const Checkboxes = ({ items = [], defaultValues = [], onChange }: CheckboxesProps) => {
+  const { value, getCheckboxProps } = useCheckboxGroup({
+    defaultValue: defaultValues,
+  });
+
+  useEffect(() => {
+    onChange(value);
+  }, [value, onChange]);
+
   const checkboxes = items.map((item) => {
-    const isChecked = values[item.value];
+    // const isChecked = val.includes(item.value);
+    const { isChecked } = getCheckboxProps({ value: item.value });
     return (
       <Checkbox
         key={item.value}
+        checked
         border="1px solid"
         borderColor={isChecked ? 'blue.400' : 'gray.200'}
         borderRadius="xl"
@@ -32,8 +46,9 @@ export const Checkboxes = ({ items = [], values = {}, onChange }: CheckboxesProp
         iconColor="blue.400"
         iconSize="1.375rem"
         p="4"
+        value={item.value}
         w="full"
-        onChange={(e) => onChange(item.value, e.target.checked)}
+        {...getCheckboxProps({ value: item.value })}
       >
         <Box alignItems="center" display="flex">
           {item.icon && (
@@ -46,5 +61,6 @@ export const Checkboxes = ({ items = [], values = {}, onChange }: CheckboxesProp
       </Checkbox>
     );
   });
+
   return <VStack align="flex-start">{checkboxes}</VStack>;
 };

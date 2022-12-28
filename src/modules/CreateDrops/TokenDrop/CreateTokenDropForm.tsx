@@ -1,12 +1,12 @@
 import { Box, Input } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { FormProvider, useForm } from 'react-hook-form';
 
 import { IconBox } from '@/common/components/IconBox';
 import { HereLogoIcon, LinkIcon, MyNearLogoIcon, NearLogoIcon } from '@/common/components/Icons';
 import { FormControl } from '@/common/components/FormControl';
 import { Checkboxes, ICheckbox } from '@/common/components/Checkboxes';
-import { IWalletBalance, WalletBalanceInput } from '@/common/components/WalletBalanceInput';
+import { WalletBalanceInput } from '@/common/components/WalletBalanceInput';
 
 const WALLET_OPTIONS: ICheckbox[] = [
   {
@@ -26,7 +26,7 @@ const WALLET_OPTIONS: ICheckbox[] = [
   },
 ];
 
-const WALLET_BALANCES = [
+const TOKEN_BALANCES = [
   {
     amount: 500,
     symbol: 'NEAR',
@@ -45,24 +45,20 @@ const WALLET_BALANCES = [
 ];
 
 export const CreateTokenDropForm = () => {
-  const {
-    register,
-    setValue,
-    handleSubmit,
-    formState: { errors },
-  } = useForm();
-
-  const [selectedWallet, setSelectedWallet] = useState<IWalletBalance>(WALLET_BALANCES[0]);
-  const [amountPerLink, setAmountPerLink] = useState<number | undefined>();
+  const methods = useForm({
+    defaultValues: {
+      dropName: '',
+      selectedFromWallet: TOKEN_BALANCES[0],
+      selectedToWallets: [],
+      totalLinks: undefined,
+      amountPerLink: undefined,
+      redirectLink: '',
+    },
+  });
+  const { register, setValue, getValues } = methods;
   const [totalCost, setTotalCost] = useState(0);
 
-  const [totalLinks, setTotalLinks] = useState(0);
-
-  const [checkboxes, setCheckboxes] = useState({
-    near_wallet: true,
-    my_near_wallet: false,
-    here_wallet: false,
-  });
+  const { selectedFromWallet, amountPerLink, totalLinks, selectedToWallets } = getValues();
 
   useEffect(() => {
     if (totalLinks && amountPerLink) {
@@ -70,54 +66,69 @@ export const CreateTokenDropForm = () => {
     }
   }, [totalLinks, amountPerLink]);
 
-  const handleCheckboxChange = (value: string, isChecked: boolean) => {
-    setCheckboxes({ ...checkboxes, [value]: isChecked });
-    setValue('checkbox', isChecked, { shouldValidate: true });
-  };
+  // const handleCheckboxChange = (value: string, isChecked: boolean) => {
+  //   setCheckboxes({ ...checkboxes, [value]: isChecked });
+  //   setValue('checkbox', isChecked, { shouldValidate: true });
+  // };
 
   const handleWalletChange = (walletSymbol: string) => {
-    setSelectedWallet(WALLET_BALANCES.find((wallet) => wallet.symbol === walletSymbol));
+    setValue(
+      'selectedFromWallet',
+      TOKEN_BALANCES.find((wallet) => wallet.symbol === walletSymbol),
+    );
   };
 
+  console.log(getValues());
+
   return (
-    <IconBox icon={<LinkIcon />} maxW={{ base: '21.5rem', md: '36rem' }}>
-      <Box>
-        <FormControl helperText="Will be shown on the claim page" label="Token Drop name">
-          <Input placeholder="Star Invasion Beta Invites" type="text" {...register('dropName')} />
-        </FormControl>
+    <FormProvider {...methods}>
+      <IconBox icon={<LinkIcon />} maxW={{ base: '21.5rem', md: '36rem' }}>
+        <Box>
+          <FormControl helperText="Will be shown on the claim page" label="Token Drop name">
+            <Input placeholder="Star Invasion Beta Invites" type="text" {...register('dropName')} />
+          </FormControl>
 
-        <FormControl label="Number of links">
-          <Input
-            placeholder="1 - 10,000"
-            type="number"
-            onChange={(e) => setTotalLinks(parseInt(e.target.value))}
-            {...register('numberOfLinks')}
-          />
-        </FormControl>
+          <FormControl label="Number of links">
+            <Input
+              placeholder="1 - 10,000"
+              type="number"
+              {...register('totalLinks', { valueAsNumber: true })}
+            />
+          </FormControl>
 
-        <FormControl label="Amount per link">
-          <WalletBalanceInput
-            amountValue={amountPerLink}
-            selectedWallet={selectedWallet}
-            totalCost={totalCost}
-            walletBalances={WALLET_BALANCES}
-            onAmountChange={(val) => setAmountPerLink(parseFloat(val))}
-            onOptionClick={handleWalletChange}
-            {...register('amountPerLink')}
-          />
-        </FormControl>
+          <FormControl label="Amount per link">
+            <WalletBalanceInput {...register('amountPerLink', { valueAsNumber: true })}>
+              <WalletBalanceInput.TokenMenu
+                selectedWallet={getValues('selectedFromWallet')}
+                tokens={TOKEN_BALANCES}
+                onChange={handleWalletChange}
+              />
+              <WalletBalanceInput.CostDisplay
+                balanceAmount={selectedFromWallet.amount}
+                symbol={selectedFromWallet.symbol}
+                totalCost={totalCost}
+              />
+            </WalletBalanceInput>
+          </FormControl>
 
-        <FormControl helperText="Choose which wallet to set people up with." label="Wallets">
-          <Checkboxes items={WALLET_OPTIONS} values={checkboxes} onChange={handleCheckboxChange} />
-        </FormControl>
+          <FormControl helperText="Choose which wallet to set people up with." label="Wallets">
+            <Checkboxes
+              defaultValues={['near_wallet']}
+              items={WALLET_OPTIONS}
+              onChange={(value) => {
+                setValue('selectedToWallets', value);
+              }}
+            />
+          </FormControl>
 
-        <FormControl
-          helperText="Where should the user be sent after signing up?"
-          label="Redirect link (optional)"
-        >
-          <Input placeholder="mark@hotmail.com" type="text" {...register('directLink')} />
-        </FormControl>
-      </Box>
-    </IconBox>
+          <FormControl
+            helperText="Where should the user be sent after signing up?"
+            label="Redirect link (optional)"
+          >
+            <Input placeholder="mark@hotmail.com" type="text" {...register('redirectLink')} />
+          </FormControl>
+        </Box>
+      </IconBox>
+    </FormProvider>
   );
 };

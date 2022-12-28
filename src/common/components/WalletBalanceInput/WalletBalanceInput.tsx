@@ -1,107 +1,17 @@
-import { ChevronDownIcon } from '@chakra-ui/icons';
-import {
-  Box,
-  Button,
-  HStack,
-  Input,
-  Menu,
-  MenuButton,
-  MenuItem,
-  MenuList,
-  VStack,
-} from '@chakra-ui/react';
+import { Box, Input, InputProps } from '@chakra-ui/react';
+import { PropsWithChildren } from 'react';
 
-import { Text } from '../Typography';
+import { CostDisplay } from './CostDisplay';
+import { WalletSelectorMenu } from './WalletSelectorMenu';
 
-export interface IWalletBalance {
-  symbol: string;
-  amount: number;
-  icon: React.ReactNode;
-}
-
-interface WalletBalanceInputProps {
-  selectedWallet: IWalletBalance;
-  walletBalances: IWalletBalance[];
-  onAmountChange: (amountValue: string) => void;
-  onOptionClick: (walletSymbol: string) => void;
-  amountValue: number;
-  totalCost: number;
-}
-
-// TODO: Refactor to use Multi part config so that parent container
-// can directly access MenuButton props directly
-
-export const WalletBalanceInput = ({
-  amountValue,
-  selectedWallet,
-  walletBalances = [],
-  onAmountChange,
-  onOptionClick,
-  totalCost,
-}: WalletBalanceInputProps) => {
-  const balancesMenuList = walletBalances.map((wallet) => (
-    <MenuItem key={wallet.symbol} onClick={() => onOptionClick(wallet.symbol)}>
-      <HStack>
-        <Box mr="3">{wallet.icon}</Box>
-        <VStack align="flex-start">
-          <Text>{wallet.symbol}</Text>
-          <Text color="gray.400" size="sm">
-            Balance: {wallet.amount} {wallet.symbol}
-          </Text>
-        </VStack>
-      </HStack>
-    </MenuItem>
-  ));
-
-  const totalCostText =
-    totalCost !== undefined && !Number.isNaN(totalCost)
-      ? `Total cost: ${totalCost} ${selectedWallet.symbol}`
-      : '';
-
+export const WalletBalanceInput = ({ children, ...props }: PropsWithChildren<InputProps>) => {
   return (
     <Box position="relative">
-      <Input
-        placeholder="Enter an amount"
-        type="number"
-        value={amountValue}
-        onChange={(e) => onAmountChange(e.target.value)}
-      />
-      <Menu>
-        {({ isOpen }) => (
-          <Box>
-            <MenuButton
-              as={Button}
-              borderRadius="md"
-              height="8"
-              isActive={isOpen}
-              p="0"
-              position="absolute"
-              right="3"
-              top="2"
-              variant="secondary"
-              width="7.125rem"
-              zIndex="2"
-            >
-              <HStack px="3">
-                {selectedWallet.icon}
-                <Text fontWeight="medium" lineHeight="2">
-                  {selectedWallet.symbol}
-                </Text>
-                <ChevronDownIcon />
-              </HStack>
-            </MenuButton>
-            <MenuList>{balancesMenuList}</MenuList>
-          </Box>
-        )}
-      </Menu>
-      <HStack mt="1.5" spacing="auto">
-        <Text color="gray.400" fontSize="sm">
-          {totalCostText}
-        </Text>
-        <Text color="gray.400" fontSize="sm">
-          Balance: {selectedWallet.amount} {selectedWallet.symbol}
-        </Text>
-      </HStack>
+      <Input placeholder="Enter an amount" type="number" {...props} />
+      {children}
     </Box>
   );
 };
+
+WalletBalanceInput.TokenMenu = WalletSelectorMenu;
+WalletBalanceInput.CostDisplay = CostDisplay;
