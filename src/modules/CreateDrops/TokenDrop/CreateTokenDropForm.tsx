@@ -1,6 +1,6 @@
 import { Button, Input } from '@chakra-ui/react';
 import { useMemo } from 'react';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 
 import { IconBox } from '@/common/components/IconBox';
 import { HereLogoIcon, LinkIcon, MyNearLogoIcon, NearLogoIcon } from '@/common/components/Icons';
@@ -45,7 +45,7 @@ const TOKEN_BALANCES = [
 ];
 
 export const CreateTokenDropForm = () => {
-  const { register, setValue, getValues, handleSubmit, watch } = useForm({
+  const { setValue, handleSubmit, control, watch } = useForm({
     defaultValues: {
       dropName: '',
       selectedFromWallet: TOKEN_BALANCES[0],
@@ -56,7 +56,11 @@ export const CreateTokenDropForm = () => {
     },
   });
 
-  const { selectedFromWallet, amountPerLink, totalLinks } = getValues();
+  const [selectedFromWallet, amountPerLink, totalLinks] = watch([
+    'selectedFromWallet',
+    'amountPerLink',
+    'totalLinks',
+  ]);
 
   const totalCost = useMemo(() => {
     if (totalLinks && amountPerLink) {
@@ -77,49 +81,76 @@ export const CreateTokenDropForm = () => {
   return (
     <IconBox icon={<LinkIcon />} maxW={{ base: '21.5rem', md: '36rem' }}>
       <form onSubmit={handleSubmit(handleSubmitClick)}>
-        <FormControl helperText="Will be shown on the claim page" label="Token Drop name">
-          <Input placeholder="Star Invasion Beta Invites" type="text" {...register('dropName')} />
-        </FormControl>
+        <Controller
+          control={control}
+          name="dropName"
+          render={({ field }) => (
+            <FormControl helperText="Will be shown on the claim page" label="Token Drop name">
+              <Input placeholder="Star Invasion Beta Invites" type="text" {...field} />
+            </FormControl>
+          )}
+        />
 
-        <FormControl label="Number of links">
-          <Input
-            placeholder="1 - 10,000"
-            type="number"
-            {...register('totalLinks', { valueAsNumber: true })}
-          />
-        </FormControl>
+        <Controller
+          control={control}
+          name="totalLinks"
+          render={({ field }) => (
+            <FormControl label="Number of links">
+              <Input placeholder="1 - 10,000" type="number" {...field} />
+            </FormControl>
+          )}
+        />
 
-        <FormControl label="Amount per link">
-          <WalletBalanceInput {...register('amountPerLink', { valueAsNumber: true })}>
-            <WalletBalanceInput.TokenMenu
-              selectedWallet={getValues('selectedFromWallet')}
-              tokens={TOKEN_BALANCES}
-              onChange={handleWalletChange}
-            />
-            <WalletBalanceInput.CostDisplay
-              balanceAmount={selectedFromWallet.amount}
-              symbol={selectedFromWallet.symbol}
-              totalCost={totalCost}
-            />
-          </WalletBalanceInput>
-        </FormControl>
+        <Controller
+          control={control}
+          name="amountPerLink"
+          render={({ field }) => (
+            <FormControl label="Amount per link">
+              <WalletBalanceInput {...field}>
+                <WalletBalanceInput.TokenMenu
+                  selectedWallet={selectedFromWallet}
+                  tokens={TOKEN_BALANCES}
+                  onChange={handleWalletChange}
+                />
+                <WalletBalanceInput.CostDisplay
+                  balanceAmount={selectedFromWallet.amount}
+                  symbol={selectedFromWallet.symbol}
+                  totalCost={totalCost}
+                />
+              </WalletBalanceInput>
+            </FormControl>
+          )}
+        />
 
-        <FormControl helperText="Choose which wallet to set people up with." label="Wallets">
-          <Checkboxes
-            defaultValues={['near_wallet']}
-            items={WALLET_OPTIONS}
-            onChange={(value) => {
-              setValue('selectedToWallets', value);
-            }}
-          />
-        </FormControl>
+        <Controller
+          control={control}
+          name="selectedToWallets"
+          render={({ field }) => (
+            <FormControl helperText="Choose which wallet to set people up with." label="Wallets">
+              <Checkboxes
+                defaultValues={['near_wallet']}
+                items={WALLET_OPTIONS}
+                onChange={(value) => {
+                  setValue('selectedToWallets', value);
+                }}
+              />
+            </FormControl>
+          )}
+        />
 
-        <FormControl
-          helperText="Where should the user be sent after signing up?"
-          label="Redirect link (optional)"
-        >
-          <Input placeholder="mark@hotmail.com" type="text" {...register('redirectLink')} />
-        </FormControl>
+        <Controller
+          control={control}
+          name="redirectLink"
+          render={({ field }) => (
+            <FormControl
+              helperText="Where should the user be sent after signing up?"
+              label="Redirect link (optional)"
+            >
+              <Input type="text" {...field} />
+            </FormControl>
+          )}
+        />
+
         <Button type="submit">Continue to summary</Button>
       </form>
     </IconBox>
