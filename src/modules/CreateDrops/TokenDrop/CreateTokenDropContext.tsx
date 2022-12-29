@@ -11,7 +11,7 @@ const schema = z.object({
     symbol: z.string(),
     amount: z.string(),
   }),
-  selectedToWallets: z.array(z.string()).min(1, 'At least one wallet is required'),
+  selectedToWallets: z.array(z.string().min(1)).min(1, 'At least one wallet is required'),
   totalLinks: z.number().positive().min(1),
   amountPerLink: z.number().positive().min(1),
   redirectLink: z.string().url().optional(),
@@ -25,7 +25,7 @@ type Schema = z.infer<typeof schema>;
  */
 export const CreateTokenDropProvider = ({ children }: PropsWithChildren) => {
   const methods = useForm<Schema>({
-    mode: 'onChange',
+    mode: 'all',
     defaultValues: {
       dropName: '',
       selectedFromWallet: { symbol: TOKEN_BALANCES[0].symbol, amount: TOKEN_BALANCES[0].amount },

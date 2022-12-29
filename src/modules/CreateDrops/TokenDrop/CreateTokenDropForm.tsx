@@ -37,10 +37,12 @@ export const CreateTokenDropForm = () => {
     setValue('selectedFromWallet', { symbol, amount });
   };
 
-  const handleSubmitClick = (data) => console.log(data); // temporary
+  const handleSubmitClick = (data) => console.log(data); // temporary workaround
+
+  console.log(errors);
 
   return (
-    <IconBox icon={<LinkIcon />} maxW={{ base: '21.5rem', md: '36rem' }}>
+    <IconBox icon={<LinkIcon />} maxW={{ base: '21.5rem', md: '36rem' }} mx="auto">
       <form onSubmit={handleSubmit(handleSubmitClick)}>
         <Controller
           control={control}
@@ -97,21 +99,25 @@ export const CreateTokenDropForm = () => {
         <Controller
           control={control}
           name="selectedToWallets"
-          render={({ fieldState: { error } }) => (
-            <FormControl
-              errorText={error?.message}
-              helperText="Choose which wallet to set people up with."
-              label="Wallets"
-            >
-              <Checkboxes
-                defaultValues={['near_wallet']}
-                items={WALLET_OPTIONS}
-                onChange={(value) => {
-                  setValue('selectedToWallets', value);
-                }}
-              />
-            </FormControl>
-          )}
+          render={({ fieldState: { error } }) => {
+            console.log(error);
+            return (
+              <FormControl
+                errorText={error?.message}
+                helperText="Choose which wallet to set people up with."
+                label="Wallets"
+              >
+                <Checkboxes
+                  defaultValues={['near_wallet']}
+                  items={WALLET_OPTIONS}
+                  onChange={(value) => {
+                    setValue('selectedToWallets', value);
+                    console.log(value);
+                  }}
+                />
+              </FormControl>
+            );
+          }}
         />
 
         <Controller

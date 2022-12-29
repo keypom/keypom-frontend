@@ -28,7 +28,7 @@ export const Checkboxes = ({ items = [], defaultValues = [], onChange }: Checkbo
 
   useEffect(() => {
     onChange(value);
-  }, [value, onChange]);
+  }, [value.length]);
 
   const checkboxes = items.map((item) => {
     // const isChecked = val.includes(item.value);
@@ -45,7 +45,8 @@ export const Checkboxes = ({ items = [], defaultValues = [], onChange }: Checkbo
         }
         iconColor="blue.400"
         iconSize="1.375rem"
-        p="4"
+        p={{ base: '2', md: '4' }}
+        pl={{ base: '3' }}
         value={item.value}
         w="full"
         {...getCheckboxProps({ value: item.value })}

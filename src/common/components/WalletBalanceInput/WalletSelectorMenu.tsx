@@ -29,6 +29,7 @@ export const WalletSelectorMenu = ({
   onChange,
   selectedWallet,
 }: WalletBalanceInputProps) => {
+  const selectedWalletIcon = tokens.find((w) => w.symbol === selectedWallet.symbol)?.icon;
   const balancesMenuList = tokens.map((wallet) => (
     <MenuItem key={wallet.symbol} onClick={() => onChange(wallet.symbol)}>
       <HStack>
@@ -61,7 +62,7 @@ export const WalletSelectorMenu = ({
             zIndex="2"
           >
             <HStack px="3">
-              {selectedWallet.icon}
+              {selectedWalletIcon}
               <Text fontWeight="medium" lineHeight="2">
                 {selectedWallet.symbol}
               </Text>
