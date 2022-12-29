@@ -30,6 +30,11 @@ export const ButtonTheme = defineStyleConfig({
         border: '2px solid',
         borderColor: 'blue.400',
       },
+      _disabled: {
+        _hover: {
+          bg: 'gray.900 !important',
+        },
+      },
     },
     secondary: {
       border: '2px solid',

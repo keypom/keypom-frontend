@@ -1,4 +1,4 @@
-import { Box, Button, Input } from '@chakra-ui/react';
+import { Button, Flex, Input } from '@chakra-ui/react';
 import { useMemo } from 'react';
 import { Controller, useFormContext } from 'react-hook-form';
 
@@ -11,7 +11,13 @@ import { WalletBalanceInput } from '@/common/components/WalletBalanceInput';
 import { TOKEN_BALANCES, WALLET_OPTIONS } from './data';
 
 export const CreateTokenDropForm = () => {
-  const { setValue, handleSubmit, control, watch } = useFormContext();
+  const {
+    setValue,
+    handleSubmit,
+    control,
+    watch,
+    formState: { errors, isDirty },
+  } = useFormContext();
 
   const [selectedFromWallet, amountPerLink, totalLinks] = watch([
     'selectedFromWallet',
@@ -31,7 +37,7 @@ export const CreateTokenDropForm = () => {
     setValue('selectedFromWallet', { symbol, amount });
   };
 
-  const handleSubmitClick = (data) => console.log(data);
+  const handleSubmitClick = (data) => console.log(data); // temporary
 
   return (
     <IconBox icon={<LinkIcon />} maxW={{ base: '21.5rem', md: '36rem' }}>
@@ -117,15 +123,15 @@ export const CreateTokenDropForm = () => {
               helperText="Where should the user be sent after signing up?"
               label="Redirect link (optional)"
             >
-              <Input type="text" {...field} />
+              <Input placeholder="Enter a link" type="text" {...field} />
             </FormControl>
           )}
         />
-        <Box>
-          <Button ml="auto" mt="10" type="submit">
+        <Flex justifyContent="flex-end">
+          <Button disabled={!isDirty || Object.keys(errors).length > 0} mt="10" type="submit">
             Continue to summary
           </Button>
-        </Box>
+        </Flex>
       </form>
     </IconBox>
   );

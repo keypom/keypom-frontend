@@ -6,7 +6,7 @@ import * as z from 'zod'; // not sure why its not picking up from 'zod'
 import { TOKEN_BALANCES } from './data';
 
 const schema = z.object({
-  dropName: z.string().min(1, 'Drop name is required'),
+  dropName: z.string().min(1, 'Required'),
   selectedFromWallet: z.object({
     symbol: z.string(),
     amount: z.string(),
