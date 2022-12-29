@@ -40,10 +40,9 @@ export const CreateTokenDropForm = () => {
           control={control}
           name="dropName"
           render={({ field, fieldState: { error } }) => {
-            console.log({ error });
             return (
               <FormControl
-                // errorText={error.message}
+                errorText={error?.message}
                 helperText="Will be shown on the claim page"
                 label="Token Drop name"
               >
@@ -56,9 +55,14 @@ export const CreateTokenDropForm = () => {
         <Controller
           control={control}
           name="totalLinks"
-          render={({ field }) => (
-            <FormControl label="Number of links">
-              <Input placeholder="1 - 10,000" type="number" {...field} />
+          render={({ field, fieldState: { error } }) => (
+            <FormControl errorText={error?.message} label="Number of links">
+              <Input
+                placeholder="1 - 10,000"
+                type="number"
+                {...field}
+                onChange={(e) => field.onChange(+e.target.value)}
+              />
             </FormControl>
           )}
         />
@@ -66,9 +70,9 @@ export const CreateTokenDropForm = () => {
         <Controller
           control={control}
           name="amountPerLink"
-          render={({ field }) => (
-            <FormControl label="Amount per link">
-              <WalletBalanceInput {...field}>
+          render={({ field, fieldState: { error } }) => (
+            <FormControl errorText={error?.message} label="Amount per link">
+              <WalletBalanceInput {...field} onChange={(e) => field.onChange(+e.target.value)}>
                 <WalletBalanceInput.TokenMenu
                   selectedWallet={selectedFromWallet}
                   tokens={TOKEN_BALANCES}
@@ -87,8 +91,12 @@ export const CreateTokenDropForm = () => {
         <Controller
           control={control}
           name="selectedToWallets"
-          render={({ field }) => (
-            <FormControl helperText="Choose which wallet to set people up with." label="Wallets">
+          render={({ fieldState: { error } }) => (
+            <FormControl
+              errorText={error?.message}
+              helperText="Choose which wallet to set people up with."
+              label="Wallets"
+            >
               <Checkboxes
                 defaultValues={['near_wallet']}
                 items={WALLET_OPTIONS}
@@ -103,8 +111,9 @@ export const CreateTokenDropForm = () => {
         <Controller
           control={control}
           name="redirectLink"
-          render={({ field }) => (
+          render={({ field, fieldState: { error } }) => (
             <FormControl
+              errorText={error?.message}
               helperText="Where should the user be sent after signing up?"
               label="Redirect link (optional)"
             >

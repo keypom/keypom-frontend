@@ -1,5 +1,5 @@
-import { Box, FormControl as CFormControl, FormErrorMessage, FormLabel } from '@chakra-ui/react';
-import { PropsWithChildren } from 'react';
+import { Box, FormControl as CFormControl, FormLabel } from '@chakra-ui/react';
+import React, { PropsWithChildren } from 'react';
 
 import { Text } from '@/common/components/Typography';
 
@@ -9,7 +9,7 @@ interface FormControlProps {
   errorText?: string;
 }
 
-export const FormControl = ({
+export const FormControlComponent = ({
   label,
   helperText,
   errorText,
@@ -26,7 +26,13 @@ export const FormControl = ({
         </Text>
       )}
       <Box mt="1.5">{children}</Box>
-      {errorText && <FormErrorMessage>{errorText}</FormErrorMessage>}
+      {errorText && (
+        <Text color="red" fontSize="sm" mt="6px">
+          {errorText}
+        </Text>
+      )}
     </CFormControl>
   );
 };
+
+export const FormControl = React.memo(FormControlComponent);
