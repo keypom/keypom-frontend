@@ -1,9 +1,13 @@
-import React, { PropsWithChildren } from 'react';
+import React, { createContext, PropsWithChildren, useContext } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod'; // not sure why its not picking up from 'zod'
 
+import { SummaryItem } from '../types/types';
+
 import { WALLET_TOKENS } from './data';
+
+const CreateTokenDropContext = createContext(null);
 
 const schema = z.object({
   dropName: z.string().min(1, 'Drop name required'),
@@ -40,5 +44,41 @@ export const CreateTokenDropProvider = ({ children }: PropsWithChildren) => {
     resolver: zodResolver(schema),
   });
 
-  return <FormProvider {...methods}>{children}</FormProvider>;
+  const getSummaryData = (): SummaryItem[] => {
+    const { getValues } = methods;
+    const [dropName, totalLinks, amountPerLink, redirectLink, selectedFromWallet] = getValues([
+      'dropName',
+      'totalLinks',
+      'amountPerLink',
+      'redirectLink',
+      'selectedFromWallet',
+    ]);
+
+    return [
+      {
+        name: 'Token Drop name',
+        value: dropName,
+      },
+      {
+        name: 'Amount per link',
+        value: `${amountPerLink} ${selectedFromWallet.symbol}`,
+      },
+      {
+        name: 'Number of links',
+        value: totalLinks,
+      },
+      {
+        name: 'Redirect link',
+        value: redirectLink,
+      },
+    ];
+  };
+
+  return (
+    <CreateTokenDropContext.Provider value={{ getSummaryData }}>
+      <FormProvider {...methods}>{children}</FormProvider>
+    </CreateTokenDropContext.Provider>
+  );
 };
+
+export const useCreateTokenDropContext = () => useContext(CreateTokenDropContext);

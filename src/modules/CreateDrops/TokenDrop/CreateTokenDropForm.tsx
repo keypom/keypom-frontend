@@ -8,15 +8,18 @@ import { FormControl } from '@/common/components/FormControl';
 import { Checkboxes } from '@/common/components/Checkboxes';
 import { WalletBalanceInput } from '@/common/components/WalletBalanceInput';
 
+import { useDropFlowContext } from '../contexts/DropFlowContext';
+
 import { WALLET_TOKENS, WALLET_OPTIONS } from './data';
 
 export const CreateTokenDropForm = () => {
+  const { onNext } = useDropFlowContext();
   const {
     setValue,
     handleSubmit,
     control,
     watch,
-    formState: { isDirty, isValid, touchedFields },
+    formState: { isDirty, isValid },
   } = useFormContext();
 
   const [selectedFromWallet, amountPerLink, totalLinks] = watch([
@@ -44,7 +47,10 @@ export const CreateTokenDropForm = () => {
     [setValue],
   );
 
-  const handleSubmitClick = (data) => console.log(data); // TODO: temporary workaround
+  const handleSubmitClick = (data) => {
+    console.log(data);
+    onNext();
+  }; // TODO: temporary workaround
 
   return (
     <IconBox icon={<LinkIcon />} maxW={{ base: '21.5rem', md: '36rem' }} mx="auto">

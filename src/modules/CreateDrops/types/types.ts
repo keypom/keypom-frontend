@@ -3,3 +3,8 @@ export interface IFlowPage {
   description: string;
   component: React.ReactNode; // forms, summary. etc
 }
+
+export interface SummaryItem {
+  name: string;
+  value: string | number;
+}
