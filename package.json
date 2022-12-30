@@ -16,16 +16,19 @@
   },
   "dependencies": {
     "@babel/core": "^7.20.5",
-    "@chakra-ui/icons": "^2.0.14",
-    "@chakra-ui/react": "^2.4.2",
-    "@chakra-ui/styled-system": "^2.5.0",
-    "@chakra-ui/system": "^2.3.5",
+    "@chakra-ui/icons": "2.0.14",
+    "@chakra-ui/react": "2.4.2",
+    "@chakra-ui/styled-system": "2.5.0",
+    "@chakra-ui/system": "2.3.5",
     "@emotion/react": "^11.10.5",
     "@emotion/styled": "^11.10.5",
+    "@hookform/resolvers": "^2.9.10",
     "framer-motion": "^7.6.19",
     "next": "^12.3.4",
     "react": "^18.1.0",
-    "react-dom": "^18.1.0"
+    "react-dom": "^18.1.0",
+    "react-hook-form": "^7.41.1",
+    "zod": "^3.20.2"
   },
   "devDependencies": {
     "@tsconfig/next": "^1.0.2",

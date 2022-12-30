@@ -30,6 +30,11 @@ export const ButtonTheme = defineStyleConfig({
         border: '2px solid',
         borderColor: 'blue.400',
       },
+      _disabled: {
+        _hover: {
+          bg: 'gray.900 !important',
+        },
+      },
     },
     secondary: {
       border: '2px solid',
@@ -45,7 +50,7 @@ export const ButtonTheme = defineStyleConfig({
         borderColor: 'blue.400',
       },
     },
-    action: {
+    icon: {
       border: '2px solid',
       borderColor: 'gray.200',
       color: 'gray.800',
@@ -60,6 +65,11 @@ export const ButtonTheme = defineStyleConfig({
         border: '2px solid',
         borderColor: 'blue.400',
       },
+    },
+    pill: {
+      borderRadius: '52px',
+      bg: 'border.box',
+      border: '1px solid transparent',
     },
   },
   defaultProps: {
