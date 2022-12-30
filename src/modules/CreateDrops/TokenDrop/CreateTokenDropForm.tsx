@@ -59,7 +59,12 @@ export const CreateTokenDropForm = () => {
                 helperText="Will be shown on the claim page"
                 label="Token Drop name"
               >
-                <Input placeholder="Star Invasion Beta Invites" type="text" {...field} />
+                <Input
+                  isInvalid={Boolean(error?.message)}
+                  placeholder="Star Invasion Beta Invites"
+                  type="text"
+                  {...field}
+                />
               </FormControl>
             );
           }}
@@ -71,6 +76,7 @@ export const CreateTokenDropForm = () => {
           render={({ field, fieldState: { error } }) => (
             <FormControl errorText={error?.message} label="Number of links">
               <Input
+                isInvalid={Boolean(error?.message)}
                 placeholder="1 - 10,000"
                 type="number"
                 {...field}
@@ -87,6 +93,7 @@ export const CreateTokenDropForm = () => {
             <FormControl errorText={error?.message} label="Amount per link">
               <WalletBalanceInput
                 {...field}
+                isInvalid={Boolean(error?.message)}
                 onChange={(e) => field.onChange(parseFloat(e.target.value), 10)}
               >
                 <WalletBalanceInput.TokenMenu
@@ -131,7 +138,12 @@ export const CreateTokenDropForm = () => {
               helperText="Where should the user be sent after signing up?"
               label="Redirect link (optional)"
             >
-              <Input placeholder="Enter a link" type="text" {...field} />
+              <Input
+                isInvalid={Boolean(error?.message)}
+                placeholder="Enter a link"
+                type="text"
+                {...field}
+              />
             </FormControl>
           )}
         />

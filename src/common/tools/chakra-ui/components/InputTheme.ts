@@ -12,4 +12,13 @@ export const InputTheme = helpers.defineMultiStyleConfig({
       },
     },
   },
+  variants: {
+    outline: {
+      field: {
+        _invalid: {
+          borderColor: 'red.300',
+        },
+      },
+    },
+  },
 });
