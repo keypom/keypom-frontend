@@ -6,14 +6,17 @@ import * as z from 'zod'; // not sure why its not picking up from 'zod'
 import { WALLET_TOKENS } from './data';
 
 const schema = z.object({
-  dropName: z.string().min(1, 'Required'),
+  dropName: z.string().min(1, 'Drop name required'),
   selectedFromWallet: z.object({
     symbol: z.string(),
     amount: z.string(),
   }),
   selectedToWallets: z.array(z.string().min(1)).min(1, 'At least one wallet is required'),
-  totalLinks: z.number().positive().min(1),
-  amountPerLink: z.number().positive().min(1),
+  totalLinks: z
+    .number({ invalid_type_error: 'Number of links required' })
+    .positive()
+    .min(1, 'Required'),
+  amountPerLink: z.number({ invalid_type_error: 'Amount required' }).positive().min(1),
   redirectLink: z.union([z.string().url(), z.string().length(0)]).optional(),
 });
 

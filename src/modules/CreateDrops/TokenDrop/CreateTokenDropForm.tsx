@@ -71,7 +71,7 @@ export const CreateTokenDropForm = () => {
                 placeholder="1 - 10,000"
                 type="number"
                 {...field}
-                onChange={(e) => field.onChange(+e.target.value)}
+                onChange={(e) => field.onChange(parseInt(e.target.value), 10)}
               />
             </FormControl>
           )}
@@ -82,7 +82,10 @@ export const CreateTokenDropForm = () => {
           name="amountPerLink"
           render={({ field, fieldState: { error } }) => (
             <FormControl errorText={error?.message} label="Amount per link">
-              <WalletBalanceInput {...field} onChange={(e) => field.onChange(+e.target.value)}>
+              <WalletBalanceInput
+                {...field}
+                onChange={(e) => field.onChange(parseInt(e.target.value), 10)}
+              >
                 <WalletBalanceInput.TokenMenu
                   selectedWalletToken={selectedFromWallet}
                   tokens={WALLET_TOKENS}
