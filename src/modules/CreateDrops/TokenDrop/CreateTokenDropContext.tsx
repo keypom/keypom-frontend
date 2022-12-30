@@ -25,7 +25,7 @@ type Schema = z.infer<typeof schema>;
  */
 export const CreateTokenDropProvider = ({ children }: PropsWithChildren) => {
   const methods = useForm<Schema>({
-    mode: 'all',
+    mode: 'onChange',
     defaultValues: {
       dropName: '',
       selectedFromWallet: { symbol: WALLET_TOKENS[0].symbol, amount: WALLET_TOKENS[0].amount },

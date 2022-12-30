@@ -16,7 +16,7 @@ export const CreateTokenDropForm = () => {
     handleSubmit,
     control,
     watch,
-    formState: { errors, isDirty },
+    formState: { isDirty, isValid },
   } = useFormContext();
 
   const [selectedFromWallet, amountPerLink, totalLinks] = watch([
@@ -130,7 +130,7 @@ export const CreateTokenDropForm = () => {
           )}
         />
         <Flex justifyContent="flex-end">
-          <Button disabled={!isDirty || Object.keys(errors).length > 0} mt="10" type="submit">
+          <Button disabled={!isDirty || !isValid} mt="10" type="submit">
             Continue to summary
           </Button>
         </Flex>
