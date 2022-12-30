@@ -16,7 +16,6 @@ import {
   useDisclosure,
 } from '@chakra-ui/react';
 import { ChevronDownIcon } from '@chakra-ui/icons';
-import { useMemo } from 'react';
 
 import { PageHead } from '@/common/components/PageHead';
 import { Heading, Text } from '@/common/components/Typography';
@@ -41,22 +40,18 @@ const TABLE_DATA = [
   {
     name: 'Trumpy Apes',
     type: 'NFT',
-    claimed: '10 / 444', // Need to figure out what determines the badge color
+    claimed: '10 / 444', // TODO: Need to figure out what determines the badge color
   },
 ];
 
 export default function AllDrops() {
   const { isOpen, onOpen, onClose } = useDisclosure();
 
-  const dropMenuItems = useMemo(
-    () =>
-      MENU_ITEMS.map((item) => (
-        <MenuItem key={item.label} {...item}>
-          {item.label}
-        </MenuItem>
-      )),
-    [],
-  );
+  const dropMenuItems = MENU_ITEMS.map((item) => (
+    <MenuItem key={item.label} {...item}>
+      {item.label}
+    </MenuItem>
+  ));
 
   const getDesktopTableBody = () =>
     TABLE_DATA.map((drop) => (

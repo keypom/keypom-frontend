@@ -1,11 +1,11 @@
-import { ICheckbox } from '@/common/components/Checkboxes';
+import { CheckboxItem } from '@/common/components/Checkboxes';
 import { HereLogoIcon, MyNearLogoIcon, NearLogoIcon } from '@/common/components/Icons';
 
 /**
  * Temporary data providers
  */
 
-export const WALLET_OPTIONS: ICheckbox[] = [
+export const WALLET_OPTIONS: CheckboxItem[] = [
   {
     name: 'NEAR Wallet',
     value: 'near_wallet',
@@ -23,20 +23,23 @@ export const WALLET_OPTIONS: ICheckbox[] = [
   },
 ];
 
-export const TOKEN_BALANCES = [
+export const WALLET_TOKENS = [
   {
     amount: '500',
     symbol: 'NEAR',
+    wallet: 'near_wallet',
     icon: <NearLogoIcon height="4" width="4" />,
   },
   {
     amount: '1000',
     symbol: 'USDC',
+    wallet: 'my_near_wallet',
     icon: <MyNearLogoIcon height="5" width="5" />,
   },
   {
     amount: '10',
     symbol: 'ETH',
+    wallet: 'here_wallet',
     icon: <HereLogoIcon height="4" width="4" />,
   },
 ];

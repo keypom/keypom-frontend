@@ -14,7 +14,6 @@ export const ConnectWalletButton = ({ ...props }: ConnectWalletButtonProps) => {
       >
         Connect Wallet
       </Button>
-      {/* <Button variant="pill">ericw.near</Button> */}
     </NextLink>
   );
 };

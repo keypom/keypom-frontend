@@ -3,23 +3,17 @@ import { useEffect } from 'react';
 
 import { CheckedIcon, UncheckedIcon } from '../Icons';
 
-export interface ICheckbox {
+export interface CheckboxItem {
   name: string;
   value: string;
   icon?: React.ReactNode;
 }
 
 interface CheckboxesProps {
-  items: ICheckbox[];
+  items: CheckboxItem[];
   defaultValues: string[];
   onChange: (value: (string | number)[]) => void;
 }
-
-/**
- *
- * values would be array
- *
- */
 
 export const Checkboxes = ({ items = [], defaultValues = [], onChange }: CheckboxesProps) => {
   const { value, getCheckboxProps } = useCheckboxGroup({
@@ -28,10 +22,9 @@ export const Checkboxes = ({ items = [], defaultValues = [], onChange }: Checkbo
 
   useEffect(() => {
     onChange(value);
-  }, [value.length]);
+  }, [value.length, onChange, value]);
 
   const checkboxes = items.map((item) => {
-    // const isChecked = val.includes(item.value);
     const { isChecked } = getCheckboxProps({ value: item.value });
     return (
       <Checkbox

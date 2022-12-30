@@ -12,24 +12,25 @@ import {
 
 import { Text } from '../Typography';
 
-export interface ITokenBalance {
+export interface WalletToken {
   symbol: string;
   amount: string;
+  wallet: string;
   icon: React.ReactNode;
 }
 
 interface WalletBalanceInputProps {
-  selectedWallet: ITokenBalance;
-  tokens: ITokenBalance[];
+  selectedWalletToken: WalletToken;
+  tokens: WalletToken[];
   onChange: (symbol: string) => void;
 }
 
 export const WalletSelectorMenu = ({
   tokens,
   onChange,
-  selectedWallet,
+  selectedWalletToken,
 }: WalletBalanceInputProps) => {
-  const selectedWalletIcon = tokens.find((w) => w.symbol === selectedWallet.symbol)?.icon;
+  const selectedWalletTokenIcon = tokens.find((w) => w.symbol === selectedWalletToken.symbol)?.icon;
   const balancesMenuList = tokens.map((wallet) => (
     <MenuItem key={wallet.symbol} onClick={() => onChange(wallet.symbol)}>
       <HStack>
@@ -62,9 +63,9 @@ export const WalletSelectorMenu = ({
             zIndex="2"
           >
             <HStack px="3">
-              {selectedWalletIcon}
+              {selectedWalletTokenIcon}
               <Text fontWeight="medium" lineHeight="2">
-                {selectedWallet.symbol}
+                {selectedWalletToken.symbol}
               </Text>
               <ChevronDownIcon />
             </HStack>

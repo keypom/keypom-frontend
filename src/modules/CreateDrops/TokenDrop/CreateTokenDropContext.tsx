@@ -3,7 +3,7 @@ import { FormProvider, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod'; // not sure why its not picking up from 'zod'
 
-import { TOKEN_BALANCES } from './data';
+import { WALLET_TOKENS } from './data';
 
 const schema = z.object({
   dropName: z.string().min(1, 'Required'),
@@ -28,7 +28,7 @@ export const CreateTokenDropProvider = ({ children }: PropsWithChildren) => {
     mode: 'all',
     defaultValues: {
       dropName: '',
-      selectedFromWallet: { symbol: TOKEN_BALANCES[0].symbol, amount: TOKEN_BALANCES[0].amount },
+      selectedFromWallet: { symbol: WALLET_TOKENS[0].symbol, amount: WALLET_TOKENS[0].amount },
       selectedToWallets: [],
       totalLinks: undefined,
       amountPerLink: undefined,
