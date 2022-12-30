@@ -8,15 +8,17 @@ import { IBreadcrumbItem } from '@/common/components/Breadcrumbs';
 import { DropFlow } from '@/modules/CreateDrops/DropFlow';
 import { DropFlowProvider } from '@/modules/CreateDrops/contexts/DropFlowContext';
 import { IFlowPage } from '@/modules/CreateDrops/types/types';
+import { CreateTokenDropProvider } from '@/modules/CreateDrops/TokenDrop/CreateTokenDropContext';
+import { CreateTokenDropForm } from '@/modules/CreateDrops/TokenDrop/CreateTokenDropForm';
 
 const flowPages: IFlowPage[] = [
   {
     name: 'form',
     description: 'Enter the details for your new Token Drop',
     component: (
-      <IconBox icon={<LinkIcon />} width="full">
-        Create New Token Drop
-      </IconBox>
+      <CreateTokenDropProvider>
+        <CreateTokenDropForm />
+      </CreateTokenDropProvider>
     ),
   },
   {
@@ -39,7 +41,7 @@ const breadcrumbs: IBreadcrumbItem[] = [
 
 export default function NewTokenDrop() {
   return (
-    <Box minH="100%" minW="100%" mt={{ base: '52px', md: '100px' }}>
+    <Box mb={{ base: '5', md: '14' }} minH="100%" minW="100%" mt={{ base: '52px', md: '100px' }}>
       <PageHead
         removeTitleAppend
         description="Keypom create new token drop"
