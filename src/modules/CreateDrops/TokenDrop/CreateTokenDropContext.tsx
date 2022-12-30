@@ -14,7 +14,7 @@ const schema = z.object({
   selectedToWallets: z.array(z.string().min(1)).min(1, 'At least one wallet is required'),
   totalLinks: z.number().positive().min(1),
   amountPerLink: z.number().positive().min(1),
-  redirectLink: z.string().url().optional(),
+  redirectLink: z.union([z.string().url(), z.string().length(0)]).optional(),
 });
 
 type Schema = z.infer<typeof schema>;
