@@ -87,7 +87,7 @@ export const CreateTokenDropForm = () => {
             <FormControl errorText={error?.message} label="Amount per link">
               <WalletBalanceInput
                 {...field}
-                onChange={(e) => field.onChange(parseInt(e.target.value), 10)}
+                onChange={(e) => field.onChange(parseFloat(e.target.value), 10)}
               >
                 <WalletBalanceInput.TokenMenu
                   selectedWalletToken={selectedFromWallet}

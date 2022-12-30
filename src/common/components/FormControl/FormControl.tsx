@@ -27,7 +27,7 @@ export const FormControlComponent = ({
       )}
       <Box mt="1.5">{children}</Box>
       {errorText && (
-        <Text color="red" fontSize="sm" mt="6px">
+        <Text color="red.600" fontSize={{ base: 'xs', md: 'sm' }} mt="6px">
           {errorText}
         </Text>
       )}

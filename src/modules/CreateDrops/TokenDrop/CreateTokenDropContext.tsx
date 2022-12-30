@@ -16,7 +16,7 @@ const schema = z.object({
     .number({ invalid_type_error: 'Number of links required' })
     .positive()
     .min(1, 'Required'),
-  amountPerLink: z.number({ invalid_type_error: 'Amount required' }).positive().min(1),
+  amountPerLink: z.number({ invalid_type_error: 'Amount required' }).gt(0),
   redirectLink: z.union([z.string().url(), z.string().length(0)]).optional(),
 });
 
