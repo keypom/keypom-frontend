@@ -1,5 +1,5 @@
 import { Button, Flex, Input } from '@chakra-ui/react';
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { Controller, useFormContext } from 'react-hook-form';
 
 import { IconBox } from '@/common/components/IconBox';
@@ -16,7 +16,7 @@ export const CreateTokenDropForm = () => {
     handleSubmit,
     control,
     watch,
-    formState: { isDirty, isValid },
+    formState: { isDirty, isValid, touchedFields },
   } = useFormContext();
 
   const [selectedFromWallet, amountPerLink, totalLinks] = watch([
@@ -37,9 +37,12 @@ export const CreateTokenDropForm = () => {
     setValue('selectedFromWallet', { symbol, amount });
   };
 
-  const handleCheckboxChange = (value) => {
-    setValue('selectedToWallets', value);
-  };
+  const handleCheckboxChange = useCallback(
+    (value) => {
+      setValue('selectedToWallets', value, { shouldValidate: true });
+    },
+    [setValue],
+  );
 
   const handleSubmitClick = (data) => console.log(data); // TODO: temporary workaround
 
