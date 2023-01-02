@@ -47,10 +47,9 @@ export const CreateTokenDropForm = () => {
     [setValue],
   );
 
-  const handleSubmitClick = (data) => {
-    console.log(data);
+  const handleSubmitClick = () => {
     onNext();
-  }; // TODO: temporary workaround
+  };
 
   return (
     <IconBox icon={<LinkIcon />} maxW={{ base: '21.5rem', md: '36rem' }} mx="auto">
