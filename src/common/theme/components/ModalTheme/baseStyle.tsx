@@ -8,7 +8,7 @@ export const baseStyle = definePartsStyle({
     color: 'gray.900',
     fontWeight: '500',
     letterSpacing: '-0.02em',
-    fontSize: '36px',
+    fontSize: '2.25rem',
     p: 0,
   },
   dialog: {
