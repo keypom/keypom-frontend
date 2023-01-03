@@ -3,10 +3,10 @@ import { useCallback, useMemo } from 'react';
 import { Controller, useFormContext } from 'react-hook-form';
 
 import { IconBox } from '@/common/components/IconBox';
-import { LinkIcon } from '@/common/components/Icons';
 import { FormControl } from '@/common/components/FormControl';
 import { Checkboxes } from '@/common/components/Checkboxes';
 import { WalletBalanceInput } from '@/common/components/WalletBalanceInput';
+import { LinkIcon } from '@/common/components/Icons';
 
 import { useDropFlowContext } from '../contexts/DropFlowContext';
 
