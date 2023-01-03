@@ -3,9 +3,17 @@ import { DropSummary } from '../DropSummary';
 import { useCreateTokenDropContext } from './CreateTokenDropContext';
 
 export const CreateTokenDropSummary = () => {
-  const { getSummaryData, getPaymentData } = useCreateTokenDropContext();
+  const { getSummaryData, getPaymentData, createLinksSWR } = useCreateTokenDropContext();
   const summaryData = getSummaryData();
   const paymentData = getPaymentData();
+  const { data, handleDropConfirmation } = createLinksSWR;
 
-  return <DropSummary paymentData={paymentData} summaryData={summaryData} />;
+  return (
+    <DropSummary
+      data={data}
+      paymentData={paymentData}
+      summaryData={summaryData}
+      onConfirmClick={handleDropConfirmation}
+    />
+  );
 };

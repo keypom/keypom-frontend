@@ -1,9 +1,10 @@
 import React, { createContext, PropsWithChildren, useContext } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
+import useSWRMutation from 'swr/mutation';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 
-import { PaymentItem, SummaryItem } from '../types/types';
+import { PaymentData, PaymentItem, SummaryItem } from '../types/types';
 
 import { WALLET_TOKENS } from './data';
 
@@ -26,11 +27,20 @@ const schema = z.object({
 
 type Schema = z.infer<typeof schema>;
 
+// TODO: this is only a mock implementation of the backend api
+const createLinks = async () => {
+  await new Promise((res) => setTimeout(res, 2000));
+  return {
+    success: true,
+  };
+};
+
 /**
  *
  * Context for managing form state
  */
 export const CreateTokenDropProvider = ({ children }: PropsWithChildren) => {
+  const { trigger, data } = useSWRMutation('/api/drops/tokens', createLinks);
   const methods = useForm<Schema>({
     mode: 'onChange',
     defaultValues: {
@@ -74,46 +84,49 @@ export const CreateTokenDropProvider = ({ children }: PropsWithChildren) => {
     ];
   };
 
-  const getPaymentData = () => {
+  const getPaymentData = (): PaymentData => {
     const { totalLinks, amountPerLink } = methods.getValues();
+
+    // TODO: assuming this comes from backend
     const totalLinkCost = totalLinks * amountPerLink;
-    // assuming this comes from backend
-    const paymentData: PaymentItem[] = [
+    const NEARNetworkFee = 50.15;
+    const totalCost = totalLinkCost + NEARNetworkFee;
+    const costsData: PaymentItem[] = [
       {
         name: 'Link cost',
         total: totalLinkCost,
-        symbol: 'NEAR',
         helperText: `${totalLinks} x ${amountPerLink}`,
       },
       {
         name: 'NEAR network fees',
-        total: 50.15,
-        symbol: 'NEAR',
+        total: NEARNetworkFee,
       },
       {
         name: 'Keypom fee',
         total: 0,
-        symbol: 'NEAR',
         isDiscount: true,
         discountText: 'Early bird discount',
       },
-      {
-        name: 'Total cost',
-        total: totalLinkCost + 50.15,
-        symbol: 'NEAR',
-      },
     ];
 
-    return paymentData;
+    const confirmationText = `Creating ${totalLinks} for ${totalCost} NEAR`;
+
+    return { costsData, totalCost, confirmationText };
   };
 
   const handleDropConfirmation = () => {
     // TODO: send transaction/request to backend
+    trigger();
+  };
+
+  const createLinksSWR = {
+    data,
+    handleDropConfirmation,
   };
 
   return (
     <CreateTokenDropContext.Provider
-      value={{ getSummaryData, getPaymentData, handleDropConfirmation }}
+      value={{ getSummaryData, getPaymentData, handleDropConfirmation, createLinksSWR }}
     >
       <FormProvider {...methods}>{children}</FormProvider>
     </CreateTokenDropContext.Provider>

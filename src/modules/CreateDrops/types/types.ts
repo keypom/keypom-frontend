@@ -12,8 +12,13 @@ export interface SummaryItem {
 export interface PaymentItem {
   name: string;
   total: number;
-  symbol: string;
   isDiscount?: boolean;
   discountText?: string;
   helperText?: string;
+}
+
+export interface PaymentData {
+  costsData: PaymentItem[];
+  totalCost: number;
+  confirmationText: string;
 }
