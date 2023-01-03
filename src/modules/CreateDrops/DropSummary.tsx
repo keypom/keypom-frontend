@@ -46,9 +46,9 @@ export const DropSummary = ({ summaryData, paymentData }: DropSummaryProps) => {
               <Text
                 background="linear-gradient(271.49deg, #73D6F3 0%, #30C9F3 100%)"
                 backgroundClip="text"
+                color="transparent"
                 fontWeight="medium"
                 mr="1.5"
-                textColor="transparent"
               >
                 {discountText}
               </Text>
