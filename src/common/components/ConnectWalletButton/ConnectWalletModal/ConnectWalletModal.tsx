@@ -1,4 +1,3 @@
-import { LinkIcon } from '@chakra-ui/icons';
 import {
   Button,
   Modal,
@@ -10,6 +9,7 @@ import {
   ModalBody,
 } from '@chakra-ui/react';
 
+import { LinkIcon } from '@/common/components/Icons';
 import { RoundIcon } from '@/common/components/IconBox/RoundIcon';
 
 interface ConnectWalletModalProps {
