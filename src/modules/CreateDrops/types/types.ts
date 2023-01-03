@@ -8,3 +8,12 @@ export interface SummaryItem {
   name: string;
   value: string | number;
 }
+
+export interface PaymentItem {
+  name: string;
+  total: number;
+  symbol: string;
+  isDiscount?: boolean;
+  discountText?: string;
+  helperText?: string;
+}

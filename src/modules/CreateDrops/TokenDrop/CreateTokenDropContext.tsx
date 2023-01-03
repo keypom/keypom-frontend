@@ -3,7 +3,7 @@ import { FormProvider, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod'; // not sure why its not picking up from 'zod'
 
-import { SummaryItem } from '../types/types';
+import { PaymentItem, SummaryItem } from '../types/types';
 
 import { WALLET_TOKENS } from './data';
 
@@ -74,8 +74,41 @@ export const CreateTokenDropProvider = ({ children }: PropsWithChildren) => {
     ];
   };
 
+  const getPaymentData = () => {
+    const { totalLinks, amountPerLink } = methods.getValues();
+    const totalLinkCost = totalLinks * amountPerLink;
+    // assuming this comes from backend
+    const paymentData: PaymentItem[] = [
+      {
+        name: 'Link cost',
+        total: totalLinkCost,
+        symbol: 'NEAR',
+        helperText: `${totalLinks} x ${amountPerLink}`,
+      },
+      {
+        name: 'NEAR network fees',
+        total: 50.15,
+        symbol: 'NEAR',
+      },
+      {
+        name: 'Keypom fee',
+        total: 0,
+        symbol: 'NEAR',
+        isDiscount: true,
+        discountText: 'Early bird discount',
+      },
+      {
+        name: 'Total cost',
+        total: totalLinkCost + 50.15,
+        symbol: 'NEAR',
+      },
+    ];
+
+    return paymentData;
+  };
+
   return (
-    <CreateTokenDropContext.Provider value={{ getSummaryData }}>
+    <CreateTokenDropContext.Provider value={{ getSummaryData, getPaymentData }}>
       <FormProvider {...methods}>{children}</FormProvider>
     </CreateTokenDropContext.Provider>
   );
