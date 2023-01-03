@@ -12,18 +12,6 @@ interface DropSummaryProps {
   paymentData: PaymentItem[];
 }
 
-// TODO: need to figure out how to form these data programmatically
-// const paymentData = [
-//   {
-//     title: 'Link cost',
-//     text: '20 x 3.50  700 NEAR',
-//   },
-//   {
-//     title: 'NEAR network fee',
-//     text: '50 NEAR',
-//   },
-// ];
-
 export const DropSummary = ({ summaryData, paymentData }: DropSummaryProps) => {
   const { onPrevious } = useDropFlowContext();
   const summaryItems = summaryData.map((item) => (
