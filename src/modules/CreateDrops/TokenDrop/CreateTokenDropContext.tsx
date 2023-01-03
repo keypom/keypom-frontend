@@ -1,7 +1,7 @@
 import React, { createContext, PropsWithChildren, useContext } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod'; // not sure why its not picking up from 'zod'
+import * as z from 'zod';
 
 import { PaymentItem, SummaryItem } from '../types/types';
 
@@ -107,8 +107,14 @@ export const CreateTokenDropProvider = ({ children }: PropsWithChildren) => {
     return paymentData;
   };
 
+  const handleDropConfirmation = () => {
+    // TODO: send transaction/request to backend
+  };
+
   return (
-    <CreateTokenDropContext.Provider value={{ getSummaryData, getPaymentData }}>
+    <CreateTokenDropContext.Provider
+      value={{ getSummaryData, getPaymentData, handleDropConfirmation }}
+    >
       <FormProvider {...methods}>{children}</FormProvider>
     </CreateTokenDropContext.Provider>
   );
