@@ -28,10 +28,10 @@ export const baseStyle = definePartsStyle({
     backdropFilter: 'auto',
     backdropBlur: '10px',
   },
-  body: { p: 0, color: 'gray.600', mt: '4' },
+  body: { p: 0, color: 'gray.600', mt: { base: 2, md: 4 } },
   footer: {
     justifyContent: 'center',
     p: 0,
-    mt: '6',
+    mt: { base: 4, md: 6 },
   },
 });
