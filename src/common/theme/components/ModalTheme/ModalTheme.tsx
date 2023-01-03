@@ -9,7 +9,7 @@ type defaultProps = ReturnType<typeof defineMultiStyleConfig>['defaultProps'];
 
 const modalDefaultProps = {
   isCentered: true,
-} as defaultProps; // type casting is necessary because theme is not accepting ModalProps
+} as defaultProps; // type casting is necessary because defaultProps is not accepting ModalProps
 
 export const ModalTheme = defineMultiStyleConfig({
   baseStyle,
