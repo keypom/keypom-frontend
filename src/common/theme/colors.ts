@@ -23,7 +23,7 @@ export const colors = {
   blue: {
     50: '#EFFAFD',
     100: '#DDF4FA',
-    200: '#B6E8F7',
+    200: '#E9F9FF',
     300: '#73D6F3',
     400: '#30C9F3',
     500: '#00A7E4',
@@ -55,9 +55,5 @@ export const colors = {
     700: '#B91C1C',
     800: '#991B1B',
     900: '#7F1D1D',
-  },
-  ['blue-secondary']: {
-    200: '#E9F9FF',
-    300: '#D1F2FF',
   },
 };
