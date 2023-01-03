@@ -1,0 +1,37 @@
+import { createMultiStyleConfigHelpers } from '@chakra-ui/react';
+import { modalAnatomy as parts } from '@chakra-ui/anatomy';
+
+const { definePartsStyle } = createMultiStyleConfigHelpers(parts.keys);
+
+export const baseStyle = definePartsStyle({
+  header: {
+    color: 'gray.900',
+    fontWeight: '500',
+    letterSpacing: '-0.02em',
+    fontSize: '36px',
+    p: 0,
+  },
+  dialog: {
+    bg: 'border.box',
+    border: '2px solid transparent',
+    borderRadius: '3xl',
+    boxShadow:
+      '0px 100px 80px rgba(1, 133, 195, 0.05), 0px 12.5216px 10.0172px rgba(1, 133, 195, 0.025)',
+    mx: { base: 6, md: 0 },
+    p: '16',
+    pb: '8',
+    position: 'relative',
+    textAlign: 'center',
+  },
+  overlay: {
+    bgColor: 'rgba(148, 163, 184, 0.1)',
+    backdropFilter: 'auto',
+    backdropBlur: '10px',
+  },
+  body: { p: 0, color: 'gray.600', mt: '4' },
+  footer: {
+    justifyContent: 'center',
+    p: 0,
+    mt: '6',
+  },
+});
