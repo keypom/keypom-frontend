@@ -6,7 +6,7 @@ interface RoundIconProps extends BoxProps {
 }
 
 export const RoundIcon = ({ icon = null, ...props }: RoundIconProps) => {
-  const [bgColor, borderBg] = useToken('colors', ['blue.200', 'border.round']);
+  const [bgColor, borderBg] = useToken('colors', ['blue.100', 'border.round']);
 
   return (
     <Box
