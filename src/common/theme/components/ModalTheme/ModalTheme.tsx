@@ -11,7 +11,7 @@ const modalDefaultProps = {
   isCentered: true,
 } as defaultProps; // type casting is necessary because theme is not accepting ModalProps
 
-export const Modal = defineMultiStyleConfig({
+export const ModalTheme = defineMultiStyleConfig({
   baseStyle,
   defaultProps: modalDefaultProps,
 });
