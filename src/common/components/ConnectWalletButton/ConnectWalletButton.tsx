@@ -1,6 +1,6 @@
 import { Button, ButtonProps, useDisclosure } from '@chakra-ui/react';
 
-import { ConnectWalletModal } from '@/common/components/CoreLayout/ConnectWalletModal';
+import { ConnectWalletModal } from './ConnectWalletModal';
 
 type ConnectWalletButtonProps = ButtonProps;
 
