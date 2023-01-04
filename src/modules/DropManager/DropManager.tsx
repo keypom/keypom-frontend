@@ -62,7 +62,7 @@ export const DropManager = ({
     ));
 
   return (
-    <Box px={{ base: '1', md: '7.5rem' }} py={{ base: '3.25rem', md: '7.5rem' }}>
+    <Box px="1" py={{ base: '3.25rem', md: '7.5rem' }}>
       <Breadcrumbs items={breadcrumbItems} />
       <Stack direction={{ base: 'column', md: 'row' }}>
         {/* Left Section */}
