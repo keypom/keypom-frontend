@@ -1,8 +1,6 @@
 import { Box } from '@chakra-ui/react';
 
 import { PageHead } from '@/common/components/PageHead';
-import { IconBox } from '@/common/components/IconBox';
-import { LinkIcon } from '@/common/components/Icons';
 import { IBreadcrumbItem } from '@/common/components/Breadcrumbs';
 
 import { DropFlow } from '@/modules/CreateDrops/DropFlow';
@@ -10,21 +8,18 @@ import { DropFlowProvider } from '@/modules/CreateDrops/contexts/DropFlowContext
 import { IFlowPage } from '@/modules/CreateDrops/types/types';
 import { CreateTokenDropProvider } from '@/modules/CreateDrops/TokenDrop/CreateTokenDropContext';
 import { CreateTokenDropForm } from '@/modules/CreateDrops/TokenDrop/CreateTokenDropForm';
+import { CreateTokenDropSummary } from '@/modules/CreateDrops/TokenDrop/CreateTokenDropSummary';
 
 const flowPages: IFlowPage[] = [
   {
     name: 'form',
     description: 'Enter the details for your new Token Drop',
-    component: (
-      <CreateTokenDropProvider>
-        <CreateTokenDropForm />
-      </CreateTokenDropProvider>
-    ),
+    component: <CreateTokenDropForm />,
   },
   {
     name: 'summary',
     description: 'Let’s make sure all your details are correct',
-    component: <IconBox icon={<LinkIcon />}>Create New Token Drop</IconBox>,
+    component: <CreateTokenDropSummary />,
   },
 ];
 
@@ -48,7 +43,9 @@ export default function NewTokenDrop() {
         name="New Token Drop"
       />
       <DropFlowProvider breadcrumbs={breadcrumbs} flowPages={flowPages}>
-        <DropFlow />
+        <CreateTokenDropProvider>
+          <DropFlow />
+        </CreateTokenDropProvider>
       </DropFlowProvider>
     </Box>
   );

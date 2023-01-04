@@ -37,7 +37,7 @@ export const DropFlowProvider = ({
   };
 
   const onPrevious = () => {
-    if (currentPageIndex - 1 > 0) {
+    if (currentPageIndex - 1 >= 0) {
       setCurrentPageIndex(currentPageIndex - 1);
     }
   };
