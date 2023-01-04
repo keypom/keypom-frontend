@@ -16,6 +16,7 @@ import {
   useDisclosure,
 } from '@chakra-ui/react';
 import { ChevronDownIcon } from '@chakra-ui/icons';
+import { useRouter } from 'next/router';
 
 import { PageHead } from '@/common/components/PageHead';
 import { Heading, Text } from '@/common/components/Typography';
@@ -45,6 +46,7 @@ const TABLE_DATA = [
 ];
 
 export default function AllDrops() {
+  const router = useRouter();
   const { isOpen, onOpen, onClose } = useDisclosure();
 
   const dropMenuItems = MENU_ITEMS.map((item) => (
@@ -55,7 +57,13 @@ export default function AllDrops() {
 
   const getDesktopTableBody = () =>
     TABLE_DATA.map((drop) => (
-      <Tr key={drop.name}>
+      <Tr
+        key={drop.name}
+        onClick={() => {
+          // TODO: use appropriate drop type manager and id
+          router.push('/drop/token/123');
+        }}
+      >
         <Td>{drop.name}</Td>
         <Td>{drop.type}</Td>
         <Td>
