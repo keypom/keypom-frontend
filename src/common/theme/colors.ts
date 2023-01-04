@@ -56,8 +56,4 @@ export const colors = {
     800: '#991B1B',
     900: '#7F1D1D',
   },
-  blue: {
-    200: '#E9F9FF',
-    300: '#D1F2FF',
-  },
 };
