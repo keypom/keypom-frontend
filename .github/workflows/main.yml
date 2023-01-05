@@ -31,5 +31,3 @@ jobs:
         run: yarn run lint:eslint
       - name: Check the types
         run: yarn run check-types
-      - name: Build the project
-        run: yarn run build
