@@ -1,3 +1,4 @@
+export * from './ChevronLeftIcon';
 export * from './DeleteIcon';
 export * from './LinkIcon';
 export * from './MenuIcon';
