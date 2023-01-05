@@ -1,4 +1,4 @@
-import { Badge, Box } from '@chakra-ui/react';
+import { Badge, Box, Text } from '@chakra-ui/react';
 
 import { DropManager } from '@/modules/DropManager/DropManager';
 
@@ -6,7 +6,7 @@ interface TokenDropResponse {
   name: string;
   links: {
     id: number;
-    link: string;
+    slug: string;
     hasClaimed: boolean;
   }[];
 }
@@ -21,6 +21,11 @@ const getTableRows = (data: TokenDropResponse) => {
 
   return data.links.map((item) => ({
     ...item,
+    link: (
+      <Text color="gray.400" display="flex">
+        keypom.xyz/<Text color="gray.800">{item.slug}</Text>
+      </Text>
+    ),
     hasClaimed: item.hasClaimed ? (
       <Badge variant="lightgreen">Claimed</Badge>
     ) : (
@@ -53,10 +58,10 @@ export async function getStaticProps({ params }) {
   const data = {
     name: 'Star Invader 3',
     links: [
-      { id: 1, link: 'keypom.xyz/#2138h823h', hasClaimed: true },
-      { id: 2, link: 'keypom.xyz/#2138h823h', hasClaimed: false },
-      { id: 3, link: 'keypom.xyz/#c34fd2n32', hasClaimed: false },
-      { id: 4, link: 'keypom.xyz/#rf5hhfaxm', hasClaimed: true },
+      { id: 1, slug: '#2138h823h', hasClaimed: true },
+      { id: 2, slug: '#2138h823h', hasClaimed: false },
+      { id: 3, slug: '#c34fd2n32', hasClaimed: false },
+      { id: 4, slug: '#rf5hhfaxm', hasClaimed: true },
     ],
   };
   return { props: { data } };
