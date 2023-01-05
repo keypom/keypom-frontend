@@ -14,5 +14,6 @@ export const fontSizes = {
 };
 
 export const fonts = {
-  body: 'Inter V, Inter, Archia, system-ui, sans-serif',
+  heading: 'Archia',
+  body: 'Inter V, Inter, system-ui, sans-serif',
 };
