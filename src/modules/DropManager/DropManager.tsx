@@ -1,8 +1,20 @@
-import { Box, Button, HStack, Stack, TableContainer, Tbody, Th, Thead, Tr } from '@chakra-ui/react';
+import {
+  Box,
+  Button,
+  HStack,
+  Show,
+  Stack,
+  TableContainer,
+  Tbody,
+  Th,
+  Thead,
+  Tr,
+  VStack,
+} from '@chakra-ui/react';
 
 import { Breadcrumbs } from '@/common/components/Breadcrumbs';
 import { Heading, Text } from '@/common/components/Typography';
-import { DeleteIcon } from '@/common/components/Icons';
+import { CopyIcon, DeleteIcon } from '@/common/components/Icons';
 import { Td, Table } from '@/common/components/Table';
 
 type Primitive = string | number | boolean;
@@ -21,11 +33,13 @@ interface DropManagerProps {
   dropName: string;
   claimedHeaderText: string;
   claimedText: string;
-  onExportCSVClick?: () => void;
-  onCancelAllClick?: () => void;
   tableColumns: ColumnItem[];
   showColumns?: boolean;
   data: DataItem[];
+  onExportCSVClick?: () => void;
+  onCancelAllClick?: () => void;
+  onCopyClick?: () => void;
+  onDeleteClick?: () => void;
 }
 
 export const DropManager = ({
@@ -35,6 +49,8 @@ export const DropManager = ({
   tableColumns = [],
   data = [],
   showColumns = true,
+  onCopyClick,
+  onDeleteClick,
 }: DropManagerProps) => {
   const breadcrumbItems = [
     {
@@ -53,8 +69,32 @@ export const DropManager = ({
         {tableColumns.map((column) => (
           <Td key={`${column.title}-${drop.id}`}>{column.selector(drop)}</Td>
         ))}
+        <Td display="flex" justifyContent="right" verticalAlign="middle">
+          <Button mr="1" size="sm" variant="icon" onClick={onCopyClick}>
+            <CopyIcon />
+          </Button>
+          <Button size="sm" variant="icon" onClick={onDeleteClick}>
+            <DeleteIcon color="red" />
+          </Button>
+        </Td>
+      </Tr>
+    ));
+
+  const getMobileTableBody = () =>
+    data.map((drop) => (
+      <Tr key={drop.id}>
+        <Td>
+          <VStack align="flex-start" spacing="2">
+            {tableColumns.map((column) => (
+              <Box key={`${drop.id}-${column.title}`}>{column.selector(drop)}</Box>
+            ))}
+          </VStack>
+        </Td>
         <Td display="flex" justifyContent="right">
-          <Button size="sm" variant="icon">
+          <Button mr="1" size="sm" variant="icon" onClick={onCopyClick}>
+            <CopyIcon />
+          </Button>
+          <Button size="sm" variant="icon" onClick={onDeleteClick}>
             <DeleteIcon color="red" />
           </Button>
         </Td>
@@ -100,22 +140,34 @@ export const DropManager = ({
       </Stack>
       <Box>
         {/* Desktop Table - TODO: Refactor Table component to include mobile version */}
-        <TableContainer>
-          <Table mt={{ base: '4', md: '6' }}>
-            {showColumns && (
-              <Thead>
-                <Tr>
-                  {tableColumns.map((col) => (
-                    <Th key={col.title}>{col.title}</Th>
-                  ))}
-                  {/* Actions header */}
-                  <Th></Th>
-                </Tr>
-              </Thead>
-            )}
-            <Tbody>{getDesktopTableBody()}</Tbody>
-          </Table>
-        </TableContainer>
+
+        <Show above="sm">
+          <TableContainer>
+            <Table mt="6">
+              {showColumns && (
+                <Thead>
+                  <Tr>
+                    {tableColumns.map((col) => (
+                      <Th key={col.title}>{col.title}</Th>
+                    ))}
+                    {/* Actions header */}
+                    <Th></Th>
+                  </Tr>
+                </Thead>
+              )}
+              <Tbody>{getDesktopTableBody()}</Tbody>
+            </Table>
+          </TableContainer>
+        </Show>
+
+        {/* Mobile table */}
+        <Show below="sm">
+          <TableContainer>
+            <Table mt="4">
+              <Tbody>{getMobileTableBody()}</Tbody>
+            </Table>
+          </TableContainer>
+        </Show>
       </Box>
     </Box>
   );

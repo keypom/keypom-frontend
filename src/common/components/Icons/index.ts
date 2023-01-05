@@ -1,4 +1,5 @@
 export * from './CheckedIcon';
+export * from './CopyIcon';
 export * from './DeleteIcon';
 export * from './HereLogoIcon';
 export * from './LinkIcon';
