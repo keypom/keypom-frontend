@@ -21,9 +21,8 @@ jobs:
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v2
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: 16.x
           cache: "yarn"
-          cache-dependency-path: airfoil-frontend/yarn.lock
       - name: Install dependencies
         run: yarn install
       - name: Format the code
