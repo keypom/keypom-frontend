@@ -11,36 +11,6 @@ interface TokenDropResponse {
   }[];
 }
 
-// TODO: mock implementation of drop links fetching
-// const fetcher = async () => {
-//   await new Promise((res) => setTimeout(res, 2000));
-//   return {
-//     name: 'Star Invader 3',
-//     links: [
-//       { id: 1, link: 'keypom.xyz/#2138h823h', hasClaimed: true },
-//       { id: 2, link: 'keypom.xyz/#2138h823h', hasClaimed: false },
-//       { id: 3, link: 'keypom.xyz/#c34fd2n32', hasClaimed: false },
-//       { id: 4, link: 'keypom.xyz/#rf5hhfaxm', hasClaimed: true },
-//     ],
-//   };
-// };
-
-// interface useDropSWRReturn {
-//   data: TokenDropResponse;
-//   isLoading: boolean;
-//   isError: Error;
-// }
-
-// const useDropSWR = (id: string): useDropSWRReturn => {
-//   const { data, error, isLoading } = useSWR(`/api/drop/${id}`, fetcher);
-
-//   return {
-//     data,
-//     isLoading,
-//     isError: error,
-//   };
-// };
-
 const tableColumns = [
   { title: 'Link', selector: (row) => row.link },
   { title: 'Claim Status', selector: (row) => row.hasClaimed },
