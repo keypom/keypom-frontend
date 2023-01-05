@@ -139,9 +139,8 @@ export const DropManager = ({
         </HStack>
       </Stack>
       <Box>
-        {/* Desktop Table - TODO: Refactor Table component to include mobile version */}
-
-        <Show above="sm">
+        {/* Desktop Table */}
+        <Show above="md">
           <TableContainer>
             <Table mt="6">
               {showColumns && (
@@ -161,7 +160,7 @@ export const DropManager = ({
         </Show>
 
         {/* Mobile table */}
-        <Show below="sm">
+        <Show below="md">
           <TableContainer>
             <Table mt="4">
               <Tbody>{getMobileTableBody()}</Tbody>
