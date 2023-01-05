@@ -93,8 +93,10 @@ export async function getStaticProps({ params }) {
 }
 
 export async function getStaticPaths() {
-  const paths = {
-    id: 123,
-  };
+  const paths = [
+    {
+      params: { id: 123 },
+    },
+  ];
   return { paths, fallback: false };
 }
