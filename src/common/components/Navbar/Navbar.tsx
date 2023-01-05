@@ -11,11 +11,11 @@ type NavbarProps = BoxProps;
 
 export const Navbar = (props: NavbarProps) => {
   const menuItems = MENU_ITEMS.map((item) => (
-    <NextLink key={item.name} passHref href={item.href}>
-      <Box as={Link} fontSize={{ base: 'sm', md: 'md' }}>
+    <Link key={item.name} as={NextLink} href={item.href}>
+      <Box fontSize={{ base: 'sm', md: 'md' }}>
         {item.name}
       </Box>
-    </NextLink>
+    </Link>
   ));
 
   return (
