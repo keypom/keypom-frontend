@@ -129,7 +129,7 @@ export const DropManager = ({
         </Box>
 
         {/* Right Section */}
-        <HStack alignItems="end" justify="center" mt="1rem !important">
+        <HStack alignItems="end" justify="end" mt="1rem !important">
           <Button variant="secondary" w={{ base: '100%', sm: 'initial' }}>
             Cancel all
           </Button>
