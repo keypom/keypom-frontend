@@ -1,6 +1,4 @@
-import { Badge, Box, Center, Spinner } from '@chakra-ui/react';
-import { useRouter } from 'next/router';
-import useSWR from 'swr';
+import { Badge, Box } from '@chakra-ui/react';
 
 import { DropManager } from '@/modules/DropManager/DropManager';
 
@@ -14,34 +12,34 @@ interface TokenDropResponse {
 }
 
 // TODO: mock implementation of drop links fetching
-const fetcher = async () => {
-  await new Promise((res) => setTimeout(res, 2000));
-  return {
-    name: 'Star Invader 3',
-    links: [
-      { id: 1, link: 'keypom.xyz/#2138h823h', hasClaimed: true },
-      { id: 2, link: 'keypom.xyz/#2138h823h', hasClaimed: false },
-      { id: 3, link: 'keypom.xyz/#c34fd2n32', hasClaimed: false },
-      { id: 4, link: 'keypom.xyz/#rf5hhfaxm', hasClaimed: true },
-    ],
-  };
-};
+// const fetcher = async () => {
+//   await new Promise((res) => setTimeout(res, 2000));
+//   return {
+//     name: 'Star Invader 3',
+//     links: [
+//       { id: 1, link: 'keypom.xyz/#2138h823h', hasClaimed: true },
+//       { id: 2, link: 'keypom.xyz/#2138h823h', hasClaimed: false },
+//       { id: 3, link: 'keypom.xyz/#c34fd2n32', hasClaimed: false },
+//       { id: 4, link: 'keypom.xyz/#rf5hhfaxm', hasClaimed: true },
+//     ],
+//   };
+// };
 
-interface useDropSWRReturn {
-  data: TokenDropResponse;
-  isLoading: boolean;
-  isError: Error;
-}
+// interface useDropSWRReturn {
+//   data: TokenDropResponse;
+//   isLoading: boolean;
+//   isError: Error;
+// }
 
-const useDropSWR = (id: string): useDropSWRReturn => {
-  const { data, error, isLoading } = useSWR(`/api/drop/${id}`, fetcher);
+// const useDropSWR = (id: string): useDropSWRReturn => {
+//   const { data, error, isLoading } = useSWR(`/api/drop/${id}`, fetcher);
 
-  return {
-    data,
-    isLoading,
-    isError: error,
-  };
-};
+//   return {
+//     data,
+//     isLoading,
+//     isError: error,
+//   };
+// };
 
 const tableColumns = [
   { title: 'Link', selector: (row) => row.link },
@@ -61,26 +59,12 @@ const getTableRows = (data: TokenDropResponse) => {
   }));
 };
 
-export default function TokenDropManager() {
-  const {
-    query: { id },
-  } = useRouter();
-
-  const { data, isLoading, isError } = useDropSWR(id as string);
-
+export default function TokenDropManager({ data }: { data: TokenDropResponse }) {
   const tableRows = getTableRows(data);
-
-  if (isLoading) {
-    return (
-      <Center>
-        <Spinner size="xl" />
-      </Center>
-    );
-  }
 
   return (
     <Box>
-      {data !== undefined && !isError && (
+      {data !== undefined && (
         <DropManager
           claimedHeaderText="Opened"
           claimedText="200/500"
@@ -92,4 +76,25 @@ export default function TokenDropManager() {
       )}
     </Box>
   );
+}
+
+// TODO: temporary solution until we have SSR
+export async function getStaticProps({ params }) {
+  const data = {
+    name: 'Star Invader 3',
+    links: [
+      { id: 1, link: 'keypom.xyz/#2138h823h', hasClaimed: true },
+      { id: 2, link: 'keypom.xyz/#2138h823h', hasClaimed: false },
+      { id: 3, link: 'keypom.xyz/#c34fd2n32', hasClaimed: false },
+      { id: 4, link: 'keypom.xyz/#rf5hhfaxm', hasClaimed: true },
+    ],
+  };
+  return { props: { data } };
+}
+
+export async function getStaticPaths() {
+  const paths = {
+    id: 123,
+  };
+  return { paths, fallback: false };
 }
