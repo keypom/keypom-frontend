@@ -50,7 +50,7 @@ const ClaimTokenPage = () => {
                 />
               </VStack>
             </BoxWithShape>
-            <VStack bg="gray.50" borderBottomRadius="3xl" gap="5" p="8" w="full" w="full">
+            <VStack bg="gray.50" borderBottomRadius="3xl" gap="5" p="8" w="full">
               <Text>Create a wallet to store your assets</Text>
               <VStack gap="1" w="full">
                 {/** div placeholder */}
