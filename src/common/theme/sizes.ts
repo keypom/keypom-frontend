@@ -2,7 +2,7 @@ export const radii = {
   none: '0',
   xs: '0.03125rem',
   sm: '0.0625rem',
-  default: '0.125rem',
+  base: '0.125rem',
   lg: '0.1875rem',
   xl: '0.25rem',
   '2xl': '0.3125rem',
