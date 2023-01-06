@@ -14,8 +14,8 @@ export const IconBox = ({ children, icon, ...props }: PropsWithChildren<IconBoxP
       bg="border.box"
       border="2px solid transparent"
       borderRadius="8xl"
-      p="16"
-      pb="8"
+      p={{ base: '6', md: '16' }}
+      pb={{ base: '6', md: '8' }}
       position="relative"
       textAlign="center"
       {...props}

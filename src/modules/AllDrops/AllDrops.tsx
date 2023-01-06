@@ -3,6 +3,10 @@ import {
   Box,
   Button,
   HStack,
+  Menu,
+  MenuButton,
+  MenuItem,
+  MenuList,
   Show,
   TableContainer,
   Tbody,
@@ -12,12 +16,12 @@ import {
   useDisclosure,
 } from '@chakra-ui/react';
 import { ChevronDownIcon } from '@chakra-ui/icons';
+import { useRouter } from 'next/router';
 
 import { PageHead } from '@/common/components/PageHead';
 import { Heading, Text } from '@/common/components/Typography';
 import { Td, Table } from '@/common/components/Table';
 import { DeleteIcon } from '@/common/components/Icons';
-import { Menu } from '@/common/components/Menu';
 
 import { MobileDrawerMenu } from './MobileDrawerMenu';
 import { MENU_ITEMS } from './menuItems';
@@ -37,22 +41,36 @@ const TABLE_DATA = [
   {
     name: 'Trumpy Apes',
     type: 'NFT',
-    claimed: '10 / 444', // Need to figure out what determines the badge color
+    claimed: '10 / 444', // TODO: Need to figure out what determines the badge color
   },
 ];
 
 export default function AllDrops() {
+  const router = useRouter();
   const { isOpen, onOpen, onClose } = useDisclosure();
+
+  const dropMenuItems = MENU_ITEMS.map((item) => (
+    <MenuItem key={item.label} {...item}>
+      {item.label}
+    </MenuItem>
+  ));
+
   const getDesktopTableBody = () =>
     TABLE_DATA.map((drop) => (
-      <Tr key={drop.name}>
+      <Tr
+        key={drop.name}
+        onClick={() => {
+          // TODO: use appropriate drop type manager and id
+          router.push('/drop/token/123');
+        }}
+      >
         <Td>{drop.name}</Td>
         <Td>{drop.type}</Td>
         <Td>
           <Badge variant="lightgreen">{drop.claimed} Claimed</Badge>
         </Td>
         <Td display="flex" justifyContent="right">
-          <Button size="sm" variant="action">
+          <Button size="sm" variant="icon">
             <DeleteIcon color="red" />
           </Button>
         </Td>
@@ -74,7 +92,7 @@ export default function AllDrops() {
           </Text>
         </Td>
         <Td verticalAlign="middle">
-          <Button float="right" size="sm" variant="action">
+          <Button float="right" size="sm" variant="icon">
             <DeleteIcon color="red" />
           </Button>
         </Td>
@@ -95,7 +113,23 @@ export default function AllDrops() {
 
         {/* Desktop Dropdown Menu */}
         <Show above="sm">
-          <Menu items={MENU_ITEMS}>Create a drop</Menu>
+          <Menu>
+            {({ isOpen }) => (
+              <Box>
+                <MenuButton
+                  as={Button}
+                  isActive={isOpen}
+                  px="6"
+                  py="3"
+                  rightIcon={<ChevronDownIcon />}
+                  variant="secondary"
+                >
+                  Create a drop
+                </MenuButton>
+                <MenuList>{dropMenuItems}</MenuList>
+              </Box>
+            )}
+          </Menu>
         </Show>
 
         {/* Mobile Menu Button */}
