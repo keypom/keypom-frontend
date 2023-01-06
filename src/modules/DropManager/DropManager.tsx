@@ -12,10 +12,10 @@ import {
   Tr,
   Text,
   VStack,
+  Heading,
 } from '@chakra-ui/react';
 
 import { Breadcrumbs } from '@/common/components/Breadcrumbs';
-import { Heading } from '@/common/components/Typography';
 import { CopyIcon, DeleteIcon } from '@/common/components/Icons';
 import { Td, Table } from '@/common/components/Table';
 
@@ -118,7 +118,7 @@ export const DropManager = ({
             {/* Drop name */}
             <Stack maxW={{ base: 'full', md: '22.5rem' }}>
               <Text color="gray.800">Drop name</Text>
-              <Heading>Star Invader 3</Heading>
+              <Heading>{dropName}</Heading>
             </Stack>
 
             {/* Drops claimed */}

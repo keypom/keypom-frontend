@@ -9,6 +9,7 @@ import {
   InputTheme,
   TextTheme,
   CheckboxTheme,
+  HeadingTheme,
 } from './components';
 import { colors } from './colors';
 import { radii } from './sizes';
@@ -24,6 +25,7 @@ export const theme = extendTheme({
     Input: InputTheme,
     Checkbox: CheckboxTheme,
     Text: TextTheme,
+    Heading: HeadingTheme,
   },
   colors,
   fontSizes,

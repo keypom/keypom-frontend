@@ -15,12 +15,12 @@ import {
   Tr,
   Text,
   useDisclosure,
+  Heading,
 } from '@chakra-ui/react';
 import { ChevronDownIcon } from '@chakra-ui/icons';
 import { useRouter } from 'next/router';
 
 import { PageHead } from '@/common/components/PageHead';
-import { Heading } from '@/common/components/Typography';
 import { Td, Table } from '@/common/components/Table';
 import { DeleteIcon } from '@/common/components/Icons';
 
