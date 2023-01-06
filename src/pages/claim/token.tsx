@@ -5,8 +5,8 @@ import { IconBox } from '@/common/components/IconBox';
 import { BoxWithShape } from '@/common/components/BoxWithShape';
 import { StarIcon } from '@/common/components/Icons';
 
-import { CreateWallet } from '@/modules/claim/token/CreateWallet';
-import { ExistingWallet } from '@/modules/claim/token/ExistingWallet';
+import { CreateWallet } from '@/modules/claim/CreateWallet';
+import { ExistingWallet } from '@/modules/claim/ExistingWallet';
 import { DropBox } from '@/modules/claim/token/DropBox';
 
 const ClaimTokenPage = () => {
