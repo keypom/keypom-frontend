@@ -17,6 +17,11 @@ import { ColumnItem, DataItem } from './types';
 /**
  * Example
  *
+ * data = [{ name: 'Eric', age: 21 }]
+ * columns = [
+ *  { title: 'Name', selector: (row) => row.name },
+ *  { title: 'Age', selector: (row) => row.age }
+ * ]
  */
 
 interface DataTableProps extends TableProps {

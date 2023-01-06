@@ -14,8 +14,6 @@ interface DropManagerProps {
   data: DataItem[];
   onExportCSVClick?: () => void;
   onCancelAllClick?: () => void;
-  onCopyClick?: () => void;
-  onDeleteClick?: () => void;
 }
 
 export const DropManager = ({
@@ -25,8 +23,6 @@ export const DropManager = ({
   tableColumns = [],
   data = [],
   showColumns = true,
-  onCopyClick,
-  onDeleteClick,
 }: DropManagerProps) => {
   const breadcrumbItems = [
     {
