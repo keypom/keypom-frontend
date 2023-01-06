@@ -5,19 +5,19 @@ export const MENU_ITEMS: MenuItemProps[] = [
   {
     label: 'Token Drop',
     as: 'a',
-    href: '/drop/new',
+    href: '/drops/token/new',
     icon: <LinkIcon h="4" w="4" />,
   },
   {
     label: 'NFT Drop',
     as: 'a',
-    href: '/drop/new',
+    href: '/drops/nft/new',
     icon: <NFTIcon h="4" w="4" />,
   },
   {
     label: 'Ticket Drop',
     as: 'a',
-    href: '/drop/new',
+    href: '/drops/ticket/new',
     icon: <TicketIcon h="4" w="4" />,
   },
 ];

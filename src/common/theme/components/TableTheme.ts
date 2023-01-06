@@ -1,7 +1,8 @@
+import { tableAnatomy as parts } from '@chakra-ui/anatomy';
 import { createMultiStyleConfigHelpers } from '@chakra-ui/styled-system';
 
 // This function creates a set of function that helps us create multipart component styles.
-const helpers = createMultiStyleConfigHelpers(['table', 'th', 'td', 'tr']);
+const helpers = createMultiStyleConfigHelpers(parts.keys);
 
 export const TableTheme = helpers.defineMultiStyleConfig({
   baseStyle: {
@@ -21,6 +22,9 @@ export const TableTheme = helpers.defineMultiStyleConfig({
       _last: {
         borderTopRightRadius: '26px',
       },
+    },
+    td: {
+      pl: '4',
     },
     tr: {
       borderBottom: '1px solid',

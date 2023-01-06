@@ -1,6 +1,14 @@
 import { extendTheme } from '@chakra-ui/react';
 
-import { ModalTheme, ButtonTheme, TableTheme, MenuTheme, BadgeTheme } from './components';
+import {
+  ModalTheme,
+  ButtonTheme,
+  TableTheme,
+  MenuTheme,
+  BadgeTheme,
+  InputTheme,
+  CheckboxTheme,
+} from './components';
 import { colors } from './colors';
 import { radii } from './sizes';
 import { fontSizes, fonts } from './typo';
@@ -12,6 +20,8 @@ export const theme = extendTheme({
     Table: TableTheme,
     Menu: MenuTheme,
     Badge: BadgeTheme,
+    Input: InputTheme,
+    Checkbox: CheckboxTheme,
   },
   colors,
   fontSizes,
