@@ -14,7 +14,7 @@ export const baseStyle = definePartsStyle({
   dialog: {
     bg: 'border.box',
     border: '2px solid transparent',
-    borderRadius: '3xl',
+    borderRadius: '8xl',
     boxShadow:
       '0px 100px 80px rgba(1, 133, 195, 0.05), 0px 12.5216px 10.0172px rgba(1, 133, 195, 0.025)',
     mx: { base: 6, md: 0 },
