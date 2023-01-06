@@ -1,2 +1,2 @@
-export * from './Table';
-export * from './Td';
+export * from './DataTable';
+export * from './MobileDataTable';

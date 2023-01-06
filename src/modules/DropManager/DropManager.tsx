@@ -5,8 +5,10 @@ import {
   HStack,
   Show,
   Stack,
+  Table,
   TableContainer,
   Tbody,
+  Td,
   Th,
   Thead,
   Tr,
@@ -16,7 +18,6 @@ import {
 import { Breadcrumbs } from '@/common/components/Breadcrumbs';
 import { Heading, Text } from '@/common/components/Typography';
 import { CopyIcon, DeleteIcon } from '@/common/components/Icons';
-import { Td, Table } from '@/common/components/Table';
 
 type Primitive = string | number | boolean;
 
