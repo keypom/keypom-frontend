@@ -29,7 +29,7 @@ const ClaimTokenPage = () => {
           <IconBox icon={<StarIcon />} minW={{ base: '345px', md: '30rem' }} p="0" pb="0">
             <BoxWithShape
               bg="white"
-              borderTopRadius="3xl"
+              borderTopRadius="8xl"
               pb={{ base: '6', md: '8' }}
               pt={{ base: '12', md: '16' }}
               px={{ base: '6', md: '8' }}
@@ -45,7 +45,7 @@ const ClaimTokenPage = () => {
             </BoxWithShape>
             <VStack
               bg="gray.50"
-              borderBottomRadius="3xl"
+              borderBottomRadius="8xl"
               p="8"
               spacing={{ base: '4', md: '5' }}
               w="full"

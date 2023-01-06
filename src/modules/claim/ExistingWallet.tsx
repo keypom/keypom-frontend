@@ -32,7 +32,7 @@ export const ExistingWallet = ({ onBack, handleSubmit }: ExistingWalletProps) =>
           bg="white"
           border="1px solid"
           borderColor="gray.200"
-          borderRadius="xl"
+          borderRadius={{ base: '5xl', md: '6xl' }}
           h={{ base: '39px', md: '12' }}
           w="full"
         />
