@@ -1,8 +1,7 @@
-import { Box, Button, Divider, HStack, useDisclosure } from '@chakra-ui/react';
+import { Box, Button, Divider, HStack, Text, useDisclosure } from '@chakra-ui/react';
 import { useEffect } from 'react';
 
 import { IconBox } from '@/common/components/IconBox';
-import { Text } from '@/common/components/Typography';
 import { LinkIcon } from '@/common/components/Icons';
 
 import { PaymentData, SummaryItem } from './types/types';

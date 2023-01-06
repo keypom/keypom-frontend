@@ -7,6 +7,7 @@ import {
   MenuTheme,
   BadgeTheme,
   InputTheme,
+  TextTheme,
   CheckboxTheme,
 } from './components';
 import { colors } from './colors';
@@ -22,6 +23,7 @@ export const theme = extendTheme({
     Badge: BadgeTheme,
     Input: InputTheme,
     Checkbox: CheckboxTheme,
+    Text: TextTheme,
   },
   colors,
   fontSizes,

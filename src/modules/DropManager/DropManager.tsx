@@ -10,11 +10,12 @@ import {
   Th,
   Thead,
   Tr,
+  Text,
   VStack,
 } from '@chakra-ui/react';
 
 import { Breadcrumbs } from '@/common/components/Breadcrumbs';
-import { Heading, Text } from '@/common/components/Typography';
+import { Heading } from '@/common/components/Typography';
 import { CopyIcon, DeleteIcon } from '@/common/components/Icons';
 import { Td, Table } from '@/common/components/Table';
 

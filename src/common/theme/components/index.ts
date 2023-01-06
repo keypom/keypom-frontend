@@ -5,3 +5,4 @@ export * from './InputTheme';
 export * from './MenuTheme';
 export * from './ModalTheme';
 export * from './TableTheme';
+export * from './TextTheme';

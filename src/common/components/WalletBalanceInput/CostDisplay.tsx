@@ -1,6 +1,4 @@
-import { HStack } from '@chakra-ui/react';
-
-import { Text } from '../Typography';
+import { HStack, Text } from '@chakra-ui/react';
 
 interface CostDisplayProps {
   totalCost: number | string;
