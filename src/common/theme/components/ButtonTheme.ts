@@ -2,7 +2,7 @@ import { defineStyleConfig } from '@chakra-ui/react';
 
 export const ButtonTheme = defineStyleConfig({
   baseStyle: {
-    borderRadius: 'xl',
+    borderRadius: '6xl',
     fontWeight: 'medium',
   },
   sizes: {
