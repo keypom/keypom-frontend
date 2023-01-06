@@ -1,4 +1,4 @@
-import { Box, Center, Text, useBoolean, VStack } from '@chakra-ui/react';
+import { Box, Center, Heading, useBoolean, VStack } from '@chakra-ui/react';
 
 import { PageHead } from '@/common/components/PageHead';
 import { IconBox } from '@/common/components/IconBox';
@@ -8,6 +8,11 @@ import { StarIcon } from '@/common/components/Icons';
 import { CreateWallet } from '@/modules/claim/CreateWallet';
 import { ExistingWallet } from '@/modules/claim/ExistingWallet';
 import { DropBox } from '@/modules/claim/token/DropBox';
+
+const DROP_TEST_DATA = [
+  { coin: 'ETH', value: 0.1 },
+  { coin: 'NEAR', value: 20 },
+];
 
 const ClaimTokenPage = () => {
   const [haveWallet, showInputWallet] = useBoolean(false);
@@ -23,7 +28,11 @@ const ClaimTokenPage = () => {
         {/** the additional gap is to accommodate for the absolute roundIcon size */}
         <VStack gap={{ base: 'calc(24px + 8px)', md: 'calc(32px + 10px)' }}>
           {/** Prompt text */}
-          <Text>{`You've received a Keypom Drop!`}</Text>
+          <Heading
+            fontSize={{ base: '2xl', md: '4xl' }}
+            fontWeight="500"
+            textAlign="center"
+          >{`You've received a Keypom Drop!`}</Heading>
 
           {/** Claim token component */}
           <IconBox icon={<StarIcon />} minW={{ base: '345px', md: '30rem' }} p="0" pb="0">
@@ -38,8 +47,8 @@ const ClaimTokenPage = () => {
             >
               <VStack>
                 {/** div placeholder */}
-                {[1, 2, 3].map((_, index) => (
-                  <DropBox key={index} coin="ETH" value={index} />
+                {DROP_TEST_DATA.map(({ coin, value }, index) => (
+                  <DropBox key={index} coin={coin} value={value} />
                 ))}
               </VStack>
             </BoxWithShape>
