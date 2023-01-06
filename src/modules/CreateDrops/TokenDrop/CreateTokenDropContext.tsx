@@ -10,6 +10,9 @@ import { WALLET_TOKENS } from './data';
 
 const CreateTokenDropContext = createContext(null);
 
+// Matches with optional protocol and URL with one dot
+const urlRegex = /(?:(?:https?:\/\/)?[\w.-]*\.[\w]{2,3})/;
+
 const schema = z.object({
   dropName: z.string().min(1, 'Drop name required'),
   selectedFromWallet: z.object({
@@ -22,7 +25,9 @@ const schema = z.object({
     .positive()
     .min(1, 'Required'),
   amountPerLink: z.number({ invalid_type_error: 'Amount required' }).gt(0),
-  redirectLink: z.union([z.string().url(), z.string().length(0)]).optional(),
+  redirectLink: z
+    .union([z.string().regex(urlRegex, 'Please enter a valid url'), z.string().length(0)])
+    .optional(),
 });
 
 type Schema = z.infer<typeof schema>;

@@ -1,6 +1,6 @@
 // Generic layout for all drop
 
-import { Box, Flex } from '@chakra-ui/react';
+import { Box, Stack } from '@chakra-ui/react';
 import { PropsWithChildren } from 'react';
 
 import { Breadcrumbs } from '@/common/components/Breadcrumbs';
@@ -14,18 +14,17 @@ export const DropLayout = ({ children }: PropsWithChildren) => {
     currentFlowPage: { description },
   } = useDropFlowContext();
   return (
-    <Flex
+    <Stack
       direction={{ base: 'column', md: 'row' }}
       maxW={{ base: '21.5rem', md: '62.125rem' }}
       mx="auto"
+      spacing={{ base: '14', md: '5' }}
     >
       <Box flexGrow="1" maxW={{ base: 'full', md: '26.625rem' }}>
         <Breadcrumbs items={breadcrumbs} />
         <Heading mt={{ base: '2', md: '4' }}>{description}</Heading>
       </Box>
-      <Box flexGrow="1" mt={{ base: '3.5rem', md: '0' }}>
-        {children}
-      </Box>
-    </Flex>
+      <Box flexGrow="1">{children}</Box>
+    </Stack>
   );
 };

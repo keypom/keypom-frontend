@@ -2,6 +2,7 @@ lockfileVersion: 5.4
 
 specifiers:
   '@babel/core': ^7.20.5
+  '@chakra-ui/anatomy': ^2.1.1
   '@chakra-ui/icons': 2.0.14
   '@chakra-ui/react': 2.4.2
   '@chakra-ui/styled-system': 2.5.0
@@ -38,6 +39,7 @@ specifiers:
 
 dependencies:
   '@babel/core': 7.20.12
+  '@chakra-ui/anatomy': 2.1.1
   '@chakra-ui/icons': 2.0.14_iuckyjetixsa6e5uo5ymtjguvq
   '@chakra-ui/react': 2.4.2_6z66u6efdgokrdxyuxkwijcyzq
   '@chakra-ui/styled-system': 2.5.0
@@ -340,6 +342,10 @@ packages:
 
   /@chakra-ui/anatomy/2.1.0:
     resolution: {integrity: sha512-E3jMPGqKuGTbt7mKtc8g/MOOenw2c4wqRC1vOypyFgmC8wsewdY+DJJNENF3atXAK7p5VMBKQfZ7ipNlHnDAwA==}
+    dev: false
+
+  /@chakra-ui/anatomy/2.1.1:
+    resolution: {integrity: sha512-LUHAoqJAgxAqmyckG5bUpBrfEo1FleEyY+1A8hkWciy58gZ+h3GoY9oBpHcdo7XdHPpy3G+3hieK/7i9NLwxAw==}
     dev: false
 
   /@chakra-ui/avatar/2.2.1_xivvz2l3eyrkvszadds3phcwaq:

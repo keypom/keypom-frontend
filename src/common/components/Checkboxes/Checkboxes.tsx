@@ -32,7 +32,7 @@ export const Checkboxes = ({ items = [], defaultValues = [], onChange }: Checkbo
         checked
         border="1px solid"
         borderColor={isChecked ? 'blue.400' : 'gray.200'}
-        borderRadius="xl"
+        borderRadius="6xl"
         icon={
           isChecked ? <CheckedIcon height="5" width="5" /> : <UncheckedIcon height="5" width="5" />
         }

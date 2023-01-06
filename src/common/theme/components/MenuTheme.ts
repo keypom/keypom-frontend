@@ -1,7 +1,8 @@
 import { createMultiStyleConfigHelpers } from '@chakra-ui/styled-system';
+import { menuAnatomy as parts } from '@chakra-ui/anatomy';
 
 // This function creates a set of function that helps us create multipart component styles.
-const helpers = createMultiStyleConfigHelpers(['item', 'button', 'list']);
+const helpers = createMultiStyleConfigHelpers(parts.keys);
 
 export const MenuTheme = helpers.defineMultiStyleConfig({
   baseStyle: {

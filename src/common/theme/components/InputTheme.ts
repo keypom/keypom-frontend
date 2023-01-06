@@ -1,13 +1,14 @@
+import { inputAnatomy as parts } from '@chakra-ui/anatomy';
 import { createMultiStyleConfigHelpers } from '@chakra-ui/styled-system';
 
 // This function creates a set of function that helps us create multipart component styles.
-const helpers = createMultiStyleConfigHelpers(['field']);
+const helpers = createMultiStyleConfigHelpers(parts.keys);
 
 export const InputTheme = helpers.defineMultiStyleConfig({
   sizes: {
     md: {
       field: {
-        borderRadius: 'xl',
+        borderRadius: '6xl',
         height: '12',
       },
     },

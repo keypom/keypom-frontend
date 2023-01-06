@@ -24,16 +24,14 @@ export const ButtonTheme = defineStyleConfig({
       bgColor: 'gray.800',
       _hover: {
         bgColor: 'gray.900',
+        _disabled: {
+          bgColor: 'gray.900',
+        },
       },
       _focus: {
         bgColor: 'gray.900',
         border: '2px solid',
         borderColor: 'blue.400',
-      },
-      _disabled: {
-        _hover: {
-          bg: 'gray.900 !important',
-        },
       },
     },
     secondary: {
