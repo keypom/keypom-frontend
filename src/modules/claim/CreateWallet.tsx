@@ -1,53 +1,32 @@
-import { Box, Text, VStack } from '@chakra-ui/react';
+import { Text, VStack } from '@chakra-ui/react';
+
+import { WalletOption } from './WalletOption';
 
 interface CreateWalletProps {
   onClick: () => void;
 }
 
+const CREATE_WALLET_TEST_DATA = [
+  { coin: 'NEAR', walletName: 'NEAR' },
+  { coin: 'HERE', walletName: 'My HERE' },
+  { coin: 'ETH', walletName: 'Metamask' },
+];
+
 export const CreateWallet = ({ onClick }: CreateWalletProps) => {
   return (
     <>
-      <Text color="gray.800" fontWeight="500">
+      <Text
+        color="gray.800"
+        fontSize={{ base: 'md', md: 'lg' }}
+        fontWeight="500"
+        lineHeight={{ base: '6', md: '1.625rem' }}
+      >
         Create a wallet to store your assets
       </Text>
       <VStack spacing="1" w="full">
-        {/** div placeholder */}
-        <Box
-          _hover={{
-            cursor: 'pointer',
-            bg: 'gray.100',
-          }}
-          bg="white"
-          border="1px solid"
-          borderColor="gray.200"
-          borderRadius={{ base: '5xl', md: '6xl' }}
-          h={{ base: '39px', md: '12' }}
-          w="full"
-        />
-        <Box
-          _hover={{
-            cursor: 'pointer',
-            bg: 'gray.100',
-          }}
-          bg="white"
-          border="1px solid"
-          borderColor="gray.200"
-          borderRadius={{ base: '5xl', md: '6xl' }}
-          h={{ base: '39px', md: '12' }}
-          w="full"
-        />
-        <Box
-          _hover={{
-            cursor: 'pointer',
-            bg: 'gray.100',
-          }}
-          bg="white"
-          border="1px solid"
-          borderColor="gray.200"
-          borderRadius={{ base: '5xl', md: '6xl' }}
-          h={{ base: '39px', md: '12' }}
-          w="full"
-        />
+        {CREATE_WALLET_TEST_DATA.map(({ coin, walletName }, index) => (
+          <WalletOption key={index} coin={coin} walletName={walletName} />
+        ))}
       </VStack>
       <Text
         _hover={{
