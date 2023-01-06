@@ -1,10 +1,13 @@
-import { Box, Button, Center, Text, useBoolean, VStack } from '@chakra-ui/react';
-import { ChevronLeftIcon } from '@chakra-ui/icons';
+import { Box, Center, Text, useBoolean, VStack } from '@chakra-ui/react';
 
 import { PageHead } from '@/common/components/PageHead';
 import { IconBox } from '@/common/components/IconBox';
 import { BoxWithShape } from '@/common/components/BoxWithShape';
 import { StarIcon } from '@/common/components/Icons';
+
+import { CreateWallet } from '@/modules/claim/token/CreateWallet';
+import { ExistingWallet } from '@/modules/claim/token/ExistingWallet';
+import { DropBox } from '@/modules/claim/token/DropBox';
 
 const ClaimTokenPage = () => {
   const [haveWallet, showInputWallet] = useBoolean(false);
@@ -35,22 +38,9 @@ const ClaimTokenPage = () => {
             >
               <VStack>
                 {/** div placeholder */}
-                <Box
-                  bg="gray.100"
-                  border="1px solid"
-                  borderColor="blue.200"
-                  h={{ base: '12', md: '62px' }}
-                  rounded="full"
-                  w="full"
-                />
-                <Box
-                  bg="gray.100"
-                  border="1px solid"
-                  borderColor="blue.200"
-                  h={{ base: '12', md: '62px' }}
-                  rounded="full"
-                  w="full"
-                />
+                {[1, 2, 3].map((_, index) => (
+                  <DropBox key={index} coin="ETH" value={index} />
+                ))}
               </VStack>
             </BoxWithShape>
             <VStack
@@ -61,90 +51,11 @@ const ClaimTokenPage = () => {
               w="full"
             >
               {!haveWallet ? (
-                <>
-                  <Text color="gray.800" fontWeight="500">
-                    Create a wallet to store your assets
-                  </Text>
-                  <VStack spacing="1" w="full">
-                    {/** div placeholder */}
-                    <Box
-                      _hover={{
-                        cursor: 'pointer',
-                        bg: 'gray.100',
-                      }}
-                      bg="white"
-                      border="1px solid"
-                      borderColor="gray.200"
-                      borderRadius="xl"
-                      h={{ base: '39px', md: '12' }}
-                      w="full"
-                    />
-                    <Box
-                      _hover={{
-                        cursor: 'pointer',
-                        bg: 'gray.100',
-                      }}
-                      bg="white"
-                      border="1px solid"
-                      borderColor="gray.200"
-                      borderRadius="xl"
-                      h={{ base: '39px', md: '12' }}
-                      w="full"
-                    />
-                    <Box
-                      _hover={{
-                        cursor: 'pointer',
-                        bg: 'gray.100',
-                      }}
-                      bg="white"
-                      border="1px solid"
-                      borderColor="gray.200"
-                      borderRadius="xl"
-                      h={{ base: '39px', md: '12' }}
-                      w="full"
-                    />
-                  </VStack>
-                  <Text
-                    _hover={{
-                      cursor: 'pointer',
-                      color: 'gray.500',
-                    }}
-                    textDecor="underline"
-                    onClick={showInputWallet.on}
-                  >
-                    I already have a wallet
-                  </Text>
-                </>
+                <CreateWallet onClick={showInputWallet.on} />
               ) : (
                 <>
-                  <Center
-                    _hover={{
-                      cursor: 'pointer',
-                    }}
-                    position="relative"
-                    w="full"
-                    onClick={showInputWallet.off}
-                  >
-                    <ChevronLeftIcon color="gray.400" h="5" left="0" position="absolute" w="5" />
-                    <Text color="gray.800" fontWeight="500">
-                      Send to existing wallet
-                    </Text>
-                  </Center>
-                  {/** simulate input with label */}
-                  <VStack gap="0" w="full">
-                    <Text textAlign="left" w="full">
-                      Your wallet address
-                    </Text>
-                    <Box
-                      bg="white"
-                      border="1px solid"
-                      borderColor="gray.200"
-                      borderRadius="xl"
-                      h={{ base: '39px', md: '12' }}
-                      w="full"
-                    />
-                  </VStack>
-                  <Button w="full">Submit</Button>
+                  {/** TODO: handleSubmit button */}
+                  <ExistingWallet handleSubmit={() => null} onBack={showInputWallet.off} />
                 </>
               )}
             </VStack>
