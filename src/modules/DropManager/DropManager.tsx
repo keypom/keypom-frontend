@@ -1,35 +1,9 @@
-import {
-  Box,
-  Button,
-  Hide,
-  HStack,
-  Show,
-  Stack,
-  Table,
-  TableContainer,
-  Tbody,
-  Td,
-  Th,
-  Thead,
-  Tr,
-  VStack,
-} from '@chakra-ui/react';
+import { Box, Button, HStack, Stack } from '@chakra-ui/react';
 
 import { Breadcrumbs } from '@/common/components/Breadcrumbs';
 import { Heading, Text } from '@/common/components/Typography';
-import { CopyIcon, DeleteIcon } from '@/common/components/Icons';
-
-type Primitive = string | number | boolean;
-
-interface DataItem {
-  id: string | number;
-  [key: string]: React.ReactNode | Primitive;
-}
-
-interface ColumnItem {
-  title: string;
-  selector: (arg: DataItem) => React.ReactNode | Primitive;
-}
+import { ColumnItem, DataItem } from '@/common/components/Table/types';
+import { DataTable } from '@/common/components/Table';
 
 interface DropManagerProps {
   dropName: string;
@@ -65,43 +39,43 @@ export const DropManager = ({
     },
   ];
 
-  const getDesktopTableBody = () =>
-    data.map((drop) => (
-      <Tr key={drop.id}>
-        {tableColumns.map((column) => (
-          <Td key={`${column.title}-${drop.id}`}>{column.selector(drop)}</Td>
-        ))}
-        <Td display="flex" justifyContent="right" verticalAlign="middle">
-          <Button mr="1" size="sm" variant="icon" onClick={onCopyClick}>
-            <CopyIcon />
-          </Button>
-          <Button size="sm" variant="icon" onClick={onDeleteClick}>
-            <DeleteIcon color="red" />
-          </Button>
-        </Td>
-      </Tr>
-    ));
+  // const getDesktopTableBody = () =>
+  //   data.map((drop) => (
+  //     <Tr key={drop.id}>
+  //       {tableColumns.map((column) => (
+  //         <Td key={`${column.title}-${drop.id}`}>{column.selector(drop)}</Td>
+  //       ))}
+  //       <Td display="flex" justifyContent="right" verticalAlign="middle">
+  //         <Button mr="1" size="sm" variant="icon" onClick={onCopyClick}>
+  //           <CopyIcon />
+  //         </Button>
+  //         <Button size="sm" variant="icon" onClick={onDeleteClick}>
+  //           <DeleteIcon color="red" />
+  //         </Button>
+  //       </Td>
+  //     </Tr>
+  //   ));
 
-  const getMobileTableBody = () =>
-    data.map((drop) => (
-      <Tr key={drop.id}>
-        <Td>
-          <VStack align="flex-start" spacing="2">
-            {tableColumns.map((column) => (
-              <Box key={`${drop.id}-${column.title}`}>{column.selector(drop)}</Box>
-            ))}
-          </VStack>
-        </Td>
-        <Td display="flex" justifyContent="right">
-          <Button mr="1" size="sm" variant="icon" onClick={onCopyClick}>
-            <CopyIcon />
-          </Button>
-          <Button size="sm" variant="icon" onClick={onDeleteClick}>
-            <DeleteIcon color="red" />
-          </Button>
-        </Td>
-      </Tr>
-    ));
+  // const getMobileTableBody = () =>
+  //   data.map((drop) => (
+  //     <Tr key={drop.id}>
+  //       <Td>
+  //         <VStack align="flex-start" spacing="2">
+  //           {tableColumns.map((column) => (
+  //             <Box key={`${drop.id}-${column.title}`}>{column.selector(drop)}</Box>
+  //           ))}
+  //         </VStack>
+  //       </Td>
+  //       <Td display="flex" justifyContent="right">
+  //         <Button mr="1" size="sm" variant="icon" onClick={onCopyClick}>
+  //           <CopyIcon />
+  //         </Button>
+  //         <Button size="sm" variant="icon" onClick={onDeleteClick}>
+  //           <DeleteIcon color="red" />
+  //         </Button>
+  //       </Td>
+  //     </Tr>
+  //   ));
 
   return (
     <Box px="1" py={{ base: '3.25rem', md: '5rem' }}>
@@ -141,34 +115,12 @@ export const DropManager = ({
         </HStack>
       </Stack>
       <Box>
-        {/* Desktop Table */}
-        <Show above="md">
-          <TableContainer>
-            <Table mt="6">
-              {showColumns && (
-                <Thead>
-                  <Tr>
-                    {tableColumns.map((col) => (
-                      <Th key={col.title}>{col.title}</Th>
-                    ))}
-                    {/* Actions header */}
-                    <Th></Th>
-                  </Tr>
-                </Thead>
-              )}
-              <Tbody>{getDesktopTableBody()}</Tbody>
-            </Table>
-          </TableContainer>
-        </Show>
-
-        {/* Mobile table */}
-        <Hide above="md">
-          <TableContainer>
-            <Table mt="4">
-              <Tbody>{getMobileTableBody()}</Tbody>
-            </Table>
-          </TableContainer>
-        </Hide>
+        <DataTable
+          columns={tableColumns}
+          data={data}
+          mt={{ base: '4', md: '6' }}
+          showColumns={showColumns}
+        />
       </Box>
     </Box>
   );
