@@ -1,6 +1,7 @@
 import {
   Box,
   Button,
+  Hide,
   HStack,
   Show,
   Stack,
@@ -160,13 +161,13 @@ export const DropManager = ({
         </Show>
 
         {/* Mobile table */}
-        <Show below="md">
+        <Hide above="md">
           <TableContainer>
             <Table mt="4">
               <Tbody>{getMobileTableBody()}</Tbody>
             </Table>
           </TableContainer>
-        </Show>
+        </Hide>
       </Box>
     </Box>
   );
