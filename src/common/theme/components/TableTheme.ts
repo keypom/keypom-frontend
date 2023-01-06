@@ -23,6 +23,9 @@ export const TableTheme = helpers.defineMultiStyleConfig({
         borderTopRightRadius: '26px',
       },
     },
+    td: {
+      pl: '4',
+    },
     tr: {
       borderBottom: '1px solid',
       borderBottomColor: 'gray.100',
