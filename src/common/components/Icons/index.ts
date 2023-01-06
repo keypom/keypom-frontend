@@ -5,4 +5,7 @@ export * from './MenuIcon';
 export * from './NFTIcon';
 export * from './StarIcon';
 export * from './TicketIcon';
+export * from './TokenEthIcon';
+export * from './TokenHereIcon';
+export * from './TokenNearIcon';
 export * from './TwitterLogoIcon';
