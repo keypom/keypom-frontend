@@ -1,4 +1,6 @@
-export const colors = {
+import { RecursiveObject } from '@chakra-ui/react';
+
+export const colors: RecursiveObject<string> = {
   border: {
     box: 'linear-gradient(white, white) padding-box, linear-gradient(0deg, rgba(255,207,234,1) 0%, rgba(182,232,247,1) 100%) border-box',
     round:

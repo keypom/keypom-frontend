@@ -1,4 +1,6 @@
-export const radii = {
+import { RecursiveObject } from '@chakra-ui/react';
+
+export const radii: RecursiveObject<string> = {
   none: '0',
   xs: '0.03125rem',
   sm: '0.0625rem',

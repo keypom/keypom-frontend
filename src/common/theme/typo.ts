@@ -1,4 +1,13 @@
-export const fontSizes = {
+import { RecursiveObject } from '@chakra-ui/react';
+import localFont from '@next/font/local';
+import { NextFont } from '@next/font/dist/types';
+import { Inter } from '@next/font/google';
+
+/**
+ * For Chakra Theme
+ *
+ */
+export const fontSizes: RecursiveObject<string> = {
   xs: '0.75rem',
   sm: '0.875rem',
   base: '1rem',
@@ -13,7 +22,33 @@ export const fontSizes = {
   '8xl': '6rem',
 };
 
-export const fonts = {
-  heading: 'Archia',
-  body: 'Inter V, Inter, system-ui, sans-serif',
+export const fonts: RecursiveObject<string> = {
+  heading: 'var(--archia-font), system-ui, sans-serif',
+  body: 'var(--inter-font), system-ui, sans-serif',
 };
+
+/**
+ * Fonts
+ */
+export const archia: NextFont = localFont({
+  src: [
+    {
+      path: '../../../assets/fonts/archia/archia-regular-webfont.woff2',
+      weight: '400',
+      style: 'normal',
+    },
+    {
+      path: '../../../assets/fonts/archia/archia-medium-webfont.woff2',
+      weight: '500',
+      style: 'normal',
+    },
+    {
+      path: '../../../assets/fonts/archia/archia-semibold-webfont.woff2',
+      weight: '600',
+      style: 'normal',
+    },
+  ],
+  display: 'swap',
+});
+
+export const inter: NextFont = Inter({ subsets: ['latin'], display: 'swap' });
