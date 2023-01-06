@@ -40,11 +40,11 @@ export const MobileMenu = () => {
             <VStack mt="10" spacing="4">
               {MENU_ITEMS.map(({ name, href }) => {
                 return (
-                  <NextLink key={name} href={href}>
-                    <Box as={Link} fontSize={{ base: 'sm', md: 'md' }} fontWeight="medium">
+                  <Link key={name} as={NextLink} href={href}>
+                    <Box fontSize={{ base: 'sm', md: 'md' }} fontWeight="medium">
                       {name}
                     </Box>
-                  </NextLink>
+                  </Link>
                 );
               })}
             </VStack>

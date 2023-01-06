@@ -16,7 +16,7 @@ export const MobileDrawerMenu = ({ isOpen, onClose }) => {
     MENU_ITEMS.map((item) => (
       <Button
         key={item.label}
-        borderRadius="lg"
+        borderRadius="5xl"
         cursor="pointer"
         fontSize="sm"
         justifyContent="left"
@@ -35,7 +35,7 @@ export const MobileDrawerMenu = ({ isOpen, onClose }) => {
       <DrawerContent
         bg="border.box"
         border="2px solid transparent"
-        borderRadius="2xl"
+        borderRadius="1rem"
         bottom="6px !important"
         marginX="auto"
         position="absolute"

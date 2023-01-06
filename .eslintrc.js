@@ -15,7 +15,7 @@ module.exports = {
       },
     ],
     'no-console': ['warn'],
-    'react/no-unknown-property': ['error', { ignore: ['css'] }],
+    'react/no-unknown-property': ['error', { ignore: ['css', 'global', 'jsx'] }],
     '@next/next/no-img-element': 'off',
     'react/jsx-sort-props': [
       2,
