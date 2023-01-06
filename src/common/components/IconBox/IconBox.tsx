@@ -13,7 +13,7 @@ export const IconBox = ({ children, icon, ...props }: PropsWithChildren<IconBoxP
       // https://dev.to/rumansaleem/gradient-borders-with-css-3mnk
       bg="border.box"
       border="2px solid transparent"
-      borderRadius="3xl"
+      borderRadius="8xl"
       p="16"
       pb="8"
       position="relative"

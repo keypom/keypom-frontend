@@ -25,7 +25,7 @@ export const MenuTheme = helpers.defineMultiStyleConfig({
     },
     list: {
       p: '0',
-      borderRadius: 'xl',
+      borderRadius: '6xl',
       minW: '177px',
     },
   },

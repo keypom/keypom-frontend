@@ -8,7 +8,7 @@ export const TableTheme = helpers.defineMultiStyleConfig({
     table: {
       bg: 'border.box',
       border: '2px solid',
-      borderRadius: '3xl',
+      borderRadius: '8xl',
       borderCollapse: 'collapse',
       borderSpacing: 0,
       overflow: 'hidden',
