@@ -1,5 +1,6 @@
 import { Box, Button, Divider, HStack, Text } from '@chakra-ui/react';
-import { useState } from 'react';
+
+import { useSteps } from '@/common/hooks/useSteps';
 
 export interface StepItem {
   title: string;
@@ -12,30 +13,55 @@ interface MultiStepFormProps {
 }
 
 export const MultiStepForm = ({ steps }: MultiStepFormProps) => {
-  const [currentIndex, setIndex] = useState(0);
-  const stepsDisplay = steps.map((step) => <Text key={step.name}>{step.title}</Text>);
+  const { onNext, onPrevious, currentIndex } = useSteps({ maxSteps: steps.length });
 
-  const onNext = () => {
-    if (currentIndex + 1 < steps.length) {
-      setIndex(currentIndex + 1);
-    }
-  };
-
-  const onPrevious = () => {
-    if (currentIndex - 1 >= 0) {
-      setIndex(currentIndex - 1);
-    }
-  };
+  const stepsDisplay = steps.map((step, index) => (
+    <Step key={step.name} index={index + 1} isActive={currentIndex === index} stepItem={step} />
+  ));
 
   return (
     <Box>
-      <HStack>{stepsDisplay}</HStack>
+      <HStack flexWrap="nowrap" justifyContent="center" spacing="4">
+        {stepsDisplay}
+      </HStack>
       {steps[currentIndex].component}
       <Divider />
-      <HStack>
-        <Button onClick={onPrevious}>Go back</Button>
-        <Button onClick={onNext}>Skip this step</Button>
+      <HStack justifyContent="flex-end" spacing="auto">
+        {currentIndex > 0 && (
+          <Button variant="secondary" onClick={onPrevious}>
+            Go back
+          </Button>
+        )}
+        <Button variant="secondary" onClick={onNext}>
+          Skip this step
+        </Button>
       </HStack>
     </Box>
+  );
+};
+
+const Step = ({ index, stepItem, isActive }) => {
+  if (isActive) {
+    return (
+      <HStack key={stepItem.name} alignItems="center">
+        <Box bgColor="blue.400" borderRadius="100%" color="white" mr="2" px="2.5" py="0.5">
+          {index}
+        </Box>
+        <Text color="gray.800" whiteSpace="nowrap">
+          {stepItem.title}
+        </Text>
+      </HStack>
+    );
+  }
+
+  return (
+    <HStack key={stepItem.name}>
+      <Box bgColor="gray.100" borderRadius="100%" mr="2" px="2.5" py="0.5">
+        {index}
+      </Box>
+      <Text color="gray.600" whiteSpace="nowrap">
+        {stepItem.title}
+      </Text>
+    </HStack>
   );
 };
