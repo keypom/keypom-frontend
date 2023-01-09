@@ -12,19 +12,13 @@ export const BoxWithShape = ({
   bg,
   ...props
 }: PropsWithChildren<BoxWithShapeProps>) => {
-  let _size;
-  switch (shapeSize) {
-    case 'sm':
-      _size = 12;
-      break;
-    case 'md':
-    default:
-      _size = 16;
-      break;
-    case 'lg':
-      _size = 24;
-      break;
-  }
+  const sizeObj = {
+    sm: 12,
+    md: 16,
+    lg: 24,
+  };
+
+  const _size = sizeObj[shapeSize];
 
   return (
     <Box
