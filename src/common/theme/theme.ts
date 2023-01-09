@@ -10,6 +10,7 @@ import {
   CheckboxTheme,
 } from './components';
 import { colors } from './colors';
+import { config } from './config';
 import { radii } from './sizes';
 import { fontSizes, fonts } from './typo';
 
@@ -24,6 +25,7 @@ export const theme = extendTheme({
     Checkbox: CheckboxTheme,
   },
   colors,
+  config,
   fontSizes,
   fonts,
   radii,
