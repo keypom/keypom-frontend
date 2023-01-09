@@ -12,6 +12,7 @@ import {
   HeadingTheme,
 } from './components';
 import { colors } from './colors';
+import { config } from './config';
 import { radii } from './sizes';
 import { fontSizes, fonts } from './typo';
 
@@ -28,6 +29,7 @@ export const theme = extendTheme({
     Heading: HeadingTheme,
   },
   colors,
+  config,
   fontSizes,
   fonts,
   radii,

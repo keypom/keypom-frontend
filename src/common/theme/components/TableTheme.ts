@@ -8,7 +8,7 @@ export const TableTheme = helpers.defineMultiStyleConfig({
   baseStyle: {
     table: {
       bg: 'border.box',
-      border: '2px solid',
+      border: '2px solid transparent',
       borderRadius: '8xl',
       borderCollapse: 'collapse',
       borderSpacing: 0,
@@ -42,8 +42,8 @@ export const TableTheme = helpers.defineMultiStyleConfig({
     md: {
       td: {
         fontSize: 'md',
-        py: '9',
-        pl: '8',
+        py: { base: '6', md: '9' },
+        px: { base: '5', md: '8' },
       },
       th: {
         fontSize: 'md',
