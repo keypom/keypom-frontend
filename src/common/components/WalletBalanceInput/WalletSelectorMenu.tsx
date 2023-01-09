@@ -7,10 +7,9 @@ import {
   MenuButton,
   MenuItem,
   MenuList,
+  Text,
   VStack,
 } from '@chakra-ui/react';
-
-import { Text } from '../Typography';
 
 export interface WalletToken {
   symbol: string;

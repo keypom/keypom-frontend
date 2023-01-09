@@ -1,7 +1,6 @@
-import { Box, Button, HStack, Stack } from '@chakra-ui/react';
+import { Box, Button, Heading, HStack, Stack, Text } from '@chakra-ui/react';
 
 import { Breadcrumbs } from '@/common/components/Breadcrumbs';
-import { Heading, Text } from '@/common/components/Typography';
 import { ColumnItem, DataItem } from '@/common/components/Table/types';
 import { DataTable } from '@/common/components/Table';
 
@@ -50,7 +49,7 @@ export const DropManager = ({
             {/* Drop name */}
             <Stack maxW={{ base: 'full', md: '22.5rem' }}>
               <Text color="gray.800">Drop name</Text>
-              <Heading>Star Invader 3</Heading>
+              <Heading>{dropName}</Heading>
             </Stack>
 
             {/* Drops claimed */}
