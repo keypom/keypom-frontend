@@ -44,7 +44,7 @@ export const CreateTicketDropProvider = ({ children }: PropsWithChildren) => {
   };
 
   const getPaymentData = (): PaymentData => {
-    return {};
+    return { costsData: [], totalCost: 0, confirmationText: '' };
   };
 
   const handleDropConfirmation = () => {
