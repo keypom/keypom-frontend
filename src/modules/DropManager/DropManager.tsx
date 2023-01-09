@@ -35,44 +35,6 @@ export const DropManager = ({
     },
   ];
 
-  // const getDesktopTableBody = () =>
-  //   data.map((drop) => (
-  //     <Tr key={drop.id}>
-  //       {tableColumns.map((column) => (
-  //         <Td key={`${column.title}-${drop.id}`}>{column.selector(drop)}</Td>
-  //       ))}
-  //       <Td display="flex" justifyContent="right" verticalAlign="middle">
-  //         <Button mr="1" size="sm" variant="icon" onClick={onCopyClick}>
-  //           <CopyIcon />
-  //         </Button>
-  //         <Button size="sm" variant="icon" onClick={onDeleteClick}>
-  //           <DeleteIcon color="red" />
-  //         </Button>
-  //       </Td>
-  //     </Tr>
-  //   ));
-
-  // const getMobileTableBody = () =>
-  //   data.map((drop) => (
-  //     <Tr key={drop.id}>
-  //       <Td>
-  //         <VStack align="flex-start" spacing="2">
-  //           {tableColumns.map((column) => (
-  //             <Box key={`${drop.id}-${column.title}`}>{column.selector(drop)}</Box>
-  //           ))}
-  //         </VStack>
-  //       </Td>
-  //       <Td display="flex" justifyContent="right">
-  //         <Button mr="1" size="sm" variant="icon" onClick={onCopyClick}>
-  //           <CopyIcon />
-  //         </Button>
-  //         <Button size="sm" variant="icon" onClick={onDeleteClick}>
-  //           <DeleteIcon color="red" />
-  //         </Button>
-  //       </Td>
-  //     </Tr>
-  //   ));
-
   return (
     <Box px="1" py={{ base: '3.25rem', md: '5rem' }}>
       <Breadcrumbs items={breadcrumbItems} />
