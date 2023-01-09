@@ -105,50 +105,6 @@ export default function AllDrops() {
     }));
   };
 
-  // const getDesktopTableBody = () =>
-  //   TABLE_DATA.map((drop) => (
-  //     <Tr
-  //       key={drop.name}
-  //       onClick={() => {
-  //         // TODO: use appropriate drop type manager and id
-  //         router.push('/drop/token/123');
-  //       }}
-  //     >
-  //       <Td>{drop.name}</Td>
-  //       <Td>{drop.type}</Td>
-  //       <Td>
-  //         <Badge variant="lightgreen">{drop.claimed} Claimed</Badge>
-  //       </Td>
-  //       <Td display="flex" justifyContent="right">
-  //         <Button size="sm" variant="icon">
-  //           <DeleteIcon color="red" />
-  //         </Button>
-  //       </Td>
-  //     </Tr>
-  //   ));
-
-  // const getMobileTableBody = () =>
-  //   TABLE_DATA.map((drop) => (
-  //     <Tr key={drop.name}>
-  //       <Td>
-  //         <Text color="gray.800">{drop.name}</Text>
-  //         <Text fontWeight="normal" mt="0.5">
-  //           {drop.type}
-  //         </Text>
-  //         <Text>
-  //           <Badge mt="3" size="sm" variant="lightgreen">
-  //             {drop.claimed} Claimed
-  //           </Badge>
-  //         </Text>
-  //       </Td>
-  //       <Td verticalAlign="middle">
-  //         <Button float="right" size="sm" variant="icon">
-  //           <DeleteIcon color="red" />
-  //         </Button>
-  //       </Td>
-  //     </Tr>
-  //   ));
-
   return (
     <Box minH="100%" minW="100%">
       <PageHead
@@ -202,32 +158,6 @@ export default function AllDrops() {
         mt={{ base: '6', md: '7' }}
         onRowClick={handleRowClick}
       />
-
-      {/* Desktop Table */}
-      {/* <Show above="sm">
-        <TableContainer>
-          <Table mt="30px">
-            <Thead>
-              <Tr>
-                <Th>Drop name</Th>
-                <Th>Drop Type</Th>
-                <Th>Claimed</Th>
-                <Th></Th>
-              </Tr>
-            </Thead>
-            <Tbody>{getDesktopTableBody()}</Tbody>
-          </Table>
-        </TableContainer>
-      </Show> */}
-
-      {/* Mobile Table */}
-      {/* <Show below="sm">
-        <TableContainer>
-          <Table mt="6">
-            <Tbody>{getMobileTableBody()}</Tbody>
-          </Table>
-        </TableContainer>
-      </Show> */}
 
       {/* Mobile Menu For Creating Drop */}
       <Show below="sm">
