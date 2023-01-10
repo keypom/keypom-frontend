@@ -8,8 +8,8 @@ import {
   InputGroup,
   InputProps,
   Text,
-  VStack,
   Image,
+  Show,
 } from '@chakra-ui/react';
 
 import { ImageIcon } from '../Icons';
@@ -42,7 +42,7 @@ export const FileInput = ({
           border="2px dashed"
           borderColor="gray.200"
           borderRadius="6xl"
-          h="60"
+          h={{ base: '12', md: '60' }}
           justify="center"
           position="relative"
           w="full"
@@ -52,7 +52,7 @@ export const FileInput = ({
             accept="image/*"
             aria-hidden="true"
             cursor="pointer"
-            h="60"
+            h="full"
             isInvalid={!!errorMessage}
             left="0"
             opacity="0"
@@ -66,35 +66,42 @@ export const FileInput = ({
           {selectedFile && preview ? (
             <Image alt="NFT preview" objectFit="cover" src={preview} />
           ) : (
-            <VStack
+            <Flex
+              align="center"
+              flexDir={{ base: 'row', md: 'column' }}
+              gap="4"
               h="full"
-              justify="center"
+              justify={{ base: 'space-between', md: 'center' }}
               left="0"
-              maxW="11.75rem"
+              maxW={{ base: 'none', md: '11.75rem' }}
               mx="auto"
+              p={{ base: '4', md: 'auto' }}
               position="relative"
-              spacing="4"
               top="0"
               w="full"
               zIndex="1"
             >
-              <>
-                <ImageIcon color="gray.400" h="1.875rem" w="1.875rem" />
+              <ImageIcon
+                color="gray.400"
+                h={{ base: '6', md: '1.875rem' }}
+                w={{ base: '6', md: '1.875rem' }}
+              />
+              <Show above="md">
                 <Text color="gray.400" lineHeight="1.5rem">
                   Browse or drag and drop your image here
                 </Text>
-                <Center
-                  border="1px solid"
-                  borderColor="gray.200"
-                  borderRadius="full"
-                  color="gray.800"
-                  px="4"
-                  py="2"
-                >
-                  Browse images
-                </Center>
-              </>
-            </VStack>
+              </Show>
+              <Center
+                border="1px solid"
+                borderColor="gray.200"
+                borderRadius="full"
+                color="gray.800"
+                px={{ base: '3', md: '4' }}
+                py={{ base: '1', md: '2' }}
+              >
+                Browse images
+              </Center>
+            </Flex>
           )}
         </Flex>
       </InputGroup>
