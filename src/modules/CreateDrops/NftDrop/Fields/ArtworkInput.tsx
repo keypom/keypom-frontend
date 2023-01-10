@@ -1,7 +1,7 @@
 import { Control, Controller } from 'react-hook-form';
 import { useState, useEffect } from 'react';
 
-import { FileInput } from '@/common/components/FileInput';
+import { ImageFileInput } from '@/common/components/ImageFileInput';
 
 import { CreateNftDropFormFieldTypes } from '../CreateNftDropForm';
 
@@ -43,7 +43,8 @@ export const ArtworkInput = ({ control }: ArtworkInputProps) => {
       render={(
         { field: { onChange, value, ...props }, fieldState: { error } }, //value is unused to prevent `onChange` from updating it
       ) => (
-        <FileInput
+        <ImageFileInput
+          accept=" image/jpeg, image/png, image/webp"
           errorMessage={error?.message}
           isInvalid={!!error?.message}
           label="Artwork"

@@ -14,7 +14,7 @@ import {
 
 import { ImageIcon } from '../Icons';
 
-interface FileInputProps extends InputProps {
+interface ImageFileInputProps extends InputProps {
   label: string;
   selectedFile: File;
   preview: string;
@@ -22,14 +22,14 @@ interface FileInputProps extends InputProps {
   flexProps?: FlexProps;
 }
 
-export const FileInput = ({
+export const ImageFileInput = ({
   label,
   selectedFile,
   preview,
   errorMessage,
   flexProps,
   ...props
-}: FileInputProps) => {
+}: ImageFileInputProps) => {
   return (
     <FormControl>
       <Flex alignItems="center" justifyContent="flex-start" w="full">
@@ -64,7 +64,7 @@ export const FileInput = ({
           />
 
           {selectedFile && preview ? (
-            <Image alt="NFT preview" objectFit="cover" src={preview} />
+            <Image alt="Image upload preview" objectFit="cover" src={preview} />
           ) : (
             <Flex
               align="center"
