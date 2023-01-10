@@ -1,4 +1,4 @@
-import { Box, Button, Divider, HStack, useDisclosure } from '@chakra-ui/react';
+import { Box, Button, Divider, HStack, Image, useDisclosure } from '@chakra-ui/react';
 import { useEffect } from 'react';
 
 import { IconBox } from '@/common/components/IconBox';
@@ -27,14 +27,40 @@ export const DropSummary = ({
   const { onPrevious } = useDropFlowContext();
   const { costsData, confirmationText, totalCost } = paymentData;
   const { isOpen, onOpen } = useDisclosure();
-  const summaryItems = summaryData.map((item) => (
-    <Box key={item.name} mb="5">
-      <Text fontWeight="medium">{item.name}</Text>
-      <Text fontSize={{ base: 'md', md: 'lg' }} mt="6px">
-        {item.value}
-      </Text>
-    </Box>
-  ));
+  const summaryItems = summaryData.map((item) => {
+    switch (item.type) {
+      case 'image':
+        const previewSource = URL.createObjectURL(item.value[0]);
+        return (
+          <Box key={item.name} mb="5">
+            <Text fontWeight="medium">{item.name}</Text>
+            <Box
+              borderRadius={{ base: '5xl', md: '6xl' }}
+              h={{ base: '7.5rem', md: '11.25rem' }}
+              position="relative"
+              w={{ base: '7.5rem', md: '11.25rem' }}
+            >
+              <Image
+                alt="NFT preview"
+                borderRadius={{ base: '5xl', md: '6xl' }}
+                objectFit="cover"
+                src={previewSource}
+              />
+            </Box>
+          </Box>
+        );
+      case 'text':
+      default:
+        return (
+          <Box key={item.name} mb="5">
+            <Text fontWeight="medium">{item.name}</Text>
+            <Text fontSize={{ base: 'md', md: 'lg' }} mt="6px">
+              {item.value}
+            </Text>
+          </Box>
+        );
+    }
+  });
   const paymentSummary = costsData.map((payment) => {
     const { name, total, isDiscount, discountText, helperText } = payment;
     return (
