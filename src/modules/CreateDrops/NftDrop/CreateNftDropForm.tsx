@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import { Controller, useFormContext } from 'react-hook-form';
-import { Button, Flex, Input, VStack } from '@chakra-ui/react';
+import { Button, Flex, VStack } from '@chakra-ui/react';
 
 import { IconBox } from '@/common/components/IconBox';
 import { LinkIcon } from '@/common/components/Icons';
@@ -8,6 +8,7 @@ import { FormControl } from '@/common/components/FormControl';
 import { Checkboxes } from '@/common/components/Checkboxes';
 
 import { useDropFlowContext } from '../contexts/DropFlowContext';
+import { RedirectInput } from '../Fields/RedirectInput';
 
 import { WALLET_OPTIONS } from './CREATE_NFT_DROP_TESTDATA';
 import { NftNameInput } from './Fields/NftNameInput';
@@ -68,24 +69,8 @@ export const CreateNftDropForm = () => {
             )}
           />
 
-          <Controller
-            control={control}
-            name="redirectLink"
-            render={({ field, fieldState: { error } }) => (
-              <FormControl
-                errorText={error?.message}
-                helperText="Choose which wallet to set people up with."
-                label="Redirect link (optional)"
-              >
-                <Input
-                  isInvalid={Boolean(error?.message)}
-                  placeholder="Enter a link"
-                  type="text"
-                  {...field}
-                />
-              </FormControl>
-            )}
-          />
+          <RedirectInput control={control} />
+
           <Flex justifyContent="flex-end" w="full">
             <Button disabled={!isDirty || !isValid} mt="10" type="submit">
               Continue to summary
