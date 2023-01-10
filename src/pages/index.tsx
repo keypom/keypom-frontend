@@ -8,6 +8,12 @@ export default function Home() {
       <PageHead description="Home page description" name="Home" />
       <Text>This is Inter V</Text>
       <Heading>This is Archia</Heading>
+      <Text fontSize={{ base: 'xs', md: 'sm' }} mt="6px" variant="error">
+        ERROR TEXT
+      </Text>
+      <Text color="gray.400" fontSize="sm">
+        Total cost: 5000 NEAR
+      </Text>
     </Box>
   );
 }

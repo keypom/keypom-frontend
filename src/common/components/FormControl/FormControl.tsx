@@ -1,7 +1,5 @@
-import { Box, FormControl as CFormControl, FormLabel } from '@chakra-ui/react';
+import { Box, FormControl as CFormControl, FormLabel, Text } from '@chakra-ui/react';
 import React, { PropsWithChildren } from 'react';
-
-import { Text } from '@/common/components/Typography';
 
 interface FormControlProps {
   label?: string;
@@ -20,14 +18,10 @@ export const FormControlComponent = ({
       <FormLabel color="gray.800" m="0">
         {label}
       </FormLabel>
-      {helperText && (
-        <Text color="gray.600" mt="0.5">
-          {helperText}
-        </Text>
-      )}
+      {helperText && <Text mt="0.5">{helperText}</Text>}
       <Box mt="1.5">{children}</Box>
       {errorText && (
-        <Text color="red.600" fontSize={{ base: 'xs', md: 'sm' }} mt="6px">
+        <Text fontSize={{ base: 'xs', md: 'sm' }} mt="6px" variant="error">
           {errorText}
         </Text>
       )}

@@ -1,10 +1,9 @@
 // Generic layout for all drop
 
-import { Box, Stack } from '@chakra-ui/react';
+import { Box, Heading, Stack } from '@chakra-ui/react';
 import { PropsWithChildren } from 'react';
 
 import { Breadcrumbs } from '@/common/components/Breadcrumbs';
-import { Heading } from '@/common/components/Typography';
 
 import { useDropFlowContext } from './contexts/DropFlowContext';
 

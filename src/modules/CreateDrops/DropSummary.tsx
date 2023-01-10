@@ -1,8 +1,7 @@
-import { Box, Button, Divider, HStack, Image, useDisclosure } from '@chakra-ui/react';
+import { Box, Button, Divider, HStack, Text, Image, useDisclosure } from '@chakra-ui/react';
 import { useEffect } from 'react';
 
 import { IconBox } from '@/common/components/IconBox';
-import { Text } from '@/common/components/Typography';
 import { LinkIcon } from '@/common/components/Icons';
 
 import { PaymentData, SummaryItem } from './types/types';
@@ -37,6 +36,7 @@ export const DropSummary = ({
             <Box
               borderRadius={{ base: '5xl', md: '6xl' }}
               h={{ base: '7.5rem', md: '11.25rem' }}
+              mt="6px"
               position="relative"
               w={{ base: '7.5rem', md: '11.25rem' }}
             >
