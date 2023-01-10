@@ -8,6 +8,7 @@ import { MultiStepForm, StepItem } from '@/common/components/MultiStep/MultiStep
 import { useDropFlowContext } from '../contexts/DropFlowContext';
 
 import { EventInfoForm } from './EventInfoForm';
+import { SignUpInfoForm } from './SignUpInfoForm';
 
 const formSteps: StepItem[] = [
   {
@@ -18,7 +19,7 @@ const formSteps: StepItem[] = [
   {
     name: 'signUpInfo',
     title: 'Sign-up info',
-    component: <Box>Form 2</Box>,
+    component: <SignUpInfoForm />,
   },
   {
     name: 'additionalGifts',

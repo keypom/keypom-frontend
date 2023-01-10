@@ -1,12 +1,19 @@
-import { Box, FormControl as CFormControl, FormLabel } from '@chakra-ui/react';
+import {
+  Box,
+  FormControl as CFormControl,
+  FormControlProps as CFormControlProps,
+  FormLabel,
+  FormLabelProps,
+} from '@chakra-ui/react';
 import React, { PropsWithChildren } from 'react';
 
 import { Text } from '@/common/components/Typography';
 
-interface FormControlProps {
+export interface FormControlProps extends CFormControlProps {
   label?: string;
   helperText?: string;
   errorText?: string;
+  labelProps?: FormLabelProps;
 }
 
 export const FormControlComponent = ({
@@ -14,10 +21,12 @@ export const FormControlComponent = ({
   helperText,
   errorText,
   children,
+  labelProps,
+  ...props
 }: PropsWithChildren<FormControlProps>) => {
   return (
-    <CFormControl my="5" textAlign="left">
-      <FormLabel color="gray.800" m="0">
+    <CFormControl my="5" textAlign="left" {...props}>
+      <FormLabel color="gray.800" m="0" {...labelProps}>
         {label}
       </FormLabel>
       {helperText && (
