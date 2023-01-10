@@ -5,13 +5,13 @@ import { FileInput } from '@/common/components/FileInput';
 
 import { CreateNftDropFormFieldTypes } from '../CreateNftDropForm';
 
-interface Props {
+interface ArtworkInputProps {
   control: Control<CreateNftDropFormFieldTypes, any>;
 }
 
 const FIELD_NAME = 'artwork';
 
-export const ArtworkInput = ({ control }: Props) => {
+export const ArtworkInput = ({ control }: ArtworkInputProps) => {
   const [selectedFile, setSelectedFile] = useState();
   const [preview, setPreview] = useState<string>();
 
@@ -45,6 +45,7 @@ export const ArtworkInput = ({ control }: Props) => {
       ) => (
         <FileInput
           errorMessage={error?.message}
+          isInvalid={!!error?.message}
           label="Artwork"
           preview={preview}
           selectedFile={selectedFile}
