@@ -6,10 +6,21 @@ import * as z from 'zod';
 
 import { PaymentData, SummaryItem } from '../types/types';
 
+import { WALLET_TOKENS } from './data';
+
 const CreateTicketDropContext = createContext(null);
 
 const schema = z.object({
   dropName: z.string().min(1, 'Drop name required'),
+  selectedFromWallet: z.object({
+    symbol: z.string(),
+    amount: z.string(),
+  }),
+  totalLinks: z
+    .number({ invalid_type_error: 'Number of links required' })
+    .positive()
+    .min(1, 'Required'),
+  amountPerLink: z.number({ invalid_type_error: 'Amount required' }).gt(0),
 });
 
 type Schema = z.infer<typeof schema>;
@@ -32,6 +43,9 @@ export const CreateTicketDropProvider = ({ children }: PropsWithChildren) => {
     mode: 'onChange',
     defaultValues: {
       dropName: '',
+      selectedFromWallet: { symbol: WALLET_TOKENS[0].symbol, amount: WALLET_TOKENS[0].amount },
+      totalLinks: undefined,
+      amountPerLink: undefined,
     },
     resolver: zodResolver(schema),
   });

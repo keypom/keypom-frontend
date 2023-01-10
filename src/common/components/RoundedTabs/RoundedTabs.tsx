@@ -1,12 +1,4 @@
-import {
-  Button,
-  TabList,
-  TabPanel,
-  TabPanels,
-  Tabs,
-  useMultiStyleConfig,
-  useTab,
-} from '@chakra-ui/react';
+import { Button, TabList, Tabs, useMultiStyleConfig, useTab } from '@chakra-ui/react';
 import React, { PropsWithChildren } from 'react';
 
 const RoundedTab = React.forwardRef((props: PropsWithChildren, ref: React.Ref<HTMLElement>) => {
@@ -53,9 +45,10 @@ export interface TabListItem {
 
 interface RoundedTabsProps {
   tablist: TabListItem[];
+  children: React.ReactNode;
 }
 
-export const RoundedTabs = ({ tablist }: RoundedTabsProps) => {
+export const RoundedTabs = ({ tablist, children }: PropsWithChildren<RoundedTabsProps>) => {
   return (
     <Tabs variant="unstyled">
       <TabList
@@ -69,10 +62,7 @@ export const RoundedTabs = ({ tablist }: RoundedTabsProps) => {
           <RoundedTab key={tabItem.name}>{tabItem.label}</RoundedTab>
         ))}
       </TabList>
-      <TabPanels>
-        <TabPanel>1</TabPanel>
-        <TabPanel>2</TabPanel>
-      </TabPanels>
+      {children}
     </Tabs>
   );
 };
