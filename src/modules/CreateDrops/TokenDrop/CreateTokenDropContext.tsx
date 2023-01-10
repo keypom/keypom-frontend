@@ -4,14 +4,13 @@ import useSWRMutation from 'swr/mutation';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 
+import { urlRegex } from '@/common/constant';
+
 import { PaymentData, PaymentItem, SummaryItem } from '../types/types';
 
 import { WALLET_TOKENS } from './data';
 
 const CreateTokenDropContext = createContext(null);
-
-// Matches with optional protocol and URL with one dot
-const urlRegex = /(?:(?:https?:\/\/)?[\w.-]*\.[\w]{2,3})/;
 
 const schema = z.object({
   dropName: z.string().min(1, 'Drop name required'),
@@ -71,18 +70,22 @@ export const CreateTokenDropProvider = ({ children }: PropsWithChildren) => {
 
     return [
       {
+        type: 'text',
         name: 'Token Drop name',
         value: dropName,
       },
       {
+        type: 'text',
         name: 'Amount per link',
         value: `${amountPerLink} ${selectedFromWallet.symbol}`,
       },
       {
+        type: 'text',
         name: 'Number of links',
         value: totalLinks,
       },
       {
+        type: 'text',
         name: 'Redirect link',
         value: redirectLink,
       },
