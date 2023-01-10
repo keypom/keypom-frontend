@@ -3,6 +3,7 @@ import {
   FormControl,
   FormLabel,
   InputGroup,
+  Text,
   Textarea,
   TextareaProps,
 } from '@chakra-ui/react';
@@ -16,13 +17,18 @@ export const TextAreaInput = ({ label, errorMessage, ...props }: TextAreaInputPr
   return (
     <FormControl>
       <Flex alignItems="center" justifyContent="flex-start" w="full">
-        <FormLabel htmlFor={props.id || undefined} mb="2">
+        <FormLabel htmlFor={props?.id} mb="2">
           {label}
         </FormLabel>
       </Flex>
       <InputGroup>
         <Textarea isInvalid={!!errorMessage} type="text" {...props} />
       </InputGroup>
+      {errorMessage && (
+        <Text fontSize={{ base: 'xs', md: 'sm' }} mt="6px" textAlign="left" variant="error">
+          {errorMessage}
+        </Text>
+      )}
     </FormControl>
   );
 };

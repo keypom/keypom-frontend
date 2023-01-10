@@ -24,7 +24,7 @@ export const TextInput = ({
   return (
     <FormControl>
       <Flex alignItems="center" justifyContent="flex-start" w="full">
-        <FormLabel htmlFor={props.id || undefined} mb={haveTopHelperText ? '0.5' : '2'}>
+        <FormLabel htmlFor={props?.id} mb={haveTopHelperText ? '0.5' : '2'}>
           {label}
         </FormLabel>
       </Flex>
@@ -38,6 +38,11 @@ export const TextInput = ({
       <InputGroup>
         <Input isInvalid={!!errorMessage} type="text" {...props} />
       </InputGroup>
+      {errorMessage && (
+        <Text fontSize={{ base: 'xs', md: 'sm' }} mt="6px" textAlign="left" variant="error">
+          {errorMessage}
+        </Text>
+      )}
     </FormControl>
   );
 };
