@@ -25,7 +25,7 @@ export const MultiStepForm = ({ steps }: MultiStepFormProps) => {
         {stepsDisplay}
       </HStack>
       {steps[currentIndex].component}
-      <Divider />
+      <Divider my={{ base: '6', md: '8' }} />
       <HStack justifyContent="flex-end" spacing="auto">
         {currentIndex > 0 && (
           <Button variant="secondary" onClick={onPrevious}>

@@ -1,4 +1,3 @@
-import { Box } from '@chakra-ui/react';
 import { useFormContext } from 'react-hook-form';
 
 import { IconBox } from '@/common/components/IconBox';
@@ -9,8 +8,14 @@ import { useDropFlowContext } from '../contexts/DropFlowContext';
 
 import { EventInfoForm } from './EventInfoForm';
 import { SignUpInfoForm } from './SignUpInfoForm';
+import { AdditionalGiftsForm } from './AdditionalGiftsForm';
 
 const formSteps: StepItem[] = [
+  {
+    name: 'additionalGifts',
+    title: 'Additional gifts',
+    component: <AdditionalGiftsForm />,
+  },
   {
     name: 'eventInfo',
     title: 'Event info',
@@ -20,11 +25,6 @@ const formSteps: StepItem[] = [
     name: 'signUpInfo',
     title: 'Sign-up info',
     component: <SignUpInfoForm />,
-  },
-  {
-    name: 'additionalGifts',
-    title: 'Additional gifts',
-    component: <Box>Form 3</Box>,
   },
 ];
 
