@@ -10,7 +10,7 @@ const tabList: TabListItem[] = [
   {
     name: 'token',
     label: 'Token',
-    icon: <LinkIcon h={{ base: '7' }} w={{ base: '7' }} />,
+    icon: <LinkIcon h={{ base: '5' }} w={{ base: '5' }} />,
   },
   {
     name: 'poapNft',

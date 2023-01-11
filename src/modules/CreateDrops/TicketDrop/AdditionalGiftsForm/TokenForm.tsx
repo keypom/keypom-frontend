@@ -37,7 +37,7 @@ export const TokenForm = () => {
       control={control}
       name="amountPerLink"
       render={({ field, fieldState: { error } }) => (
-        <FormControl errorText={error?.message} label="Add tokens">
+        <FormControl errorText={error?.message} label="Add tokens" my="0">
           <WalletBalanceInput
             {...field}
             isInvalid={Boolean(error?.message)}

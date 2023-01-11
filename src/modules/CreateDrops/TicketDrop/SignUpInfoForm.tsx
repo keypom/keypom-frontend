@@ -1,5 +1,6 @@
 import { Box, Text } from '@chakra-ui/react';
 import { Controller, useFormContext } from 'react-hook-form';
+import { BaseSyntheticEvent } from 'react';
 
 import { SwitchInput } from '@/common/components/SwitchInput';
 
@@ -45,6 +46,7 @@ export const SignUpInfoForm = () => {
               label={switchInfo.label}
               my="1"
               switchProps={{ id: switchInfo.name }}
+              onChange={(e: BaseSyntheticEvent) => field.onChange(e.target.checked)}
             />
           );
         }}

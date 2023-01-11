@@ -11,7 +11,14 @@ import { WALLET_TOKENS } from './data';
 const CreateTicketDropContext = createContext(null);
 
 const schema = z.object({
-  dropName: z.string().min(1, 'Drop name required'),
+  eventName: z.string().min(1, 'Event name required'),
+  totalTickets: z
+    .number({ invalid_type_error: 'Number of tickets required' })
+    .positive()
+    .min(1, 'Required'),
+  firstName: z.boolean().optional(),
+  secondName: z.boolean().optional(),
+  emailAddress: z.boolean().optional(),
   selectedFromWallet: z.object({
     symbol: z.string(),
     amount: z.string(),
@@ -42,7 +49,11 @@ export const CreateTicketDropProvider = ({ children }: PropsWithChildren) => {
   const methods = useForm<Schema>({
     mode: 'onChange',
     defaultValues: {
-      dropName: '',
+      eventName: '',
+      totalTickets: undefined,
+      firstName: false,
+      secondName: false,
+      emailAddress: false,
       selectedFromWallet: { symbol: WALLET_TOKENS[0].symbol, amount: WALLET_TOKENS[0].amount },
       totalLinks: undefined,
       amountPerLink: undefined,
@@ -52,7 +63,7 @@ export const CreateTicketDropProvider = ({ children }: PropsWithChildren) => {
 
   const getSummaryData = (): SummaryItem[] => {
     const { getValues } = methods;
-    const [dropName] = getValues(['dropName']);
+    const [eventName] = getValues(['eventName']);
 
     return [];
   };

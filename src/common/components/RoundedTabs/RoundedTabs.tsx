@@ -74,7 +74,7 @@ export const RoundedTabs = ({
         {tablist.map((tabItem) => (
           <RoundedTab key={tabItem.name}>
             {tabItem.icon}
-            <Text color="inherit" fontWeight="medium" ml="1">
+            <Text color="inherit" fontWeight="medium" ml="2">
               {tabItem.label}
             </Text>
           </RoundedTab>

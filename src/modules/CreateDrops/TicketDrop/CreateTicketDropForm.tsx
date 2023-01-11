@@ -33,6 +33,7 @@ const formSteps: StepItem[] = [
     name: 'additionalGifts',
     title: 'Additional gifts',
     component: <AdditionalGiftsForm />,
+    submitOnNextClick: true,
   },
 ];
 

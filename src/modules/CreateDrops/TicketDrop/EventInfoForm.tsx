@@ -39,8 +39,9 @@ export const EventInfoForm = () => {
               <Input
                 isInvalid={Boolean(error?.message)}
                 placeholder="1 - 10,000"
-                type="text"
+                type="number"
                 {...field}
+                onChange={(e) => field.onChange(parseInt(e.target.value), 10)}
               />
             </FormControl>
           );
