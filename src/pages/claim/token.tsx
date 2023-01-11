@@ -28,11 +28,7 @@ const ClaimTokenPage = () => {
         {/** the additional gap is to accommodate for the absolute roundIcon size */}
         <VStack gap={{ base: 'calc(24px + 8px)', md: 'calc(32px + 10px)' }}>
           {/** Prompt text */}
-          <Heading
-            fontSize={{ base: '2xl', md: '4xl' }}
-            fontWeight="500"
-            textAlign="center"
-          >{`You've received a Keypom Drop!`}</Heading>
+          <Heading textAlign="center">{`You've received a Keypom Drop!`}</Heading>
 
           {/** Claim token component */}
           <IconBox

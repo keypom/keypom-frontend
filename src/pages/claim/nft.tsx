@@ -23,11 +23,7 @@ const ClaimNftPage = () => {
         {/** the additional gap is to accommodate for the absolute roundIcon size */}
         <VStack gap={{ base: 'calc(24px + 8px)', md: 'calc(32px + 10px)' }}>
           {/** Prompt text */}
-          <Heading
-            fontSize={{ base: '2xl', md: '4xl' }}
-            fontWeight="500"
-            textAlign="center"
-          >{`You've received an NFT`}</Heading>
+          <Heading textAlign="center">{`You've received an NFT`}</Heading>
 
           {/** Claim nft component */}
           <IconBox
