@@ -9,11 +9,11 @@ import { Checkboxes } from '@/common/components/Checkboxes';
 
 import { useDropFlowContext } from '../contexts/DropFlowContext';
 import { RedirectInput } from '../Fields/RedirectInput';
+import { ArtworkInput } from '../Fields/ArtworkInput';
 
 import { WALLET_OPTIONS } from './CREATE_NFT_DROP_TESTDATA';
 import { NftNameInput } from './Fields/NftNameInput';
 import { DescriptionInput } from './Fields/DescriptionInput';
-import { ArtworkInput } from './Fields/ArtworkInput';
 
 export interface CreateNftDropFormFieldTypes {
   nftName: string;

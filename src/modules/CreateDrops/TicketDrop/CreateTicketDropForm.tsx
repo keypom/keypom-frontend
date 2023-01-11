@@ -8,7 +8,15 @@ import { useDropFlowContext } from '../contexts/DropFlowContext';
 
 import { EventInfoForm } from './EventInfoForm';
 import { SignUpInfoForm } from './SignUpInfoForm';
-import { AdditionalGiftsForm } from './AdditionalGiftsForm';
+import { AdditionalGiftsForm } from './AdditionalGiftsForm/AdditionalGiftsForm';
+
+export interface CreateTicketDropFormFieldTypes {
+  nftName: string;
+  description: string;
+  artwork: string;
+  selectedToWallets: string[];
+  redirectLink?: string;
+}
 
 const formSteps: StepItem[] = [
   {

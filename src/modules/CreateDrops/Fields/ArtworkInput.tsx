@@ -3,10 +3,12 @@ import { useState, useEffect } from 'react';
 
 import { ImageFileInput } from '@/common/components/ImageFileInput';
 
-import { CreateNftDropFormFieldTypes } from '../CreateNftDropForm';
+import { CreateNftDropFormFieldTypes } from '../NftDrop/CreateNftDropForm';
+import { CreateTicketDropFormFieldTypes } from '../TicketDrop/CreateTicketDropForm';
 
+type CreateDropFieldTypes = CreateNftDropFormFieldTypes | CreateTicketDropFormFieldTypes;
 interface ArtworkInputProps {
-  control: Control<CreateNftDropFormFieldTypes, any>;
+  control: Control<CreateDropFieldTypes, any>;
 }
 
 const FIELD_NAME = 'artwork';

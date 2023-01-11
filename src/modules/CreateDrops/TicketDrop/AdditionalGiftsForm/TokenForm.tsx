@@ -1,43 +1,12 @@
-import { Box, TabPanel, TabPanels } from '@chakra-ui/react';
-import { Controller, useFormContext } from 'react-hook-form';
 import { useMemo } from 'react';
+import { Controller, useFormContext } from 'react-hook-form';
 
-import { RoundedTabs, TabListItem } from '@/common/components/RoundedTabs';
-import { LinkIcon } from '@/common/components/Icons';
-import { WalletBalanceInput } from '@/common/components/WalletBalanceInput';
 import { FormControl } from '@/common/components/FormControl';
+import { WalletBalanceInput } from '@/common/components/WalletBalanceInput';
 
-import { WALLET_TOKENS } from './data';
+import { WALLET_TOKENS } from '../data';
 
-const tabList: TabListItem[] = [
-  {
-    name: 'token',
-    label: 'Token',
-    icon: <LinkIcon h={{ base: '7' }} w={{ base: '7' }} />,
-  },
-  {
-    name: 'poapNft',
-    label: 'POAP NFT',
-    icon: <LinkIcon h={{ base: '7' }} w={{ base: '7' }} />,
-  },
-];
-
-export const AdditionalGiftsForm = () => {
-  return (
-    <Box mt={{ base: '6', md: '8' }}>
-      <RoundedTabs tablist={tabList}>
-        <TabPanels>
-          <TabPanel>
-            <TokenForm />
-          </TabPanel>
-          <TabPanel>2</TabPanel>
-        </TabPanels>
-      </RoundedTabs>
-    </Box>
-  );
-};
-
-const TokenForm = () => {
+export const TokenForm = () => {
   const {
     setValue,
     handleSubmit,
