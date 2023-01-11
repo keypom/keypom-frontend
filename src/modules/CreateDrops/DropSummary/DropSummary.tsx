@@ -11,7 +11,7 @@ import { DropSummaryModal } from '../DropSummaryModal';
 import { SummaryItemImage, SummaryItemText } from './SummaryItem';
 
 interface DropSummaryProps {
-  mode: 'token' | 'nft';
+  confirmButtonText: string;
   summaryData: SummaryItem[];
   paymentData: PaymentData;
   data: {
@@ -21,7 +21,7 @@ interface DropSummaryProps {
 }
 
 export const DropSummary = ({
-  mode,
+  confirmButtonText,
   summaryData,
   paymentData,
   data,
@@ -75,11 +75,6 @@ export const DropSummary = ({
     onConfirmClick();
   };
 
-  const buttonTextOpt = {
-    token: 'Create links',
-    nft: 'Pay and create links',
-  };
-
   return (
     <>
       <IconBox icon={<LinkIcon />} maxW={{ base: '21.5rem', md: '36rem' }}>
@@ -102,7 +97,7 @@ export const DropSummary = ({
           <Button variant="secondary" onClick={onPrevious}>
             Go back
           </Button>
-          <Button onClick={handleConfirmClick}>{buttonTextOpt[mode]}</Button>
+          <Button onClick={handleConfirmClick}>{confirmButtonText}</Button>
         </HStack>
       </IconBox>
       <DropSummaryModal

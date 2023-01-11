@@ -10,8 +10,8 @@ export const CreateTokenDropSummary = () => {
 
   return (
     <DropSummary
+      confirmButtonText="Create links"
       data={data}
-      mode="token"
       paymentData={paymentData}
       summaryData={summaryData}
       onConfirmClick={handleDropConfirmation}

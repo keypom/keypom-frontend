@@ -10,8 +10,8 @@ export const CreateNftDropSummary = () => {
 
   return (
     <DropSummary
+      confirmButtonText="Pay and create links"
       data={data}
-      mode="nft"
       paymentData={paymentData}
       summaryData={summaryData}
       onConfirmClick={handleDropConfirmation}
