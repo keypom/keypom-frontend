@@ -3,36 +3,31 @@ import { Box, Center, Heading, useBoolean, VStack } from '@chakra-ui/react';
 import { PageHead } from '@/common/components/PageHead';
 import { IconBox } from '@/common/components/IconBox';
 import { BoxWithShape } from '@/common/components/BoxWithShape';
-import { StarIcon } from '@/common/components/Icons';
+import { TicketIcon } from '@/common/components/Icons';
 
 import { CreateWallet } from '@/modules/claim/CreateWallet';
 import { ExistingWallet } from '@/modules/claim/ExistingWallet';
-import { DropBox } from '@/modules/claim/token/DropBox';
+import { NftReward } from '@/modules/claim/nft/NftReward';
 
-const DROP_TEST_DATA = [
-  { coin: 'ETH', value: 0.1 },
-  { coin: 'NEAR', value: 20 },
-];
-
-const ClaimTokenPage = () => {
+const ClaimNftPage = () => {
   const [haveWallet, showInputWallet] = useBoolean(false);
 
   return (
     <Box mb={{ base: '5', md: '14' }} minH="100%" minW="100%" mt={{ base: '52px', md: '100px' }}>
       <PageHead
         removeTitleAppend
-        description="Page detailing all the claimed tokens."
-        name="Claim Tokens"
+        description="Page detailing all the claimed nft."
+        name="Claim Nft"
       />
       <Center>
         {/** the additional gap is to accommodate for the absolute roundIcon size */}
         <VStack gap={{ base: 'calc(24px + 8px)', md: 'calc(32px + 10px)' }}>
           {/** Prompt text */}
-          <Heading textAlign="center">{`You've received a Keypom Drop!`}</Heading>
+          <Heading textAlign="center">{`You've received an NFT`}</Heading>
 
-          {/** Claim token component */}
+          {/** Claim nft component */}
           <IconBox
-            icon={<StarIcon height={{ base: '8', md: '10' }} width={{ base: '8', md: '10' }} />}
+            icon={<TicketIcon height={{ base: '8', md: '10' }} width={{ base: '8', md: '10' }} />}
             maxW={{ base: '345px', md: '30rem' }}
             minW={{ base: 'inherit', md: '345px' }}
             p="0"
@@ -47,12 +42,12 @@ const ClaimTokenPage = () => {
               shapeSize="md"
               w="full "
             >
-              <VStack>
-                {/** div placeholder */}
-                {DROP_TEST_DATA.map(({ coin, value }, index) => (
-                  <DropBox key={index} coin={coin} value={value} />
-                ))}
-              </VStack>
+              {/** div placeholder */}
+              <NftReward
+                artworkSrc="https://vaxxeddoggos.com/assets/doggos/1042.png"
+                description={`Here’s your cute character to commemorate the Danny Daze Annual event`}
+                nftName="Danny Daze NFT"
+              />
             </BoxWithShape>
             <VStack
               bg="gray.50"
@@ -77,4 +72,4 @@ const ClaimTokenPage = () => {
   );
 };
 
-export default ClaimTokenPage;
+export default ClaimNftPage;
