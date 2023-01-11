@@ -4,9 +4,11 @@ import { useEffect } from 'react';
 import { IconBox } from '@/common/components/IconBox';
 import { LinkIcon } from '@/common/components/Icons';
 
-import { PaymentData, SummaryItem } from './types/types';
-import { useDropFlowContext } from './contexts/DropFlowContext';
-import { DropSummaryModal } from './DropSummaryModal';
+import { PaymentData, SummaryItem } from '../types/types';
+import { useDropFlowContext } from '../contexts/DropFlowContext';
+import { DropSummaryModal } from '../DropSummaryModal';
+
+import { SummaryItemImage, SummaryItemText } from './SummaryItem';
 
 interface DropSummaryProps {
   summaryData: SummaryItem[];
@@ -26,14 +28,15 @@ export const DropSummary = ({
   const { onPrevious } = useDropFlowContext();
   const { costsData, confirmationText, totalCost } = paymentData;
   const { isOpen, onOpen } = useDisclosure();
-  const summaryItems = summaryData.map((item) => (
-    <Box key={item.name} mb="5">
-      <Text fontWeight="medium">{item.name}</Text>
-      <Text fontSize={{ base: 'md', md: 'lg' }} mt="6px">
-        {item.value}
-      </Text>
-    </Box>
-  ));
+  const summaryItems = summaryData.map((item) => {
+    switch (item.type) {
+      case 'image':
+        return <SummaryItemImage key={item.name} name={item.name} value={item.value} />;
+      case 'text':
+      default:
+        return <SummaryItemText key={item.name} name={item.name} value={item.value} />;
+    }
+  });
   const paymentSummary = costsData.map((payment) => {
     const { name, total, isDiscount, discountText, helperText } = payment;
     return (

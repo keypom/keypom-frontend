@@ -5,6 +5,7 @@ export interface IFlowPage {
 }
 
 export interface SummaryItem {
+  type: 'text' | 'image';
   name: string;
   value: string | number;
 }

@@ -1,4 +1,4 @@
-import React, { createContext, PropsWithChildren, useContext } from 'react';
+import { createContext, PropsWithChildren, useContext } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import useSWRMutation from 'swr/mutation';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -8,22 +8,21 @@ import { urlRegex } from '@/common/constant';
 
 import { PaymentData, PaymentItem, SummaryItem } from '../types/types';
 
-import { WALLET_TOKENS } from './data';
-
-const CreateTokenDropContext = createContext(null);
+const MAX_FILE_SIZE = 500000;
+const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
 
 const schema = z.object({
-  dropName: z.string().min(1, 'Drop name required'),
-  selectedFromWallet: z.object({
-    symbol: z.string(),
-    amount: z.string(),
-  }),
+  nftName: z.string().min(1, 'NFT name required'),
+  description: z.string().min(1, 'Description required'),
+  artwork: z
+    .any()
+    .refine((files) => files?.length == 1, 'Image is required.')
+    .refine((files) => files?.[0]?.size <= MAX_FILE_SIZE, `Max file size is 5MB.`)
+    .refine(
+      (files) => ACCEPTED_IMAGE_TYPES.includes(files?.[0]?.type),
+      '.jpg, .jpeg, .png and .webp files are accepted.',
+    ),
   selectedToWallets: z.array(z.string().min(1)).min(1, 'At least one wallet is required'),
-  totalLinks: z
-    .number({ invalid_type_error: 'Number of links required' })
-    .positive()
-    .min(1, 'Required'),
-  amountPerLink: z.number({ invalid_type_error: 'Amount required' }).gt(0),
   redirectLink: z
     .union([z.string().regex(urlRegex, 'Please enter a valid url'), z.string().length(0)])
     .optional(),
@@ -39,20 +38,27 @@ const createLinks = async () => {
   };
 };
 
-/**
- *
- * Context for managing form state
- */
-export const CreateTokenDropProvider = ({ children }: PropsWithChildren) => {
+interface CreateNftDropContextType {
+  getSummaryData: () => SummaryItem[];
+  getPaymentData: () => PaymentData;
+  handleDropConfirmation: () => void;
+  createLinksSWR: {
+    data: { success: boolean };
+    handleDropConfirmation: () => void;
+  };
+}
+
+const CreateNftDropContext = createContext<CreateNftDropContextType | null>(null);
+
+export const CreateNftDropProvider = ({ children }: PropsWithChildren) => {
   const { trigger, data } = useSWRMutation('/api/drops/tokens', createLinks);
   const methods = useForm<Schema>({
     mode: 'onChange',
     defaultValues: {
-      dropName: '',
-      selectedFromWallet: { symbol: WALLET_TOKENS[0].symbol, amount: WALLET_TOKENS[0].amount },
+      nftName: '',
+      description: '',
+      artwork: '',
       selectedToWallets: [],
-      totalLinks: undefined,
-      amountPerLink: undefined,
       redirectLink: '',
     },
     resolver: zodResolver(schema),
@@ -60,50 +66,37 @@ export const CreateTokenDropProvider = ({ children }: PropsWithChildren) => {
 
   const getSummaryData = (): SummaryItem[] => {
     const { getValues } = methods;
-    const [dropName, totalLinks, amountPerLink, redirectLink, selectedFromWallet] = getValues([
-      'dropName',
-      'totalLinks',
-      'amountPerLink',
-      'redirectLink',
-      'selectedFromWallet',
-    ]);
+    const [nftName, description, artwork] = getValues(['nftName', 'description', 'artwork']);
 
     return [
       {
         type: 'text',
-        name: 'Token Drop name',
-        value: dropName,
+        name: 'NFT name',
+        value: nftName,
       },
       {
         type: 'text',
-        name: 'Amount per link',
-        value: `${amountPerLink} ${selectedFromWallet.symbol}`,
+        name: 'NFT description',
+        value: description,
       },
       {
-        type: 'text',
-        name: 'Number of links',
-        value: totalLinks,
-      },
-      {
-        type: 'text',
-        name: 'Redirect link',
-        value: redirectLink,
+        type: 'image',
+        name: 'Artwork',
+        value: artwork,
       },
     ];
   };
 
   const getPaymentData = (): PaymentData => {
-    const { totalLinks, amountPerLink } = methods.getValues();
-
     // TODO: assuming this comes from backend
-    const totalLinkCost = totalLinks * amountPerLink;
+    const totalLinkCost = 20 * 3.5;
     const NEARNetworkFee = 50.15;
     const totalCost = totalLinkCost + NEARNetworkFee;
     const costsData: PaymentItem[] = [
       {
         name: 'Link cost',
         total: totalLinkCost,
-        helperText: `${totalLinks} x ${amountPerLink}`,
+        helperText: `20 x 3.509`,
       },
       {
         name: 'NEAR network fees',
@@ -117,7 +110,7 @@ export const CreateTokenDropProvider = ({ children }: PropsWithChildren) => {
       },
     ];
 
-    const confirmationText = `Creating ${totalLinks} for ${totalCost} NEAR`;
+    const confirmationText = `Creating 20 for ${totalCost} NEAR`;
 
     return { costsData, totalCost, confirmationText };
   };
@@ -133,12 +126,24 @@ export const CreateTokenDropProvider = ({ children }: PropsWithChildren) => {
   };
 
   return (
-    <CreateTokenDropContext.Provider
-      value={{ getSummaryData, getPaymentData, handleDropConfirmation, createLinksSWR }}
+    <CreateNftDropContext.Provider
+      value={{
+        getSummaryData,
+        getPaymentData,
+        handleDropConfirmation,
+        createLinksSWR,
+      }}
     >
       <FormProvider {...methods}>{children}</FormProvider>
-    </CreateTokenDropContext.Provider>
+    </CreateNftDropContext.Provider>
   );
 };
 
-export const useCreateTokenDropContext = () => useContext(CreateTokenDropContext);
+export const useCreateNftDrop = (): CreateNftDropContextType => {
+  const context = useContext(CreateNftDropContext);
+  if (!context) {
+    throw new Error('unable to find CreateNftDropContext');
+  }
+
+  return context;
+};
