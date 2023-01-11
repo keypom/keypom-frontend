@@ -35,7 +35,13 @@ const ClaimTokenPage = () => {
           >{`You've received a Keypom Drop!`}</Heading>
 
           {/** Claim token component */}
-          <IconBox icon={<StarIcon />} minW={{ base: '345px', md: '30rem' }} p="0" pb="0">
+          <IconBox
+            icon={<StarIcon height={{ base: '8', md: '10' }} width={{ base: '8', md: '10' }} />}
+            maxW={{ base: '345px', md: '30rem' }}
+            minW={{ base: 'inherit', md: '345px' }}
+            p="0"
+            pb="0"
+          >
             <BoxWithShape
               bg="white"
               borderTopRadius="8xl"
