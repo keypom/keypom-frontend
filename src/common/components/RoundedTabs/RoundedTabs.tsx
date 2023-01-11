@@ -1,4 +1,4 @@
-import { Button, TabList, Tabs, useMultiStyleConfig, useTab } from '@chakra-ui/react';
+import { Button, TabList, Tabs, Text, useMultiStyleConfig, useTab } from '@chakra-ui/react';
 import React, { PropsWithChildren } from 'react';
 
 const RoundedTab = React.forwardRef((props: PropsWithChildren, ref: React.Ref<HTMLElement>) => {
@@ -14,7 +14,7 @@ const RoundedTab = React.forwardRef((props: PropsWithChildren, ref: React.Ref<HT
       __css={styles.tab}
       _selected={{
         bgColor: 'white',
-        border: '3px solid',
+        border: '2px solid',
         borderColor: 'blue.300',
         color: 'black',
       }}
@@ -52,14 +52,20 @@ export const RoundedTabs = ({ tablist, children }: PropsWithChildren<RoundedTabs
   return (
     <Tabs variant="unstyled">
       <TabList
-        bg="border.round"
+        // bg="border.round"
+        bg="linear-gradient(180deg, rgba(239,250,253,1) 100%, rgba(221,244,250,1) 100%);"
         border="2px solid"
-        borderColor="blue.500"
+        borderColor="blue.200"
         borderRadius="5rem"
         maxW="max-content"
       >
         {tablist.map((tabItem) => (
-          <RoundedTab key={tabItem.name}>{tabItem.label}</RoundedTab>
+          <RoundedTab key={tabItem.name}>
+            {tabItem.icon}
+            <Text color="inherit" fontWeight="medium" ml="1">
+              {tabItem.label}
+            </Text>
+          </RoundedTab>
         ))}
       </TabList>
       {children}

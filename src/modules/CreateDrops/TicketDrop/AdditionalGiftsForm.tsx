@@ -13,12 +13,12 @@ const tabList: TabListItem[] = [
   {
     name: 'token',
     label: 'Token',
-    icon: <LinkIcon />,
+    icon: <LinkIcon h={{ base: '7' }} w={{ base: '7' }} />,
   },
   {
     name: 'poapNft',
     label: 'POAP NFT',
-    icon: <LinkIcon />,
+    icon: <LinkIcon h={{ base: '7' }} w={{ base: '7' }} />,
   },
 ];
 
@@ -68,7 +68,7 @@ const TokenForm = () => {
       control={control}
       name="amountPerLink"
       render={({ field, fieldState: { error } }) => (
-        <FormControl errorText={error?.message} label="Amount per link">
+        <FormControl errorText={error?.message} label="Add tokens">
           <WalletBalanceInput
             {...field}
             isInvalid={Boolean(error?.message)}
