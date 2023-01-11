@@ -44,7 +44,11 @@ export const CreateNftDropForm = () => {
   };
 
   return (
-    <IconBox icon={<LinkIcon />} maxW={{ base: '21.5rem', md: '36rem' }} mx="auto">
+    <IconBox
+      icon={<LinkIcon h={{ base: '7', md: '9' }} />}
+      maxW={{ base: '21.5rem', md: '36rem' }}
+      mx="auto"
+    >
       <form onSubmit={handleSubmit(handleSubmitClick)}>
         <VStack spacing={{ base: '4', md: '5' }}>
           <NftNameInput control={control} />

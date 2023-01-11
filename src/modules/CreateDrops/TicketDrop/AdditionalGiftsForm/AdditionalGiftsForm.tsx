@@ -1,7 +1,7 @@
 import { Box, TabPanel, TabPanels } from '@chakra-ui/react';
 
 import { RoundedTabs, TabListItem } from '@/common/components/RoundedTabs';
-import { LinkIcon } from '@/common/components/Icons';
+import { LinkIcon, POAPNftIcon } from '@/common/components/Icons';
 
 import { TokenForm } from './TokenForm';
 import { POAPNftForm } from './POAPNftForm';
@@ -15,7 +15,7 @@ const tabList: TabListItem[] = [
   {
     name: 'poapNft',
     label: 'POAP NFT',
-    icon: <LinkIcon h={{ base: '7' }} w={{ base: '7' }} />,
+    icon: <POAPNftIcon h={{ base: '7' }} w={{ base: '7' }} />,
   },
 ];
 

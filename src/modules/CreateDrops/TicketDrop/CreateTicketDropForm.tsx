@@ -20,11 +20,6 @@ export interface CreateTicketDropFormFieldTypes {
 
 const formSteps: StepItem[] = [
   {
-    name: 'additionalGifts',
-    title: 'Additional gifts',
-    component: <AdditionalGiftsForm />,
-  },
-  {
     name: 'eventInfo',
     title: 'Event info',
     component: <EventInfoForm />,
@@ -33,6 +28,11 @@ const formSteps: StepItem[] = [
     name: 'signUpInfo',
     title: 'Sign-up info',
     component: <SignUpInfoForm />,
+  },
+  {
+    name: 'additionalGifts',
+    title: 'Additional gifts',
+    component: <AdditionalGiftsForm />,
   },
 ];
 
@@ -51,7 +51,11 @@ export const CreateTicketDropForm = () => {
   };
 
   return (
-    <IconBox icon={<LinkIcon />} maxW={{ base: '21.5rem', md: '36rem' }} mx="auto">
+    <IconBox
+      icon={<LinkIcon h={{ base: '7', md: '9' }} />}
+      maxW={{ base: '21.5rem', md: '36rem' }}
+      mx="auto"
+    >
       <MultiStepForm steps={formSteps} />
     </IconBox>
   );
