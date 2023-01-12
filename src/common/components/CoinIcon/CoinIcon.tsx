@@ -1,6 +1,6 @@
 import { IconProps } from '@chakra-ui/react';
 
-import { TokenEthIcon, TokenHereIcon, TokenNearIcon } from './Icons';
+import { TokenEthIcon, TokenHereIcon, TokenNearIcon } from '../Icons';
 
 interface CoinIconProps extends IconProps {
   symbol: string;
