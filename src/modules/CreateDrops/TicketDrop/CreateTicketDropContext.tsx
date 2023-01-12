@@ -13,6 +13,11 @@ import { EventInfoForm } from './EventInfoForm';
 import { SignUpInfoForm } from './SignUpInfoForm';
 import { AdditionalGiftsForm } from './AdditionalGiftsForm/AdditionalGiftsForm';
 
+interface FormStep extends StepItem {
+  isSkipable: boolean;
+  schema: typeof AdditionalGiftSchema | typeof EventInfoSchema | typeof SignUpInfoSchema;
+}
+
 export interface CreateTicketDropContextTypes {
   onNextStep: () => void;
   onPreviousStep: () => void;
@@ -20,7 +25,7 @@ export interface CreateTicketDropContextTypes {
   getSummaryData: () => SummaryItem[];
   getPaymentData: () => PaymentData;
   handleDropConfirmation: () => void;
-  formSteps: StepItem[];
+  formSteps: FormStep[];
   createLinksSWR: {
     data: { success: boolean };
     handleDropConfirmation: () => void;
@@ -114,11 +119,6 @@ const createLinks = async () => {
   };
 };
 
-interface FormStep extends StepItem {
-  isSkipable: boolean;
-  schema: typeof AdditionalGiftSchema | typeof EventInfoSchema | typeof SignUpInfoSchema;
-}
-
 const formSteps: FormStep[] = [
   {
     name: 'eventInfo',
@@ -176,8 +176,8 @@ export const CreateTicketDropProvider = ({ children }: PropsWithChildren) => {
   });
 
   const getSummaryData = (): SummaryItem[] => {
-    const { getValues } = methods;
-    const [eventName] = getValues(['eventName']);
+    // const { getValues } = methods;
+    // const [eventName] = getValues(['eventName']);
 
     return [];
   };
