@@ -4,10 +4,10 @@ import { PageHead } from '@/common/components/PageHead';
 import { IconBox } from '@/common/components/IconBox';
 import { BoxWithShape } from '@/common/components/BoxWithShape';
 import { StarIcon } from '@/common/components/Icons';
+import { DropBox } from '@/common/components/DropBox/DropBox';
 
 import { CreateWallet } from '@/modules/claim/CreateWallet';
 import { ExistingWallet } from '@/modules/claim/ExistingWallet';
-import { DropBox } from '@/modules/claim/token/DropBox';
 
 const DROP_TEST_DATA = [
   { coin: 'ETH', value: 0.1 },
