@@ -5,6 +5,7 @@ import { TextInput } from '@/common/components/TextInput';
 import { TextAreaInput } from '@/common/components/TextAreaInput';
 
 import { ArtworkInput } from '../../Fields/ArtworkInput';
+import { CreateTicketFieldsSchema } from '../CreateTicketDropContext';
 
 export const POAPNftForm = () => {
   const {
@@ -13,13 +14,13 @@ export const POAPNftForm = () => {
     control,
     watch,
     formState: { isDirty, isValid },
-  } = useFormContext();
+  } = useFormContext<CreateTicketFieldsSchema>();
 
   return (
     <VStack spacing={{ base: '4', md: '5' }}>
       <Controller
         control={control}
-        name="poapName"
+        name="additionalGift.poapNft.name"
         render={({ field, fieldState: { error } }) => (
           <TextInput
             errorMessage={error?.message}
@@ -32,7 +33,7 @@ export const POAPNftForm = () => {
       />
       <Controller
         control={control}
-        name="poapDescription"
+        name="additionalGift.poapNft.description"
         render={({ field, fieldState: { error } }) => (
           <TextAreaInput
             errorMessage={error?.message}
@@ -43,7 +44,7 @@ export const POAPNftForm = () => {
           />
         )}
       />
-      <ArtworkInput control={control} />
+      <ArtworkInput name="additionalGift.poapNft.artwork" />
     </VStack>
   );
 };

@@ -4,8 +4,10 @@ import { BaseSyntheticEvent } from 'react';
 
 import { SwitchInput } from '@/common/components/SwitchInput';
 
+import { CreateTicketFieldsSchema } from './CreateTicketDropContext';
+
 interface InfoSwitchItem {
-  name: string;
+  name: 'firstName' | 'secondName' | 'emailAddress';
   label: string;
 }
 
@@ -30,8 +32,8 @@ export const SignUpInfoForm = () => {
     handleSubmit,
     control,
     watch,
-    formState: { isDirty, isValid },
-  } = useFormContext();
+    formState: { isValid, dirtyFields },
+  } = useFormContext<CreateTicketFieldsSchema>();
 
   const switches = infoSwitches.map((switchInfo) => {
     return (

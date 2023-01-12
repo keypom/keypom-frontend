@@ -9,12 +9,16 @@ interface CostDisplayProps {
 export const CostDisplay = ({ totalCost, balanceAmount, symbol }: CostDisplayProps) => {
   return (
     <HStack mt="1.5" spacing="auto">
-      <Text color="gray.400" fontSize="sm">
-        Total cost: {totalCost} {symbol}
-      </Text>
-      <Text color="gray.400" fontSize="sm">
-        Balance: {balanceAmount} {symbol}
-      </Text>
+      {totalCost >= 0 && symbol && (
+        <Text color="gray.400" fontSize="sm">
+          Total cost: {totalCost} {symbol}
+        </Text>
+      )}
+      {balanceAmount >= 0 && symbol && (
+        <Text color="gray.400" fontSize="sm">
+          Balance: {balanceAmount} {symbol}
+        </Text>
+      )}
     </HStack>
   );
 };

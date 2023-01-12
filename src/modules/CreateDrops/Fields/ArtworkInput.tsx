@@ -1,19 +1,20 @@
-import { Control, Controller } from 'react-hook-form';
+import { Controller, useFormContext } from 'react-hook-form';
 import { useState, useEffect } from 'react';
 
 import { ImageFileInput } from '@/common/components/ImageFileInput';
 
 import { CreateNftDropFormFieldTypes } from '../NftDrop/CreateNftDropForm';
-import { CreateTicketDropFormFieldTypes } from '../TicketDrop/CreateTicketDropForm';
+import { CreateTicketFieldsSchema } from '../TicketDrop/CreateTicketDropContext';
 
-type CreateDropFieldTypes = CreateNftDropFormFieldTypes | CreateTicketDropFormFieldTypes;
+type CreateDropFieldTypes = CreateNftDropFormFieldTypes | CreateTicketFieldsSchema;
 interface ArtworkInputProps {
-  control: Control<CreateDropFieldTypes, any>;
+  name?: 'artwork' | 'additionalGift.poapNft.artwork';
 }
 
 const FIELD_NAME = 'artwork';
 
-export const ArtworkInput = ({ control }: ArtworkInputProps) => {
+export const ArtworkInput = ({ name = FIELD_NAME }: ArtworkInputProps) => {
+  const { control } = useFormContext<CreateDropFieldTypes>();
   const [selectedFile, setSelectedFile] = useState();
   const [preview, setPreview] = useState<string>();
 
@@ -41,7 +42,7 @@ export const ArtworkInput = ({ control }: ArtworkInputProps) => {
   return (
     <Controller
       control={control}
-      name={FIELD_NAME}
+      name={name}
       render={(
         { field: { onChange, value, ...props }, fieldState: { error } }, //value is unused to prevent `onChange` from updating it
       ) => (

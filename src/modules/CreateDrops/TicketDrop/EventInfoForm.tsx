@@ -3,6 +3,8 @@ import { Controller, useFormContext } from 'react-hook-form';
 
 import { FormControl } from '@/common/components/FormControl';
 
+import { CreateTicketFieldsSchema } from './CreateTicketDropContext';
+
 export const EventInfoForm = () => {
   const {
     setValue,
@@ -10,9 +12,7 @@ export const EventInfoForm = () => {
     control,
     watch,
     formState: { isValid, isDirty },
-  } = useFormContext();
-
-  console.log({ isValid, isDirty });
+  } = useFormContext<CreateTicketFieldsSchema>();
 
   return (
     <Box>

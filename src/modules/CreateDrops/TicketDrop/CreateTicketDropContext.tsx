@@ -32,7 +32,7 @@ const CreateTicketDropContext = createContext<CreateTicketDropContextTypes>(null
 const MAX_FILE_SIZE = 500000;
 const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
 
-const EventInfoSchema = z.object({
+export const EventInfoSchema = z.object({
   eventName: z.string().min(1, 'Event name required'),
   totalTickets: z
     .number({ invalid_type_error: 'Number of tickets required' })
@@ -46,35 +46,64 @@ const SignUpInfoSchema = z.object({
   emailAddress: z.boolean().optional(),
 });
 
-const AdditionalGiftSchema = z.object({
-  additionalGift: z.object({
-    type: z.string(),
-    tokenGift: z.object({
-      selectedFromWallet: z.object({
-        symbol: z.string(),
-        amount: z.string(),
-      }),
-      amountPerLink: z.number({ invalid_type_error: 'Amount required' }).gt(0),
-    }),
-    poapNftGift: z.object({
-      name: z.string(),
-      description: z.string(),
-      artwork: z
-        .any()
-        .refine((files) => files?.length == 1, 'Image is required.')
-        .refine((files) => files?.[0]?.size <= MAX_FILE_SIZE, `Max file size is 5MB.`)
-        .refine(
-          (files) => ACCEPTED_IMAGE_TYPES.includes(files?.[0]?.type),
-          '.jpg, .jpeg, .png and .webp files are accepted.',
-        ),
-    }),
-  }),
+const additionalGiftTokenSchema = z.object({
+  selectedFromWallet: z.object(
+    {
+      symbol: z.string(),
+      amount: z.string(),
+    },
+    { invalid_type_error: 'Tokens required' },
+  ),
+  amountPerLink: z.number({ invalid_type_error: 'Amount required' }).gt(0).or(z.string()),
 });
 
-const schemaValidations = [EventInfoSchema, SignUpInfoSchema, AdditionalGiftSchema];
+const additionalGiftPOAPSchema = z.object({
+  name: z.string(),
+  description: z.string(),
+  artwork: z.any(),
+});
 
-type Schema = z.infer<
-  typeof EventInfoSchema | typeof SignUpInfoSchema | typeof AdditionalGiftSchema
+const AdditionalGiftSchema = z
+  .object({
+    additionalGift: z.object({
+      type: z.enum(['none', 'poapNft', 'token']),
+      token: additionalGiftTokenSchema.deepPartial(),
+      poapNft: additionalGiftPOAPSchema.deepPartial(),
+    }),
+  })
+  .superRefine(({ additionalGift }, ctx) => {
+    if (additionalGift.type === 'token') {
+      additionalGiftTokenSchema.parse(additionalGift.token);
+      return true;
+    } else if (additionalGift.type === 'poapNft') {
+      const artworkFile = additionalGift.poapNft.artwork;
+      if (artworkFile?.length !== 1) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `Image is required.`,
+        });
+      }
+
+      if (artworkFile?.[0]?.size > MAX_FILE_SIZE) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `Max file size is 5MB.`,
+        });
+      }
+
+      if (!ACCEPTED_IMAGE_TYPES.includes(artworkFile?.[0]?.type)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `'.jpg, .jpeg, .png and .webp files are accepted.'`,
+        });
+      }
+      return additionalGiftPOAPSchema.parse(additionalGift.poapNft);
+    }
+    return true;
+  });
+
+export type CreateTicketFieldsSchema = z.infer<
+  typeof EventInfoSchema & typeof SignUpInfoSchema & typeof AdditionalGiftSchema
 >;
 
 // TODO: this is only a mock implementation of the backend api
@@ -85,24 +114,32 @@ const createLinks = async () => {
   };
 };
 
-const formSteps: StepItem[] = [
+interface FormStep extends StepItem {
+  isSkipable: boolean;
+  schema: typeof AdditionalGiftSchema | typeof EventInfoSchema | typeof SignUpInfoSchema;
+}
+
+const formSteps: FormStep[] = [
   {
     name: 'eventInfo',
     title: 'Event info',
     component: <EventInfoForm />,
     isSkipable: false,
+    schema: EventInfoSchema,
   },
   {
     name: 'signUpInfo',
     title: 'Sign-up info',
     component: <SignUpInfoForm />,
     isSkipable: true,
+    schema: SignUpInfoSchema,
   },
   {
     name: 'additionalGifts',
     title: 'Additional gifts',
     component: <AdditionalGiftsForm />,
     isSkipable: true,
+    schema: AdditionalGiftSchema,
   },
 ];
 
@@ -117,7 +154,8 @@ export const CreateTicketDropProvider = ({ children }: PropsWithChildren) => {
     currentIndex,
   } = useSteps({ maxSteps: formSteps.length });
   const { trigger, data } = useSWRMutation('/api/drops/tickets', createLinks);
-  const methods = useForm<Schema>({
+
+  const methods = useForm<CreateTicketFieldsSchema>({
     mode: 'onChange',
     defaultValues: {
       eventName: '',
@@ -125,8 +163,16 @@ export const CreateTicketDropProvider = ({ children }: PropsWithChildren) => {
       firstName: false,
       secondName: false,
       emailAddress: false,
+      additionalGift: {
+        type: 'none',
+        token: {
+          selectedFromWallet: null,
+          amountPerLink: '',
+        },
+        poapNft: { name: '', description: '', artwork: null },
+      },
     },
-    resolver: zodResolver(schemaValidations[currentIndex]),
+    resolver: zodResolver(formSteps[currentIndex].schema),
   });
 
   const getSummaryData = (): SummaryItem[] => {

@@ -1,5 +1,5 @@
 import { useFormContext } from 'react-hook-form';
-import { Button, Divider, HStack } from '@chakra-ui/react';
+import { Box, Button, Divider, HStack } from '@chakra-ui/react';
 
 import { IconBox } from '@/common/components/IconBox';
 import { LinkIcon } from '@/common/components/Icons';
@@ -9,26 +9,18 @@ import { useDropFlowContext } from '../contexts/DropFlowContext';
 
 import { useCreateTicketDropContext } from './CreateTicketDropContext';
 
-export interface CreateTicketDropFormFieldTypes {
-  nftName: string;
-  description: string;
-  artwork: string;
-  selectedToWallets: string[];
-  redirectLink?: string;
-}
-
 export const CreateTicketDropForm = () => {
   const { onNext } = useDropFlowContext();
   const {
     setValue,
     handleSubmit,
     control,
+    reset,
     watch,
     getValues,
-    formState: { isDirty, isValid, errors },
+    formState: { isValid, dirtyFields, errors, defaultValues, touchedFields },
   } = useFormContext();
 
-  console.log({ isValid, isDirty });
   const { currentIndex, onNextStep, onPreviousStep, formSteps } = useCreateTicketDropContext();
 
   const currentStep = formSteps[currentIndex];
@@ -41,18 +33,12 @@ export const CreateTicketDropForm = () => {
     onNext();
   };
 
-  const getNextButton = () => {
-    console.log(currentStep.isSkipable, !isDirty);
-    if (currentStep.isSkipable && !isDirty) {
-      return (
-        <Button variant="secondary" onClick={onNextStep}>
-          Skip this step
-        </Button>
-      );
-    }
-
-    return <Button disabled={!isValid}>Continue</Button>;
+  const handleNextStepClick = () => {
+    reset(defaultValues, { keepValues: true });
+    onNextStep();
   };
+
+  const isDirty = Object.keys(dirtyFields).length > 0;
 
   return (
     <IconBox
@@ -72,16 +58,31 @@ export const CreateTicketDropForm = () => {
           </Button>
         )}
         {currentStep.isSkipable && !isDirty ? (
-          <Button variant="secondary" onClick={onNextStep}>
+          <Button variant="secondary" onClick={handleNextStepClick}>
             Skip this step
           </Button>
         ) : (
-          <Button disabled={!isValid} onClick={onNextStep}>
+          <Button disabled={!isValid} onClick={handleNextStepClick}>
             Continue
           </Button>
         )}
       </HStack>
-      <pre>{JSON.stringify(watch(), null, '\t')}</pre>
+      <Box textAlign="left">
+        <pre>
+          {JSON.stringify(
+            {
+              isValid,
+              isDirty,
+              dirtyFields,
+              errors,
+              touchedFields,
+              ...watch(),
+            },
+            null,
+            2,
+          )}
+        </pre>
+      </Box>
     </IconBox>
   );
 };

@@ -4,7 +4,6 @@ export interface StepItem {
   title: string;
   name: string;
   component: React.ReactNode;
-  isSkipable?: boolean;
 }
 export const Step = ({ index, stepItem, isActive }) => {
   if (isActive) {

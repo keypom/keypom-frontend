@@ -19,7 +19,7 @@ export interface WalletToken {
 }
 
 interface WalletBalanceInputProps {
-  selectedWalletToken: WalletToken;
+  selectedWalletToken: Partial<WalletToken> | null;
   tokens: WalletToken[];
   onChange: (symbol: string) => void;
 }
@@ -29,7 +29,9 @@ export const WalletSelectorMenu = ({
   onChange,
   selectedWalletToken,
 }: WalletBalanceInputProps) => {
-  const selectedWalletTokenIcon = tokens.find((w) => w.symbol === selectedWalletToken.symbol)?.icon;
+  const selectedWalletTokenIcon = tokens.find(
+    (w) => w.symbol === selectedWalletToken?.symbol,
+  )?.icon;
   const balancesMenuList = tokens.map((wallet) => (
     <MenuItem key={wallet.symbol} onClick={() => onChange(wallet.symbol)}>
       <HStack>
@@ -37,7 +39,7 @@ export const WalletSelectorMenu = ({
         <VStack align="flex-start">
           <Text>{wallet.symbol}</Text>
           <Text color="gray.400" size="sm">
-            Balance: {wallet.amount} {wallet.symbol}
+            Balance: {wallet?.amount} {wallet?.symbol}
           </Text>
         </VStack>
       </HStack>
@@ -64,7 +66,7 @@ export const WalletSelectorMenu = ({
             <HStack px="3">
               {selectedWalletTokenIcon}
               <Text fontWeight="medium" lineHeight="2">
-                {selectedWalletToken.symbol}
+                {selectedWalletToken?.symbol}
               </Text>
               <ChevronDownIcon />
             </HStack>
