@@ -4,7 +4,7 @@ export interface StepItem {
   title: string;
   name: string;
   component: React.ReactNode;
-  submitOnNextClick?: boolean;
+  isSkipable?: boolean;
 }
 export const Step = ({ index, stepItem, isActive }) => {
   if (isActive) {

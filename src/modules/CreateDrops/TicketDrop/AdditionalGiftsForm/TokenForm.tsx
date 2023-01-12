@@ -15,17 +15,17 @@ export const TokenForm = () => {
     formState: { isDirty, isValid },
   } = useFormContext();
 
-  const [selectedFromWallet, amountPerLink, totalLinks] = watch([
+  const [selectedFromWallet, amountPerLink, totalTickets] = watch([
     'selectedFromWallet',
     'amountPerLink',
-    'totalLinks',
+    'totalTickets',
   ]);
   const totalCost = useMemo(() => {
-    if (totalLinks && amountPerLink) {
-      return totalLinks * amountPerLink;
+    if (totalTickets && amountPerLink) {
+      return totalTickets * amountPerLink;
     }
     return 0;
-  }, [amountPerLink, totalLinks]);
+  }, [amountPerLink, totalTickets]);
 
   const handleWalletChange = (walletSymbol: string) => {
     const { symbol, amount } = WALLET_TOKENS.find((wallet) => wallet.symbol === walletSymbol);

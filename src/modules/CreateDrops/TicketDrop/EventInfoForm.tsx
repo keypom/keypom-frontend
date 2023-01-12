@@ -9,8 +9,10 @@ export const EventInfoForm = () => {
     handleSubmit,
     control,
     watch,
-    formState: { isDirty, isValid },
+    formState: { isValid, isDirty },
   } = useFormContext();
+
+  console.log({ isValid, isDirty });
 
   return (
     <Box>

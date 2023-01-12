@@ -3,14 +3,11 @@ import { Button, Divider, HStack } from '@chakra-ui/react';
 
 import { IconBox } from '@/common/components/IconBox';
 import { LinkIcon } from '@/common/components/Icons';
-import { Step, StepItem } from '@/common/components/Step/Step';
-import { useSteps } from '@/common/hooks/useSteps';
+import { Step } from '@/common/components/Step/Step';
 
 import { useDropFlowContext } from '../contexts/DropFlowContext';
 
-import { EventInfoForm } from './EventInfoForm';
-import { SignUpInfoForm } from './SignUpInfoForm';
-import { AdditionalGiftsForm } from './AdditionalGiftsForm/AdditionalGiftsForm';
+import { useCreateTicketDropContext } from './CreateTicketDropContext';
 
 export interface CreateTicketDropFormFieldTypes {
   nftName: string;
@@ -20,41 +17,21 @@ export interface CreateTicketDropFormFieldTypes {
   redirectLink?: string;
 }
 
-const formSteps: StepItem[] = [
-  {
-    name: 'eventInfo',
-    title: 'Event info',
-    component: <EventInfoForm />,
-  },
-  {
-    name: 'signUpInfo',
-    title: 'Sign-up info',
-    component: <SignUpInfoForm />,
-  },
-  {
-    name: 'additionalGifts',
-    title: 'Additional gifts',
-    component: <AdditionalGiftsForm />,
-    submitOnNextClick: true,
-  },
-];
-
 export const CreateTicketDropForm = () => {
   const { onNext } = useDropFlowContext();
-  const {
-    onNext: onNextStep,
-    onPrevious: onPreviousStep,
-    currentIndex,
-  } = useSteps({ maxSteps: formSteps.length });
   const {
     setValue,
     handleSubmit,
     control,
     watch,
+    getValues,
     formState: { isDirty, isValid, errors },
   } = useFormContext();
 
-  console.log(errors);
+  console.log({ isValid, isDirty });
+  const { currentIndex, onNextStep, onPreviousStep, formSteps } = useCreateTicketDropContext();
+
+  const currentStep = formSteps[currentIndex];
 
   const stepsDisplay = formSteps.map((step, index) => (
     <Step key={step.name} index={index + 1} isActive={currentIndex === index} stepItem={step} />
@@ -62,6 +39,19 @@ export const CreateTicketDropForm = () => {
 
   const handleSubmitClick = () => {
     onNext();
+  };
+
+  const getNextButton = () => {
+    console.log(currentStep.isSkipable, !isDirty);
+    if (currentStep.isSkipable && !isDirty) {
+      return (
+        <Button variant="secondary" onClick={onNextStep}>
+          Skip this step
+        </Button>
+      );
+    }
+
+    return <Button disabled={!isValid}>Continue</Button>;
   };
 
   return (
@@ -73,7 +63,7 @@ export const CreateTicketDropForm = () => {
       <HStack flexWrap="nowrap" justifyContent="center" spacing="4">
         {stepsDisplay}
       </HStack>
-      {formSteps[currentIndex].component}
+      {currentStep.component}
       <Divider my={{ base: '6', md: '8' }} />
       <HStack justifyContent="flex-end" spacing="auto">
         {currentIndex > 0 && (
@@ -81,10 +71,17 @@ export const CreateTicketDropForm = () => {
             Go back
           </Button>
         )}
-        <Button variant="secondary" onClick={onNext}>
-          Skip this step
-        </Button>
+        {currentStep.isSkipable && !isDirty ? (
+          <Button variant="secondary" onClick={onNextStep}>
+            Skip this step
+          </Button>
+        ) : (
+          <Button disabled={!isValid} onClick={onNextStep}>
+            Continue
+          </Button>
+        )}
       </HStack>
+      <pre>{JSON.stringify(watch(), null, '\t')}</pre>
     </IconBox>
   );
 };
