@@ -39,7 +39,6 @@ const ClaimNftPage = () => {
               pb={{ base: '6', md: '8' }}
               pt={{ base: '12', md: '16' }}
               px={{ base: '6', md: '8' }}
-              shapeSize="md"
               w="full "
             >
               {/** div placeholder */}

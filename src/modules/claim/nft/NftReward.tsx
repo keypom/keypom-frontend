@@ -10,7 +10,6 @@ export const NftReward = ({ artworkSrc, nftName, description }: NftRewardProps) 
   return (
     <Flex align="center" flexDir="column">
       <Box
-        bg="coral"
         borderRadius={{ base: '5xl', md: '6xl' }}
         h={{ base: '7.5rem', md: '11.25rem' }}
         mb={{ base: '6', md: '10' }}
