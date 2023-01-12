@@ -45,21 +45,26 @@ export const ArtworkInput = ({ name = FIELD_NAME }: ArtworkInputProps) => {
       name={name}
       render={(
         { field: { onChange, value, ...props }, fieldState: { error } }, //value is unused to prevent `onChange` from updating it
-      ) => (
-        <ImageFileInput
-          accept=" image/jpeg, image/png, image/webp"
-          errorMessage={error?.message}
-          isInvalid={!!error?.message}
-          label="Artwork"
-          preview={preview}
-          selectedFile={selectedFile}
-          onChange={(e) => {
-            onSelectFile(e);
-            onChange(e.target.files);
-          }}
-          {...props}
-        />
-      )}
+      ) => {
+        if (value === null) {
+          setSelectedFile(null);
+        }
+        return (
+          <ImageFileInput
+            accept=" image/jpeg, image/png, image/webp"
+            errorMessage={error?.message}
+            isInvalid={!!error?.message}
+            label="Artwork"
+            preview={preview}
+            selectedFile={selectedFile}
+            onChange={(e) => {
+              onSelectFile(e);
+              onChange(e.target.files);
+            }}
+            {...props}
+          />
+        );
+      }}
     />
   );
 };

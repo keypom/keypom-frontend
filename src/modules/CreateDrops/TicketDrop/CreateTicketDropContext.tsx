@@ -58,8 +58,8 @@ const additionalGiftTokenSchema = z.object({
 });
 
 const additionalGiftPOAPSchema = z.object({
-  name: z.string(),
-  description: z.string(),
+  name: z.string().min(1, 'Required'),
+  description: z.string().min(1, 'Required'),
   artwork: z.any(),
 });
 
