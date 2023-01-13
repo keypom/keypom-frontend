@@ -13,8 +13,7 @@ export const CreateTicketDropForm = () => {
   const { onNext } = useDropFlowContext();
   const {
     reset,
-    watch,
-    formState: { isValid, dirtyFields, errors, defaultValues, touchedFields },
+    formState: { isValid, dirtyFields, defaultValues },
   } = useFormContext();
 
   const { currentIndex, onNextStep, onPreviousStep, formSteps } = useCreateTicketDropContext();
