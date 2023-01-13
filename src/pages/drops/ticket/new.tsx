@@ -7,7 +7,7 @@ import { DropFlow } from '@/modules/CreateDrops/DropFlow';
 import { DropFlowProvider } from '@/modules/CreateDrops/contexts/DropFlowContext';
 import { IFlowPage } from '@/modules/CreateDrops/types/types';
 import { CreateTokenDropSummary } from '@/modules/CreateDrops/TokenDrop/CreateTokenDropSummary';
-import { CreateTicketDropProvider } from '@/modules/CreateDrops/TicketDrop/CreateTicketDropContext';
+import { CreateTicketDropProvider } from '@/modules/CreateDrops/TicketDrop/CreateTicketDropContext/CreateTicketDropContext';
 import { CreateTicketDropForm } from '@/modules/CreateDrops/TicketDrop/CreateTicketDropForm';
 
 const flowPages: IFlowPage[] = [

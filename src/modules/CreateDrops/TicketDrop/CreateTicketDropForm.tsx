@@ -7,7 +7,7 @@ import { Step } from '@/common/components/Step/Step';
 
 import { useDropFlowContext } from '../contexts/DropFlowContext';
 
-import { useCreateTicketDropContext } from './CreateTicketDropContext';
+import { useCreateTicketDropContext } from './CreateTicketDropContext/CreateTicketDropContext';
 
 export const CreateTicketDropForm = () => {
   const { onNext } = useDropFlowContext();

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { ImageFileInput } from '@/common/components/ImageFileInput';
 
 import { CreateNftDropFormFieldTypes } from '../NftDrop/CreateNftDropForm';
-import { CreateTicketFieldsSchema } from '../TicketDrop/CreateTicketDropContext';
+import { CreateTicketFieldsSchema } from '../TicketDrop/CreateTicketDropContext/CreateTicketDropContext';
 
 type CreateDropFieldTypes = CreateNftDropFormFieldTypes | CreateTicketFieldsSchema;
 interface ArtworkInputProps {

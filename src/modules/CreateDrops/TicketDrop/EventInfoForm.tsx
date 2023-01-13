@@ -3,7 +3,7 @@ import { Controller, useFormContext } from 'react-hook-form';
 
 import { FormControl } from '@/common/components/FormControl';
 
-import { CreateTicketFieldsSchema } from './CreateTicketDropContext';
+import { CreateTicketFieldsSchema } from './CreateTicketDropContext/CreateTicketDropContext';
 
 export const EventInfoForm = () => {
   const { control } = useFormContext<CreateTicketFieldsSchema>();

@@ -4,7 +4,7 @@ import { BaseSyntheticEvent } from 'react';
 
 import { SwitchInput } from '@/common/components/SwitchInput';
 
-import { CreateTicketFieldsSchema } from './CreateTicketDropContext';
+import { CreateTicketFieldsSchema } from './CreateTicketDropContext/CreateTicketDropContext';
 
 interface InfoSwitchItem {
   name: 'firstName' | 'secondName' | 'emailAddress';

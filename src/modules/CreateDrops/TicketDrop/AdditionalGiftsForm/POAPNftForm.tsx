@@ -5,7 +5,7 @@ import { TextInput } from '@/common/components/TextInput';
 import { TextAreaInput } from '@/common/components/TextAreaInput';
 
 import { ArtworkInput } from '../../Fields/ArtworkInput';
-import { CreateTicketFieldsSchema } from '../CreateTicketDropContext';
+import { CreateTicketFieldsSchema } from '../CreateTicketDropContext/CreateTicketDropContext';
 
 export const POAPNftForm = () => {
   const { control } = useFormContext<CreateTicketFieldsSchema>();

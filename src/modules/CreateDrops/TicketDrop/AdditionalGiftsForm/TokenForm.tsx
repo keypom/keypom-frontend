@@ -5,7 +5,7 @@ import { FormControl } from '@/common/components/FormControl';
 import { WalletBalanceInput } from '@/common/components/WalletBalanceInput';
 
 import { WALLET_TOKENS } from '../data';
-import { CreateTicketFieldsSchema } from '../CreateTicketDropContext';
+import { CreateTicketFieldsSchema } from '../CreateTicketDropContext/CreateTicketDropContext';
 
 export const TokenForm = () => {
   const {

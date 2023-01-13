@@ -5,7 +5,7 @@ import { useEffect } from 'react';
 import { RoundedTabs, TabListItem } from '@/common/components/RoundedTabs';
 import { LinkIcon, POAPNftIcon } from '@/common/components/Icons';
 
-import { CreateTicketFieldsSchema } from '../CreateTicketDropContext';
+import { CreateTicketFieldsSchema } from '../CreateTicketDropContext/CreateTicketDropContext';
 
 import { TokenForm } from './TokenForm';
 import { POAPNftForm } from './POAPNftForm';

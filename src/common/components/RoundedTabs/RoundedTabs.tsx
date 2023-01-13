@@ -64,7 +64,6 @@ export const RoundedTabs = ({
   return (
     <Tabs variant="unstyled" {...props}>
       <TabList
-        // bg="border.round"
         bg="linear-gradient(180deg, rgba(239,250,253,1) 100%, rgba(221,244,250,1) 100%);"
         border="2px solid"
         borderColor="blue.200"
