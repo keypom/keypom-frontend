@@ -1,4 +1,6 @@
-import { Box, Flex, Image, Text, VStack } from '@chakra-ui/react';
+import { Flex, Text, VStack } from '@chakra-ui/react';
+
+import { AvatarImage } from '@/common/components/AvatarImage';
 
 interface NftRewardProps {
   artworkSrc: string;
@@ -9,20 +11,7 @@ interface NftRewardProps {
 export const NftReward = ({ artworkSrc, nftName, description }: NftRewardProps) => {
   return (
     <Flex align="center" flexDir="column">
-      <Box
-        borderRadius={{ base: '5xl', md: '6xl' }}
-        h={{ base: '7.5rem', md: '11.25rem' }}
-        mb={{ base: '6', md: '10' }}
-        position="relative"
-        w={{ base: '7.5rem', md: '11.25rem' }}
-      >
-        <Image
-          alt="NFT image"
-          borderRadius={{ base: '5xl', md: '6xl' }}
-          objectFit="cover"
-          src={artworkSrc}
-        />
-      </Box>
+      <AvatarImage altName={nftName} imageSrc={artworkSrc} />
       <VStack spacing="4">
         <Text
           color="gray.800"

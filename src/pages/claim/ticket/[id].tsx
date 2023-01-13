@@ -44,6 +44,7 @@ const YourTicketPage = () => {
               minW={{ base: 'inherit', md: '345px' }}
               p="0"
               pb="0"
+              w="full"
             >
               <BoxWithShape bg="white" borderTopRadius="8xl" w="full ">
                 <QrDetails

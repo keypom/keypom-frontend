@@ -32,6 +32,7 @@ const ClaimTicketPage = () => {
               minW={{ base: 'inherit', md: '345px' }}
               p="0"
               pb="0"
+              w="full"
             >
               <Flex
                 align="center"

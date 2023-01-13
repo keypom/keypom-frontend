@@ -32,6 +32,7 @@ const ClaimNftPage = () => {
             minW={{ base: 'inherit', md: '345px' }}
             p="0"
             pb="0"
+            w="full"
           >
             <BoxWithShape
               bg="white"
