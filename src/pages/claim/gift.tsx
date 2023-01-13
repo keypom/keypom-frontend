@@ -28,11 +28,10 @@ const ClaimGiftPage = () => {
           {/** Claim gift component */}
           <IconBox
             icon={<TicketIcon height={{ base: '8', md: '10' }} width={{ base: '8', md: '10' }} />}
-            maxW={{ base: '345px', md: '30rem' }}
             minW={{ base: 'inherit', md: '345px' }}
             p="0"
             pb="0"
-            w="full"
+            w={{ base: '345px', md: '30rem' }}
           >
             <BoxWithShape
               bg="white"
