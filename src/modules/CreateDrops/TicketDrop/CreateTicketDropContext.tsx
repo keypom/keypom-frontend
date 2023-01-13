@@ -78,8 +78,7 @@ const AdditionalGiftSchema = z
   })
   .superRefine(({ additionalGift }, ctx) => {
     if (additionalGift.type === 'token') {
-      additionalGiftTokenSchema.parse(additionalGift.token);
-      return true;
+      return additionalGiftTokenSchema.parse(additionalGift.token);
     } else if (additionalGift.type === 'poapNft') {
       const artworkFile = additionalGift.poapNft.artwork;
       if (artworkFile?.length !== 1) {
@@ -121,6 +120,13 @@ const createLinks = async () => {
 
 const formSteps: FormStep[] = [
   {
+    name: 'additionalGifts',
+    title: 'Additional gifts',
+    component: <AdditionalGiftsForm />,
+    isSkipable: true,
+    schema: AdditionalGiftSchema,
+  },
+  {
     name: 'eventInfo',
     title: 'Event info',
     component: <EventInfoForm />,
@@ -133,13 +139,6 @@ const formSteps: FormStep[] = [
     component: <SignUpInfoForm />,
     isSkipable: true,
     schema: SignUpInfoSchema,
-  },
-  {
-    name: 'additionalGifts',
-    title: 'Additional gifts',
-    component: <AdditionalGiftsForm />,
-    isSkipable: true,
-    schema: AdditionalGiftSchema,
   },
 ];
 
