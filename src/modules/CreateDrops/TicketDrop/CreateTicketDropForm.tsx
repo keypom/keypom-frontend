@@ -1,5 +1,5 @@
 import { useFormContext } from 'react-hook-form';
-import { Box, Button, Divider, HStack } from '@chakra-ui/react';
+import { Button, Divider, HStack } from '@chakra-ui/react';
 
 import { IconBox } from '@/common/components/IconBox';
 import { LinkIcon } from '@/common/components/Icons';
@@ -78,23 +78,6 @@ export const CreateTicketDropForm = () => {
           </Button>
         )}
       </HStack>
-      {/* For testing purposes, will remove these code after review is done */}
-      <Box textAlign="left">
-        <pre>
-          {JSON.stringify(
-            {
-              isValid,
-              isDirty,
-              dirtyFields,
-              errors,
-              touchedFields,
-              ...watch(),
-            },
-            null,
-            2,
-          )}
-        </pre>
-      </Box>
     </IconBox>
   );
 };
