@@ -10,11 +10,13 @@ import { CreateTicketFieldsSchema } from '../CreateTicketDropContext';
 export const TokenForm = () => {
   const {
     setValue,
-    handleSubmit,
+    trigger,
     control,
     watch,
-    formState: { isDirty, isValid },
+    formState: { errors },
   } = useFormContext<CreateTicketFieldsSchema>();
+
+  const selectedFromWalletError = errors?.additionalGift?.token?.selectedFromWallet;
 
   const [selectedFromWallet, amountPerLink, totalTickets] = watch([
     'additionalGift.token.selectedFromWallet',
@@ -42,12 +44,17 @@ export const TokenForm = () => {
       control={control}
       name="additionalGift.token.amountPerLink"
       render={({ field, fieldState: { error } }) => (
-        <FormControl errorText={error?.message} label="Add tokens" my="0">
+        <FormControl
+          errorText={error?.message || selectedFromWalletError?.message}
+          label="Add tokens"
+          my="0"
+        >
           <WalletBalanceInput
             {...field}
             isInvalid={Boolean(error?.message)}
             onChange={(e) => {
-              field.onChange(parseFloat(e.target.value), 10);
+              field.onChange(parseFloat(e.target.value));
+              trigger(); // errors not getting updated if its not manually validated
             }}
           >
             <WalletBalanceInput.TokenMenu

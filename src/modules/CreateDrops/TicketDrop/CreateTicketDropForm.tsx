@@ -1,5 +1,5 @@
 import { useFormContext } from 'react-hook-form';
-import { Button, Divider, HStack } from '@chakra-ui/react';
+import { Box, Button, Divider, HStack } from '@chakra-ui/react';
 
 import { IconBox } from '@/common/components/IconBox';
 import { LinkIcon } from '@/common/components/Icons';
@@ -12,12 +12,8 @@ import { useCreateTicketDropContext } from './CreateTicketDropContext';
 export const CreateTicketDropForm = () => {
   const { onNext } = useDropFlowContext();
   const {
-    setValue,
-    handleSubmit,
-    control,
     reset,
     watch,
-    getValues,
     formState: { isValid, dirtyFields, errors, defaultValues, touchedFields },
   } = useFormContext();
 
@@ -29,6 +25,7 @@ export const CreateTicketDropForm = () => {
     <Step key={step.name} index={index + 1} isActive={currentIndex === index} stepItem={step} />
   ));
 
+  // TODO: add next step to summary
   const handleSubmitClick = () => {
     onNext();
   };
@@ -38,6 +35,8 @@ export const CreateTicketDropForm = () => {
     onNextStep();
   };
 
+  // isDirty from react form hook does not match with dirtyFields correctly
+  // https://github.com/react-hook-form/react-hook-form/issues/4740
   const isDirty = Object.keys(dirtyFields).length > 0;
 
   return (
@@ -67,6 +66,23 @@ export const CreateTicketDropForm = () => {
           </Button>
         )}
       </HStack>
+      {/* For testing purposes, will remove these code after review is done */}
+      <Box textAlign="left">
+        <pre>
+          {JSON.stringify(
+            {
+              isValid,
+              isDirty,
+              dirtyFields,
+              errors,
+              touchedFields,
+              ...watch(),
+            },
+            null,
+            2,
+          )}
+        </pre>
+      </Box>
     </IconBox>
   );
 };

@@ -8,13 +8,7 @@ import { ArtworkInput } from '../../Fields/ArtworkInput';
 import { CreateTicketFieldsSchema } from '../CreateTicketDropContext';
 
 export const POAPNftForm = () => {
-  const {
-    setValue,
-    handleSubmit,
-    control,
-    watch,
-    formState: { isDirty, isValid },
-  } = useFormContext<CreateTicketFieldsSchema>();
+  const { control } = useFormContext<CreateTicketFieldsSchema>();
 
   return (
     <VStack spacing={{ base: '4', md: '5' }}>

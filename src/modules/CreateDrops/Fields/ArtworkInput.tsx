@@ -14,7 +14,7 @@ interface ArtworkInputProps {
 const FIELD_NAME = 'artwork';
 
 export const ArtworkInput = ({ name = FIELD_NAME }: ArtworkInputProps) => {
-  const { control } = useFormContext<CreateDropFieldTypes>();
+  const { control, trigger } = useFormContext<CreateDropFieldTypes>();
   const [selectedFile, setSelectedFile] = useState();
   const [preview, setPreview] = useState<string>();
 
@@ -23,12 +23,12 @@ export const ArtworkInput = ({ name = FIELD_NAME }: ArtworkInputProps) => {
       setPreview(undefined);
       return;
     }
-
+    trigger(name); // manually validate
     const objectUrl = URL.createObjectURL(selectedFile[0]);
     setPreview(objectUrl);
 
     return () => URL.revokeObjectURL(objectUrl);
-  }, [selectedFile]);
+  }, [selectedFile, trigger, name]);
 
   const onSelectFile = (e) => {
     if (!e.target.files || e.target.files.length === 0) {

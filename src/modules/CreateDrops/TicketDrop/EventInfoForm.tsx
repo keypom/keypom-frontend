@@ -6,13 +6,7 @@ import { FormControl } from '@/common/components/FormControl';
 import { CreateTicketFieldsSchema } from './CreateTicketDropContext';
 
 export const EventInfoForm = () => {
-  const {
-    setValue,
-    handleSubmit,
-    control,
-    watch,
-    formState: { isValid, isDirty },
-  } = useFormContext<CreateTicketFieldsSchema>();
+  const { control } = useFormContext<CreateTicketFieldsSchema>();
 
   return (
     <Box>

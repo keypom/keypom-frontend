@@ -27,13 +27,7 @@ const infoSwitches: InfoSwitchItem[] = [
 ];
 
 export const SignUpInfoForm = () => {
-  const {
-    setValue,
-    handleSubmit,
-    control,
-    watch,
-    formState: { isValid, dirtyFields },
-  } = useFormContext<CreateTicketFieldsSchema>();
+  const { control } = useFormContext<CreateTicketFieldsSchema>();
 
   const switches = infoSwitches.map((switchInfo) => {
     return (
@@ -47,8 +41,11 @@ export const SignUpInfoForm = () => {
               errorText={error?.message}
               label={switchInfo.label}
               my="1"
-              switchProps={{ id: switchInfo.name }}
-              onChange={(e: BaseSyntheticEvent) => field.onChange(e.target.checked)}
+              switchProps={{
+                id: switchInfo.name,
+                onChange: (e: BaseSyntheticEvent) => field.onChange(e.target.checked),
+                isChecked: field.value,
+              }}
             />
           );
         }}
