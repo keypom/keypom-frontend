@@ -25,7 +25,7 @@ export const FormControlComponent = ({
 }: PropsWithChildren<FormControlProps>) => {
   return (
     <CFormControl my="5" textAlign="left" {...props}>
-      <FormLabel color="gray.800" m="0" {...labelProps}>
+      <FormLabel color="gray.800" fontSize={{ base: 'sm', md: 'md' }} m="0" {...labelProps}>
         {label}
       </FormLabel>
       {helperText && <Text mt="0.5">{helperText}</Text>}

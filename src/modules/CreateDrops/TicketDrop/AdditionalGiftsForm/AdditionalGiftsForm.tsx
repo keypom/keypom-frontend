@@ -49,7 +49,7 @@ export const AdditionalGiftsForm = () => {
     <Box mt={{ base: '6', md: '8' }}>
       <RoundedTabs tablist={tabList} onChange={handleChange}>
         <TabPanels mt={{ base: '5', md: '7' }}>
-          <TabPanel>
+          <TabPanel px="0">
             <TokenForm />
           </TabPanel>
           <TabPanel>

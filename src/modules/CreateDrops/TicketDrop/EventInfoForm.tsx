@@ -15,7 +15,11 @@ export const EventInfoForm = () => {
         name="eventName"
         render={({ field, fieldState: { error } }) => {
           return (
-            <FormControl errorText={error?.message} label="Event name">
+            <FormControl
+              errorText={error?.message}
+              helperText="Will be shown on the claim page"
+              label="Event name"
+            >
               <Input
                 isInvalid={Boolean(error?.message)}
                 placeholder="Friday night movies"
@@ -31,7 +35,11 @@ export const EventInfoForm = () => {
         name="totalTickets"
         render={({ field, fieldState: { error } }) => {
           return (
-            <FormControl errorText={error?.message} label="Number of tickets">
+            <FormControl
+              errorText={error?.message}
+              helperText="How many links will be generated?"
+              label="Number of tickets"
+            >
               <Input
                 isInvalid={Boolean(error?.message)}
                 placeholder="1 - 10,000"

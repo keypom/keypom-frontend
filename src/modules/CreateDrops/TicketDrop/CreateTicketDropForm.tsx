@@ -45,7 +45,19 @@ export const CreateTicketDropForm = () => {
       maxW={{ base: '21.5rem', md: '36rem' }}
       mx="auto"
     >
-      <HStack flexWrap="nowrap" justifyContent="center" spacing="4">
+      <HStack
+        flexWrap="nowrap"
+        justifyContent={{ base: 'flex-start', md: 'center' }}
+        mt={{ base: '3' }}
+        overflowX={{ base: 'scroll', md: 'visible' }}
+        spacing={{ base: '2', md: '4' }}
+        sx={{
+          '&::-webkit-scrollbar': {
+            display: 'none',
+          },
+          scrollbarWidth: 'none',
+        }}
+      >
         {stepsDisplay}
       </HStack>
       {currentStep.component}

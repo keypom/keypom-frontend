@@ -45,6 +45,7 @@ export const SignUpInfoForm = () => {
                 id: switchInfo.name,
                 onChange: (e: BaseSyntheticEvent) => field.onChange(e.target.checked),
                 isChecked: field.value,
+                mt: '0',
               }}
             />
           );

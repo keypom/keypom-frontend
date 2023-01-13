@@ -12,10 +12,10 @@ export const SwitchInput = ({ switchProps, ...props }: SwitchInputProps) => {
       alignItems="center"
       display="flex"
       justifyContent="space-between"
-      labelProps={{ color: 'gray.600' }}
+      labelProps={{ color: 'gray.600', mt: '1.5', fontSize: { base: 'sm', md: 'base' } }}
       {...props}
     >
-      <Switch {...switchProps} />
+      <Switch {...switchProps} mt="0" />
     </FormControl>
   );
 };
