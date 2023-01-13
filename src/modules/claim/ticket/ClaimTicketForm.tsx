@@ -5,6 +5,7 @@ import { useClaimForm } from '../ClaimFormContext';
 
 import { NameField } from './fields/NameField';
 import { EmailField } from './fields/EmailField';
+import { useClaimTicketFlow } from './ClaimTicketFlowContext';
 
 export interface ClaimTicketFormFieldTypes {
   name: string;
@@ -14,11 +15,15 @@ export interface ClaimTicketFormFieldTypes {
 interface ClaimTicketFormProps {}
 
 export const ClaimTicketForm = ({}: ClaimTicketFormProps) => {
+  const { onNext } = useClaimTicketFlow();
+
   const { getClaimFormData } = useClaimForm();
   const { handleSubmit, control } = useFormContext<ClaimTicketFormFieldTypes>();
 
   const handleSubmitClick = () => {
-    return console.log(getClaimFormData());
+    // TODO: handle name/email validation and send email
+    console.log(getClaimFormData());
+    return onNext();
   };
 
   return (
