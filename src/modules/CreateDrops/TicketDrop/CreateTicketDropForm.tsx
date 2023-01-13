@@ -48,7 +48,7 @@ export const CreateTicketDropForm = () => {
       <HStack
         flexWrap="nowrap"
         justifyContent={{ base: 'flex-start', md: 'center' }}
-        mt={{ base: '3' }}
+        mt={{ base: '8', md: '0' }}
         overflowX={{ base: 'scroll', md: 'visible' }}
         spacing={{ base: '2', md: '4' }}
         sx={{
