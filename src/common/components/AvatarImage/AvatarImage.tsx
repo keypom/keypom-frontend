@@ -1,6 +1,6 @@
 import { Box, BoxProps, Image } from '@chakra-ui/react';
 
-import { replaceSpace } from '@/common/functions/replaceSpace';
+import { replaceSpace } from '@/common/utils/replaceSpace';
 
 interface AvatarImageProps extends BoxProps {
   altName: string;
