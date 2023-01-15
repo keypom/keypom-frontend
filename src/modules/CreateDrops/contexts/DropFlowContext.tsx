@@ -1,8 +1,7 @@
 import React, { createContext, PropsWithChildren, useContext, useState } from 'react';
 
 import { IBreadcrumbItem } from '@/common/components/Breadcrumbs';
-
-import { IFlowPage } from '../types/types';
+import { IFlowPage } from '@/common/types';
 
 interface DropFlowProviderProps {
   flowPages: IFlowPage[];
