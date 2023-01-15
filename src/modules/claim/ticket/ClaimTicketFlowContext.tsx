@@ -1,6 +1,6 @@
 import { PropsWithChildren, createContext, useContext, useState } from 'react';
 
-import { IFlowPage } from '@/modules/CreateDrops/types/types';
+import { IFlowPage } from '@/common/types';
 
 interface ClaimTicketFlowContextProps {
   flowPages: IFlowPage[];
