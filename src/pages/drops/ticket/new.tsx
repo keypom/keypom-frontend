@@ -2,10 +2,10 @@ import { Box } from '@chakra-ui/react';
 
 import { PageHead } from '@/common/components/PageHead';
 import { IBreadcrumbItem } from '@/common/components/Breadcrumbs';
+import { IFlowPage } from '@/common/types';
 
 import { DropFlow } from '@/modules/CreateDrops/DropFlow';
 import { DropFlowProvider } from '@/modules/CreateDrops/contexts/DropFlowContext';
-import { IFlowPage } from '@/modules/CreateDrops/types/types';
 import { CreateTokenDropSummary } from '@/modules/CreateDrops/TokenDrop/CreateTokenDropSummary';
 import { CreateTicketDropProvider } from '@/modules/CreateDrops/TicketDrop/CreateTicketDropContext/CreateTicketDropContext';
 import { CreateTicketDropForm } from '@/modules/CreateDrops/TicketDrop/CreateTicketDropForm';
