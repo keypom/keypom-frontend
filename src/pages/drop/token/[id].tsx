@@ -43,7 +43,10 @@ export default function TokenDropManager({ data }: { data: TokenDropResponse }) 
       ...item,
       link: (
         <Text color="gray.400" display="flex">
-          keypom.xyz/<Text color="gray.800">{item.slug}</Text>
+          keypom.xyz/
+          <Text as="span" color="gray.800">
+            {item.slug}
+          </Text>
         </Text>
       ),
       hasClaimed: item.hasClaimed ? (
