@@ -63,10 +63,10 @@ export const WalletSelectorMenu = ({
             width="7.125rem"
             zIndex="2"
           >
-            <HStack px="3">
+            <HStack justifyContent="space-around" px="3">
               {selectedWalletTokenIcon}
               <Text fontWeight="medium" lineHeight="2">
-                {selectedWalletToken?.symbol}
+                {selectedWalletToken?.symbol || 'Select'}
               </Text>
               <ChevronDownIcon />
             </HStack>
