@@ -63,16 +63,28 @@ export const CreateTicketDropForm = () => {
       <Divider my={{ base: '6', md: '8' }} />
       <HStack justifyContent="flex-end" spacing="auto">
         {currentIndex > 0 && (
-          <Button variant="secondary" onClick={onPreviousStep}>
+          <Button
+            fontSize={{ base: 'sm', md: 'base' }}
+            variant="secondary"
+            onClick={onPreviousStep}
+          >
             Go back
           </Button>
         )}
         {currentStep.isSkipable && !isDirty ? (
-          <Button variant="secondary" onClick={handleNextStepClick}>
+          <Button
+            fontSize={{ base: 'sm', md: 'base' }}
+            variant="secondary"
+            onClick={handleNextStepClick}
+          >
             Skip this step
           </Button>
         ) : (
-          <Button disabled={!isValid} onClick={handleNextStepClick}>
+          <Button
+            disabled={!isValid}
+            fontSize={{ base: 'sm', md: 'base' }}
+            onClick={handleNextStepClick}
+          >
             Continue
           </Button>
         )}
