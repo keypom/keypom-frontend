@@ -11,6 +11,7 @@ import {
 
 import { LinkIcon } from '@/common/components/Icons';
 import { RoundIcon } from '@/common/components/IconBox/RoundIcon';
+import { useAuthWalletContext } from '@/common/contexts/AuthWalletContext';
 
 interface ConnectWalletModalProps {
   isOpen: boolean;
@@ -18,6 +19,7 @@ interface ConnectWalletModalProps {
 }
 
 export const ConnectWalletModal = ({ isOpen, onClose }: ConnectWalletModalProps) => {
+  const { modal } = useAuthWalletContext();
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
       <ModalOverlay />
@@ -28,7 +30,14 @@ export const ConnectWalletModal = ({ isOpen, onClose }: ConnectWalletModalProps)
         <ModalHeader>Sign In</ModalHeader>
         <ModalBody>Sign in with a NEAR Wallet to create and manage drops.</ModalBody>
         <ModalFooter>
-          <Button size={{ base: 'sm', md: 'md' }} variant="primary">
+          <Button
+            size={{ base: 'sm', md: 'md' }}
+            variant="primary"
+            onClick={() => {
+              console.log('hello');
+              modal.show();
+            }}
+          >
             Connect Wallet
           </Button>
         </ModalFooter>

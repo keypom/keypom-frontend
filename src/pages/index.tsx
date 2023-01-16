@@ -1,8 +1,10 @@
-import { Box, Heading, Text } from '@chakra-ui/react';
+import { Box, Button, Heading, Text } from '@chakra-ui/react';
 
 import { PageHead } from '@/common/components/PageHead';
+import { useAuthWalletContext } from '@/common/contexts/AuthWalletContext';
 
 export default function Home() {
+  const { modal } = useAuthWalletContext();
   return (
     <Box mt={{ base: 6, md: 14 }}>
       <PageHead description="Home page description" name="Home" />
@@ -14,6 +16,13 @@ export default function Home() {
       <Text color="gray.400" fontSize="sm">
         Total cost: 5000 NEAR
       </Text>
+      <Button
+        onClick={() => {
+          modal.show();
+        }}
+      >
+        Connect Wallet
+      </Button>
     </Box>
   );
 }
