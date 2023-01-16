@@ -9,6 +9,7 @@ export * from './MenuIcon';
 export * from './MyNearLogoIcon';
 export * from './NearLogoIcon';
 export * from './NFTIcon';
+export * from './POAPNftIcon';
 export * from './StarIcon';
 export * from './TicketIcon';
 export * from './TokenEthIcon';

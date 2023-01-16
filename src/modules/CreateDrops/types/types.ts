@@ -23,3 +23,9 @@ export interface PaymentData {
   totalCost: number;
   confirmationText: string;
 }
+
+export interface NFTType {
+  nftName: string;
+  description: string;
+  artwork: string;
+}
