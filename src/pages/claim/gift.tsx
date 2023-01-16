@@ -7,25 +7,25 @@ import { TicketIcon } from '@/common/components/Icons';
 
 import { CreateWallet } from '@/modules/claim/CreateWallet';
 import { ExistingWallet } from '@/modules/claim/ExistingWallet';
-import { NftReward } from '@/modules/claim/nft/NftReward';
+import { GiftDetails } from '@/modules/claim/gift/GiftDetails';
 
-const ClaimNftPage = () => {
+const ClaimGiftPage = () => {
   const [haveWallet, showInputWallet] = useBoolean(false);
 
   return (
     <Box mb={{ base: '5', md: '14' }} minH="100%" minW="100%" mt={{ base: '52px', md: '100px' }}>
       <PageHead
         removeTitleAppend
-        description="Page detailing all the claimed nft."
-        name="Claim Nft"
+        description="Page detailing all the claimed gift."
+        name="Claim Gift"
       />
       <Center>
         {/** the additional gap is to accommodate for the absolute roundIcon size */}
         <VStack gap={{ base: 'calc(24px + 8px)', md: 'calc(32px + 10px)' }}>
           {/** Prompt text */}
-          <Heading textAlign="center">{`You've received an NFT`}</Heading>
+          <Heading textAlign="center">{`Collect your gifts`}</Heading>
 
-          {/** Claim nft component */}
+          {/** Claim gift component */}
           <IconBox
             icon={<TicketIcon height={{ base: '8', md: '10' }} width={{ base: '8', md: '10' }} />}
             minW={{ base: 'inherit', md: '345px' }}
@@ -39,13 +39,13 @@ const ClaimNftPage = () => {
               pb={{ base: '6', md: '8' }}
               pt={{ base: '12', md: '16' }}
               px={{ base: '6', md: '8' }}
+              shapeSize="md"
               w="full "
             >
               {/** div placeholder */}
-              <NftReward
-                artworkSrc="https://vaxxeddoggos.com/assets/doggos/1042.png"
-                description={`Here’s your cute character to commemorate the Danny Daze Annual event`}
-                nftName="Danny Daze NFT"
+              <GiftDetails
+                giftName="Vaxxed Doggos NFT"
+                imageSrc={'https://vaxxeddoggos.com/assets/doggos/1042.png'}
               />
             </BoxWithShape>
             <VStack
@@ -71,4 +71,4 @@ const ClaimNftPage = () => {
   );
 };
 
-export default ClaimNftPage;
+export default ClaimGiftPage;

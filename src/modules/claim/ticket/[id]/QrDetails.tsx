@@ -1,4 +1,6 @@
-import { Box, Button, Flex, Image, Text } from '@chakra-ui/react';
+import { Button, Flex, Text } from '@chakra-ui/react';
+
+import { AvatarImage } from '@/common/components/AvatarImage';
 
 interface QrDetailsProps {
   qrSrc: string;
@@ -9,24 +11,13 @@ interface QrDetailsProps {
 export const QrDetails = ({ qrSrc, ticketName, onClick }: QrDetailsProps) => {
   return (
     <Flex align="center" flexDir="column" p={{ base: '6', md: '8' }} pt={{ base: '12', md: '16' }}>
-      <Box
+      <AvatarImage
+        altName="qr_code"
         border="1px solid"
         borderColor="gray.200"
-        borderRadius={{ base: '5xl', md: '6xl' }}
-        h={{ base: '7.5rem', md: '11.25rem' }}
-        mb={{ base: '6', md: '8' }}
+        imageSrc={qrSrc}
         p="2"
-        position="relative"
-        w={{ base: '7.5rem', md: '11.25rem' }}
-      >
-        {/** temporary image */}
-        <Image
-          alt="QR code"
-          borderRadius={{ base: '5xl', md: '6xl' }}
-          objectFit="cover"
-          src={qrSrc}
-        />
-      </Box>
+      />
       <Text
         color="gray.800"
         fontSize={{ base: 'xl', md: '2xl' }}

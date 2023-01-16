@@ -1,4 +1,6 @@
-import { Box, Hide, Image, Text } from '@chakra-ui/react';
+import { Hide, Text } from '@chakra-ui/react';
+
+import { AvatarImage } from '@/common/components/AvatarImage';
 
 interface NftGiftProps {
   imageSrc: string;
@@ -8,20 +10,7 @@ interface NftGiftProps {
 export const NftGift = ({ imageSrc, giftName }: NftGiftProps) => {
   return (
     <>
-      <Box
-        borderRadius={{ base: '5xl', md: '6xl' }}
-        h={{ base: '7.5rem', md: '11.25rem' }}
-        mb="5"
-        position="relative"
-        w={{ base: '7.5rem', md: '11.25rem' }}
-      >
-        <Image
-          alt={`${giftName}_image`}
-          borderRadius={{ base: '5xl', md: '6xl' }}
-          objectFit="cover"
-          src={imageSrc}
-        />
-      </Box>
+      <AvatarImage altName={giftName} imageSrc={imageSrc} />
       <Hide above="md">
         <Text
           color="gray.600"
