@@ -18,12 +18,12 @@ const tabList: AdditionalGiftTabItem[] = [
   {
     name: 'token',
     label: 'Token',
-    icon: <LinkIcon h={{ base: '5' }} w={{ base: '5' }} />,
+    icon: <LinkIcon h={{ base: '4', md: '5' }} w={{ base: '4', md: '5' }} />,
   },
   {
     name: 'poapNft',
     label: 'POAP NFT',
-    icon: <POAPNftIcon h={{ base: '7' }} w={{ base: '7' }} />,
+    icon: <POAPNftIcon h={{ base: '6', md: '7' }} w={{ base: '6', md: '7' }} />,
   },
 ];
 
