@@ -3,36 +3,31 @@ import { Box, Center, Heading, useBoolean, VStack } from '@chakra-ui/react';
 import { PageHead } from '@/common/components/PageHead';
 import { IconBox } from '@/common/components/IconBox';
 import { BoxWithShape } from '@/common/components/BoxWithShape';
-import { StarIcon } from '@/common/components/Icons';
-import { DropBox } from '@/common/components/DropBox/DropBox';
+import { TicketIcon } from '@/common/components/Icons';
 
 import { CreateWallet } from '@/modules/claim/CreateWallet';
 import { ExistingWallet } from '@/modules/claim/ExistingWallet';
+import { GiftDetails } from '@/modules/claim/gift/GiftDetails';
 
-const DROP_TEST_DATA = [
-  { coin: 'ETH', value: 0.1 },
-  { coin: 'NEAR', value: 20 },
-];
-
-const ClaimTokenPage = () => {
+const ClaimGiftPage = () => {
   const [haveWallet, showInputWallet] = useBoolean(false);
 
   return (
     <Box mb={{ base: '5', md: '14' }} minH="100%" minW="100%" mt={{ base: '52px', md: '100px' }}>
       <PageHead
         removeTitleAppend
-        description="Page detailing all the claimed tokens."
-        name="Claim Tokens"
+        description="Page detailing all the claimed gift."
+        name="Claim Gift"
       />
       <Center>
         {/** the additional gap is to accommodate for the absolute roundIcon size */}
         <VStack gap={{ base: 'calc(24px + 8px)', md: 'calc(32px + 10px)' }}>
           {/** Prompt text */}
-          <Heading textAlign="center">{`You've received a Keypom Drop!`}</Heading>
+          <Heading textAlign="center">{`Collect your gifts`}</Heading>
 
-          {/** Claim token component */}
+          {/** Claim gift component */}
           <IconBox
-            icon={<StarIcon height={{ base: '8', md: '10' }} width={{ base: '8', md: '10' }} />}
+            icon={<TicketIcon height={{ base: '8', md: '10' }} width={{ base: '8', md: '10' }} />}
             minW={{ base: 'inherit', md: '345px' }}
             p="0"
             pb="0"
@@ -47,12 +42,11 @@ const ClaimTokenPage = () => {
               shapeSize="md"
               w="full "
             >
-              <VStack>
-                {/** div placeholder */}
-                {DROP_TEST_DATA.map(({ coin, value }, index) => (
-                  <DropBox key={index} coin={coin} value={value} />
-                ))}
-              </VStack>
+              {/** div placeholder */}
+              <GiftDetails
+                giftName="Vaxxed Doggos NFT"
+                imageSrc={'https://vaxxeddoggos.com/assets/doggos/1042.png'}
+              />
             </BoxWithShape>
             <VStack
               bg="gray.50"
@@ -77,4 +71,4 @@ const ClaimTokenPage = () => {
   );
 };
 
-export default ClaimTokenPage;
+export default ClaimGiftPage;

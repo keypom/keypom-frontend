@@ -2,10 +2,10 @@ import { Box } from '@chakra-ui/react';
 
 import { PageHead } from '@/common/components/PageHead';
 import { IBreadcrumbItem } from '@/common/components/Breadcrumbs';
+import { IFlowPage } from '@/common/types';
 
 import { DropFlow } from '@/modules/CreateDrops/DropFlow';
 import { DropFlowProvider } from '@/modules/CreateDrops/contexts/DropFlowContext';
-import { IFlowPage } from '@/modules/CreateDrops/types/types';
 import { CreateNftDropProvider } from '@/modules/CreateDrops/NftDrop/CreateNftDropContext';
 import { CreateNftDropForm } from '@/modules/CreateDrops/NftDrop/CreateNftDropForm';
 import { CreateNftDropSummary } from '@/modules/CreateDrops/NftDrop/CreateNftDropSummary';

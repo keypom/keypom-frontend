@@ -10,6 +10,7 @@ export const CreateTokenDropSummary = () => {
 
   return (
     <DropSummary
+      confirmButtonText="Create links"
       data={data}
       paymentData={paymentData}
       summaryData={summaryData}

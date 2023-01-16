@@ -2,8 +2,7 @@ import React, { createContext, PropsWithChildren, useContext } from 'react';
 
 import { IBreadcrumbItem } from '@/common/components/Breadcrumbs';
 import { useSteps } from '@/common/hooks/useSteps';
-
-import { IFlowPage } from '../types/types';
+import { IFlowPage } from '@/common/types';
 
 interface DropFlowProviderProps {
   flowPages: IFlowPage[];

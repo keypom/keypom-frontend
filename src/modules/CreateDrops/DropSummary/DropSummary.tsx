@@ -11,6 +11,7 @@ import { DropSummaryModal } from '../DropSummaryModal';
 import { SummaryItemImage, SummaryItemText } from './SummaryItem';
 
 interface DropSummaryProps {
+  confirmButtonText: string;
   summaryData: SummaryItem[];
   paymentData: PaymentData;
   data: {
@@ -20,6 +21,7 @@ interface DropSummaryProps {
 }
 
 export const DropSummary = ({
+  confirmButtonText,
   summaryData,
   paymentData,
   data,
@@ -98,7 +100,7 @@ export const DropSummary = ({
           <Button variant="secondary" onClick={onPrevious}>
             Go back
           </Button>
-          <Button onClick={handleConfirmClick}>Create links</Button>
+          <Button onClick={handleConfirmClick}>{confirmButtonText}</Button>
         </HStack>
       </IconBox>
       <DropSummaryModal
