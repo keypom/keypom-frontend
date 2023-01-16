@@ -1,6 +1,7 @@
-import React, { createContext, PropsWithChildren, useContext, useState } from 'react';
+import React, { createContext, PropsWithChildren, useContext } from 'react';
 
 import { IBreadcrumbItem } from '@/common/components/Breadcrumbs';
+import { useSteps } from '@/common/hooks/useSteps';
 import { IFlowPage } from '@/common/types';
 
 interface DropFlowProviderProps {
@@ -27,19 +28,11 @@ export const DropFlowProvider = ({
   breadcrumbs,
   flowPages,
 }: PropsWithChildren<DropFlowProviderProps>) => {
-  const [currentPageIndex, setCurrentPageIndex] = useState(0);
-
-  const onNext = () => {
-    if (currentPageIndex + 1 < flowPages.length) {
-      setCurrentPageIndex(currentPageIndex + 1);
-    }
-  };
-
-  const onPrevious = () => {
-    if (currentPageIndex - 1 >= 0) {
-      setCurrentPageIndex(currentPageIndex - 1);
-    }
-  };
+  const {
+    onNext,
+    onPrevious,
+    currentIndex: currentPageIndex,
+  } = useSteps({ maxSteps: flowPages.length });
 
   const values = {
     currentPageIndex,

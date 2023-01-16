@@ -23,7 +23,7 @@ export const ConnectWalletModal = ({ isOpen, onClose }: ConnectWalletModalProps)
       <ModalOverlay />
       <ModalContent>
         <Box left="50%" position="absolute" top="0" transform="translate(-50%, -50%)">
-          <RoundIcon icon={<LinkIcon h={{ base: '8', md: '10' }} w={{ base: '8', md: '10' }} />} />
+          <RoundIcon icon={<LinkIcon h={{ base: '7', md: '8' }} w={{ base: '8', md: '9' }} />} />
         </Box>
         <ModalHeader>Sign In</ModalHeader>
         <ModalBody>Sign in with a NEAR Wallet to create and manage drops.</ModalBody>
