@@ -84,7 +84,7 @@ export default function NFTDropManager({ data }: { data: NFTDropResponse }) {
 }
 
 // TODO: temporary solution until we have SSR
-export async function getStaticProps({ params }) {
+export async function getStaticProps() {
   const data = {
     name: 'Star Invader 3',
     links: [
