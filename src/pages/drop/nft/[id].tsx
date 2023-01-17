@@ -4,7 +4,7 @@ import { CopyIcon, DeleteIcon } from '@/common/components/Icons';
 
 import { DropManager } from '@/modules/DropManager/DropManager';
 
-interface TokenDropResponse {
+interface NFTDropResponse {
   name: string;
   links: {
     id: number;
@@ -27,7 +27,7 @@ const tableColumns = [
   },
 ];
 
-export default function TokenDropManager({ data }: { data: TokenDropResponse }) {
+export default function NFTDropManager({ data }: { data: NFTDropResponse }) {
   // TODO: consider moving these to DropManager if backend request are the same for NFT and Ticket
   const handleCopyClick = () => {
     // TODO: copy handler
@@ -71,7 +71,7 @@ export default function TokenDropManager({ data }: { data: TokenDropResponse }) 
     <Box>
       {data !== undefined && (
         <DropManager
-          claimedHeaderText="Opened"
+          claimedHeaderText="NFT editions claimed"
           claimedText="200/500"
           data={getTableRows()}
           dropName={data.name}
