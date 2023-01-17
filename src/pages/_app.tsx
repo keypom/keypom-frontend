@@ -6,6 +6,7 @@ import { theme, archia, inter } from '@/common/theme';
 import { AuthWalletContextProvider } from '@/common/contexts/AuthWalletContext';
 
 import '@near-wallet-selector/modal-ui/styles.css';
+import '@/common/components/WalletSelectorModal/WalletSelectorModal.css';
 
 export const App = ({ Component, pageProps }) => {
   const Layout = Component.layout ? Component.layout : CoreLayout;
