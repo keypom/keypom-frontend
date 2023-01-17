@@ -4,18 +4,22 @@ import { CopyIcon, DeleteIcon } from '@/common/components/Icons';
 
 import { DropManager } from '@/modules/DropManager/DropManager';
 
-interface TokenDropResponse {
+interface TicketDropResponse {
   name: string;
   links: {
     id: number;
     slug: string;
+    email: string;
+    name: string;
     hasClaimed: boolean;
   }[];
 }
 
 const tableColumns = [
+  { title: 'Name', selector: (row) => row.name },
+  { title: 'Email', selector: (row) => row.email },
   { title: 'Link', selector: (row) => row.link },
-  { title: 'Claim Status', selector: (row) => row.hasClaimed },
+  { title: 'Status', selector: (row) => row.hasClaimed },
   {
     title: '',
     selector: (row) => row.action,
@@ -27,7 +31,7 @@ const tableColumns = [
   },
 ];
 
-export default function TokenDropManager({ data }: { data: TokenDropResponse }) {
+export default function TicketDropManager({ data }: { data: TicketDropResponse }) {
   // TODO: consider moving these to DropManager if backend request are the same for NFT and Ticket
   const handleCopyClick = () => {
     // TODO: copy handler
@@ -41,6 +45,8 @@ export default function TokenDropManager({ data }: { data: TokenDropResponse }) 
 
     return data.links.map((item) => ({
       ...item,
+      name: <Text fontWeight="medium">{item.name}</Text>,
+      email: <Text>{item.email}</Text>,
       link: (
         <Text color="gray.400" display="flex">
           keypom.xyz/
@@ -71,12 +77,12 @@ export default function TokenDropManager({ data }: { data: TokenDropResponse }) 
     <Box>
       {data !== undefined && (
         <DropManager
-          claimedHeaderText="Opened"
+          claimedHeaderText="Scanned"
           claimedText="200/500"
           data={getTableRows()}
           dropName={data.name}
-          showColumns={false}
           tableColumns={tableColumns}
+          tableProps={{ variant: 'secondary' }}
         />
       )}
     </Box>
@@ -84,14 +90,32 @@ export default function TokenDropManager({ data }: { data: TokenDropResponse }) 
 }
 
 // TODO: temporary solution until we have SSR
-export async function getStaticProps({ params }) {
-  const data = {
+export async function getStaticProps() {
+  const data: TicketDropResponse = {
     name: 'Star Invader 3',
     links: [
-      { id: 1, slug: '#2138h823h', hasClaimed: true },
-      { id: 2, slug: '#2138h823h', hasClaimed: false },
-      { id: 3, slug: '#c34fd2n32', hasClaimed: false },
-      { id: 4, slug: '#rf5hhfaxm', hasClaimed: true },
+      { id: 1, email: 'johndoe@mail.com', name: 'John Doe', slug: '#2138h823h', hasClaimed: true },
+      {
+        id: 2,
+        email: 'chealseaislan@mail.com',
+        name: 'Chelsea Islan',
+        slug: '#2138h823h',
+        hasClaimed: false,
+      },
+      {
+        id: 3,
+        email: 'pevitapearce@mail.com',
+        name: 'Pevita Pearce',
+        slug: '#c34fd2n32',
+        hasClaimed: false,
+      },
+      {
+        id: 4,
+        email: 'maudyayunda@mail.com',
+        name: 'Maudy Ayunda',
+        slug: '#rf5hhfaxm',
+        hasClaimed: true,
+      },
     ],
   };
   return { props: { data } };

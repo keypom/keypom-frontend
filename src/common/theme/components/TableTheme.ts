@@ -61,6 +61,15 @@ export const TableTheme = helpers.defineMultiStyleConfig({
         overflow: 'hidden',
       },
     },
+    secondary: {
+      th: {
+        bg: 'inherit',
+        color: 'gray.800',
+        fontWeight: 'semibold',
+        overflow: 'hidden',
+        height: '88px',
+      },
+    },
   },
   defaultProps: {
     variant: 'primary',

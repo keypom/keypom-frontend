@@ -1,4 +1,4 @@
-import { Box, Button, Heading, HStack, Stack, Text } from '@chakra-ui/react';
+import { Box, Button, Heading, HStack, Stack, TableProps, Text } from '@chakra-ui/react';
 
 import { Breadcrumbs } from '@/common/components/Breadcrumbs';
 import { ColumnItem, DataItem } from '@/common/components/Table/types';
@@ -11,6 +11,7 @@ interface DropManagerProps {
   tableColumns: ColumnItem[];
   showColumns?: boolean;
   data: DataItem[];
+  tableProps?: TableProps;
   onExportCSVClick?: () => void;
   onCancelAllClick?: () => void;
 }
@@ -22,6 +23,7 @@ export const DropManager = ({
   tableColumns = [],
   data = [],
   showColumns = true,
+  tableProps,
 }: DropManagerProps) => {
   const breadcrumbItems = [
     {
@@ -77,6 +79,7 @@ export const DropManager = ({
           data={data}
           mt={{ base: '4', md: '6' }}
           showColumns={showColumns}
+          {...tableProps}
         />
       </Box>
     </Box>
