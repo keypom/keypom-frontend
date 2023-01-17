@@ -77,7 +77,10 @@ export const DropSummary = ({
 
   return (
     <>
-      <IconBox icon={<LinkIcon />} maxW={{ base: '21.5rem', md: '36rem' }}>
+      <IconBox
+        icon={<LinkIcon h={{ base: '7', md: '9' }} />}
+        maxW={{ base: '21.5rem', md: '36rem' }}
+      >
         <Box mb="8" textAlign="left">
           {summaryItems}
         </Box>
