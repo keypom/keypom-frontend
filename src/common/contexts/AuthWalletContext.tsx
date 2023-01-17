@@ -21,17 +21,18 @@ declare global {
   }
 }
 
+type Account = AccountView & {
+  account_id: string;
+};
+
 interface AuthWalletContextValues {
   modal: WalletSelectorModal;
   selector: WalletSelectorType;
   accounts: Array<AccountState>;
   accountId: string | null;
   isLoggedIn: boolean;
+  account: Account;
 }
-
-type Account = AccountView & {
-  account_id: string;
-};
 
 const AuthWalletContext = createContext<AuthWalletContextValues | null>(null);
 
@@ -116,7 +117,7 @@ export const AuthWalletContextProvider = ({ children }: PropsWithChildren) => {
 
   return (
     <AuthWalletContext.Provider
-      value={{ modal, accounts, selector, accountId, isLoggedIn: !!account }}
+      value={{ modal, accounts, selector, accountId, isLoggedIn: !!account, account }}
     >
       {children}
     </AuthWalletContext.Provider>

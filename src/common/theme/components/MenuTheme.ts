@@ -13,11 +13,11 @@ export const MenuTheme = helpers.defineMultiStyleConfig({
       borderBottom: '1px solid',
       borderBottomColor: 'gray.100',
       _first: {
-        borderTopRadius: 'xl',
+        borderTopRadius: '6xl',
       },
       _last: {
         borderBottom: 'none',
-        borderBottomRadius: 'xl',
+        borderBottomRadius: '6xl',
       },
       _hover: {
         color: 'gray.800',

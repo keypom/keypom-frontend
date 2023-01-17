@@ -14,14 +14,18 @@ import {
 import NextLink from 'next/link';
 import { useRef } from 'react';
 
+import { useAuthWalletContext } from '@/common/contexts/AuthWalletContext';
+
 import { ConnectWalletButton } from '../ConnectWalletButton';
 import { MenuIcon } from '../Icons';
 import { KeypomLogo } from '../KeypomLogo';
+import { SignedInButton } from '../SignedInButton';
 
 import { MENU_ITEMS } from './menuItems';
 
 export const MobileMenu = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const { isLoggedIn } = useAuthWalletContext();
   const btnRef = useRef();
   return (
     <Box>
@@ -50,7 +54,7 @@ export const MobileMenu = () => {
             </VStack>
           </DrawerBody>
           <DrawerFooter pb="10">
-            <ConnectWalletButton w="full" />
+            {isLoggedIn ? <SignedInButton /> : <ConnectWalletButton w="full" />}
           </DrawerFooter>
         </DrawerContent>
       </Drawer>
