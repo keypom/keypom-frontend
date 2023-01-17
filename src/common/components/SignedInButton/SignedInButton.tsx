@@ -18,8 +18,21 @@ import { toYocto } from '@/common/utils/toYocto';
 import { DropIcon, NearLogoIcon, SignOutIcon } from '../Icons';
 
 export const SignedInButton = () => {
-  const { account } = useAuthWalletContext();
+  const { account, selector } = useAuthWalletContext();
   const amountInYocto = toYocto(+account.amount);
+
+  const handleSignOut = async () => {
+    const wallet = await selector.wallet();
+
+    wallet
+      .signOut()
+      .then((res) => (window.location.href = ''))
+      .catch((err) => {
+        console.log('Failed to sign out');
+        console.error(err);
+      });
+  };
+
   return (
     <Menu>
       {({ isOpen }) => (
@@ -69,7 +82,9 @@ export const SignedInButton = () => {
             <Link as={NextLink} href="/drops">
               <MenuItem icon={<DropIcon />}>My drops</MenuItem>
             </Link>
-            <MenuItem icon={<SignOutIcon />}>Sign out</MenuItem>
+            <MenuItem icon={<SignOutIcon />} onClick={handleSignOut}>
+              Sign out
+            </MenuItem>
           </MenuList>
         </Box>
       )}
