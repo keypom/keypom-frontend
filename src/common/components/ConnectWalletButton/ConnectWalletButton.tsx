@@ -1,23 +1,24 @@
-import { Button, ButtonProps, useDisclosure } from '@chakra-ui/react';
+import { Button, ButtonProps } from '@chakra-ui/react';
 
-import { ConnectWalletModal } from './ConnectWalletModal';
+import { useAuthWalletContext } from '@/common/contexts/AuthWalletContext';
 
 type ConnectWalletButtonProps = ButtonProps;
 
 export const ConnectWalletButton = ({ ...props }: ConnectWalletButtonProps) => {
-  const { isOpen, onOpen, onClose } = useDisclosure();
+  const { modal } = useAuthWalletContext();
   return (
     <>
       <Button
         fontSize={{ sm: 'sm', md: 'md' }}
         px={{ sm: '2', md: '6' }}
         variant="primary"
-        onClick={onOpen}
+        onClick={() => {
+          modal.show();
+        }}
         {...props}
       >
         Connect Wallet
       </Button>
-      <ConnectWalletModal isOpen={isOpen} onClose={onClose} />
     </>
   );
 };
