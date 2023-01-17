@@ -4,7 +4,7 @@ import React, { PropsWithChildren } from 'react';
 import { RoundIcon } from './RoundIcon';
 
 interface IconBoxProps extends BoxProps {
-  icon: React.ReactNode;
+  icon?: React.ReactNode;
 }
 
 export const IconBox = ({ children, icon, ...props }: PropsWithChildren<IconBoxProps>) => {
@@ -20,9 +20,11 @@ export const IconBox = ({ children, icon, ...props }: PropsWithChildren<IconBoxP
       textAlign="center"
       {...props}
     >
-      <Box left="50%" position="absolute" top="0" transform="translate(-50%, -50%)" zIndex="11">
-        <RoundIcon icon={icon} />
-      </Box>
+      {icon && (
+        <Box left="50%" position="absolute" top="0" transform="translate(-50%, -50%)" zIndex="11">
+          <RoundIcon icon={icon} />
+        </Box>
+      )}
       {children}
     </Box>
   );
