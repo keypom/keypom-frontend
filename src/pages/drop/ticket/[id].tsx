@@ -19,7 +19,7 @@ const tableColumns = [
   { title: 'Name', selector: (row) => row.name },
   { title: 'Email', selector: (row) => row.email },
   { title: 'Link', selector: (row) => row.link },
-  { title: 'Claim Status', selector: (row) => row.hasClaimed },
+  { title: 'Status', selector: (row) => row.hasClaimed },
   {
     title: '',
     selector: (row) => row.action,
