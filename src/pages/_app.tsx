@@ -20,12 +20,10 @@ export const App = ({ Component, pageProps }) => {
       `}</style>
       <AuthWalletContextProvider>
         <ChakraProvider theme={theme}>
-          {/* <div className={inter.className}> */}
           <PageHead />
           <Layout>
             <Component {...pageProps} />
           </Layout>
-          {/* </div> */}
         </ChakraProvider>
       </AuthWalletContextProvider>
     </>
