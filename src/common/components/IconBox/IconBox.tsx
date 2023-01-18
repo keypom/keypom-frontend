@@ -1,10 +1,10 @@
 import { Box, BoxProps } from '@chakra-ui/react';
-import React, { PropsWithChildren } from 'react';
+import { PropsWithChildren, ReactNode } from 'react';
 
 import { RoundIcon } from './RoundIcon';
 
 interface IconBoxProps extends BoxProps {
-  icon?: React.ReactNode;
+  icon?: ReactNode;
 }
 
 export const IconBox = ({ children, icon, ...props }: PropsWithChildren<IconBoxProps>) => {
