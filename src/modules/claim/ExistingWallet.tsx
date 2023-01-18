@@ -20,12 +20,7 @@ export const ExistingWallet = ({ onBack, handleSubmit }: ExistingWalletProps) =>
         onClick={onBack}
       >
         <ChevronLeftIcon color="gray.400" left="0" position="absolute" />
-        <Text
-          color="gray.800"
-          fontSize={{ base: 'md', md: 'lg' }}
-          fontWeight="500"
-          lineHeight={{ base: '6', md: '1.625rem' }}
-        >
+        <Text color="gray.800" fontWeight="500" size={{ base: 'md', md: 'lg' }}>
           Send to existing wallet
         </Text>
       </Center>

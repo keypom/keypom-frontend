@@ -25,10 +25,9 @@ export const ClaimTicketDetails = ({ imageSrc, ticketName }: ClaimTicketDetailsP
       </Box>
       <Text
         color="gray.800"
-        fontSize={{ base: 'xl', md: '2xl' }}
         fontWeight="500"
-        lineHeight={{ base: '28px', md: '32px' }}
         mb={{ base: '2', md: '3' }}
+        size={{ base: 'xl', md: '2xl' }}
         textAlign="center"
       >
         {ticketName}

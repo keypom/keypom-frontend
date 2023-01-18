@@ -13,19 +13,10 @@ export const NftReward = ({ artworkSrc, nftName, description }: NftRewardProps) 
     <Flex align="center" flexDir="column">
       <AvatarImage altName={nftName} imageSrc={artworkSrc} />
       <VStack spacing="4">
-        <Text
-          color="gray.800"
-          fontSize={{ base: 'xl', md: '2xl' }}
-          fontWeight="500"
-          lineHeight={{ base: '28px', md: '32px' }}
-        >
+        <Text color="gray.800" fontWeight="500" size={{ base: 'xl', md: '2xl' }}>
           {nftName}
         </Text>
-        <Text
-          color="gray.600"
-          fontSize={{ base: 'sm', md: 'base' }}
-          lineHeight={{ base: '20px', md: '24px' }}
-        >
+        <Text color="gray.600" size={{ base: 'sm', md: 'base' }}>
           {description}
         </Text>
       </VStack>

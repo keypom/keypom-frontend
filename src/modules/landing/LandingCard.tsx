@@ -32,17 +32,16 @@ export const LandingCard = ({
       <Flex flexDir="column" justify="flex-start" p={{ base: '8', md: '16' }}>
         <Text
           color="gray.900"
-          fontSize={{ base: '18px', md: '24px' }}
           fontWeight="500"
-          lineHeight={{ base: '28px', md: '32px' }}
           mb={{ base: '2', md: '3' }}
+          size={{ base: 'lg', md: '2xl' }}
           textAlign="left"
         >
           {header}
         </Text>
         <Text
           color={{ base: 'gray.600', md: 'gray.400' }}
-          fontSize={{ base: '16px', md: '18px' }}
+          fontSize={{ base: 'md', md: 'lg' }}
           lineHeight={{ base: '18px', md: '28px' }}
           mb={{ base: '4', md: '6' }}
           textAlign="left"

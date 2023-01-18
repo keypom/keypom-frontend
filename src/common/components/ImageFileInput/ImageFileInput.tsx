@@ -87,9 +87,7 @@ export const ImageFileInput = ({
                 w={{ base: '6', md: '1.875rem' }}
               />
               <Show above="md">
-                <Text color="gray.400" lineHeight="1.5rem">
-                  Browse or drag and drop your image here
-                </Text>
+                <Text color="gray.400">Browse or drag and drop your image here</Text>
               </Show>
               <Center
                 border="1px solid"

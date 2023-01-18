@@ -7,9 +7,9 @@ import {
   useMultiStyleConfig,
   useTab,
 } from '@chakra-ui/react';
-import React, { PropsWithChildren } from 'react';
+import { PropsWithChildren, ReactNode, forwardRef, Ref } from 'react';
 
-const RoundedTab = React.forwardRef((props: PropsWithChildren, ref: React.Ref<HTMLElement>) => {
+const RoundedTab = forwardRef((props: PropsWithChildren, ref: Ref<HTMLElement>) => {
   // 1. Reuse the `useTab` hook
   const tabProps = useTab({ ...props, ref });
   // const isSelected = !!tabProps['aria-selected'];
@@ -48,12 +48,12 @@ RoundedTab.displayName = 'RoundedTab';
 export interface TabListItem {
   name: string;
   label: string;
-  icon?: React.ReactNode;
+  icon?: ReactNode;
 }
 
 interface RoundedTabsProps extends TabsProps {
   tablist: TabListItem[];
-  children: React.ReactNode;
+  children: ReactNode;
 }
 
 export const RoundedTabs = ({

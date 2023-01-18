@@ -54,30 +54,13 @@ export const DropsTemplate = ({ imageNumber }: DropsTemplateProps) => {
               />
             </Hide>
 
-            <Text
-              color="blue.400"
-              fontSize={{ base: 'base', md: 'lg' }}
-              fontWeight="500"
-              lineHeight={{ base: '24px', md: '28px' }}
-              mb="1"
-            >
+            <Text color="blue.400" fontWeight="500" mb="1" size={{ base: 'md', md: 'lg' }}>
               Token Drops
             </Text>
-            <Text
-              color="gray.900"
-              fontSize={{ base: 'xl', md: '3xl' }}
-              fontWeight="500"
-              lineHeight={{ base: '28px', md: '36px' }}
-              mb="4"
-            >
+            <Text color="gray.900" fontWeight="500" mb="4" size={{ base: 'xl', md: '3xl' }}>
               Instantly drop tokens in a link.
             </Text>
-            <Text
-              color="gray.400"
-              fontSize={{ base: 'base', md: '2xl' }}
-              lineHeight={{ base: '24px', md: '32px' }}
-              mb={{ base: '6', md: '28px' }}
-            >
+            <Text color="gray.400" mb={{ base: '6', md: '28px' }} size={{ base: 'md', md: '2xl' }}>
               Great for giveaways, promotions, and marketing
             </Text>
             <Button variant="landing" w="fit-content">
