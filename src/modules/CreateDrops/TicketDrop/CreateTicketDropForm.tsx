@@ -30,6 +30,10 @@ export const CreateTicketDropForm = () => {
   };
 
   const handleNextStepClick = () => {
+    if (currentIndex === formSteps.length - 1) {
+      return handleSubmitClick();
+    }
+
     reset(defaultValues, { keepValues: true });
     onNextStep();
   };

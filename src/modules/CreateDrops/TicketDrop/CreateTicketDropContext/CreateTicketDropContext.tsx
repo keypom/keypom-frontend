@@ -7,7 +7,7 @@ import * as z from 'zod';
 import { useSteps } from '@/common/hooks/useSteps';
 import { StepItem } from '@/common/components/Step/Step';
 
-import { PaymentData, SummaryItem } from '../../types/types';
+import { PaymentData, PaymentItem, SummaryItem } from '../../types/types';
 import { EventInfoForm } from '../EventInfoForm';
 import { SignUpInfoForm } from '../SignUpInfoForm';
 import { AdditionalGiftsForm } from '../AdditionalGiftsForm/AdditionalGiftsForm';
@@ -104,14 +104,64 @@ export const CreateTicketDropProvider = ({ children }: PropsWithChildren) => {
   });
 
   const getSummaryData = (): SummaryItem[] => {
-    // const { getValues } = methods;
-    // const [eventName] = getValues(['eventName']);
+    const { eventName, totalTickets, additionalGift } = methods.getValues();
 
-    return [];
+    const results: SummaryItem[] = [
+      {
+        type: 'text',
+        name: 'Event name',
+        value: eventName,
+      },
+      {
+        type: 'text',
+        name: 'Number of tickets',
+        value: totalTickets,
+      },
+    ];
+
+    if (additionalGift.type == 'token') {
+      results.push({
+        type: 'text',
+        name: 'Tokens gifted per ticket',
+        value: `${additionalGift.token.amountPerLink} ${additionalGift.token.selectedFromWallet.symbol}`,
+      });
+    } else if (additionalGift.type == 'poapNft') {
+      results.push({
+        type: 'image',
+        name: 'POAP',
+        value: additionalGift.poapNft.artwork,
+      });
+    }
+
+    return results;
   };
 
   const getPaymentData = (): PaymentData => {
-    return { costsData: [], totalCost: 0, confirmationText: '' };
+    // TODO: assuming this comes from backend
+    const totalLinkCost = 20 * 3.5;
+    const NEARNetworkFee = 50.15;
+    const totalCost = totalLinkCost + NEARNetworkFee;
+    const costsData: PaymentItem[] = [
+      {
+        name: 'Link cost',
+        total: totalLinkCost,
+        helperText: `20 x 3.509`,
+      },
+      {
+        name: 'NEAR network fees',
+        total: NEARNetworkFee,
+      },
+      {
+        name: 'Keypom fee',
+        total: 0,
+        isDiscount: true,
+        discountText: 'Early bird discount',
+      },
+    ];
+
+    const confirmationText = `Creating 20 for ${totalCost} NEAR`;
+
+    return { costsData, totalCost, confirmationText };
   };
 
   const handleDropConfirmation = () => {
