@@ -45,14 +45,7 @@ export const ClaimTicketSummaryFlow = () => {
             />
           </BoxWithShape>
           <Flex align="center" bg="gray.50" borderBottomRadius="8xl" flexDir="column" px="6" py="8">
-            <Text
-              color="gray.800"
-              fontSize="lg"
-              fontWeight="500"
-              lineHeight="28px"
-              mb="5"
-              textAlign="center"
-            >
+            <Text color="gray.800" fontWeight="500" mb="5" size="lg" textAlign="center">
               Attendance gifts
             </Text>
 
@@ -71,13 +64,7 @@ export const ClaimTicketSummaryFlow = () => {
               />
             )}
 
-            <Text
-              color="gray.600"
-              fontSize={{ base: 'sm', md: 'base' }}
-              lineHeight={{ base: '20px', md: '24px' }}
-              mb="6"
-              textAlign="center"
-            >
+            <Text color="gray.600" mb="6" size={{ base: 'sm', md: 'base' }} textAlign="center">
               Return here after checking into the event to claim.
             </Text>
           </Flex>

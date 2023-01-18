@@ -17,7 +17,7 @@ export const HeaderSection = () => {
         <GradientSpan>Instant</GradientSpan> crypto experiences
       </Heading>
       <Text
-        fontSize={{ base: '18px', md: '20px' }}
+        fontSize={{ base: 'lg', md: 'xl' }}
         lineHeight="28px"
         mb={{ base: '6', md: '8' }}
         textAlign="center"

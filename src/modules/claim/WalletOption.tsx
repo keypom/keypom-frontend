@@ -27,9 +27,7 @@ export const WalletOption = ({ coin, walletName, ...props }: WalletOptionProps) 
     >
       {/** wallet logo */}
       <CoinIcon h="6" left="4" position="absolute" symbol={coin} w="6" />
-      <Text fontSize={{ base: 'sm', md: 'md' }} lineHeight={{ base: '1.25rem', md: '1.5rem' }}>
-        {walletName} Wallet
-      </Text>
+      <Text size={{ base: 'sm', md: 'md' }}>{walletName} Wallet</Text>
     </Center>
   );
 };

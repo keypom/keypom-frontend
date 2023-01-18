@@ -11,17 +11,12 @@ export const GiftDetails = ({ imageSrc, giftName }: GiftDetailsProps) => {
   return (
     <Flex align="center" flexDir="column">
       <Hide above="md">
-        <Text color="gray.800" fontSize="lg" fontWeight="500" lineHeight="28px" mb="8">
+        <Text color="gray.800" fontWeight="500" mb="8" size="lg">
           Attendance gifts
         </Text>
       </Hide>
       <AvatarImage altName={giftName} imageSrc={imageSrc} />
-      <Text
-        color="gray.800"
-        fontSize={{ base: 'base', md: '2xl' }}
-        fontWeight="500"
-        lineHeight={{ base: '28px', md: '32px' }}
-      >
+      <Text color="gray.800" fontWeight="500" size={{ base: 'md', md: '2xl' }}>
         {giftName}
       </Text>
     </Flex>

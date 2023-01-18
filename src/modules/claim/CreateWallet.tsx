@@ -15,12 +15,7 @@ const CREATE_WALLET_TEST_DATA = [
 export const CreateWallet = ({ onClick }: CreateWalletProps) => {
   return (
     <>
-      <Text
-        color="gray.800"
-        fontSize={{ base: 'md', md: 'lg' }}
-        fontWeight="500"
-        lineHeight={{ base: '6', md: '1.625rem' }}
-      >
+      <Text color="gray.800" fontWeight="500" size={{ base: 'md', md: 'lg' }}>
         Create a wallet to store your assets
       </Text>
       <VStack spacing="1" w="full">

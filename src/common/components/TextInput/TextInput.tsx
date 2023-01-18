@@ -30,7 +30,7 @@ export const TextInput = ({
       </Flex>
       {topLeftHelperMessage && (
         <Flex alignItems="center" justifyContent="flex-start" w="full">
-          <Text color="gray.600" lineHeight="1.5rem" mb="2">
+          <Text color="gray.600" mb="2">
             {topLeftHelperMessage}
           </Text>
         </Flex>
