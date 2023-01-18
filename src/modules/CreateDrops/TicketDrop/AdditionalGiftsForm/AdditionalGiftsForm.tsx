@@ -14,7 +14,7 @@ interface AdditionalGiftTabItem extends TabListItem {
   name: 'token' | 'poapNft';
 }
 
-const tabList: AdditionalGiftTabItem[] = [
+const TAB_LIST: AdditionalGiftTabItem[] = [
   {
     name: 'token',
     label: 'Token',
@@ -47,7 +47,7 @@ export const AdditionalGiftsForm = () => {
 
   return (
     <Box mt={{ base: '6', md: '8' }}>
-      <RoundedTabs tablist={tabList} onChange={handleChange}>
+      <RoundedTabs tablist={TAB_LIST} onChange={handleChange}>
         <TabPanels mt={{ base: '5', md: '7' }}>
           <TabPanel px="0">
             <TokenForm />
