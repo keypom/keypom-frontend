@@ -5,6 +5,11 @@ export const colors: RecursiveObject<string> = {
     box: 'linear-gradient(white, white) padding-box, linear-gradient(0deg, rgba(255,207,234,1) 0%, rgba(182,232,247,1) 100%) border-box',
     round:
       'linear-gradient(0deg, #B6E8F7, #B6E8F7), linear-gradient(344.12deg, #EFFAFD 10.78%, #DDF4FA 88.63%)',
+    landing: {
+      800: 'linear-gradient(#1e293b, #1e293b) padding-box, linear-gradient(0deg, #FFA9DC 0%, #73D6F3 100%) border-box',
+
+      900: 'linear-gradient(#0f172a, #0f172a) padding-box, linear-gradient(0deg, #FFA9DC 0%, #73D6F3 100%) border-box',
+    },
   },
   brand: {
     100: '#f7fafc',

@@ -34,6 +34,22 @@ export const ButtonTheme = defineStyleConfig({
         borderColor: 'blue.400',
       },
     },
+    landing: {
+      border: '2px solid transparent',
+      color: 'white',
+      bg: 'border.landing.800',
+      _hover: {
+        bgColor: 'border.landing.900',
+        _disabled: {
+          bgColor: 'border.landing.900',
+        },
+      },
+      _focus: {
+        bgColor: 'border.landing.900',
+        border: '2px solid',
+        borderColor: 'blue.400',
+      },
+    },
     secondary: {
       border: '2px solid',
       borderColor: 'gray.200',
