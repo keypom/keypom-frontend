@@ -1245,7 +1245,7 @@
     hey-listen "^1.0.8"
     tslib "^2.3.1"
 
-"@near-wallet-selector/core@7.5.0", "@near-wallet-selector/core@^7.1.0", "@near-wallet-selector/core@^7.5.0":
+"@near-wallet-selector/core@7.5.0", "@near-wallet-selector/core@^7.5.0":
   version "7.5.0"
   resolved "https://registry.yarnpkg.com/@near-wallet-selector/core/-/core-7.5.0.tgz#dc71711c3f229a65bb9657153a03d83039babfda"
   integrity sha512-rE80wOvqTyN1ezL04USdBxd5lmyk1HhS3K8HL24fyYUIhvIx3/qfrmdVjN3nrLlCh/JMBux1KBPIZugf2DSe3A==
@@ -3585,12 +3585,12 @@ json5@^2.2.2:
     array-includes "^3.1.5"
     object.assign "^4.1.3"
 
-keypom-js@^1.1.2-rc.1:
-  version "1.1.2-rc.1"
-  resolved "https://registry.yarnpkg.com/keypom-js/-/keypom-js-1.1.2-rc.1.tgz#d18d80368d5b0a25751530e644922e5713003473"
-  integrity sha512-FhO1ksL17wa73/AaVHTkr+76JppA4atJnBBr4tQptO3BcSNH0EaQvcUhQXSuMZfzjKfdXr7yvGJvnu5gpt0XAw==
+keypom-js@^1.1.5-rc.1:
+  version "1.1.5-rc.1"
+  resolved "https://registry.yarnpkg.com/keypom-js/-/keypom-js-1.1.5-rc.1.tgz#caadab148735ad28d56ecd5bd9901769cbf0d611"
+  integrity sha512-gY50izBZoOttLFGa5iAfqy3Z5rruzDcX7WcEs+w3SZpjtF5epjUUaXxXrv+jMb+CT5Slo718ygB5NeMy/AyqIw==
   dependencies:
-    "@near-wallet-selector/core" "^7.1.0"
+    "@near-wallet-selector/core" "^7.5.0"
     "@types/react" "^18.0.26"
     ava "^4.3.3"
     bn.js "^5.2.1"

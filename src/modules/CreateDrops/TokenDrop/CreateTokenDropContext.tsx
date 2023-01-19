@@ -47,6 +47,7 @@ const createLinks = async () => {
  */
 export const CreateTokenDropProvider = ({ children }: PropsWithChildren) => {
   const { trigger, data } = useSWRMutation('/api/drops/tokens', createLinks);
+
   const methods = useForm<Schema>({
     mode: 'onChange',
     defaultValues: {
@@ -132,8 +133,21 @@ export const CreateTokenDropProvider = ({ children }: PropsWithChildren) => {
   };
 
   const handleDropConfirmation = () => {
-    // TODO: send transaction/request to backend
-    trigger();
+    const {
+      dropName,
+      totalLinks,
+      amountPerLink,
+      redirectLink,
+      selectedFromWallet,
+    } = methods.getValues();
+
+    createDrop({
+      wallet: window.selector.wallet(),
+      depositPerUseNEAR: amountPerLink!,
+      numKeys: totalLinks,
+    });
+
+    // trigger();
   };
 
   const createLinksSWR = {

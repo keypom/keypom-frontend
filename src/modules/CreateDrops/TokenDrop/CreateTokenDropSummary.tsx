@@ -16,6 +16,8 @@ export const CreateTokenDropSummary = () => {
 
   const { data, handleDropConfirmation } = createLinksSWR;
 
+  console.log('SWR DATA', data)
+
   return (
     <DropSummary
       confirmButtonText="Create links"
