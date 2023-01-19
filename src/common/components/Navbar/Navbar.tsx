@@ -20,7 +20,7 @@ export const Navbar = (props: NavbarProps) => {
   ));
 
   return (
-    <Box position="sticky" {...props}>
+    <Box position="sticky" zIndex="dropdown" {...props}>
       <Flex
         alignItems="center"
         h="4rem"
