@@ -1,15 +1,13 @@
 import { ChakraProvider } from '@chakra-ui/react';
 
-import { CoreLayout } from '@/common/components/CoreLayout';
 import { PageHead } from '@/common/components/PageHead';
 import { theme, archia, inter } from '@/common/theme';
-import { AuthWalletContextProvider } from '@/common/contexts/AuthWalletContext';
 
 import '@near-wallet-selector/modal-ui/styles.css';
 import '@/common/components/WalletSelectorModal/WalletSelectorModal.css';
 
 export const App = ({ Component, pageProps }) => {
-  const Layout = Component.layout ? Component.layout : CoreLayout;
+  // const Layout = Component.layout ? Component.layout : CoreLayout;
   return (
     <>
       <style global jsx>{`
@@ -18,14 +16,14 @@ export const App = ({ Component, pageProps }) => {
           --inter-font: ${inter.style.fontFamily};
         }
       `}</style>
-      <AuthWalletContextProvider>
-        <ChakraProvider theme={theme}>
-          <PageHead />
-          <Layout>
-            <Component {...pageProps} />
-          </Layout>
-        </ChakraProvider>
-      </AuthWalletContextProvider>
+      {/* <AuthWalletContextProvider> */}
+      <ChakraProvider theme={theme}>
+        <PageHead />
+        {/* <Layout> */}
+        <Component {...pageProps} />
+        {/* </Layout> */}
+      </ChakraProvider>
+      {/* </AuthWalletContextProvider> */}
     </>
   );
 };
