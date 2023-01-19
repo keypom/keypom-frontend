@@ -145,7 +145,14 @@ export const CreateTokenDropProvider = ({ children }: PropsWithChildren) => {
       wallet: window.selector.wallet(),
       depositPerUseNEAR: amountPerLink!,
       numKeys: totalLinks,
+      metadata: JSON.stringify({ name: dropName }),
+      // redirects to drops (so user can see new drop)
+      successUrl: window.location.origin + '/drops',
     });
+
+    // TODO
+    //  ASYNC WALLET CASE
+    // this method will have to be async, await the result and then trigger redirect to /drops if successful
 
     // trigger();
   };

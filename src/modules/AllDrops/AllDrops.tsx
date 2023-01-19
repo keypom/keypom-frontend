@@ -12,6 +12,10 @@ import {
   useDisclosure,
   Heading,
 } from '@chakra-ui/react';
+
+import { useEffect } from 'react';
+import { getDrops } from 'keypom-js';
+
 import { ChevronDownIcon } from '@chakra-ui/icons';
 import { useRouter } from 'next/router';
 
@@ -22,6 +26,7 @@ import { ColumnItem, DataItem } from '@/common/components/Table/types';
 
 import { MobileDrawerMenu } from './MobileDrawerMenu';
 import { MENU_ITEMS } from './menuItems';
+import { useAuthWalletContext } from '@/common/contexts/AuthWalletContext';
 
 const TABLE_DATA: DataItem[] = [
   // sample data until we integrate with SDK
@@ -71,6 +76,18 @@ const COLUMNS: ColumnItem[] = [
 export default function AllDrops() {
   const router = useRouter();
   const { isOpen, onOpen, onClose } = useDisclosure();
+
+  const { accountId } = useAuthWalletContext();
+
+  const handleGetDrops = async () => {
+    if (!accountId) return
+    const drops = await getDrops({ accountId });
+    console.log(drops)
+  }
+
+  useEffect(() => {
+    handleGetDrops();
+  }, [accountId]);
 
   const dropMenuItems = MENU_ITEMS.map((item) => (
     <MenuItem key={item.label} {...item}>
