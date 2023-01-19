@@ -6,9 +6,9 @@ import { IFlowPage } from '@/common/types';
 
 import { DropFlow } from '@/modules/CreateDrops/DropFlow';
 import { DropFlowProvider } from '@/modules/CreateDrops/contexts/DropFlowContext';
-import { CreateTokenDropSummary } from '@/modules/CreateDrops/TokenDrop/CreateTokenDropSummary';
 import { CreateTicketDropProvider } from '@/modules/CreateDrops/TicketDrop/CreateTicketDropContext/CreateTicketDropContext';
 import { CreateTicketDropForm } from '@/modules/CreateDrops/TicketDrop/CreateTicketDropForm';
+import { CreateTicketDropSummary } from '@/modules/CreateDrops/TicketDrop/CreateTicketDropSummary';
 
 const flowPages: IFlowPage[] = [
   {
@@ -19,7 +19,7 @@ const flowPages: IFlowPage[] = [
   {
     name: 'summary',
     description: 'Let’s make sure all your details are correct',
-    component: <CreateTokenDropSummary />,
+    component: <CreateTicketDropSummary />,
   },
 ];
 
