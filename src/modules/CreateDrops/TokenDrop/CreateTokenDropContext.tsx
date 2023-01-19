@@ -3,6 +3,8 @@ import { FormProvider, useForm } from 'react-hook-form';
 import useSWRMutation from 'swr/mutation';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import { createDrop, formatNearAmount } from 'keypom-js'
+import { useAuthWalletContext } from '@/common/contexts/AuthWalletContext';
 
 import { urlRegex } from '@/common/constant';
 
@@ -92,13 +94,20 @@ export const CreateTokenDropProvider = ({ children }: PropsWithChildren) => {
     ];
   };
 
-  const getPaymentData = (): PaymentData => {
+  const getPaymentData = async (): Promise<PaymentData> => {
     const { totalLinks, amountPerLink } = methods.getValues();
+
+    const { requiredDeposit } = await createDrop({
+      wallet: await window.selector.wallet(),
+      depositPerUseNEAR: amountPerLink!,
+      numKeys: totalLinks,
+      returnTransactions: true,
+    });
 
     // TODO: assuming this comes from backend
     const totalLinkCost = totalLinks * amountPerLink;
-    const NEARNetworkFee = 50.15;
-    const totalCost = totalLinkCost + NEARNetworkFee;
+    const NEARNetworkFee = parseFloat(formatNearAmount(requiredDeposit, 4));
+    const totalCost = NEARNetworkFee;
     const costsData: PaymentItem[] = [
       {
         name: 'Link cost',
@@ -107,7 +116,7 @@ export const CreateTokenDropProvider = ({ children }: PropsWithChildren) => {
       },
       {
         name: 'NEAR network fees',
-        total: NEARNetworkFee,
+        total: Number((NEARNetworkFee - totalLinkCost).toFixed(4)),
       },
       {
         name: 'Keypom fee',

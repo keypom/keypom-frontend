@@ -1,4 +1,9 @@
 import { ChakraProvider } from '@chakra-ui/react';
+import { initKeypom } from 'keypom-js'
+
+initKeypom({
+  network: 'testnet',
+})
 
 import { CoreLayout } from '@/common/components/CoreLayout';
 import { PageHead } from '@/common/components/PageHead';
