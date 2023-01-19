@@ -119,13 +119,13 @@ export const CreateTicketDropProvider = ({ children }: PropsWithChildren) => {
       },
     ];
 
-    if (additionalGift.type == 'token') {
+    if (additionalGift.type === 'token') {
       results.push({
         type: 'text',
         name: 'Tokens gifted per ticket',
         value: `${additionalGift.token.amountPerLink} ${additionalGift.token.selectedFromWallet.symbol}`,
       });
-    } else if (additionalGift.type == 'poapNft') {
+    } else if (additionalGift.type === 'poapNft') {
       results.push({
         type: 'image',
         name: 'POAP',
