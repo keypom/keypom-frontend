@@ -1,62 +1,38 @@
+This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+
 ## Getting Started
 
-Install dependencies with pnpm:
+First, run the development server:
 
 ```bash
-pnpm
-```
-
-Prepare husky
-
-```bash
-pnpm prepare
-```
-
-Start local development server:
-
-```bash
+npm run dev
+# or
+yarn dev
+# or
 pnpm dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-## Configurations done in this template
+You can start editing the page by modifying `pages/index.tsx`. The page auto-updates as you edit the file.
 
-- Absolute file referencing e.g. "@/modules/components/Hello.tsx" via tsconfig
-- Modular file structure e.g."@/modules/common", "@/modules/ModuleName"
-- Dynamic layout support for reusing layout component across pages without re-declaring on each page
-- Using sass for tailwind config, and some boilerplate e.g. setting html, body elements, etc
-- Sorted imports e.g. alphabetical and in groups. Avoids git diff changes when imports are sorted differently between people
-- Requires vscode extensions like eslint and prettier
-- Use ./src as src directory for nextjs
-- Includes a <meta> reusable component PageHead to use in each page and also some default favicons
+[API routes](https://nextjs.org/docs/api-routes/introduction) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.ts`.
 
-## Using the PageHead component
+The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/api-routes/introduction) instead of React pages.
 
-Use this component to quickly bootstrap the meta tags for the page
+This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
 
-1. Go to PageHead component and update the `appName` const to your project's title
-2. Use PageHead in your /pages/\*_/_ files
-3. Feel free to update the props as you see fit
+## Learn More
 
-## Using the CustomIcon component
+To learn more about Next.js, take a look at the following resources:
 
-1. Checkout the README file in that /modules/common/components/CustomIcon/README.md to learn more
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
-## Packages used
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
 
-**ESLint related**
+## Deploy on Vercel
 
-https://github.com/typescript-eslint/typescript-eslint/tree/HEAD/packages/parser
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
-https://github.com/import-js/eslint-plugin-import/
-
-https://github.com/lydell/eslint-plugin-simple-import-sort
-
-## VSCode extensions
-
-ESLint: https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint
-
-Prettier: https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode
-
-Tailwind CSS IntelliSense: https://marketplace.visualstudio.com/items?itemName=bradlc.vscode-tailwindcss
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
