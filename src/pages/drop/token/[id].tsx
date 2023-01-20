@@ -84,7 +84,7 @@ export default function TokenDropManager({ data }: { data: TokenDropResponse }) 
 }
 
 // TODO: temporary solution until we have SSR
-export async function getStaticProps() {
+export async function getServerSideProps() {
   const data = {
     name: 'Star Invader 3',
     links: [
@@ -97,11 +97,11 @@ export async function getStaticProps() {
   return { props: { data } };
 }
 
-export async function getStaticPaths() {
-  const paths = [
-    {
-      params: { id: '123' },
-    },
-  ];
-  return { paths, fallback: false };
-}
+// export async function getStaticPaths() {
+//   const paths = [
+//     {
+//       params: { id: '123' },
+//     },
+//   ];
+//   return { paths, fallback: false };
+// }
