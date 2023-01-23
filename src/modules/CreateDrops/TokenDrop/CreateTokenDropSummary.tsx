@@ -2,9 +2,11 @@ import useSWR from 'swr';
 import { DropSummary } from '../DropSummary';
 
 import { useCreateTokenDropContext } from './CreateTokenDropContext';
+import { useRouter } from 'next/router';
 
 export const CreateTokenDropSummary = () => {
   const { getSummaryData, getPaymentData, createLinksSWR } = useCreateTokenDropContext();
+  const router = useRouter();
 
   const summaryData = getSummaryData();
   const { data: paymentData, error, isLoading } = useSWR('drops/token/new', getPaymentData);
@@ -24,7 +26,7 @@ export const CreateTokenDropSummary = () => {
       data={data}
       paymentData={paymentData}
       summaryData={summaryData}
-      onConfirmClick={handleDropConfirmation}
+      onConfirmClick={() => handleDropConfirmation(router)}
     />
   );
 };

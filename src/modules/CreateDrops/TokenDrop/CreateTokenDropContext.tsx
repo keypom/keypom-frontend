@@ -4,13 +4,13 @@ import useSWRMutation from 'swr/mutation';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { createDrop, formatNearAmount } from 'keypom-js'
-import { useAuthWalletContext } from '@/common/contexts/AuthWalletContext';
 
 import { urlRegex } from '@/common/constant';
 
 import { PaymentData, PaymentItem, SummaryItem } from '../types/types';
 
 import { WALLET_TOKENS } from './data';
+import { Router } from 'next/router';
 
 const CreateTokenDropContext = createContext(null);
 
@@ -132,7 +132,7 @@ export const CreateTokenDropProvider = ({ children }: PropsWithChildren) => {
     return { costsData, totalCost, confirmationText };
   };
 
-  const handleDropConfirmation = () => {
+  const handleDropConfirmation = async (router: Router) => {
     const {
       dropName,
       totalLinks,
@@ -141,18 +141,23 @@ export const CreateTokenDropProvider = ({ children }: PropsWithChildren) => {
       selectedFromWallet,
     } = methods.getValues();
 
-    createDrop({
-      wallet: window.selector.wallet(),
-      depositPerUseNEAR: amountPerLink!,
-      numKeys: totalLinks,
-      metadata: JSON.stringify({ name: dropName }),
-      // redirects to drops (so user can see new drop)
-      successUrl: window.location.origin + '/drops',
-    });
+    try {
+      await createDrop({
+        wallet: window.selector.wallet(),
+        depositPerUseNEAR: amountPerLink!,
+        numKeys: totalLinks,
+        metadata: JSON.stringify({ name: dropName }),
+        // redirects to drops (so user can see new drop)
+        successUrl: window.location.origin + '/drops',
+      });
+    } catch (e) {
+      console.warn(e)
+      if (/user reject/gi.test(JSON.stringify(e))) {
+        // TODO modal where user informed they rejected TX
+      }
+    }
 
-    // TODO
-    //  ASYNC WALLET CASE
-    // this method will have to be async, await the result and then trigger redirect to /drops if successful
+    router.push('/drops');
 
     // trigger();
   };

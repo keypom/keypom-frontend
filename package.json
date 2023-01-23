@@ -27,6 +27,7 @@
     "@near-wallet-selector/core": "^7.5.0",
     "@near-wallet-selector/modal-ui": "^7.5.0",
     "@near-wallet-selector/near-wallet": "^7.5.0",
+    "@near-wallet-selector/sender": "^7.5.0",
     "@next/font": "^13.1.1",
     "framer-motion": "^7.6.19",
     "keypom-js": "^1.1.7-rc.1",
