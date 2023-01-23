@@ -13,8 +13,8 @@ import {
   Heading,
 } from '@chakra-ui/react';
 
-import { useEffect } from 'react';
-import { getDrops } from 'keypom-js';
+import { useEffect, useState } from 'react';
+import { getDrops, getKeySupplyForDrop } from 'keypom-js';
 
 import { ChevronDownIcon } from '@chakra-ui/icons';
 import { useRouter } from 'next/router';
@@ -27,28 +27,6 @@ import { ColumnItem, DataItem } from '@/common/components/Table/types';
 import { MobileDrawerMenu } from './MobileDrawerMenu';
 import { MENU_ITEMS } from './menuItems';
 import { useAuthWalletContext } from '@/common/contexts/AuthWalletContext';
-
-const TABLE_DATA: DataItem[] = [
-  // sample data until we integrate with SDK
-  {
-    id: 1,
-    name: 'Star Invader 3',
-    type: 'Token',
-    claimed: '90 / 100',
-  },
-  {
-    id: 2,
-    name: 'The International',
-    type: 'Ticket',
-    claimed: '10000 / 20000',
-  },
-  {
-    id: 3,
-    name: 'Trumpy Apes',
-    type: 'NFT',
-    claimed: '10 / 444', // TODO: Need to figure out what determines the badge color
-  },
-];
 
 const COLUMNS: ColumnItem[] = [
   {
@@ -73,9 +51,15 @@ const COLUMNS: ColumnItem[] = [
   },
 ];
 
+const getDropTypeLabel = ({ simple, ft, nft, fc }) => {
+  return (simple && 'Token') || (ft && 'Token') || (nft && 'NFT') || (fc && 'Ticket')
+}
+
 export default function AllDrops() {
   const router = useRouter();
   const { isOpen, onOpen, onClose } = useDisclosure();
+
+  const [data, setData] = useState([])
 
   const { accountId } = useAuthWalletContext();
 
@@ -83,6 +67,13 @@ export default function AllDrops() {
     if (!accountId) return
     const drops = await getDrops({ accountId });
     console.log(drops)
+
+    setData(await Promise.all(drops.map(async ({ drop_id: dropId, simple, ft, nft, fc, metadata, next_key_id }) => ({
+      id: dropId,
+      name: JSON.parse(metadata).name,
+      type: getDropTypeLabel({ simple, ft, nft, fc }),
+      claimed: `${next_key_id - await getKeySupplyForDrop({ dropId })} / ${next_key_id}`,
+    }))))
   }
 
   useEffect(() => {
@@ -104,9 +95,9 @@ export default function AllDrops() {
   };
 
   const getTableRows = (): DataItem[] => {
-    if (TABLE_DATA === undefined || TABLE_DATA?.length === 0) return [];
+    if (data === undefined || data?.length === 0) return [];
 
-    return TABLE_DATA.map((item) => ({
+    return data.map((item) => ({
       ...item,
       name: <Text color="gray.800">{item.name}</Text>,
       type: (
