@@ -33,7 +33,7 @@ export const MobileMenu = () => {
         <MenuIcon />
       </Box>
       {/* // TODO: remove when design is confirmed */}
-      <Drawer finalFocusRef={btnRef} isOpen={isOpen} placement="right" onClose={onClose}>
+      <Drawer finalFocusRef={btnRef} isOpen={isOpen} placement="top" onClose={onClose}>
         <DrawerOverlay />
         <DrawerContent>
           <DrawerCloseButton mt="2" />
@@ -53,8 +53,8 @@ export const MobileMenu = () => {
               })}
             </VStack>
           </DrawerBody>
-          <DrawerFooter pb="10">
-            {isLoggedIn ? <SignedInButton /> : <ConnectWalletButton w="full" />}
+          <DrawerFooter flexDirection="row" justifyContent="center" pb="10">
+            {isLoggedIn ? <SignedInButton /> : <ConnectWalletButton w="50%" />}
           </DrawerFooter>
         </DrawerContent>
       </Drawer>
