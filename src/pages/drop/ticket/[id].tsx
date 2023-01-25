@@ -31,7 +31,35 @@ const tableColumns = [
   },
 ];
 
-export default function TicketDropManager({ data }: { data: TicketDropResponse }) {
+export default function TicketDropManager() {
+  const data: TicketDropResponse = {
+    name: 'Star Invader 3',
+    links: [
+      { id: 1, email: 'johndoe@mail.com', name: 'John Doe', slug: '#2138h823h', hasClaimed: true },
+      {
+        id: 2,
+        email: 'chealseaislan@mail.com',
+        name: 'Chelsea Islan',
+        slug: '#2138h823h',
+        hasClaimed: false,
+      },
+      {
+        id: 3,
+        email: 'pevitapearce@mail.com',
+        name: 'Pevita Pearce',
+        slug: '#c34fd2n32',
+        hasClaimed: false,
+      },
+      {
+        id: 4,
+        email: 'maudyayunda@mail.com',
+        name: 'Maudy Ayunda',
+        slug: '#rf5hhfaxm',
+        hasClaimed: true,
+      },
+    ],
+  };
+
   // TODO: consider moving these to DropManager if backend request are the same for NFT and Ticket
   const handleCopyClick = () => {
     // TODO: copy handler
@@ -88,44 +116,3 @@ export default function TicketDropManager({ data }: { data: TicketDropResponse }
     </Box>
   );
 }
-
-// TODO: temporary solution until we have SSR
-export async function getServerSideProps() {
-  const data: TicketDropResponse = {
-    name: 'Star Invader 3',
-    links: [
-      { id: 1, email: 'johndoe@mail.com', name: 'John Doe', slug: '#2138h823h', hasClaimed: true },
-      {
-        id: 2,
-        email: 'chealseaislan@mail.com',
-        name: 'Chelsea Islan',
-        slug: '#2138h823h',
-        hasClaimed: false,
-      },
-      {
-        id: 3,
-        email: 'pevitapearce@mail.com',
-        name: 'Pevita Pearce',
-        slug: '#c34fd2n32',
-        hasClaimed: false,
-      },
-      {
-        id: 4,
-        email: 'maudyayunda@mail.com',
-        name: 'Maudy Ayunda',
-        slug: '#rf5hhfaxm',
-        hasClaimed: true,
-      },
-    ],
-  };
-  return { props: { data } };
-}
-
-// export async function getStaticPaths() {
-//   const paths = [
-//     {
-//       params: { id: '123' },
-//     },
-//   ];
-//   return { paths, fallback: false };
-// }

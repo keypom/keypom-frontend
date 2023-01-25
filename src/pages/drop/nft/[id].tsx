@@ -27,7 +27,17 @@ const tableColumns = [
   },
 ];
 
-export default function NFTDropManager({ data }: { data: NFTDropResponse }) {
+export default function NFTDropManager() {
+  const data: NFTDropResponse = {
+    name: 'Star Invader 3',
+    links: [
+      { id: 1, slug: '#2138h823h', hasClaimed: true },
+      { id: 2, slug: '#2138h823h', hasClaimed: false },
+      { id: 3, slug: '#c34fd2n32', hasClaimed: false },
+      { id: 4, slug: '#rf5hhfaxm', hasClaimed: true },
+    ],
+  };
+
   // TODO: consider moving these to DropManager if backend request are the same for NFT and Ticket
   const handleCopyClick = () => {
     // TODO: copy handler
@@ -82,26 +92,3 @@ export default function NFTDropManager({ data }: { data: NFTDropResponse }) {
     </Box>
   );
 }
-
-// TODO: temporary solution until we have SSR
-export async function getServerSideProps() {
-  const data = {
-    name: 'Star Invader 3',
-    links: [
-      { id: 1, slug: '#2138h823h', hasClaimed: true },
-      { id: 2, slug: '#2138h823h', hasClaimed: false },
-      { id: 3, slug: '#c34fd2n32', hasClaimed: false },
-      { id: 4, slug: '#rf5hhfaxm', hasClaimed: true },
-    ],
-  };
-  return { props: { data } };
-}
-
-// export async function getStaticPaths() {
-//   const paths = [
-//     {
-//       params: { id: '123' },
-//     },
-//   ];
-//   return { paths, fallback: false };
-// }
