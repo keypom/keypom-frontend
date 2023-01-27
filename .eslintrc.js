@@ -71,6 +71,7 @@ module.exports = {
     'simple-import-sort',
     'import',
   ],
+  ignorePatterns: ['src/old_pages/*'],
   parserOptions: {
     project: './tsconfig.json',
     sourceType: 'module',
