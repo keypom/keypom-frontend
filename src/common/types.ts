@@ -3,3 +3,8 @@ export interface IFlowPage {
   description: string;
   component: React.ReactNode; // forms, summary. etc
 }
+
+export type ApiResponse<T> = {
+  data?: T;
+  error?: string;
+}
