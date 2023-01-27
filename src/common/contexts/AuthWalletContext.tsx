@@ -1,3 +1,4 @@
+'use client';
 import { AccountState, WalletSelector as WalletSelectorType } from '@near-wallet-selector/core';
 import { providers } from 'near-api-js';
 import type { AccountView } from 'near-api-js/lib/providers/provider';

@@ -1,3 +1,4 @@
+'use client';
 import { Button, ButtonProps } from '@chakra-ui/react';
 
 import { useAuthWalletContext } from '@/common/contexts/AuthWalletContext';

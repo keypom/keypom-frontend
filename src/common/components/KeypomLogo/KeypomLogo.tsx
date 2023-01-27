@@ -1,3 +1,4 @@
+'use client';
 import { HStack, Box, Text, Link } from '@chakra-ui/react';
 import NextLink from 'next/link';
 

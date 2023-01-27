@@ -1,3 +1,4 @@
+'use client';
 import { Box, BoxProps, Flex, HStack, Link } from '@chakra-ui/react';
 import NextLink from 'next/link';
 

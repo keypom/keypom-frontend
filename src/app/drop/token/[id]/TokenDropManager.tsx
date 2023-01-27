@@ -1,3 +1,4 @@
+'use client';
 import { Badge, Box, Button, Text } from '@chakra-ui/react';
 
 import { CopyIcon, DeleteIcon } from '@/common/components/Icons';
@@ -68,6 +69,7 @@ export default function TokenDropManager({ data }: { data: TokenDropResponse }) 
   };
 
   return (
+    // <div>{JSON.stringify(data)}</div>
     <Box>
       {data !== undefined && (
         <DropManager
@@ -83,24 +85,24 @@ export default function TokenDropManager({ data }: { data: TokenDropResponse }) 
   );
 }
 
-export async function getStaticProps() {
-  const data: TokenDropResponse = {
-    name: 'Star Invader 3',
-    links: [
-      { id: 1, slug: '#2138h823h', hasClaimed: true },
-      { id: 2, slug: '#2138h823h', hasClaimed: false },
-      { id: 3, slug: '#c34fd2n32', hasClaimed: false },
-      { id: 4, slug: '#rf5hhfaxm', hasClaimed: true },
-    ],
-  };
-  return { props: { data } };
-}
+// export async function getStaticProps() {
+//   const data: TokenDropResponse = {
+//     name: 'Star Invader 3',
+//     links: [
+//       { id: 1, slug: '#2138h823h', hasClaimed: true },
+//       { id: 2, slug: '#2138h823h', hasClaimed: false },
+//       { id: 3, slug: '#c34fd2n32', hasClaimed: false },
+//       { id: 4, slug: '#rf5hhfaxm', hasClaimed: true },
+//     ],
+//   };
+//   return { props: { data } };
+// }
 
-export async function getStaticPaths() {
-  const paths = [
-    {
-      params: { id: '123' },
-    },
-  ];
-  return { paths, fallback: false };
-}
+// export async function getStaticPaths() {
+//   const paths = [
+//     {
+//       params: { id: '123' },
+//     },
+//   ];
+//   return { paths, fallback: false };
+// }

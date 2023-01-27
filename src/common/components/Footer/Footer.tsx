@@ -1,3 +1,4 @@
+'use client';
 import { Box, ChakraProps, HStack, Image, Text, Link, Flex } from '@chakra-ui/react';
 
 import { TwitterLogoIcon } from '@/common/components/Icons/TwitterLogoIcon';

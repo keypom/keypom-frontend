@@ -10,6 +10,7 @@ import '@/common/components/WalletSelectorModal/WalletSelectorModal.css';
 
 export const App = ({ Component, pageProps }) => {
   const Layout = Component.layout ? Component.layout : CoreLayout;
+
   return (
     <>
       <style global jsx>{`

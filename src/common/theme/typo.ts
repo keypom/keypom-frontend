@@ -1,7 +1,4 @@
 import { RecursiveObject } from '@chakra-ui/react';
-import localFont from '@next/font/local';
-import { NextFont } from '@next/font/dist/types';
-import { Inter } from '@next/font/google';
 
 /**
  * For Chakra Theme
@@ -26,29 +23,3 @@ export const fonts: RecursiveObject<string> = {
   heading: 'var(--archia-font), system-ui, sans-serif',
   body: 'var(--inter-font), system-ui, sans-serif',
 };
-
-/**
- * Fonts
- */
-export const archia: NextFont = localFont({
-  src: [
-    {
-      path: '../../../assets/fonts/archia/archia-regular-webfont.woff2',
-      weight: '400',
-      style: 'normal',
-    },
-    {
-      path: '../../../assets/fonts/archia/archia-medium-webfont.woff2',
-      weight: '500',
-      style: 'normal',
-    },
-    {
-      path: '../../../assets/fonts/archia/archia-semibold-webfont.woff2',
-      weight: '600',
-      style: 'normal',
-    },
-  ],
-  display: 'swap',
-});
-
-export const inter: NextFont = Inter({ subsets: ['latin'], display: 'swap' });
