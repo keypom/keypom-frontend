@@ -1,3 +1,4 @@
+'use client';
 import { Providers } from './providers';
 import { GlobalStyle } from './GlobalStyle';
 import { CoreLayout } from './CoreLayout';
