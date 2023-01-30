@@ -4,7 +4,11 @@ export const config = {
   runtime: 'edge',
 };
 
-export default async function Page({ params: { id } }) {
+export default async function Page(req) {
+  console.log('req', req);
+  const {
+    params: { id },
+  } = req;
   const data = {
     1: {
       name: 'Star Invader 1',
