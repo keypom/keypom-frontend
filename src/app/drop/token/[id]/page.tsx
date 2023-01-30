@@ -1,4 +1,4 @@
-import TokenDropManager from './TokenDropManager';
+import TokenDropManager from '@/app/drop/token/[id]/TokenDropManager';
 
 export const config = {
   runtime: 'edge',
