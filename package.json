@@ -30,6 +30,7 @@
     "@next/font": "^13.1.1",
     "framer-motion": "^7.6.19",
     "keypom-js": "^1.2.0-rc.1",
+    "lodash": "^4.17.21",
     "near-api-js": "^1.1.0",
     "next": "^13.1.1",
     "react": "^18.2.0",

@@ -31,6 +31,7 @@ specifiers:
   husky: '>=8.0.1'
   keypom-js: ^1.2.0-rc.1
   lint-staged: '>=12.4.2'
+  lodash: ^4.17.21
   near-api-js: ^1.1.0
   next: ^13.1.1
   prettier: ^2.8.0
@@ -59,6 +60,7 @@ dependencies:
   '@next/font': 13.1.1
   framer-motion: 7.10.3_react-dom@18.2.0+react@18.2.0
   keypom-js: 1.2.0-rc.1
+  lodash: 4.17.21
   near-api-js: 1.1.0
   next: 13.1.1_7a6ce7c903601ca00e748dc002e0c97f
   react: 18.2.0
