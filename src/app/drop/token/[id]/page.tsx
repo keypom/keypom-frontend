@@ -6,9 +6,9 @@ export const config = {
 
 export default async function Page(req) {
   console.log('req', req);
-  const {
-    params: { id },
-  } = req;
+  // const {
+  //   params: { id },
+  // } = req;
   const data = {
     1: {
       name: 'Star Invader 1',
@@ -39,5 +39,5 @@ export default async function Page(req) {
     },
   };
 
-  return <TokenDropManager data={data[id]} />;
+  return <TokenDropManager data={data[1]} req={req} />;
 }

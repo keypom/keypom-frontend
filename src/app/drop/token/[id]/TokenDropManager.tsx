@@ -28,7 +28,7 @@ const tableColumns = [
   },
 ];
 
-export default function TokenDropManager({ data }: { data: TokenDropResponse }) {
+export default function TokenDropManager({ data, req }: { data: TokenDropResponse; req: any }) {
   // TODO: consider moving these to DropManager if backend request are the same for NFT and Ticket
   const handleCopyClick = () => {
     // TODO: copy handler
@@ -71,6 +71,7 @@ export default function TokenDropManager({ data }: { data: TokenDropResponse }) 
   return (
     // <div>{JSON.stringify(data)}</div>
     <Box>
+      {<Box>{JSON.stringify(req)}</Box>}
       {data !== undefined && (
         <DropManager
           claimedHeaderText="Opened"
