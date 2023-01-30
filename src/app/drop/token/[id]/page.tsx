@@ -1,5 +1,9 @@
 import TokenDropManager from './TokenDropManager';
 
+export const config = {
+  runtime: 'experimental-edge',
+};
+
 export default async function Page({ params: { id } }) {
   const data = {
     1: {

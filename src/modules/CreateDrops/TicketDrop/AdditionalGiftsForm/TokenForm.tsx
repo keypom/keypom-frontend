@@ -16,6 +16,8 @@ export const TokenForm = () => {
     formState: { errors },
   } = useFormContext<CreateTicketFieldsSchema>();
 
+  // eslint-disable-next-line
+  // @ts-ignore
   const selectedFromWalletError = errors?.additionalGift?.token?.selectedFromWallet;
 
   const [selectedFromWallet, amountPerLink, totalTickets] = watch([
