@@ -2,13 +2,9 @@
 
 import { ChakraProvider } from '@chakra-ui/react';
 import { PropsWithChildren } from 'react';
-import dynamic from 'next/dynamic';
 
 import { theme } from '@/common/theme';
-
-const AuthWalletContextProvider = dynamic(() =>
-  import('@/common/contexts/AuthWalletContext').then((mod) => mod.AuthWalletContextProvider),
-);
+import { AuthWalletContextProvider } from '@/common/contexts/AuthWalletContext';
 
 export const Providers = ({ children }: PropsWithChildren) => {
   return (

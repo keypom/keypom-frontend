@@ -1,10 +1,7 @@
 'use client';
-import dynamic from 'next/dynamic';
-
 import { Providers } from './providers';
 import { GlobalStyle } from './GlobalStyle';
-
-const CoreLayout = dynamic(() => import('./CoreLayout').then((mod) => mod.CoreLayout));
+import { CoreLayout } from './CoreLayout';
 
 export default function RootLayout({
   // Layouts must accept a children prop.
