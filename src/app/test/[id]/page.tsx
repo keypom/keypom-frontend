@@ -5,5 +5,5 @@ export const config = {
 export default async function Page(req) {
   console.log('req', req);
 
-  return <p>{JSON.stringify(req)}</p>
+  return <p>{JSON.stringify(req)}</p>;
 }
