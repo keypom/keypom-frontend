@@ -1,7 +1,7 @@
 {
   "name": "parcel-react-typescript",
   "version": "1.0.0",
-  "author": "Wahyu Kurniawan",
+  "author": "Keypom",
   "license": "MIT",
   "scripts": {
     "clean": "rm -rf dist .parcel-cache",
