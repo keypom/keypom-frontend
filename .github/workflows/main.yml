@@ -37,7 +37,7 @@ jobs:
       - name: Format the code
         run: yarn run format
       - name: Check the code style
-        run: yarn run lint:eslint
+        run: yarn run lint
       - name: Check the types
         run: yarn check
       - name: Build the project
