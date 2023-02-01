@@ -1,62 +1,104 @@
+# Parcel + React Boilerplate 🚀
+
+![Current Version](https://img.shields.io/badge/version-v1.0-blue)
+![GitHub contributors](https://img.shields.io/github/contributors/ayungavis/parcel-react-typescript)
+![GitHub stars](https://img.shields.io/github/stars/ayungavis/parcel-react-typescript?style=social)
+![GitHub forks](https://img.shields.io/github/forks/ayungavis/parcel-react-typescript?style=social)
+![Twitter Follow](https://img.shields.io/twitter/follow/ayungavis?style=social)
+
+This is a boilerplate for React + Typescript + Parcel. It's a simple boilerplate that I use for my personal projects. It's not a complete boilerplate, but it's a good starting point for your project.
+
+The project is also hosted on [CloudFlare page](https://parcel-react-typescript.pages.dev/).
+
+## Table of Contents
+
+- [Parcel + React Boilerplate 🚀](#parcel--react-boilerplate-)
+  - [Table of Contents](#table-of-contents)
+  - [Getting Started](#getting-started)
+    - [Tools Required](#tools-required)
+    - [Running the App](#running-the-app)
+  - [Deployment](#deployment)
+  - [Contributing](#contributing)
+  - [Versioning](#versioning)
+  - [Authors](#authors)
+      - [Wahyu Kurniawan](#wahyu-kurniawan)
+  - [License](#license)
+
 ## Getting Started
 
-Install dependencies with pnpm:
+Other details that need to be given while starting out with the project can be provided in this section. A project structure like below can also be included for the big projects:
 
-```bash
-pnpm
+```
+	parce-react-typescript
+	├── README.md
+	├── package.json
+	├── tsconfig.json
+	├── .gitignore
+	├── .parcelrc
+	├── .nvmrc
+	├── public
+	│   └── README.md
+	└── src
+		├── App.tsx
+		├── index.tsx
+		├── index.html
+		└── router.tsx
 ```
 
-Prepare husky
+### Tools Required
 
-```bash
-pnpm prepare
-```
+All tools required go here. You would require the following tools to develop and run the project:
 
-Start local development server:
+- A text editor or an IDE (like VSCode)
+- Node.js => `v16.0.0`
+- Yarn => `v1.22.10`
 
-```bash
-pnpm dev
-```
+### Running the App
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+All installation steps go here.
 
-## Configurations done in this template
+- Clone the repository
+  ```bash
+  git clone https://github.com/ayungavis/parcel-react-typescript
+  ```
+- Install dependencies
+  ```bash
+  yarn install
+  ```
+- Run the app
+  ```bash
+  yarn dev
+  ```
+- Build the app
+  ```bash
+  yarn build
+  ```
 
-- Absolute file referencing e.g. "@/modules/components/Hello.tsx" via tsconfig
-- Modular file structure e.g."@/modules/common", "@/modules/ModuleName"
-- Dynamic layout support for reusing layout component across pages without re-declaring on each page
-- Using sass for tailwind config, and some boilerplate e.g. setting html, body elements, etc
-- Sorted imports e.g. alphabetical and in groups. Avoids git diff changes when imports are sorted differently between people
-- Requires vscode extensions like eslint and prettier
-- Use ./src as src directory for nextjs
-- Includes a <meta> reusable component PageHead to use in each page and also some default favicons
+## Deployment
 
-## Using the PageHead component
+This section is completely optional. Add additional notes about how to deploy this on a live system
 
-Use this component to quickly bootstrap the meta tags for the page
+## Contributing
 
-1. Go to PageHead component and update the `appName` const to your project's title
-2. Use PageHead in your /pages/\*_/_ files
-3. Feel free to update the props as you see fit
+Mention what you expect from the people who want to contribute
 
-## Using the CustomIcon component
+We'd love to have your helping hand on `Parcel + React Boilerplate`! See [CONTRIBUTING.md](https://github.com/ayungavis/parcel-react-typescript/blob/main/CONTRIBUTING.md) for more information on what we're looking for and how to get started.
 
-1. Checkout the README file in that /modules/common/components/CustomIcon/README.md to learn more
+## Versioning
 
-## Packages used
+If your project has multiple versions, include information about it here.
 
-**ESLint related**
+For the available versions, see the [tags on this repository](https://github.com/ayungavis/parcel-react-typescript/tags)
 
-https://github.com/typescript-eslint/typescript-eslint/tree/HEAD/packages/parser
+## Authors
 
-https://github.com/import-js/eslint-plugin-import/
+#### Wahyu Kurniawan
 
-https://github.com/lydell/eslint-plugin-simple-import-sort
+- [GitHub](https://github.com/ayungavis)
+- [LinkedIn](https://linkedin.com/in/ayungavis)
 
-## VSCode extensions
+You can also see the complete [list of contributors](https://github.com/ayungavis/parcel-react-typescript/graphs/contributors) who participated in this project.
 
-ESLint: https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint
+## License
 
-Prettier: https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode
-
-Tailwind CSS IntelliSense: https://marketplace.visualstudio.com/items?itemName=bradlc.vscode-tailwindcss
+`Parcel + React Boilerplate` is open source software [licensed as MIT](https://github.com/ayungavis/parcel-react-typescript/blob/main/LICENSE).

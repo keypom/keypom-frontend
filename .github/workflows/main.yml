@@ -1,43 +1,44 @@
+# Simple workflow for deploying static content to GitHub Pages
 name: Build
 
-on: [pull_request]
+on:
+  # Runs on pushes targeting the default branch
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
   build:
+    concurrency: ci-${{ github.ref }} # Recommended if you intend to make multiple deployments in quick succession.
     runs-on: ubuntu-latest
     strategy:
       matrix:
         node-version: [16.x]
     steps:
       - name: Check out repo
-        uses: actions/checkout@v3
-      - name: Install Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
+        uses: actions/checkout@v2
+      - name: Configure yarn caching
+        uses: actions/cache@v2
         with:
-          node-version: 16.x
-      - name: Install pnpm
-        uses: pnpm/action-setup@v2
-        id: pnpm-install
-        with:
-          version: 7
-          run_install: false
-      - name: Get pnpm store directory
-        id: pnpm-cache
-        shell: bash
-        run: |
-          echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
-      - name: Setup pnpm cache
-        uses: actions/cache@v3
-        with:
-          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          path: ~/.yarn
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/workflows/prettier.yml') }}
           restore-keys: |
-            ${{ runner.os }}-pnpm-store-
+            ${{ runner.os }}-yarn-
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "yarn"
       - name: Install dependencies
-        run: pnpm install
+        run: yarn install
       - name: Format the code
-        run: yarn run prettier
+        run: yarn run format
       - name: Check the code style
-        run: yarn run lint:eslint
+        run: yarn run lint
       - name: Check the types
-        run: yarn run check-types
+        run: yarn check
+      - name: Build the project
+        run: yarn build

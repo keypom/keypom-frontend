@@ -1,22 +1,37 @@
+/* eslint-disable semi */
+/* eslint-disable comma-dangle */
 module.exports = {
+  env: {
+    browser: true,
+    es2021: true,
+    es6: true,
+  },
+  root: true,
   extends: [
+    'plugin:react/recommended',
+    'standard-with-typescript',
     'plugin:@typescript-eslint/recommended',
     'prettier',
     'plugin:prettier/recommended',
-    'plugin:react/recommended',
-    'next/core-web-vitals',
   ],
-  env: { es6: true },
+  overrides: [],
+  parser: '@typescript-eslint/parser',
+  parserOptions: {
+    project: './tsconfig.json',
+    sourceType: 'module',
+    ecmaFeatures: {
+      jsx: true,
+    },
+  },
+  plugins: [
+    'react',
+    'unused-imports',
+    'simple-import-sort',
+    'prettier',
+    'import',
+    '@typescript-eslint',
+  ],
   rules: {
-    'prefer-const': [
-      'error',
-      {
-        destructuring: 'any',
-      },
-    ],
-    'no-console': ['warn'],
-    'react/no-unknown-property': ['error', { ignore: ['css', 'global', 'jsx'] }],
-    '@next/next/no-img-element': 'off',
     'react/jsx-sort-props': [
       2,
       {
@@ -26,25 +41,15 @@ module.exports = {
         reservedFirst: true,
       },
     ],
-
-    'import/order': [
-      'warn',
+    'no-unused-vars': 'error',
+    'no-console': 'warn',
+    'prefer-const': [
+      'error',
       {
-        pathGroups: [
-          {
-            pattern: '@/common/**',
-            group: 'external',
-            position: 'after',
-          },
-          {
-            pattern: '@/modules/**',
-            group: 'external',
-            position: 'after',
-          },
-        ],
-        'newlines-between': 'always',
+        destructuring: 'any',
       },
     ],
+    'react/no-unknown-property': ['error', { ignore: ['css', 'global', 'jsx'] }],
     'array-callback-return': [
       'error',
       {
@@ -59,23 +64,29 @@ module.exports = {
     'import/no-duplicates': 'error',
     'unused-imports/no-unused-imports': 'error',
     '@typescript-eslint/no-explicit-any': 'warn',
-  },
-  root: true,
-  parser: '@typescript-eslint/parser',
-  plugins: [
-    'unused-imports',
-    '@next/next',
-    '@typescript-eslint',
-    'prettier',
-    'react',
-    'simple-import-sort',
-    'import',
-  ],
-  parserOptions: {
-    project: './tsconfig.json',
-    sourceType: 'module',
-    ecmaFeatures: {
-      jsx: true,
-    },
+    '@typescript-eslint/explicit-function-return-type': 'off',
+    'import/order': [
+      'warn',
+      {
+        pathGroups: [
+          {
+            pattern: '@/common/**',
+            group: 'external',
+            position: 'after',
+          },
+          {
+            pattern: '@/modules/**',
+            group: 'external',
+            position: 'after',
+          },
+          {
+            pattern: '@/pages/**',
+            group: 'external',
+            position: 'after',
+          },
+        ],
+        'newlines-between': 'always',
+      },
+    ],
   },
 };
