@@ -8,6 +8,9 @@ import { Loading } from '@/components/Loading';
 import { theme } from '@/theme';
 import { router } from '@/router';
 
+import '@near-wallet-selector/modal-ui/styles.css';
+import '@/components/WalletSelectorModal/WalletSelectorModal.css';
+
 const ChakraProvider = React.lazy(
   async () =>
     await import('@chakra-ui/react').then((mod) => {
