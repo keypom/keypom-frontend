@@ -9,19 +9,20 @@ const LandingPage = React.lazy(async () => await import('./features/landing'));
 
 export const router = createBrowserRouter([
   {
-    path: '/',
-    element: <HomePage />,
-  },
-  {
-    path: '/about',
-    element: <AboutPage />,
-  },
-  {
-    path: '/landing',
-    element: (
-      <CoreLayout>
-        <LandingPage />
-      </CoreLayout>
-    ),
+    element: <CoreLayout />,
+    children: [
+      {
+        path: '/',
+        element: <HomePage />,
+      },
+      {
+        path: '/about',
+        element: <AboutPage />,
+      },
+      {
+        path: '/landing',
+        element: <LandingPage />,
+      },
+    ],
   },
 ]);

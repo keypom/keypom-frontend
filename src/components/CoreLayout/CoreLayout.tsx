@@ -1,12 +1,11 @@
-import React, { type PropsWithChildren } from 'react';
+import React from 'react';
 import { Box, Flex } from '@chakra-ui/react';
+import { Outlet } from 'react-router-dom';
 
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 
-interface CoreLayoutProps {}
-
-export const CoreLayout = ({ children }: PropsWithChildren<CoreLayoutProps>) => {
+export const CoreLayout = () => {
   const layoutBg =
     'url(.png), linear-gradient(180deg, rgba(239, 250, 253, 0.4) 0%, rgba(239, 250, 253, 0.6) 27.41%), #FFFFFF;';
   return (
@@ -19,7 +18,7 @@ export const CoreLayout = ({ children }: PropsWithChildren<CoreLayoutProps>) => 
     >
       <Navbar w="full" />
       <Box as="main" flex="1" maxW="75rem" mx="auto" px="5" w="full">
-        {children}
+        <Outlet />
       </Box>
       <Footer w="full" />
     </Flex>
