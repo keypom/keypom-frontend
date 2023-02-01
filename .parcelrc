@@ -7,6 +7,10 @@
   "transformers": {
     "*.{ts,tsx}": [
       "@parcel/transformer-typescript-tsc"
+    ],
+    "jsx:*.svg": [
+      "...",
+      "@parcel/transformer-svg-react"
     ]
   },
   "validators": {

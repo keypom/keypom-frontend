@@ -20,7 +20,8 @@
     "skipLibCheck": true,
     "baseUrl": "./",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["src/*"],
+      "~/*": ["public/*"]
     }
   },
   "include": ["./src/**/*"],
