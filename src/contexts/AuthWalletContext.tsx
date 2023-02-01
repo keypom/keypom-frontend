@@ -1,25 +1,22 @@
-import {
-  type AccountState,
-  type WalletSelector as WalletSelectorType,
-} from '@near-wallet-selector/core';
+import { type AccountState, type WalletSelector } from '@near-wallet-selector/core';
 import { providers } from 'near-api-js';
-import type { AccountView } from 'near-api-js/lib/providers/provider';
-import { type WalletSelectorModal } from '@near-wallet-selector/modal-ui';
+import { AccountView } from 'near-api-js/lib/providers/provider';
+import { WalletSelectorModal } from '@near-wallet-selector/modal-ui';
 import React, {
   createContext,
-  type PropsWithChildren,
+  PropsWithChildren,
   useCallback,
   useContext,
   useEffect,
   useState,
 } from 'react';
-import { map, distinctUntilChanged } from 'rxjs';
+// import { map, distinctUntilChanged } from 'rxjs';
 
-import { WalletSelector } from '@/lib/walletSelector';
+import { NearWalletSelector } from '@/lib/walletSelector';
 
 declare global {
   interface Window {
-    selector: WalletSelectorType;
+    selector: WalletSelector;
     modal: WalletSelectorModal;
   }
 }
@@ -30,7 +27,7 @@ type Account = AccountView & {
 
 interface AuthWalletContextValues {
   modal: WalletSelectorModal;
-  selector: WalletSelectorType;
+  selector: WalletSelector;
   accounts: AccountState[];
   accountId: string | null;
   isLoggedIn: boolean;
@@ -40,7 +37,7 @@ interface AuthWalletContextValues {
 const AuthWalletContext = createContext<AuthWalletContextValues | null>(null);
 
 export const AuthWalletContextProvider = ({ children }: PropsWithChildren) => {
-  const [selector, setSelector] = useState<WalletSelectorType | null>(null);
+  const [selector, setSelector] = useState<WalletSelector | null>(null);
   const [modal, setModal] = useState<WalletSelectorModal | null>(null);
   const [accounts, setAccounts] = useState<AccountState[]>([]);
   const [account, setAccount] = useState<Account | null>(null);
@@ -48,7 +45,7 @@ export const AuthWalletContextProvider = ({ children }: PropsWithChildren) => {
   const accountId = accounts.find((account) => account.active)?.accountId || null;
 
   const initWalletSelector = async () => {
-    const walletSelector = new WalletSelector();
+    const walletSelector = new NearWalletSelector();
     await walletSelector.init();
 
     setModal(walletSelector.modal);
@@ -85,26 +82,31 @@ export const AuthWalletContextProvider = ({ children }: PropsWithChildren) => {
     initWalletSelector();
   }, []);
 
-  useEffect(() => {
-    if (selector == null) {
-      return null;
-    }
+  // COMMENTED OUT
+  // Runtime error when this useEffect is used
+  // Uncaught TypeError: Class extends value undefined is not a constructor or null
+  // TODO: investigate and mitigate
+  //
+  // useEffect(() => {
+  //   if (selector == null) {
+  //     return null;
+  //   }
 
-    const subscription = selector.store.observable
-      .pipe(
-        map((state) => state.accounts),
-        distinctUntilChanged(),
-      )
-      .subscribe((nextAccounts) => {
-        console.log('Accounts Update', nextAccounts);
+  //   const subscription = selector.store.observable
+  //     .pipe(
+  //       map((state) => state.accounts),
+  //       distinctUntilChanged(),
+  //     )
+  //     .subscribe((nextAccounts) => {
+  //       console.log('Accounts Update', nextAccounts);
 
-        setAccounts(nextAccounts);
-      });
+  //       setAccounts(nextAccounts);
+  //     });
 
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [selector]);
+  //   return () => {
+  //     subscription.unsubscribe();
+  //   };
+  // }, [selector]);
 
   // set account
   useEffect(() => {

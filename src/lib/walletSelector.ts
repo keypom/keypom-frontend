@@ -2,7 +2,7 @@ import {
   type AccountState,
   type NetworkId,
   setupWalletSelector,
-  type WalletSelector as WalletSelectorType,
+  type WalletSelector,
 } from '@near-wallet-selector/core';
 import { setupModal, type WalletSelectorModal } from '@near-wallet-selector/modal-ui';
 import { setupNearWallet } from '@near-wallet-selector/near-wallet';
@@ -10,9 +10,9 @@ import { setupNearWallet } from '@near-wallet-selector/near-wallet';
 const NETWORK_ID = process.env.NEXT_PUBLIC_NETWORK_ID ?? 'testnet';
 const CONTRACT_ID = process.env.NEXT_PUBLIC_CONTRACT_ID ?? 'v1-3.keypom.testnet';
 
-export class WalletSelector {
+export class NearWalletSelector {
   public accounts: AccountState[];
-  public selector: WalletSelectorType;
+  public selector: WalletSelector;
   public modal: WalletSelectorModal;
 
   async init(): Promise<void> {
