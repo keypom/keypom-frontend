@@ -1,7 +1,7 @@
 import React from 'react';
 import { createBrowserRouter } from 'react-router-dom';
 
-import { CoreLayout } from './components/CoreLayout';
+import { CoreLayout } from '@/components/CoreLayout';
 
 const HomePage = React.lazy(async () => await import('./pages/Home'));
 const AboutPage = React.lazy(async () => await import('./pages/About'));

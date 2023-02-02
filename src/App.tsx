@@ -1,8 +1,7 @@
 import React from 'react';
 import { RouterProvider } from 'react-router-dom';
 
-import { AuthWalletContextProvider } from './contexts/AuthWalletContext';
-
+import { AuthWalletContextProvider } from '@/contexts/AuthWalletContext';
 import { Fonts } from '@/components/Fonts';
 import { Loading } from '@/components/Loading';
 import { theme } from '@/theme';
