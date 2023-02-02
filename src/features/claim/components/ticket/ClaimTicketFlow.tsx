@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { useClaimTicketFlow } from './ClaimTicketFlowContext';
 
 export const ClaimTicketFlow = () => {

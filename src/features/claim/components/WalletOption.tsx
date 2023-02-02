@@ -1,4 +1,3 @@
-import React from 'react';
 import { Center, type CenterProps, Text } from '@chakra-ui/react';
 
 import { CoinIcon } from '@/components/CoinIcon';

@@ -1,4 +1,3 @@
-import React from 'react';
 import { Flex, Hide, Text } from '@chakra-ui/react';
 
 import { AvatarImage } from '@/components/AvatarImage';
