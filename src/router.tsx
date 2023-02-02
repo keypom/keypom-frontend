@@ -6,6 +6,9 @@ import { CoreLayout } from '@/components/CoreLayout';
 const HomePage = React.lazy(async () => await import('./pages/Home'));
 const AboutPage = React.lazy(async () => await import('./pages/About'));
 const LandingPage = React.lazy(async () => await import('./features/landing'));
+const AllDropsPage = React.lazy(
+  async () => await import('./features/all-drops/routes/AllDropsPage'),
+);
 
 export const router = createBrowserRouter([
   {
@@ -22,6 +25,10 @@ export const router = createBrowserRouter([
       {
         path: '/landing',
         element: <LandingPage />,
+      },
+      {
+        path: '/drops',
+        element: <AllDropsPage />,
       },
     ],
   },

@@ -1,10 +1,10 @@
 import { type AccountState, type WalletSelector } from '@near-wallet-selector/core';
 import { providers } from 'near-api-js';
-import { AccountView } from 'near-api-js/lib/providers/provider';
-import { WalletSelectorModal } from '@near-wallet-selector/modal-ui';
-import React, {
+import { type AccountView } from 'near-api-js/lib/providers/provider';
+import { type WalletSelectorModal } from '@near-wallet-selector/modal-ui';
+import {
   createContext,
-  PropsWithChildren,
+  type PropsWithChildren,
   useCallback,
   useContext,
   useEffect,
