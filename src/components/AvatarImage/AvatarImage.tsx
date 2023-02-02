@@ -1,5 +1,4 @@
 import { Box, type BoxProps, Image } from '@chakra-ui/react';
-import React from 'react';
 
 import { replaceSpace } from '@/utils/replaceSpace';
 

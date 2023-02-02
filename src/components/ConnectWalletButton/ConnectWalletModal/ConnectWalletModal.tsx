@@ -8,7 +8,6 @@ import {
   ModalFooter,
   ModalBody,
 } from '@chakra-ui/react';
-import React from 'react';
 
 import { LinkIcon } from '@/components/Icons';
 import { RoundIcon } from '@/components/IconBox/RoundIcon';

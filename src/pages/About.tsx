@@ -1,4 +1,3 @@
-import React from 'react';
 import { Button, Container, Heading, VStack } from '@chakra-ui/react';
 import { useNavigate } from 'react-router-dom';
 

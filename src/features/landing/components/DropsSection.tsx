@@ -1,4 +1,4 @@
-import React, { type ReactElement } from 'react';
+import { type ReactElement } from 'react';
 import { Center, TabPanel, TabPanels } from '@chakra-ui/react';
 
 import { DropsTemplate } from './DropsTemplate';

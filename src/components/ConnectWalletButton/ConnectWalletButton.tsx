@@ -1,5 +1,4 @@
 import { Button, type ButtonProps } from '@chakra-ui/react';
-import React from 'react';
 
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
 

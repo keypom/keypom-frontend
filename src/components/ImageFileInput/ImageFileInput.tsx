@@ -11,7 +11,6 @@ import {
   Image,
   Show,
 } from '@chakra-ui/react';
-import React from 'react';
 
 import { ImageIcon } from '../Icons';
 

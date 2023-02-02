@@ -1,5 +1,4 @@
 import { Center, Flex, HStack, Text } from '@chakra-ui/react';
-import React from 'react';
 
 import { CoinIcon } from '@/components/CoinIcon';
 

@@ -10,7 +10,6 @@ import {
   MenuList,
   Text,
 } from '@chakra-ui/react';
-import React from 'react';
 
 import { DropIcon, NearLogoIcon, SignOutIcon } from '../Icons';
 

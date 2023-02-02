@@ -1,4 +1,3 @@
-import React from 'react';
 import { Box, Flex, HStack, Link, type BoxProps } from '@chakra-ui/react';
 
 import { MobileMenu } from './MobileMenu';

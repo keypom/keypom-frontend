@@ -1,5 +1,4 @@
 import { Box, type ChakraProps, HStack, Text, Link, Flex } from '@chakra-ui/react';
-import React from 'react';
 
 import { TwitterLogoIcon, LogoWhite } from '@/components/Icons';
 

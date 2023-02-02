@@ -1,5 +1,4 @@
 import { HStack, Box, Text, Link } from '@chakra-ui/react';
-import React from 'react';
 
 export const KeypomLogo = () => {
   return (

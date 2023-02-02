@@ -1,4 +1,3 @@
-import React from 'react';
 import { Center, Heading, SimpleGrid } from '@chakra-ui/react';
 
 import { LandingCard } from './LandingCard';

@@ -1,5 +1,4 @@
 import { type IconProps } from '@chakra-ui/react';
-import React from 'react';
 
 import { TokenEthIcon, TokenHereIcon, TokenNearIcon } from '../Icons';
 

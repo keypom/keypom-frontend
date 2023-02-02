@@ -10,7 +10,6 @@ import {
   Thead,
   Th,
 } from '@chakra-ui/react';
-import React from 'react';
 
 import { MobileDataTable } from './MobileDataTable';
 import { type ColumnItem, type DataItem } from './types';

@@ -1,5 +1,4 @@
 import { Switch, type SwitchProps } from '@chakra-ui/react';
-import React from 'react';
 
 import { FormControl, type FormControlProps } from '../FormControl';
 
