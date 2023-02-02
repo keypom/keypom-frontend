@@ -12,10 +12,5 @@
       "...",
       "@parcel/transformer-svg-react"
     ]
-  },
-  "validators": {
-    "*.{ts,tsx}": [
-      "@parcel/validator-typescript"
-    ]
   }
 }
