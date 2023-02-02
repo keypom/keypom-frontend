@@ -1,5 +1,4 @@
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink } from '@chakra-ui/react';
-import React from 'react';
 import { ChevronRightIcon } from '@chakra-ui/icons';
 
 export interface IBreadcrumbItem {

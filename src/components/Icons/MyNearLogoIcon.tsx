@@ -1,5 +1,4 @@
 import { Icon, type IconProps } from '@chakra-ui/react';
-import React from 'react';
 
 export const MyNearLogoIcon = ({ ...props }: IconProps) => {
   const uniqueId = Math.ceil(Math.random() * 1000); // prevent reusing of svg that aren't visible on page

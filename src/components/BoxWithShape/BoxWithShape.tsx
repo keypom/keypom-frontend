@@ -1,5 +1,5 @@
 import { Box, type BoxProps } from '@chakra-ui/react';
-import React, { type PropsWithChildren } from 'react';
+import { type PropsWithChildren } from 'react';
 
 type ShapeSize = 'sm' | 'md' | 'lg';
 interface BoxWithShapeProps extends BoxProps {

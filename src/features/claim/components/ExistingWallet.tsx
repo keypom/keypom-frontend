@@ -1,4 +1,3 @@
-import React from 'react';
 import { Button, Center, Text } from '@chakra-ui/react';
 
 import { ChevronLeftIcon } from '@/components/Icons';

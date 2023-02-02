@@ -1,5 +1,5 @@
 import { Box, type BoxProps } from '@chakra-ui/react';
-import React, { type PropsWithChildren, type ReactNode } from 'react';
+import { type PropsWithChildren, type ReactNode } from 'react';
 
 import { RoundIcon } from './RoundIcon';
 

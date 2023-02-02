@@ -7,7 +7,7 @@ import {
   useMultiStyleConfig,
   useTab,
 } from '@chakra-ui/react';
-import React, { type PropsWithChildren, type ReactNode, forwardRef, type Ref } from 'react';
+import { type PropsWithChildren, type ReactNode, forwardRef, type Ref } from 'react';
 
 const RoundedTab = forwardRef((props: PropsWithChildren, ref: Ref<HTMLElement>) => {
   // 1. Reuse the `useTab` hook

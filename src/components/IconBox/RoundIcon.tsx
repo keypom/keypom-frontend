@@ -1,5 +1,4 @@
 import { Box, type BoxProps, useToken } from '@chakra-ui/react';
-import React from 'react';
 
 interface RoundIconProps extends BoxProps {
   icon: React.ReactNode;

@@ -1,4 +1,3 @@
-import React from 'react';
 import { Box, Button, Center, Flex, Hide, Image, Show, Text } from '@chakra-ui/react';
 
 import { IconBox } from '@/components/IconBox';

@@ -8,6 +8,7 @@ module.exports = {
   },
   root: true,
   extends: [
+    'plugin:react/jsx-runtime',
     'plugin:react/recommended',
     'standard-with-typescript',
     'plugin:@typescript-eslint/recommended',
@@ -32,6 +33,7 @@ module.exports = {
     '@typescript-eslint',
   ],
   rules: {
+    'react/react-in-jsx-scope': 'off',
     'react/jsx-sort-props': [
       2,
       {

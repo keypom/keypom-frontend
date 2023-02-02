@@ -1,5 +1,5 @@
 import { Box, Input, type InputProps } from '@chakra-ui/react';
-import React, { type PropsWithChildren } from 'react';
+import { type PropsWithChildren } from 'react';
 
 import { CostDisplay } from './CostDisplay';
 import { WalletSelectorMenu } from './WalletSelectorMenu';

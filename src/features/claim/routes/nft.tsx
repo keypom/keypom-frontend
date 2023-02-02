@@ -1,4 +1,3 @@
-import React from 'react';
 import { Box, Center, Heading, useBoolean, VStack } from '@chakra-ui/react';
 
 import { CreateWallet } from '../components/CreateWallet';

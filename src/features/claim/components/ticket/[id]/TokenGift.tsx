@@ -1,4 +1,3 @@
-import React from 'react';
 import { VStack } from '@chakra-ui/react';
 
 import { DropBox } from '@/components/DropBox';

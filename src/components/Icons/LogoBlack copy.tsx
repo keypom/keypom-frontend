@@ -1,4 +1,3 @@
-import React from 'react';
 import { Icon, type IconProps } from '@chakra-ui/react';
 
 export const LogoWhite = (props: IconProps) => {

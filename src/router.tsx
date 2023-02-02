@@ -5,6 +5,9 @@ import { CoreLayout } from '@/components/CoreLayout';
 
 const HomePage = React.lazy(async () => await import('./pages/Home'));
 const AboutPage = React.lazy(async () => await import('./pages/About'));
+const AllDropsPage = React.lazy(
+  async () => await import('./features/all-drops/routes/AllDropsPage'),
+);
 const LandingPage = React.lazy(async () => await import('./features/landing/routes/LandingPage'));
 const ClaimTokenPage = React.lazy(async () => await import('./features/claim/routes/token'));
 const ClaimNftPage = React.lazy(async () => await import('./features/claim/routes/nft'));
@@ -27,7 +30,10 @@ export const router = createBrowserRouter([
         path: '/landing',
         element: <LandingPage />,
       },
-
+      {
+        path: '/drops',
+        element: <AllDropsPage />,
+      },
       {
         path: '/claim',
         children: [

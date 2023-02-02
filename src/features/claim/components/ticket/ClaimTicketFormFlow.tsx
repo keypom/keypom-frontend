@@ -1,4 +1,3 @@
-import React from 'react';
 import { Center, Flex, Heading, VStack } from '@chakra-ui/react';
 
 import { ClaimTicketDetails } from './ClaimTicketDetails';
