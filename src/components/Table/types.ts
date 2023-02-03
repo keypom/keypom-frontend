@@ -10,5 +10,6 @@ export interface DataItem {
 export interface ColumnItem {
   title: string;
   selector: (arg: DataItem) => React.ReactNode | Primitive;
+  loadingElement?: React.ReactNode;
   tdProps?: TableCellProps;
 }
