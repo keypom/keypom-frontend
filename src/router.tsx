@@ -19,23 +19,23 @@ export const router = createBrowserRouter([
     element: <CoreLayout />,
     children: [
       {
-        path: '/',
+        index: true,
         element: <HomePage />,
       },
       {
-        path: '/about',
+        path: 'about',
         element: <AboutPage />,
       },
       {
-        path: '/landing',
+        path: 'landing',
         element: <LandingPage />,
       },
       {
-        path: '/drops',
+        path: 'drops',
         element: <AllDropsPage />,
       },
       {
-        path: '/claim',
+        path: 'claim',
         children: [
           {
             path: 'token',
