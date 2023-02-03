@@ -5,10 +5,10 @@
   "license": "MIT",
   "scripts": {
     "clean": "rm -rf dist .parcel-cache",
-    "dev": "yarn clean && yarn static && parcel src/index.html -p 3000",
-    "build": "yarn static && parcel build src/index.html --public-url ./ --no-cache --no-source-maps",
+    "dev": "pnpm clean && pnpm static && parcel src/index.html -p 3000",
+    "build": "pnpm static && parcel build src/index.html --public-url ./ --no-cache --no-source-maps",
     "static": "rm -rf dist && mkdir dist && cp -a ./public/* ./dist",
-    "serve": "yarn build && npx serve dist -s",
+    "serve": "pnpm build && npx serve dist -s",
     "check": "tsc --noEmit",
     "lint": "eslint ./src --ext .js,.jsx,.ts,.tsx",
     "lint:fix": "eslint ./src --ext .js,.jsx,.ts,.tsx --fix",
