@@ -28,6 +28,7 @@ interface DataTableProps extends TableProps {
   showColumns?: boolean;
   columns: ColumnItem[];
   data: DataItem[];
+  loading?: boolean;
   onRowClick?: (id: string | number) => void;
 }
 
@@ -35,11 +36,24 @@ export const DataTable = ({
   showColumns = true,
   columns = [],
   data = [],
+  loading = false,
   onRowClick,
   ...props
 }: DataTableProps) => {
-  const getDesktopTableBody = () =>
-    data.map((drop) => (
+  const getDesktopTableBody = () => {
+    if (loading) {
+      return Array.from([1, 2, 3]).map((_, index) => (
+        <Tr key={index}>
+          {columns.map((column) => (
+            <Td key={`${column.title}-${index}`} {...column.tdProps}>
+              {column.loadingElement}
+            </Td>
+          ))}
+        </Tr>
+      ));
+    }
+
+    return data.map((drop) => (
       <Tr
         key={drop.id}
         onClick={() => {
@@ -53,6 +67,8 @@ export const DataTable = ({
         ))}
       </Tr>
     ));
+  };
+
   return (
     <>
       {/* Desktop Table */}
