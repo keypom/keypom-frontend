@@ -1,12 +1,12 @@
 import { Box } from '@chakra-ui/react';
 
+import { type IFlowPage } from '@/types/common';
+
 import { ClaimFormContextProvider } from '../../components/ClaimFormContext';
 import { ClaimTicketFlowProvider } from '../../components/ticket/ClaimTicketFlowContext';
 import { ClaimTicketFormFlow } from '../../components/ticket/ClaimTicketFormFlow';
 import { ClaimTicketSummaryFlow } from '../../components/ticket/ClaimTicketSummaryFlow';
 import { ClaimTicketFlow } from '../../components/ticket/ClaimTicketFlow';
-
-import { type IFlowPage } from '@/types/common';
 
 const flowPages: IFlowPage[] = [
   {

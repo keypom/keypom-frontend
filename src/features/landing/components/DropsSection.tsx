@@ -1,10 +1,10 @@
 import { type ReactElement } from 'react';
 import { Center, TabPanel, TabPanels } from '@chakra-ui/react';
 
-import { DropsTemplate } from './DropsTemplate';
-
 import { ImageIcon, StarIcon, TicketIcon } from '@/components/Icons';
 import { RoundedTabs, type TabListItem } from '@/components/RoundedTabs';
+
+import { DropsTemplate } from './DropsTemplate';
 
 type DropsTabItem = TabListItem & { content: ReactElement };
 

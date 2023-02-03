@@ -30,6 +30,7 @@
     "react-hook-form": "^7.43.0",
     "react-router-dom": "^6.8.0",
     "rxjs": "^7.8.0",
+    "swr": "^2.0.3",
     "zod": "^3.20.2"
   },
   "devDependencies": {

@@ -1,12 +1,12 @@
 import { Box, Center, Heading, useBoolean, VStack } from '@chakra-ui/react';
 
-import { CreateWallet } from '../components/CreateWallet';
-import { ExistingWallet } from '../components/ExistingWallet';
-
 import { IconBox } from '@/components/IconBox';
 import { BoxWithShape } from '@/components/BoxWithShape';
 import { StarIcon } from '@/components/Icons';
 import { DropBox } from '@/components/DropBox/DropBox';
+
+import { ExistingWallet } from '../components/ExistingWallet';
+import { CreateWallet } from '../components/CreateWallet';
 
 const DROP_TEST_DATA = [
   { coin: 'ETH', value: 0.1 },

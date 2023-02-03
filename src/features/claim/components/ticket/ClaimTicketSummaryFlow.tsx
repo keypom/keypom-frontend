@@ -1,13 +1,13 @@
 import { Center, Flex, Heading, Text, VStack } from '@chakra-ui/react';
 import { useParams } from 'react-router-dom';
 
-import { QrDetails } from './[id]/QrDetails';
-import { NftGift } from './[id]/NftGift';
-import { TokenGift } from './[id]/TokenGift';
-
 import { IconBox } from '@/components/IconBox';
 import { TicketIcon } from '@/components/Icons';
 import { BoxWithShape } from '@/components/BoxWithShape';
+
+import { QrDetails } from './[id]/QrDetails';
+import { NftGift } from './[id]/NftGift';
+import { TokenGift } from './[id]/TokenGift';
 
 export const ClaimTicketSummaryFlow = () => {
   const giftId = useParams();

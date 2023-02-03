@@ -10,7 +10,7 @@ import {
   Text,
   VStack,
 } from '@chakra-ui/react';
-import React from 'react';
+import type React from 'react';
 
 export interface WalletToken {
   symbol: string;

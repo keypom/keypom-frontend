@@ -15,12 +15,13 @@ import {
 import { ChevronDownIcon } from '@chakra-ui/icons';
 import { useNavigate } from 'react-router-dom';
 
-import { MobileDrawerMenu } from './MobileDrawerMenu';
-import { MENU_ITEMS } from '../config/menuItems';
-
 import { type ColumnItem, type DataItem } from '@/components/Table/types';
 import { DataTable } from '@/components/Table';
 import { DeleteIcon } from '@/components/Icons';
+
+import { MENU_ITEMS } from '../config/menuItems';
+
+import { MobileDrawerMenu } from './MobileDrawerMenu';
 
 const TABLE_DATA: DataItem[] = [
   // sample data until we integrate with SDK

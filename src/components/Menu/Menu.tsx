@@ -8,7 +8,8 @@ import {
   type MenuItemProps as _MenuItemProps,
   Box,
 } from '@chakra-ui/react';
-import React, { type PropsWithChildren } from 'react';
+import type React from 'react';
+import { type PropsWithChildren } from 'react';
 
 export interface MenuItemProps extends _MenuItemProps {
   label: string;

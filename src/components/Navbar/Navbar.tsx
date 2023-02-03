@@ -1,11 +1,11 @@
 import { Box, Flex, HStack, Link, type BoxProps } from '@chakra-ui/react';
 
-import { MobileMenu } from './MobileMenu';
-
 import { SignedInButton } from '@/components/SignedInButton';
 import { ConnectWalletButton } from '@/components/ConnectWalletButton';
 import { KeypomLogo } from '@/components/KeypomLogo';
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
+
+import { MobileMenu } from './MobileMenu';
 
 type NavbarProps = BoxProps;
 
