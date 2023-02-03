@@ -23,28 +23,38 @@ const CreateTicketDropPage = React.lazy(
   async () => await import('@/features/create-drop/routes/CreateTicketDropPage'),
 );
 
+const TokenDropManagerPage = React.lazy(
+  async () => await import('@/features/drop-manager/routes/token/[id]'),
+);
+const NFTDropManagerPage = React.lazy(
+  async () => await import('@/features/drop-manager/routes/nft/[id]'),
+);
+const TicketDropManagerPage = React.lazy(
+  async () => await import('@/features/drop-manager/routes/ticket/[id]'),
+);
+
 export const router = createBrowserRouter([
   {
     element: <CoreLayout />,
     children: [
       {
-        path: '/',
+        index: true,
         element: <HomePage />,
       },
       {
-        path: '/about',
+        path: 'about',
         element: <AboutPage />,
       },
       {
-        path: '/landing',
+        path: 'landing',
         element: <LandingPage />,
       },
       {
-        path: '/drops',
+        path: 'drops',
         element: <AllDropsPage />,
       },
       {
-        path: '/drop',
+        path: 'drop',
         children: [
           {
             path: 'token',
@@ -52,6 +62,10 @@ export const router = createBrowserRouter([
               {
                 path: 'new',
                 element: <CreateTokenDropPage />,
+              },
+              {
+                path: ':id',
+                element: <TokenDropManagerPage />,
               },
             ],
           },
@@ -62,6 +76,10 @@ export const router = createBrowserRouter([
                 path: 'new',
                 element: <CreateNftDropPage />,
               },
+              {
+                path: ':id',
+                element: <NFTDropManagerPage />,
+              },
             ],
           },
           {
@@ -71,12 +89,14 @@ export const router = createBrowserRouter([
                 path: 'new',
                 element: <CreateTicketDropPage />,
               },
+              {
+                path: ':id',
+                element: <TicketDropManagerPage />,
+              },
             ],
-          },
-        ],
       },
       {
-        path: '/claim',
+        path: 'claim',
         children: [
           {
             path: 'token',
