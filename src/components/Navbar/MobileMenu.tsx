@@ -13,17 +13,14 @@ import {
 } from '@chakra-ui/react';
 import { useRef } from 'react';
 
-import { ConnectWalletButton } from '@/components/ConnectWalletButton';
 import { MenuIcon } from '@/components/Icons';
 import { KeypomLogo } from '@/components/KeypomLogo';
-import { SignedInButton } from '@/components/SignedInButton';
-import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
 
 import { MENU_ITEMS } from './Navbar';
 
 export const MobileMenu = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const { isLoggedIn } = useAuthWalletContext();
+  // const { isLoggedIn } = useAuthWalletContext();
   const btnRef = useRef();
   return (
     <Box>
@@ -52,7 +49,7 @@ export const MobileMenu = () => {
             </VStack>
           </DrawerBody>
           <DrawerFooter flexDirection="row" justifyContent="center" pb="10">
-            {isLoggedIn ? <SignedInButton /> : <ConnectWalletButton w="50%" />}
+            {/* {isLoggedIn ? <SignedInButton /> : <ConnectWalletButton w="50%" />} */}
           </DrawerFooter>
         </DrawerContent>
       </Drawer>
