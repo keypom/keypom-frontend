@@ -1,4 +1,5 @@
 import { Box } from '@chakra-ui/react';
+
 import AllDrops from '../components/AllDrops';
 
 export default function AllDropsPage() {

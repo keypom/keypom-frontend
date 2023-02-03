@@ -15,8 +15,9 @@ import {
 import { ChevronDownIcon } from '@chakra-ui/icons';
 import { useNavigate } from 'react-router-dom';
 
-import { MobileDrawerMenu } from './MobileDrawerMenu';
 import { MENU_ITEMS } from '../config/menuItems';
+
+import { MobileDrawerMenu } from './MobileDrawerMenu';
 
 import { type ColumnItem, type DataItem } from '@/components/Table/types';
 import { DataTable } from '@/components/Table';
