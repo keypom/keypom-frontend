@@ -11,10 +11,10 @@ import {
   Text,
 } from '@chakra-ui/react';
 
-import { DropIcon, NearLogoIcon, SignOutIcon } from '../Icons';
-
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
 import { toYocto } from '@/utils/toYocto';
+
+import { DropIcon, NearLogoIcon, SignOutIcon } from '../Icons';
 
 export const SignedInButton = () => {
   const { account, selector } = useAuthWalletContext();

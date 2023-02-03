@@ -1,8 +1,8 @@
 import { Center, Heading, SimpleGrid } from '@chakra-ui/react';
 
-import { LandingCard } from './LandingCard';
-
 import { GradientSpan } from '@/components/GradientSpan';
+
+import { LandingCard } from './LandingCard';
 
 export const PossibilitiesSection = () => {
   return (

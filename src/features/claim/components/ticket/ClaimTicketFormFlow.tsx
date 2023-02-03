@@ -1,10 +1,10 @@
 import { Center, Flex, Heading, VStack } from '@chakra-ui/react';
 
-import { ClaimTicketDetails } from './ClaimTicketDetails';
-import { ClaimTicketForm } from './ClaimTicketForm';
-
 import { IconBox } from '@/components/IconBox';
 import { TicketIcon } from '@/components/Icons';
+
+import { ClaimTicketDetails } from './ClaimTicketDetails';
+import { ClaimTicketForm } from './ClaimTicketForm';
 
 export const ClaimTicketFormFlow = () => {
   return (

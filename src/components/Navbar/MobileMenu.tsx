@@ -13,13 +13,13 @@ import {
 } from '@chakra-ui/react';
 import { useRef } from 'react';
 
-import { MENU_ITEMS } from './Navbar';
-
 import { ConnectWalletButton } from '@/components/ConnectWalletButton';
 import { MenuIcon } from '@/components/Icons';
 import { KeypomLogo } from '@/components/KeypomLogo';
 import { SignedInButton } from '@/components/SignedInButton';
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
+
+import { MENU_ITEMS } from './Navbar';
 
 export const MobileMenu = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();

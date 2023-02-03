@@ -1,12 +1,12 @@
 import { Box, Center, Heading, useBoolean, VStack } from '@chakra-ui/react';
 
-import { CreateWallet } from '../components/CreateWallet';
-import { ExistingWallet } from '../components/ExistingWallet';
-import { GiftDetails } from '../components/gift/GiftDetails';
-
 import { IconBox } from '@/components/IconBox';
 import { BoxWithShape } from '@/components/BoxWithShape';
 import { TicketIcon } from '@/components/Icons';
+
+import { CreateWallet } from '../components/CreateWallet';
+import { ExistingWallet } from '../components/ExistingWallet';
+import { GiftDetails } from '../components/gift/GiftDetails';
 
 const ClaimGiftPage = () => {
   const [haveWallet, showInputWallet] = useBoolean(false);

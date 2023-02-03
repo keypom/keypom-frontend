@@ -1,8 +1,8 @@
 import { type Control, Controller } from 'react-hook-form';
 
-import { type ClaimTicketFormFieldTypes } from '../ClaimTicketForm';
-
 import { TextInput } from '@/components/TextInput';
+
+import { type ClaimTicketFormFieldTypes } from '../ClaimTicketForm';
 
 interface NameFieldProps {
   control: Control<ClaimTicketFormFieldTypes, any>;
