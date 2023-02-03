@@ -94,6 +94,8 @@ export const router = createBrowserRouter([
                 element: <TicketDropManagerPage />,
               },
             ],
+          },
+        ],
       },
       {
         path: 'claim',
