@@ -1,10 +1,12 @@
 import { Center, Heading, SimpleGrid } from '@chakra-ui/react';
+import { useNavigate } from 'react-router-dom';
 
 import { GradientSpan } from '@/components/GradientSpan';
 
 import { LandingCard } from './LandingCard';
 
 export const PossibilitiesSection = () => {
+  const navigate = useNavigate();
   return (
     <Center flexDir="column" maxW="995px" mx="auto">
       <Heading
@@ -26,7 +28,9 @@ export const PossibilitiesSection = () => {
           buttonText="See the docs"
           description="Our SDK lets your build custom solutions around link-based wallets."
           header="Craft your own"
-          onClick={() => null}
+          onClick={() => {
+            window.location.href = 'https://docs.keypom.xyz';
+          }}
         />
         <LandingCard
           buttonText="Contact us"
