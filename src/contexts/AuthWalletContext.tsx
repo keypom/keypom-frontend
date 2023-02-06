@@ -26,12 +26,12 @@ type Account = AccountView & {
 };
 
 interface AuthWalletContextValues {
-  modal: WalletSelectorModal;
-  selector: WalletSelector;
-  accounts: AccountState[];
+  modal: WalletSelectorModal | null;
+  selector: WalletSelector | null;
+  accounts: AccountState[] | null;
   accountId: string | null;
   isLoggedIn: boolean;
-  account: Account;
+  account: Account | null;
 }
 
 const AuthWalletContext = createContext<AuthWalletContextValues | null>(null);
@@ -42,44 +42,24 @@ export const AuthWalletContextProvider = ({ children }: PropsWithChildren) => {
   const [accounts, setAccounts] = useState<AccountState[]>([]);
   const [account, setAccount] = useState<Account | null>(null);
 
-  const accountId = accounts.find((account) => account.active)?.accountId || null;
-
-  const initWalletSelector = async () => {
-    const walletSelector = new NearWalletSelector();
-    await walletSelector.init();
-
-    setModal(walletSelector.modal);
-    setSelector(walletSelector.selector);
-    setAccounts(walletSelector.accounts);
-
-    if (typeof window !== undefined) {
-      window.modal = walletSelector.modal;
-      window.selector = walletSelector.selector;
-    }
-  };
-
-  const getAccount = useCallback(async (): Promise<Account | null> => {
-    if (!accountId) {
-      return null;
-    }
-
-    const { network } = selector.options;
-    const provider = new providers.JsonRpcProvider({ url: network.nodeUrl });
-
-    return await provider
-      .query<AccountView>({
-        request_type: 'view_account',
-        finality: 'final',
-        account_id: accountId,
-      })
-      .then((data) => ({
-        ...data,
-        account_id: accountId,
-      }));
-  }, [accountId, selector?.options]);
+  const accountId = accounts.find((account) => account.active)?.accountId ?? null;
 
   useEffect(() => {
-    initWalletSelector();
+    const initWalletSelector = async () => {
+      const walletSelector = new NearWalletSelector();
+      await walletSelector.init();
+
+      setModal(walletSelector.modal);
+      setSelector(walletSelector.selector);
+      setAccounts(walletSelector.accounts);
+
+      if (typeof window !== undefined) {
+        window.modal = walletSelector.modal;
+        window.selector = walletSelector.selector;
+      }
+    };
+
+    initWalletSelector().catch(console.error); // eslint-disable-line no-console
   }, []);
 
   // COMMENTED OUT
@@ -115,17 +95,39 @@ export const AuthWalletContextProvider = ({ children }: PropsWithChildren) => {
       return;
     }
 
+    const getAccount = useCallback(async (): Promise<Account | null> => {
+      if (!accountId || !selector) {
+        return null;
+      }
+
+      const { network } = selector.options;
+      const provider = new providers.JsonRpcProvider({ url: network.nodeUrl });
+
+      return await provider
+        .query<AccountView>({
+          request_type: 'view_account',
+          finality: 'final',
+          account_id: accountId,
+        })
+        .then((data) => ({
+          ...data,
+          account_id: accountId,
+        }));
+    }, [accountId, selector?.options]);
+
     // setLoading(true);
 
-    getAccount().then((nextAccount) => {
-      setAccount(nextAccount);
-      // setLoading(false);
-    });
-  }, [accountId, getAccount]);
+    getAccount()
+      .then((nextAccount) => {
+        setAccount(nextAccount);
+        // setLoading(false);
+      })
+      .catch(console.error); // eslint-disable-line no-console
+  }, [accountId]);
 
   return (
     <AuthWalletContext.Provider
-      value={{ modal, accounts, selector, accountId, isLoggedIn: !(account == null), account }}
+      value={{ modal, accounts, selector, accountId, isLoggedIn: !(account === null), account }}
     >
       {children}
     </AuthWalletContext.Provider>

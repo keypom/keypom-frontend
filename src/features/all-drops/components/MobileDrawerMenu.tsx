@@ -11,7 +11,12 @@ import {
 
 import { MENU_ITEMS } from '../config/menuItems';
 
-export const MobileDrawerMenu = ({ isOpen, onClose }) => {
+interface MobileDrawerMenuProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+export const MobileDrawerMenu = ({ isOpen, onClose }: MobileDrawerMenuProps) => {
   const getMobileDrawerMenuItems = () =>
     MENU_ITEMS.map((item) => (
       <Button

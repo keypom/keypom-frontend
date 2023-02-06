@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { ImageFileInput } from '@/components/ImageFileInput';
 import { type CreateNftDropFormFieldTypes } from '@/features/create-drop/components/nft/CreateNftDropForm';
 import { type CreateTicketFieldsSchema } from '@/features/create-drop/contexts/CreateTicketDropContext/CreateTicketDropContext';
+import { isUndefined } from '@/utils/isUndefined';
 
 type CreateDropFieldTypes = CreateNftDropFormFieldTypes | CreateTicketFieldsSchema;
 interface ArtworkInputProps {
@@ -18,11 +19,12 @@ export const ArtworkInput = ({ name = FIELD_NAME }: ArtworkInputProps) => {
   const [preview, setPreview] = useState<string>();
 
   useEffect(() => {
-    if (!selectedFile) {
+    if (isUndefined(selectedFile)) {
       setPreview(undefined);
       return;
     }
-    trigger(name); // manually validate
+
+    trigger(name).catch(console.error); // eslint-disable-line no-console
     const objectUrl = URL.createObjectURL(selectedFile[0]);
     setPreview(objectUrl);
 
@@ -32,7 +34,7 @@ export const ArtworkInput = ({ name = FIELD_NAME }: ArtworkInputProps) => {
   }, [selectedFile, trigger, name]);
 
   const onSelectFile = (e) => {
-    if (!e.target.files || e.target.files.length === 0) {
+    if (isUndefined(e.target.files) || e.target.files.length === 0) {
       setSelectedFile(undefined);
       return;
     }

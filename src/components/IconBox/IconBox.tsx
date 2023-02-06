@@ -1,6 +1,8 @@
 import { Box, type BoxProps } from '@chakra-ui/react';
 import { type PropsWithChildren, type ReactNode } from 'react';
 
+import { isUndefined } from '@/utils/isUndefined';
+
 import { RoundIcon } from './RoundIcon';
 
 interface IconBoxProps extends BoxProps {
@@ -20,7 +22,7 @@ export const IconBox = ({ children, icon, ...props }: PropsWithChildren<IconBoxP
       textAlign="center"
       {...props}
     >
-      {icon && (
+      {!isUndefined(icon) && (
         <Box left="50%" position="absolute" top="0" transform="translate(-50%, -50%)" zIndex="11">
           <RoundIcon icon={icon} />
         </Box>

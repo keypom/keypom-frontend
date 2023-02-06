@@ -14,7 +14,7 @@ export interface ClaimTicketFormFieldTypes {
 
 interface ClaimTicketFormProps {}
 
-export const ClaimTicketForm = ({}: ClaimTicketFormProps) => {
+export const ClaimTicketForm = (_: ClaimTicketFormProps) => {
   const { onNext } = useClaimTicketFlow();
 
   const { getClaimFormData } = useClaimForm();
@@ -22,12 +22,17 @@ export const ClaimTicketForm = ({}: ClaimTicketFormProps) => {
 
   const handleSubmitClick = () => {
     // TODO: handle name/email validation and send email
-    console.log(getClaimFormData());
+    console.log(getClaimFormData()); // eslint-disable-line no-console
     onNext();
   };
 
   return (
-    <form style={{ width: '100%' }} onSubmit={handleSubmit(handleSubmitClick)}>
+    <form
+      style={{ width: '100%' }}
+      onSubmit={() => {
+        void handleSubmit(handleSubmitClick);
+      }}
+    >
       <VStack mb="8" spacing="4" w="full">
         <NameField control={control} />
         <EmailField control={control} />

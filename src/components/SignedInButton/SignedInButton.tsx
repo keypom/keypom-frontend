@@ -27,8 +27,8 @@ export const SignedInButton = () => {
       .signOut()
       .then((res) => (window.location.href = ''))
       .catch((err) => {
-        console.log('Failed to sign out');
-        console.error(err);
+        console.log('Failed to sign out'); // eslint-disable-line no-console
+        console.error(err); // eslint-disable-line no-console
       });
   };
 
@@ -81,7 +81,13 @@ export const SignedInButton = () => {
             <Link href="/drops">
               <MenuItem icon={<DropIcon />}>My drops</MenuItem>
             </Link>
-            <MenuItem icon={<SignOutIcon />} onClick={handleSignOut}>
+            {/** https://github.com/typescript-eslint/typescript-eslint/issues/4619 */}
+            <MenuItem
+              icon={<SignOutIcon />}
+              onClick={() => {
+                void handleSignOut();
+              }}
+            >
               Sign out
             </MenuItem>
           </MenuList>

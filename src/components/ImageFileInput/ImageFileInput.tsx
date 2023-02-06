@@ -12,6 +12,8 @@ import {
   Show,
 } from '@chakra-ui/react';
 
+import { isUndefined } from '@/utils/isUndefined';
+
 import { ImageIcon } from '../Icons';
 
 interface ImageFileInputProps extends InputProps {
@@ -63,7 +65,7 @@ export const ImageFileInput = ({
             {...props}
           />
 
-          {selectedFile && preview ? (
+          {!isUndefined(selectedFile) && !isUndefined(preview) ? (
             <Image alt="Image upload preview" objectFit="cover" src={preview} />
           ) : (
             <Flex

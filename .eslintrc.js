@@ -59,6 +59,15 @@ module.exports = {
       },
     ],
     '@typescript-eslint/no-empty-interface': 'off',
+    '@typescript-eslint/strict-boolean-expressions': [
+      'error',
+      {
+        allowNullableObject: true,
+        allowNullableBoolean: true,
+        allowNullableString: true,
+        allowNullableNumber: true,
+      },
+    ],
     'prettier/prettier': 'error',
     'simple-import-sort/exports': 'error',
     'import/first': 'error',
