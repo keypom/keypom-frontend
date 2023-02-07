@@ -38,6 +38,7 @@ export const baseStyle = definePartsStyle({
 
 type defaultProps = ReturnType<typeof defineMultiStyleConfig>['defaultProps'];
 
+/* eslint-disable @typescript-eslint/consistent-type-assertions */
 const modalDefaultProps = {
   isCentered: true,
 } as defaultProps; // type casting is necessary because defaultProps is not accepting ModalProps

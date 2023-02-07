@@ -4,6 +4,7 @@ import { Controller, useFormContext } from 'react-hook-form';
 import { FormControl } from '@/components/FormControl';
 import { WalletBalanceInput } from '@/components/WalletBalanceInput';
 import { type CreateTicketFieldsSchema } from '@/features/create-drop/contexts/CreateTicketDropContext/CreateTicketDropContext';
+import { isUndefined } from '@/utils/isUndefined';
 
 import { WALLET_TOKENS } from '../data';
 
@@ -24,7 +25,7 @@ export const TokenForm = () => {
     'totalTickets',
   ]);
   const totalCost = useMemo(() => {
-    if (totalTickets && amountPerLink) {
+    if (totalTickets && !isUndefined(amountPerLink)) {
       return totalTickets * (amountPerLink as number);
     }
     return 0;

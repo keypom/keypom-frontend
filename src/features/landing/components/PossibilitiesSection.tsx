@@ -1,12 +1,10 @@
 import { Center, Heading, SimpleGrid } from '@chakra-ui/react';
-import { useNavigate } from 'react-router-dom';
 
 import { GradientSpan } from '@/components/GradientSpan';
 
 import { LandingCard } from './LandingCard';
 
 export const PossibilitiesSection = () => {
-  const navigate = useNavigate();
   return (
     <Center flexDir="column" maxW="995px" mx="auto">
       <Heading

@@ -9,7 +9,17 @@ import { urlRegex } from '@/constants/common';
 import { type PaymentData, type PaymentItem, type SummaryItem } from '../types/types';
 import { WALLET_TOKENS } from '../components/token/data';
 
-const CreateTokenDropContext = createContext(null);
+interface CreateTokenDropContextType {
+  getSummaryData: () => SummaryItem[];
+  getPaymentData: () => PaymentData;
+  handleDropConfirmation: () => void;
+  createLinksSWR: {
+    data?: { success: boolean };
+    handleDropConfirmation: () => void;
+  };
+}
+
+const CreateTokenDropContext = createContext<CreateTokenDropContextType | null>(null);
 
 const schema = z.object({
   dropName: z.string().min(1, 'Drop name required'),
@@ -32,7 +42,7 @@ type Schema = z.infer<typeof schema>;
 
 // TODO: this is only a mock implementation of the backend api
 const createLinks = async () => {
-  await new Promise((res) => setTimeout(res, 2000));
+  await new Promise((resolve) => setTimeout(resolve, 2000));
   return {
     success: true,
   };
@@ -86,7 +96,7 @@ export const CreateTokenDropProvider = ({ children }: PropsWithChildren) => {
       {
         type: 'text',
         name: 'Redirect link',
-        value: redirectLink,
+        value: redirectLink ?? '',
       },
     ];
   };
@@ -133,7 +143,12 @@ export const CreateTokenDropProvider = ({ children }: PropsWithChildren) => {
 
   return (
     <CreateTokenDropContext.Provider
-      value={{ getSummaryData, getPaymentData, handleDropConfirmation, createLinksSWR }}
+      value={{
+        getSummaryData,
+        getPaymentData,
+        handleDropConfirmation,
+        createLinksSWR,
+      }}
     >
       <FormProvider {...methods}>{children}</FormProvider>
     </CreateTokenDropContext.Provider>
