@@ -3,8 +3,6 @@ import { createBrowserRouter } from 'react-router-dom';
 
 import { CoreLayout } from '@/components/CoreLayout';
 
-const HomePage = React.lazy(async () => await import('./pages/Home'));
-const AboutPage = React.lazy(async () => await import('./pages/About'));
 const AllDropsPage = React.lazy(
   async () => await import('./features/all-drops/routes/AllDropsPage'),
 );
@@ -32,6 +30,8 @@ const NFTDropManagerPage = React.lazy(
 const TicketDropManagerPage = React.lazy(
   async () => await import('@/features/drop-manager/routes/ticket/[id]'),
 );
+
+const ScannerPage = React.lazy(async () => await import('@/features/scanner/routes/ScannerPage'));
 
 export const router = createBrowserRouter([
   {
@@ -114,6 +114,10 @@ export const router = createBrowserRouter([
             ],
           },
         ],
+      },
+      {
+        path: 'scanner',
+        element: <ScannerPage />,
       },
     ],
   },
