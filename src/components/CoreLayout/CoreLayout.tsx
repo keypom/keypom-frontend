@@ -14,6 +14,8 @@ export const CoreLayout = () => {
       bgBlendMode="overlay, normal, normal"
       flexDir="column"
       minH="100vh"
+      overflow="hidden"
+      position="relative"
     >
       <Box
         bg="linear-gradient(180deg, rgba(255, 207, 234, 0) 0%, #30c9f34b 100%)"
