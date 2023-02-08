@@ -16,14 +16,14 @@ export const Fonts = () => (
         font-style: normal;
         font-weight: 500;
         font-display: swap;
-        src: url(./assets/fonts/archia/archia-regular-webfont.woff2) format('truetype')
+        src: url(./assets/fonts/archia/archia-medium-webfont.woff2) format('truetype')
       }
       @font-face {
         font-family: 'Archia';
         font-style: normal;
         font-weight: 600;
         font-display: swap;
-        src: url(./assets/fonts/archia/archia-regular-webfont.woff2) format('truetype')
+        src: url(./assets/fonts/archia/archia-semibold-webfont.woff2) format('truetype')
       }
 
       /* Inter */
