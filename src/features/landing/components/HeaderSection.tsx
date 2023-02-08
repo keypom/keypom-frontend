@@ -1,7 +1,7 @@
 import { Center, Heading, HStack, Text } from '@chakra-ui/react';
 
 import { GradientSpan } from '@/components/GradientSpan';
-import { LogoWhite } from '@/components/Icons';
+import { LogoNear } from '@/components/Icons';
 
 export const HeaderSection = () => {
   return (
@@ -28,7 +28,7 @@ export const HeaderSection = () => {
         <Text color="gray.400" fontSize={{ base: 'md', md: 'lg' }}>
           Powered by
         </Text>
-        <LogoWhite h="25px" w="95px" />
+        <LogoNear color="gray.400" h="25px" w="95px" />
       </HStack>
     </Center>
   );

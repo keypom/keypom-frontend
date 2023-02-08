@@ -1,9 +1,9 @@
 import { Icon, type IconProps } from '@chakra-ui/react';
 
-export const LogoWhite = (props: IconProps) => {
+export const LogoNear = (props: IconProps) => {
   return (
     <Icon
-      fill="white"
+      fill="none"
       h="26px"
       viewBox="0 0 96 26"
       w="96px"
