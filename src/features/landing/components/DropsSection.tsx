@@ -23,21 +23,10 @@ export const DropsSection = () => {
             navigate('/drop/token/new');
           }}
           ctaText="Create a Token Drop"
+          description="Great for giveaways, promotions, and marketing."
+          headingText="Instantly drop tokens in a link."
           imageNumber={0}
-        />
-      ),
-    },
-    {
-      name: 'nft',
-      label: 'NFT',
-      icon: <ImageIcon height={{ base: '6', md: '7' }} width={{ base: '6', md: '7' }} />,
-      content: (
-        <DropsTemplate
-          ctaOnClick={() => {
-            navigate('/drop/nft/new');
-          }}
-          ctaText="Create an NFT Drop"
-          imageNumber={1}
+          subHeadingText="Token Drops"
         />
       ),
     },
@@ -50,8 +39,28 @@ export const DropsSection = () => {
           ctaOnClick={() => {
             navigate('/drop/ticket/new');
           }}
-          ctaText="Create a Ticket Drop"
+          ctaText="Create an Ticket Drop"
+          description="Generate QRs for each guest, set them up with a wallet and optionally drop attendance proof NFTs."
+          headingText="Ticket your next event."
+          imageNumber={1}
+          subHeadingText="Ticket Drops"
+        />
+      ),
+    },
+    {
+      name: 'nft',
+      label: 'NFT',
+      icon: <ImageIcon height={{ base: '6', md: '7' }} width={{ base: '6', md: '7' }} />,
+      content: (
+        <DropsTemplate
+          ctaOnClick={() => {
+            navigate('/drop/nft/new');
+          }}
+          ctaText="Create a NFT Drop"
+          description="Easily drop NFTs to a large audience, without needing their wallets."
+          headingText="NFTs in a link."
           imageNumber={2}
+          subHeadingText="NFT Drops"
         />
       ),
     },
