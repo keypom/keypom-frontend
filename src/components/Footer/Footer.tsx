@@ -1,6 +1,6 @@
 import { Box, type ChakraProps, HStack, Text, Link, Flex } from '@chakra-ui/react';
 
-import { TwitterLogoIcon, LogoWhite } from '@/components/Icons';
+import { TwitterLogoIcon, LogoNear } from '@/components/Icons';
 
 type FooterProps = ChakraProps;
 
@@ -10,7 +10,7 @@ const NEAR_LINK = 'https://near.org/';
 export const Footer = (props: FooterProps) => {
   return (
     // TODO: ask designer for color coded in design system
-    <Box bgColor="#222734" {...props}>
+    <Box bgColor="#222734" zIndex="dropdown" {...props}>
       <Flex
         color="white"
         flexWrap="wrap"
@@ -18,26 +18,32 @@ export const Footer = (props: FooterProps) => {
         justifyContent="space-between"
         marginX="auto"
         maxW="75rem"
-        px="5"
+        px="6"
         py="6"
       >
-        {/* Powered by NEAR */}
-        <Link href={NEAR_LINK} target="_blank">
-          <HStack>
-            <Text fontSize={{ base: 'md', md: 'xl' }} mr="3.5" whiteSpace="nowrap">
-              Powered by
-            </Text>
-            <LogoWhite h="25px" w="95px" />
-          </HStack>
-        </Link>
-
         {/* Follow us Twitter */}
         <Link href={TWITTER_LINK} target="_blank">
           <HStack align="center" justify="center">
-            <TwitterLogoIcon mr="2.5" mt="1px" />
-            <Text fontSize={{ base: 'md', md: 'xl' }} m={0}>
-              Follow us
+            <TwitterLogoIcon
+              h={{ base: '20px', md: '24px' }}
+              mr="2.5"
+              mt="1px"
+              w={{ base: '20px', md: '24px' }}
+            />
+          </HStack>
+        </Link>
+
+        {/* Powered by NEAR */}
+        <Link href={NEAR_LINK} target="_blank">
+          <HStack spacing="6px">
+            <Text size={{ base: 'sm', md: 'md' }} whiteSpace="nowrap">
+              Powered by
             </Text>
+            <LogoNear
+              color="gray.400"
+              h={{ base: '20px', md: '24px' }}
+              w={{ base: '90px', md: '94px' }}
+            />
           </HStack>
         </Link>
       </Flex>

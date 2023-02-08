@@ -14,7 +14,20 @@ export const CoreLayout = () => {
       bgBlendMode="overlay, normal, normal"
       flexDir="column"
       minH="100vh"
+      overflow="hidden"
+      position="relative"
     >
+      <Box
+        bg="linear-gradient(180deg, rgba(255, 207, 234, 0) 0%, #30c9f34b 100%)"
+        bottom="-75"
+        filter="blur(100px)"
+        h="500px"
+        left="calc(50% - 250px)"
+        overflow="hidden"
+        position="absolute"
+        transform="rotate(30deg)"
+        w="500px"
+      />
       <Navbar w="full" />
       <Box as="main" flex="1" maxW="75rem" mx="auto" px="5" w="full">
         <Outlet />
