@@ -3,8 +3,6 @@ import { createBrowserRouter } from 'react-router-dom';
 
 import { CoreLayout } from '@/components/CoreLayout';
 
-const HomePage = React.lazy(async () => await import('./pages/Home'));
-const AboutPage = React.lazy(async () => await import('./pages/About'));
 const AllDropsPage = React.lazy(
   async () => await import('./features/all-drops/routes/AllDropsPage'),
 );
