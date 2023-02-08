@@ -9,6 +9,7 @@ import { router } from '@/router';
 
 import '@near-wallet-selector/modal-ui/styles.css';
 import '@/components/WalletSelectorModal/WalletSelectorModal.css';
+import keypomInstance from './lib/keypom';
 
 const ChakraProvider = React.lazy(
   async () =>
@@ -16,6 +17,8 @@ const ChakraProvider = React.lazy(
       return { default: mod.ChakraProvider };
     }),
 );
+
+keypomInstance.init();
 
 export const App = () => {
   return (
