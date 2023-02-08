@@ -7,6 +7,7 @@ const AllDropsPage = React.lazy(
   async () => await import('./features/all-drops/routes/AllDropsPage'),
 );
 const LandingPage = React.lazy(async () => await import('@/features/landing/routes/LandingPage'));
+const ClaimPage = React.lazy(async () => await import('@/features/claim/routes/ClaimPage'));
 const ClaimTokenPage = React.lazy(async () => await import('@/features/claim/routes/token'));
 const ClaimNftPage = React.lazy(async () => await import('@/features/claim/routes/nft'));
 const ClaimGiftPage = React.lazy(async () => await import('@/features/claim/routes/gift'));
@@ -110,6 +111,10 @@ export const router = createBrowserRouter([
                 element: <ClaimTicketPage />,
               },
             ],
+          },
+          {
+            path: ':contractId/:secretKey',
+            element: <ClaimPage />,
           },
         ],
       },
