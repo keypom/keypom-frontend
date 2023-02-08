@@ -54,9 +54,23 @@ const Scanner = () => {
     // if (keyInfo?.remaining_uses === 2) return true
 
     keyInfo = await view('get_key_information', { key: publicKey });
-    if (keyInfo?.remaining_uses === 1) return true;
+    return keyInfo?.remaining_uses === 1;
+  };
 
-    return false;
+  const handleResult = async (result, error) => {
+    if (result != null) {
+      try {
+        const res = await claim(result.getText());
+        setValid(res);
+      } catch (e) {
+        setValid('Network Error. Reload Scanner. Try ticket again but please admit the attendee.');
+      }
+    }
+
+    if (error != null) {
+      // eslint-disable-next-line no-console
+      console.info(error);
+    }
   };
 
   return (
@@ -71,23 +85,7 @@ const Scanner = () => {
                 constraints={{ facingMode: 'environment' }}
                 containerStyle={{ width: '100%', height: '100%' }}
                 ViewFinder={() => <ViewFinder />}
-                onResult={async (result, error) => {
-                  if (result != null) {
-                    try {
-                      const res = await claim(result.getText());
-                      setValid(res);
-                    } catch (e) {
-                      setValid(
-                        'Network Error. Reload Scanner. Try ticket again but please admit the attendee.',
-                      );
-                    }
-                  }
-
-                  if (error != null) {
-                    // eslint-disable-next-line no-console
-                    console.info(error);
-                  }
-                }}
+                onResult={handleResult}
               />
             </Center>
           )}
