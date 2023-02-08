@@ -10,7 +10,7 @@ const NEAR_LINK = 'https://near.org/';
 export const Footer = (props: FooterProps) => {
   return (
     // TODO: ask designer for color coded in design system
-    <Box bgColor="#222734" {...props}>
+    <Box bgColor="#222734" zIndex="dropdown" {...props}>
       <Flex
         color="white"
         flexWrap="wrap"
