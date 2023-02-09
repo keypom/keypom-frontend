@@ -1,5 +1,5 @@
-import { type PropsWithChildren } from 'react';
-import { Navigate, Outlet } from 'react-router-dom';
+import { useEffect, type PropsWithChildren } from 'react';
+import { Outlet, useNavigate } from 'react-router-dom';
 import { isUndefined } from 'lodash';
 
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
@@ -13,10 +13,13 @@ export const ProtectedRoute = ({
   children,
 }: PropsWithChildren<ProtectedRouteProps>) => {
   const { isLoggedIn } = useAuthWalletContext();
+  const navigate = useNavigate();
 
-  if (!isLoggedIn) {
-    return <Navigate replace to={redirectPath} />;
-  }
+  useEffect(() => {
+    if (!isLoggedIn) {
+      navigate(redirectPath);
+    }
+  }, [isLoggedIn]);
 
   return isUndefined(children) ? <Outlet /> : <>{children}</>;
 };

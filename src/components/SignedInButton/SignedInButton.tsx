@@ -26,7 +26,10 @@ export const SignedInButton = () => {
 
     wallet
       .signOut()
-      .then((_) => (window.location.href = ''))
+      .then((_) => {
+        sessionStorage.removeItem('account');
+        window.location.href = '';
+      })
       .catch((err) => {
         console.log('Failed to sign out');
         console.error(err);

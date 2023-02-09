@@ -82,32 +82,6 @@ export const AuthWalletContextProvider = ({ children }: PropsWithChildren) => {
     initWalletSelector().catch(console.error); // eslint-disable-line no-console
   }, []);
 
-  // COMMENTED OUT
-  // Runtime error when this useEffect is used
-  // Uncaught TypeError: Class extends value undefined is not a constructor or null
-  // TODO: investigate and mitigate
-  //
-  // useEffect(() => {
-  //   if (selector == null) {
-  //     return null;
-  //   }
-
-  //   const subscription = selector.store.observable
-  //     .pipe(
-  //       map((state) => state.accounts),
-  //       distinctUntilChanged(),
-  //     )
-  //     .subscribe((nextAccounts) => {
-  //       console.log('Accounts Update', nextAccounts);
-
-  //       setAccounts(nextAccounts);
-  //     });
-
-  //   return () => {
-  //     subscription.unsubscribe();
-  //   };
-  // }, [selector]);
-
   // set account
   useEffect(() => {
     if (!accountId) {
@@ -119,6 +93,7 @@ export const AuthWalletContextProvider = ({ children }: PropsWithChildren) => {
 
     getAccount()
       .then((nextAccount) => {
+        sessionStorage.setItem('account', JSON.stringify(nextAccount));
         setAccount(nextAccount);
         // setLoading(false);
       })
@@ -132,7 +107,7 @@ export const AuthWalletContextProvider = ({ children }: PropsWithChildren) => {
         accounts,
         selector,
         accountId,
-        isLoggedIn: !(account === undefined), // selector?.isSignedIn(), with null, cant login. with undefined, cant signout properly
+        isLoggedIn: Boolean(sessionStorage.getItem('account')), // selector?.isSignedIn(), with null, cant login. with undefined, cant signout properly
         account,
       }}
     >
