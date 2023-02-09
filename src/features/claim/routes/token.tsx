@@ -1,20 +1,46 @@
 import { Box, Center, Heading, useBoolean, VStack } from '@chakra-ui/react';
+import { useParams } from 'react-router-dom';
+import { useEffect, useState } from 'react';
 
 import { IconBox } from '@/components/IconBox';
 import { BoxWithShape } from '@/components/BoxWithShape';
 import { StarIcon } from '@/components/Icons';
 import { DropBox } from '@/components/DropBox/DropBox';
+import keypomInstance from '@/lib/keypom';
+import { toYocto } from '@/utils/toYocto';
 
 import { ExistingWallet } from '../components/ExistingWallet';
 import { CreateWallet } from '../components/CreateWallet';
 
-const DROP_TEST_DATA = [
-  { coin: 'ETH', value: 0.1 },
-  { coin: 'NEAR', value: 20 },
-];
+interface TokenAsset {
+  icon: string;
+  value: number;
+  symbol: string;
+}
 
 const ClaimTokenPage = () => {
+  const { secretKey = '', contractId = '' } = useParams();
   const [haveWallet, showInputWallet] = useBoolean(false);
+  const [tokens, setTokens] = useState<TokenAsset[]>([]);
+
+  const loadClaimInfo = async () => {
+    const { tokens: _tokens, amount } = await keypomInstance.getTokenClaimInformation(
+      contractId,
+      secretKey,
+    );
+    setTokens([
+      {
+        icon: _tokens.icon as string,
+        value: toYocto(parseFloat(amount)),
+        symbol: _tokens.symbol,
+      },
+    ]);
+  };
+
+  useEffect(() => {
+    // eslint-disable-next-line
+    loadClaimInfo();
+  }, []);
 
   return (
     <Box mb={{ base: '5', md: '14' }} minH="100%" minW="100%" mt={{ base: '52px', md: '100px' }}>
@@ -43,8 +69,8 @@ const ClaimTokenPage = () => {
             >
               <VStack>
                 {/** div placeholder */}
-                {DROP_TEST_DATA.map(({ coin, value }, index) => (
-                  <DropBox key={index} coin={coin} value={value} />
+                {tokens.map(({ icon, value, symbol }, index) => (
+                  <DropBox key={index} icon={icon} symbol={symbol} value={value} />
                 ))}
               </VStack>
             </BoxWithShape>

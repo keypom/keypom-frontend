@@ -4,6 +4,7 @@ import {
   initKeypom,
   type ProtocolReturnedDrop,
   updateKeypomContractId,
+  getFTMetadata,
 } from 'keypom-js';
 
 import { DROP_TYPE } from '@/constants/common';
@@ -79,6 +80,22 @@ class KeypomJS {
     }
 
     return null;
+  }
+
+  /*
+  Drop:
+
+  metadata -> drop name
+*/
+  async getTokenClaimInformation(contractId: string, secretKey: string) {
+    const drop = await getDropInformation({ secretKey });
+    const ftMetadata = await getFTMetadata({ contractId: drop.ft?.contract_id as string });
+
+    return {
+      dropName: drop.metadata,
+      tokens: ftMetadata,
+      amount: drop.deposit_per_use,
+    };
   }
 }
 
