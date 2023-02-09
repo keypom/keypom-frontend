@@ -31,6 +31,8 @@ const TicketDropManagerPage = React.lazy(
   async () => await import('@/features/drop-manager/routes/ticket/[id]'),
 );
 
+const ScannerPage = React.lazy(async () => await import('@/features/scanner/routes/ScannerPage'));
+
 export const router = createBrowserRouter([
   {
     element: <CoreLayout />,
@@ -112,6 +114,10 @@ export const router = createBrowserRouter([
             ],
           },
         ],
+      },
+      {
+        path: 'scanner',
+        element: <ScannerPage />,
       },
     ],
   },
