@@ -1,11 +1,18 @@
-import { getDropInformation, getEnv, initKeypom, updateKeypomContractId } from 'keypom-js';
+import {
+  getDropInformation,
+  getEnv,
+  initKeypom,
+  type ProtocolReturnedDrop,
+  updateKeypomContractId,
+} from 'keypom-js';
+
+import { DROP_TYPE } from '@/constants/common';
 
 let instance: KeypomJS;
 
 const config = {
   network: 'testnet',
 };
-
 class KeypomJS {
   constructor() {
     if (instance !== undefined) {
@@ -28,23 +35,50 @@ class KeypomJS {
   // updateKeypomContractId
   // getDropInformation
   // check drop type
-  async getClaimDropType(contractId: string, secretKey: string) {
+  /*
+    ft -> Tokens
+    fc -> Ticket
+    nft -> NFT
+    simple -> simple drop?
+  */
+  async getLinkdropType(contractId: string, secretKey: string) {
     const { networkId, supportedKeypomContracts } = getEnv();
-    console.log(networkId, supportedKeypomContracts);
 
     if (
       supportedKeypomContracts === undefined ||
       networkId === undefined ||
       contractId === undefined
     ) {
-      return;
+      throw new Error('Please supply supportedKeypomContracts, networkId and contractId');
     }
 
-    if (supportedKeypomContracts[networkId][contractId] !== undefined) {
-      await updateKeypomContractId({ keypomContractId: contractId });
-      const drop = await getDropInformation({ secretKey });
-      // check drop type
+    if (supportedKeypomContracts[networkId][contractId] === undefined) {
+      throw new Error("Linkdrop is invalid and isn't officially supported by Keypom contract.");
     }
+
+    await updateKeypomContractId({ keypomContractId: contractId });
+    const drop = await getDropInformation({ secretKey });
+    return this.getDropType(drop);
+  }
+
+  getDropType(drop: ProtocolReturnedDrop) {
+    if (drop.ft != null) {
+      return DROP_TYPE.TOKEN;
+    }
+
+    if (drop.fc != null) {
+      return DROP_TYPE.TICKET;
+    }
+
+    if (drop.nft != null) {
+      return DROP_TYPE.NFT;
+    }
+
+    if (drop.simple != null) {
+      return DROP_TYPE.SIMPLE;
+    }
+
+    return null;
   }
 }
 
