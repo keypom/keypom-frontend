@@ -3,6 +3,8 @@ import { createBrowserRouter } from 'react-router-dom';
 
 import { CoreLayout } from '@/components/CoreLayout';
 
+import { ProtectedRoute } from './components/ProtectedRoutes';
+
 const AllDropsPage = React.lazy(
   async () => await import('./features/all-drops/routes/AllDropsPage'),
 );
@@ -43,10 +45,15 @@ export const router = createBrowserRouter([
       },
       {
         path: 'drops',
-        element: <AllDropsPage />,
+        element: (
+          <ProtectedRoute>
+            <AllDropsPage />
+          </ProtectedRoute>
+        ),
       },
       {
         path: 'drop',
+        element: <ProtectedRoute />,
         children: [
           {
             path: 'token',
@@ -91,6 +98,7 @@ export const router = createBrowserRouter([
       },
       {
         path: 'claim',
+        element: <ProtectedRoute />,
         children: [
           {
             path: 'token',
