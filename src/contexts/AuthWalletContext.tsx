@@ -44,20 +44,6 @@ export const AuthWalletContextProvider = ({ children }: PropsWithChildren) => {
 
   const accountId = accounts.find((account) => account.active)?.accountId || null;
 
-  const initWalletSelector = async () => {
-    const walletSelector = new NearWalletSelector();
-    await walletSelector.init();
-
-    setModal(walletSelector.modal);
-    setSelector(walletSelector.selector);
-    setAccounts(walletSelector.accounts);
-
-    if (typeof window !== undefined) {
-      window.modal = walletSelector.modal;
-      window.selector = walletSelector.selector;
-    }
-  };
-
   const getAccount = useCallback(async (): Promise<Account | null> => {
     if (!accountId) {
       return null;
@@ -79,7 +65,21 @@ export const AuthWalletContextProvider = ({ children }: PropsWithChildren) => {
   }, [accountId, selector?.options]);
 
   useEffect(() => {
-    initWalletSelector();
+    const initWalletSelector = async () => {
+      const walletSelector = new NearWalletSelector();
+      await walletSelector.init();
+
+      setModal(walletSelector.modal);
+      setSelector(walletSelector.selector);
+      setAccounts(walletSelector.accounts);
+
+      if (typeof window !== undefined) {
+        window.modal = walletSelector.modal;
+        window.selector = walletSelector.selector;
+      }
+    };
+
+    initWalletSelector().catch(console.error); // eslint-disable-line no-console
   }, []);
 
   // COMMENTED OUT
@@ -117,15 +117,24 @@ export const AuthWalletContextProvider = ({ children }: PropsWithChildren) => {
 
     // setLoading(true);
 
-    getAccount().then((nextAccount) => {
-      setAccount(nextAccount);
-      // setLoading(false);
-    });
+    getAccount()
+      .then((nextAccount) => {
+        setAccount(nextAccount);
+        // setLoading(false);
+      })
+      .catch(console.error); // eslint-disable-line no-console
   }, [accountId, getAccount]);
 
   return (
     <AuthWalletContext.Provider
-      value={{ modal, accounts, selector, accountId, isLoggedIn: !(account == null), account }}
+      value={{
+        modal,
+        accounts,
+        selector,
+        accountId,
+        isLoggedIn: !(account === undefined), // selector?.isSignedIn(), with null, cant login. with undefined, cant signout properly
+        account,
+      }}
     >
       {children}
     </AuthWalletContext.Provider>
