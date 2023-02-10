@@ -8,24 +8,29 @@ import {
   MenuButton,
   MenuItem,
   MenuList,
+  Spinner,
   Text,
 } from '@chakra-ui/react';
 
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
 import { toYocto } from '@/utils/toYocto';
+import { truncateAddress } from '@/utils/truncateAddress';
 
 import { DropIcon, NearLogoIcon, SignOutIcon } from '../Icons';
 
 export const SignedInButton = () => {
   const { account, selector } = useAuthWalletContext();
-  const amountInYocto = toYocto(+account.amount);
+  const amountInYocto = toYocto(account === null ? 0 : parseInt(account.amount));
 
   const handleSignOut = async () => {
     const wallet = await selector.wallet();
 
     wallet
       .signOut()
-      .then((res) => (window.location.href = ''))
+      .then((_) => {
+        sessionStorage.removeItem('account');
+        window.location.href = '';
+      })
       .catch((err) => {
         console.log('Failed to sign out');
         console.error(err);
@@ -55,7 +60,11 @@ export const SignedInButton = () => {
                 mr="2"
                 w="4"
               />
-              <Text>{account.account_id}</Text>
+              {account === null || account === undefined ? (
+                <Spinner />
+              ) : (
+                <Text>{truncateAddress(account.account_id)}</Text>
+              )}
             </Center>
           </MenuButton>
           <MenuList>
