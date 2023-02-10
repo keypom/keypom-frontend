@@ -1,15 +1,19 @@
 import { Text, VStack } from '@chakra-ui/react';
 
-import { WalletOption } from './WalletOption';
+import { WalletOption, type WalletOptionProps } from './WalletOption';
 
 interface CreateWalletProps {
   onClick: () => void;
 }
 
-const CREATE_WALLET_TEST_DATA = [
-  { coin: 'NEAR', walletName: 'NEAR' },
-  { coin: 'HERE', walletName: 'My HERE' },
-  { coin: 'ETH', walletName: 'Metamask' },
+const CREATE_WALLET_OPTIONS: WalletOptionProps[] = [
+  { coin: 'NEAR', walletName: 'NEAR', externalLink: 'https://wallet.near.org/create' },
+  {
+    coin: 'MYNEAR',
+    walletName: 'My Near',
+    externalLink: 'https://app.mynearwallet.com/create',
+  },
+  { coin: 'HERE', walletName: 'My HERE', externalLink: 'https://herewallet.app/' },
 ];
 
 export const CreateWallet = ({ onClick }: CreateWalletProps) => {
@@ -19,8 +23,8 @@ export const CreateWallet = ({ onClick }: CreateWalletProps) => {
         Create a wallet to store your assets
       </Text>
       <VStack spacing="1" w="full">
-        {CREATE_WALLET_TEST_DATA.map(({ coin, walletName }, index) => (
-          <WalletOption key={index} coin={coin} walletName={walletName} />
+        {CREATE_WALLET_OPTIONS.map((options, index) => (
+          <WalletOption key={index} {...options} />
         ))}
       </VStack>
       <Text
