@@ -92,7 +92,7 @@ export const router = createBrowserRouter([
         path: 'claim',
         children: [
           {
-            path: 'token/:contractId/:secretKey',
+            path: 'token/:secretKey',
             element: <ClaimTokenPage />,
           },
           {

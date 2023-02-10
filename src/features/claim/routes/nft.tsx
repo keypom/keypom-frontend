@@ -1,15 +1,39 @@
 import { Box, Center, Heading, useBoolean, VStack } from '@chakra-ui/react';
+import { useEffect, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 
 import { IconBox } from '@/components/IconBox';
 import { BoxWithShape } from '@/components/BoxWithShape';
 import { TicketIcon } from '@/components/Icons';
+import keypomInstance from '@/lib/keypom';
 
 import { CreateWallet } from '../components/CreateWallet';
 import { ExistingWallet } from '../components/ExistingWallet';
 import { NftReward } from '../components/nft/NftReward';
 
 const ClaimNftPage = () => {
+  const navigate = useNavigate();
+  const { secretKey = '' } = useParams();
   const [haveWallet, showInputWallet] = useBoolean(false);
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [nftImage, setNftImage] = useState('');
+
+  const loadClaimInfo = async () => {
+    const nftData = await keypomInstance.getNFTClaimInformation(secretKey);
+
+    setTitle(nftData.title);
+    setDescription(nftData.description);
+    setNftImage(nftData.media);
+  };
+
+  useEffect(() => {
+    if (secretKey === '') {
+      navigate('/');
+    }
+    // eslint-disable-next-line
+    loadClaimInfo();
+  }, []);
 
   return (
     <Box mb={{ base: '5', md: '14' }} minH="100%" minW="100%" mt={{ base: '52px', md: '100px' }}>
@@ -36,11 +60,7 @@ const ClaimNftPage = () => {
               w="full "
             >
               {/** div placeholder */}
-              <NftReward
-                artworkSrc="https://vaxxeddoggos.com/assets/doggos/1042.png"
-                description={`Here’s your cute character to commemorate the Danny Daze Annual event`}
-                nftName="Danny Daze NFT"
-              />
+              <NftReward artworkSrc={nftImage} description={description} nftName={title} />
             </BoxWithShape>
             <VStack
               bg="gray.50"

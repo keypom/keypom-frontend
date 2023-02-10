@@ -16,7 +16,7 @@ const ClaimPage = () => {
       const type = await keypomInstance.getLinkdropType(contractId, secretKey);
       switch (type) {
         case DROP_TYPE.TOKEN:
-          navigate(`/claim/token/${contractId}/${secretKey}`);
+          navigate(`/claim/token/${secretKey}`);
           break;
         case DROP_TYPE.TICKET:
           navigate(`/claim/ticket/${contractId}/${secretKey}`);

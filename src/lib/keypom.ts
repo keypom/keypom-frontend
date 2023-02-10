@@ -7,7 +7,7 @@ import {
   getFTMetadata,
 } from 'keypom-js';
 
-import { DROP_TYPE } from '@/constants/common';
+import { CLOUDFLARE_IPFS, DROP_TYPE } from '@/constants/common';
 
 let instance: KeypomJS;
 
@@ -38,8 +38,8 @@ class KeypomJS {
   // check drop type
   /*
     ft -> Tokens
-    fc -> Ticket
-    nft -> NFT
+    fc -> Ticket (3 method calls)
+    fc -> NFT (1 method call)
     simple -> simple drop?
   */
   async getLinkdropType(contractId: string, secretKey: string) {
@@ -59,23 +59,30 @@ class KeypomJS {
 
     await updateKeypomContractId({ keypomContractId: contractId });
     const drop = await getDropInformation({ secretKey });
+
     return this.getDropType(drop);
   }
 
   getDropType(drop: ProtocolReturnedDrop) {
-    if (drop.ft != null) {
+    if (drop.ft !== undefined) {
       return DROP_TYPE.TOKEN;
     }
 
-    if (drop.fc != null) {
-      return DROP_TYPE.TICKET;
+    if (drop.fc !== undefined) {
+      if (drop.fc.methods.length === 3) {
+        return DROP_TYPE.TICKET;
+      }
+
+      if (drop.fc.methods.length === 1) {
+        return DROP_TYPE.NFT;
+      }
     }
 
-    if (drop.nft != null) {
+    if (drop.nft !== undefined) {
       return DROP_TYPE.NFT;
     }
 
-    if (drop.simple != null) {
+    if (drop.simple !== undefined) {
       return DROP_TYPE.SIMPLE;
     }
 
@@ -87,7 +94,7 @@ class KeypomJS {
 
   metadata -> drop name
 */
-  async getTokenClaimInformation(contractId: string, secretKey: string) {
+  async getTokenClaimInformation(secretKey: string) {
     const drop = await getDropInformation({ secretKey });
     const ftMetadata = await getFTMetadata({ contractId: drop.ft?.contract_id as string });
 
@@ -95,6 +102,36 @@ class KeypomJS {
       dropName: drop.metadata,
       tokens: ftMetadata,
       amount: drop.deposit_per_use,
+    };
+  }
+
+  async getNFTClaimInformation(secretKey: string) {
+    // given fc
+    const drop = await getDropInformation({ secretKey });
+
+    const fcMethods = drop.fc?.methods;
+    if (
+      fcMethods === undefined ||
+      fcMethods.length === 0 ||
+      fcMethods[0] === undefined ||
+      fcMethods[0][0] === undefined
+    ) {
+      throw new Error('Unable to retrieve function calls.');
+    }
+    const fcMethod = fcMethods[0][0];
+    const { receiver_id: contractId } = fcMethod;
+    const { viewCall } = getEnv();
+    const nftData = await viewCall({
+      contractId,
+      methodName: 'get_series_info',
+      args: { mint_id: parseFloat(drop.drop_id) },
+    });
+
+    return {
+      dropName: drop.metadata,
+      media: `${CLOUDFLARE_IPFS}/${nftData.metadata.media}`, // eslint-disable-line
+      title: nftData.metadata.title,
+      description: nftData.metadata.description,
     };
   }
 }

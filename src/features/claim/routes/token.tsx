@@ -1,5 +1,5 @@
 import { Box, Center, Heading, useBoolean, VStack } from '@chakra-ui/react';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 
 import { IconBox } from '@/components/IconBox';
@@ -19,15 +19,13 @@ interface TokenAsset {
 }
 
 const ClaimTokenPage = () => {
-  const { secretKey = '', contractId = '' } = useParams();
+  const navigate = useNavigate();
+  const { secretKey = '' } = useParams();
   const [haveWallet, showInputWallet] = useBoolean(false);
   const [tokens, setTokens] = useState<TokenAsset[]>([]);
 
   const loadClaimInfo = async () => {
-    const { tokens: _tokens, amount } = await keypomInstance.getTokenClaimInformation(
-      contractId,
-      secretKey,
-    );
+    const { tokens: _tokens, amount } = await keypomInstance.getTokenClaimInformation(secretKey);
     setTokens([
       {
         icon: _tokens.icon as string,
@@ -38,6 +36,9 @@ const ClaimTokenPage = () => {
   };
 
   useEffect(() => {
+    if (secretKey === '') {
+      navigate('/');
+    }
     // eslint-disable-next-line
     loadClaimInfo();
   }, []);
