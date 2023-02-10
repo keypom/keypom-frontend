@@ -14,6 +14,7 @@ import {
 
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
 import { toYocto } from '@/utils/toYocto';
+import { truncateAddress } from '@/utils/truncateAddress';
 
 import { DropIcon, NearLogoIcon, SignOutIcon } from '../Icons';
 
@@ -62,7 +63,7 @@ export const SignedInButton = () => {
               {account === null || account === undefined ? (
                 <Spinner />
               ) : (
-                <Text>{account.account_id}</Text>
+                <Text>{truncateAddress(account.account_id)}</Text>
               )}
             </Center>
           </MenuButton>
