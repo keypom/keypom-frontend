@@ -72,7 +72,7 @@ export const WalletSelectorMenu = ({
             <HStack justifyContent="space-around" px="3">
               {selectedWalletTokenIcon}
               <Text fontWeight="medium" lineHeight="2">
-                {selectedWalletToken?.symbol || 'Select'}
+                {selectedWalletToken?.symbol ?? 'Select'}
               </Text>
               <ChevronDownIcon />
             </HStack>

@@ -44,7 +44,7 @@ const CreateTicketDropContext = createContext<CreateTicketDropContextTypes>(null
 
 // TODO: this is only a mock implementation of the backend api
 const createLinks = async () => {
-  await new Promise((res) => setTimeout(res, 2000));
+  await new Promise((_resolve) => setTimeout(_resolve, 2000));
   return {
     success: true,
   };
@@ -169,7 +169,7 @@ export const CreateTicketDropProvider = ({ children }: PropsWithChildren) => {
 
   const handleDropConfirmation = () => {
     // TODO: send transaction/request to backend
-    trigger();
+    void trigger();
   };
 
   const createLinksSWR = {

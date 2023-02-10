@@ -44,7 +44,7 @@ export const AdditionalGiftSchema = z
   .superRefine(({ additionalGift }, ctx) => {
     if (additionalGift.type === 'token') {
       const token = additionalGift.token;
-      if (!token.amountPerLink || !(token.amountPerLink > 0)) {
+      if (token.amountPerLink === undefined || !(token?.amountPerLink > 0)) {
         ctx.addIssue({
           path: ['additionalGift.token.amountPerLink'],
           code: z.ZodIssueCode.custom,

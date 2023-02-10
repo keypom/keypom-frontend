@@ -4,7 +4,7 @@ import { TextInput } from '@/components/TextInput';
 import { type CreateNftDropFormFieldTypes } from '@/features/create-drop/components/nft/CreateNftDropForm';
 
 interface RedirectInputProps {
-  control: Control<CreateNftDropFormFieldTypes, any>;
+  control: Control<CreateNftDropFormFieldTypes, unknown>;
 }
 
 const FIELD_NAME = 'redirectLink';

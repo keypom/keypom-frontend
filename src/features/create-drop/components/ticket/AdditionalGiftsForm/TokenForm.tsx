@@ -24,7 +24,7 @@ export const TokenForm = () => {
     'totalTickets',
   ]);
   const totalCost = useMemo(() => {
-    if (totalTickets && amountPerLink) {
+    if (totalTickets && amountPerLink !== undefined) {
       return totalTickets * (amountPerLink as number);
     }
     return 0;
@@ -45,7 +45,7 @@ export const TokenForm = () => {
       name="additionalGift.token.amountPerLink"
       render={({ field, fieldState: { error } }) => (
         <FormControl
-          errorText={error?.message || selectedFromWalletError?.message}
+          errorText={error?.message ?? selectedFromWalletError?.message}
           label="Add tokens"
           my="0"
         >
@@ -54,7 +54,7 @@ export const TokenForm = () => {
             isInvalid={Boolean(error?.message)}
             onChange={(e) => {
               field.onChange(parseFloat(e.target.value));
-              trigger(); // errors not getting updated if its not manually validated
+              void trigger(); // errors not getting updated if its not manually validated
             }}
           >
             <WalletBalanceInput.TokenMenu

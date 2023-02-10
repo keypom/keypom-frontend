@@ -32,7 +32,7 @@ type Schema = z.infer<typeof schema>;
 
 // TODO: this is only a mock implementation of the backend api
 const createLinks = async () => {
-  await new Promise((res) => setTimeout(res, 2000));
+  await new Promise((_resolve) => setTimeout(_resolve, 2000));
   return {
     success: true,
   };
@@ -86,7 +86,7 @@ export const CreateTokenDropProvider = ({ children }: PropsWithChildren) => {
       {
         type: 'text',
         name: 'Redirect link',
-        value: redirectLink,
+        value: redirectLink ?? '',
       },
     ];
   };
@@ -123,7 +123,7 @@ export const CreateTokenDropProvider = ({ children }: PropsWithChildren) => {
 
   const handleDropConfirmation = () => {
     // TODO: send transaction/request to backend
-    trigger();
+    void trigger();
   };
 
   const createLinksSWR = {

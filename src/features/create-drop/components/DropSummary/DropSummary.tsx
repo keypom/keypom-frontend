@@ -65,6 +65,7 @@ export const DropSummary = ({
   useEffect(() => {
     if (data?.success) {
       // TODO: redirect to token drop manager page (next task)
+      // eslint-disable-next-line no-console
       console.log('transaction success..redirect to drop manager page');
     }
   }, [data?.success]);

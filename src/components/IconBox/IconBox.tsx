@@ -20,7 +20,7 @@ export const IconBox = ({ children, icon, ...props }: PropsWithChildren<IconBoxP
       textAlign="center"
       {...props}
     >
-      {icon && (
+      {icon !== undefined && (
         <Box left="50%" position="absolute" top="0" transform="translate(-50%, -50%)" zIndex="11">
           <RoundIcon icon={icon} />
         </Box>
