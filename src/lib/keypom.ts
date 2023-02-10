@@ -73,9 +73,15 @@ class KeypomJS {
         return DROP_TYPE.TICKET;
       }
 
-      if (drop.fc.methods.length === 1) {
+      if (
+        drop.fc.methods.length === 1 &&
+        drop.fc.methods[0] !== undefined &&
+        drop.fc.methods[0][0].method_name === 'nft_mint'
+      ) {
         return DROP_TYPE.NFT;
       }
+
+      return null;
     }
 
     if (drop.nft !== undefined) {
@@ -118,6 +124,7 @@ class KeypomJS {
     ) {
       throw new Error('Unable to retrieve function calls.');
     }
+    console.log(drop);
     const fcMethod = fcMethods[0][0];
     const { receiver_id: contractId } = fcMethod;
     const { viewCall } = getEnv();

@@ -25,7 +25,7 @@ const ClaimPage = () => {
           navigate(`/claim/nft/${contractId}/${secretKey}`);
           break;
         default:
-          navigate('/');
+          throw new Error('This linkdrop is unsupported.');
       }
     } catch (err) {
       setError(err.message);
