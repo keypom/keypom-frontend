@@ -43,6 +43,10 @@ const ClaimTokenPage = () => {
     loadClaimInfo();
   }, []);
 
+  const handleClaim = async (walletAddress: string) => {
+    await keypomInstance.claim(secretKey, walletAddress);
+  };
+
   return (
     <Box mb={{ base: '5', md: '14' }} minH="100%" minW="100%" mt={{ base: '52px', md: '100px' }}>
       <Center>
@@ -87,7 +91,7 @@ const ClaimTokenPage = () => {
               ) : (
                 <>
                   {/** TODO: handleSubmit button */}
-                  <ExistingWallet handleSubmit={() => null} onBack={showInputWallet.off} />
+                  <ExistingWallet handleSubmit={handleClaim} onBack={showInputWallet.off} />
                 </>
               )}
             </VStack>

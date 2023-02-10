@@ -5,6 +5,7 @@ import {
   type ProtocolReturnedDrop,
   updateKeypomContractId,
   getFTMetadata,
+  claim,
 } from 'keypom-js';
 
 import { CLOUDFLARE_IPFS, DROP_TYPE } from '@/constants/common';
@@ -95,11 +96,6 @@ class KeypomJS {
     return null;
   }
 
-  /*
-  Drop:
-
-  metadata -> drop name
-*/
   async getTokenClaimInformation(secretKey: string) {
     const drop = await getDropInformation({ secretKey });
     const ftMetadata = await getFTMetadata({ contractId: drop.ft?.contract_id as string });
@@ -140,6 +136,10 @@ class KeypomJS {
       title: nftData.metadata.title,
       description: nftData.metadata.description,
     };
+  }
+
+  async claim(secretKey: string, walletAddress: string) {
+    await claim({ secretKey, accountId: walletAddress });
   }
 }
 

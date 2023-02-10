@@ -1,14 +1,16 @@
 import { Button, Center, Text } from '@chakra-ui/react';
+import { useState } from 'react';
 
 import { ChevronLeftIcon } from '@/components/Icons';
 import { TextInput } from '@/components/TextInput';
 
 interface ExistingWalletProps {
   onBack: () => void;
-  handleSubmit?: () => void;
+  handleSubmit: (walletAddress: string) => Promise<void>;
 }
 
 export const ExistingWallet = ({ onBack, handleSubmit }: ExistingWalletProps) => {
+  const [walletAddress, setWalletAddress] = useState('');
   return (
     <>
       <Center
@@ -24,10 +26,20 @@ export const ExistingWallet = ({ onBack, handleSubmit }: ExistingWalletProps) =>
           Send to existing wallet
         </Text>
       </Center>
-      {/** TODO: integrate with react-hook-form */}
-      {/** TODO: add design from input theme */}
-      <TextInput label="Your wallet address" placeholder="yourname.near" />
-      <Button w="full" onClick={handleSubmit}>
+      <TextInput
+        label="Your wallet address"
+        placeholder="yourname.near"
+        value={walletAddress}
+        onChange={(e) => {
+          setWalletAddress(e.target.value);
+        }}
+      />
+      <Button
+        w="full"
+        onClick={() => {
+          handleSubmit(walletAddress);
+        }}
+      >
         Send
       </Button>
     </>
