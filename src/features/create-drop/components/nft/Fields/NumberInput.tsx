@@ -4,13 +4,13 @@ import { TextInput } from '@/components/TextInput';
 
 import { type CreateNftDropFormFieldTypes } from '../CreateNftDropForm';
 
-interface NftNameInputProps {
+interface NumberInputProps {
   control: Control<CreateNftDropFormFieldTypes, any>;
 }
 
-const FIELD_NAME = 'title';
+const FIELD_NAME = 'number';
 
-export const NftNameInput = ({ control }: NftNameInputProps) => {
+export const NumberInput = ({ control }: NumberInputProps) => {
   return (
     <Controller
       control={control}
@@ -19,8 +19,9 @@ export const NftNameInput = ({ control }: NftNameInputProps) => {
         <TextInput
           errorMessage={error?.message}
           isInvalid={!!error?.message}
-          label="Name"
-          placeholder="Danny Daze"
+          label="Number"
+          defaultValue={1}
+          type="number"
           {...field}
         />
       )}

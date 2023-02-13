@@ -39,7 +39,8 @@ export const DropSummary = ({
     }
   });
   const paymentSummary = costsData.map((payment) => {
-    const { name, total, isDiscount, discountText, helperText } = payment;
+    const { name, total, isDiscount, discountText, helperText, doNotRender } = payment;
+    if (doNotRender) return null
     return (
       <HStack key={name} mb="6px" spacing="auto">
         <Text fontSize={{ base: 'xs', md: 'sm' }}>{name}</Text>

@@ -3,7 +3,9 @@ import { FormProvider, useForm } from 'react-hook-form';
 import useSWRMutation from 'swr/mutation';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { createDrop, formatNearAmount } from 'keypom-js';
+import BN from 'bn.js';
+import { createDrop, formatNearAmount, parseNearAmount, addToBalance } from 'keypom-js';
+import { set, getFileAsBase64 } from '@/utils/localStorage';
 
 import { urlRegex } from '@/constants/common';
 import {
@@ -12,12 +14,14 @@ import {
   type SummaryItem,
 } from '@/features/create-drop/types/types';
 
+const NFT_ATTEMPT_KEY = 'NFT_ATTEMPT';
 const MAX_FILE_SIZE = 500000;
 const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
 
 const schema = z.object({
-  nftName: z.string().min(1, 'NFT name required'),
+  title: z.string().min(1, 'NFT name required'),
   description: z.string().min(1, 'Description required'),
+  number: z.coerce.number().min(1, 'You must create at least 1 NFT').max(50, 'Max NFTs per drop is currently 50'),
   artwork: z
     .any()
     .refine((files) => files?.length == 1, 'Image is required.')
@@ -45,7 +49,7 @@ const createLinks = async () => {
 interface CreateNftDropContextType {
   getSummaryData: () => SummaryItem[];
   getPaymentData: () => PaymentData;
-  handleDropConfirmation: () => void;
+  handleDropConfirmation: (paymentData: PaymentData) => void;
   createLinksSWR: {
     data: { success: boolean };
     handleDropConfirmation: () => void;
@@ -59,8 +63,9 @@ export const CreateNftDropProvider = ({ children }: PropsWithChildren) => {
   const methods = useForm<Schema>({
     mode: 'onChange',
     defaultValues: {
-      nftName: '',
+      title: '',
       description: '',
+      number: 1,
       artwork: '',
       selectedToWallets: [],
       redirectLink: '',
@@ -70,18 +75,23 @@ export const CreateNftDropProvider = ({ children }: PropsWithChildren) => {
 
   const getSummaryData = (): SummaryItem[] => {
     const { getValues } = methods;
-    const [nftName, description, artwork] = getValues(['nftName', 'description', 'artwork']);
+    const [title, description, number, artwork] = getValues(['title', 'description', 'number', 'artwork']);
 
     return [
       {
         type: 'text',
         name: 'NFT name',
-        value: nftName,
+        value: title,
       },
       {
         type: 'text',
         name: 'NFT description',
         value: description,
+      },
+      {
+        type: 'number',
+        name: 'Number of NFTs',
+        value: number,
       },
       {
         type: 'image',
@@ -92,16 +102,26 @@ export const CreateNftDropProvider = ({ children }: PropsWithChildren) => {
   };
 
   const getPaymentData = async (): Promise<PaymentData> => {
-    const { nftName, description, artwork } = methods.getValues();
+    const { title, description, number, artwork } = methods.getValues();
 
-    const numBytes = nftName.length + description.length + artwork[0].size
+    const numKeys = parseInt(Math.floor(number).toString());
+    if (!numKeys || Number.isNaN(numKeys)) {
+      throw new Error('incorrect number')
+    }
 
-    console.log(numBytes)
+    const media = await getFileAsBase64(artwork[0])
+
+    set(NFT_ATTEMPT_KEY, {
+      title,
+      description,
+      copies: numKeys,
+      media,
+    })
 
     /*
     TODO
-    - save nft deets and artwork to localStorage / indexeddb
-    - create required deposit for 2 drops (1 storage payment for nft, 1 for drop itself)
+    x save nft deets and artwork to localStorage / indexeddb
+    x create required deposit for 2 drops (1 storage payment for nft, 1 for drop itself)
     - create subtotal for whole payment
     - create add to balance call for whole payment
     - return from redirect / await
@@ -110,26 +130,73 @@ export const CreateNftDropProvider = ({ children }: PropsWithChildren) => {
     - create drop for nft lazy mint
     */
 
-    // const { requiredDeposit } = await createDrop({
-    //   wallet: await window.selector.wallet(),
-    //   depositPerUseNEAR: amountPerLink!,
-    //   numKeys: totalLinks,
-    //   returnTransactions: true,
-    // });
+    const dropId = Date.now().toString()
+
+    const { requiredDeposit } = await createDrop({
+      wallet: await window.selector.wallet(),
+      dropId,
+      numKeys,
+      metadata: title,
+      fcData: {
+          methods: [[
+              {
+                  receiverId: 'nft-v2.keypom.testnet',
+                  methodName: "nft_mint",
+                  args: "",
+                  dropIdField: "mint_id",
+                  accountIdField: "receiver_id",
+                  attachedDeposit: parseNearAmount("0.1")!
+              }
+          ]]
+      },
+      returnTransactions: true,
+    });
+
+    const { requiredDeposit: requiredDeposit2 } = await createDrop({
+      wallet: await window.selector.wallet(),
+      numKeys: 1,
+      metadata: JSON.stringify({
+        name: title
+      }),
+      depositPerUseNEAR: 1,
+      fcData: {
+          methods: [[
+            {
+              receiverId: 'nft-v2.keypom.testnet',
+              methodName: 'create_series',
+              args: JSON.stringify({
+                  mint_id: parseInt(dropId),
+                  metadata: {
+                    title,
+                    description,
+                    copies: numKeys,
+                    // pay for CID at most 64 chars
+                    media: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+                  },
+                  // royalty
+              }),
+              attachedDeposit: parseNearAmount("0.1")!
+            }
+          ]]
+      },
+      returnTransactions: true,
+    });
+
+    const totalRequired = new BN(requiredDeposit).add(new BN(requiredDeposit2)).toString()
 
     // TODO: assuming this comes from backend
-    const totalLinkCost = 20 * 3.5;
-    const NEARNetworkFee = 50.15;
-    const totalCost = totalLinkCost + NEARNetworkFee;
+    const totalLinkCost = parseFloat(formatNearAmount(requiredDeposit!, 4))
+    const totalStorageCost = parseFloat(formatNearAmount(requiredDeposit2!, 4))
+    const totalCost = totalLinkCost + totalStorageCost
     const costsData: PaymentItem[] = [
       {
         name: 'Link cost',
         total: totalLinkCost,
-        helperText: `20 x 3.509`,
+        helperText: `${numKeys} x ${Number(totalLinkCost/numKeys).toFixed(4)}`,
       },
       {
-        name: 'NEAR network fees',
-        total: NEARNetworkFee,
+        name: 'Storage fees',
+        total: totalStorageCost,
       },
       {
         name: 'Keypom fee',
@@ -137,16 +204,30 @@ export const CreateNftDropProvider = ({ children }: PropsWithChildren) => {
         isDiscount: true,
         discountText: 'Early bird discount',
       },
+      {
+        name: 'Total Required',
+        total: totalRequired,
+        doNotRender: true,
+      }
     ];
 
-    const confirmationText = `Creating 20 for ${totalCost} NEAR`;
+    const confirmationText = `Creating ${numKeys} for ${totalCost} NEAR`;
 
     return { costsData, totalCost, confirmationText };
   };
 
-  const handleDropConfirmation = () => {
-    // TODO: send transaction/request to backend
-    trigger();
+  const handleDropConfirmation = async (paymentData: PaymentData) => {
+
+    const totalRequired = paymentData.costsData[3].total
+
+    await addToBalance({
+      wallet: await window.selector.wallet(),
+      amountYocto: totalRequired.toString(),
+      successUrl: window.location.origin + '/drops',
+    })
+
+    // TODO redirect to drops page and await confirmation of createDrop call with hasBalance
+    
   };
 
   const createLinksSWR = {

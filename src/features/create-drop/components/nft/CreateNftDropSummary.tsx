@@ -22,7 +22,7 @@ export const CreateNftDropSummary = () => {
       data={data}
       paymentData={paymentData}
       summaryData={summaryData}
-      onConfirmClick={handleDropConfirmation}
+      onConfirmClick={() => handleDropConfirmation(paymentData)}
     />
   );
 };
