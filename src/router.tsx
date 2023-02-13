@@ -10,10 +10,14 @@ const AllDropsPage = React.lazy(
 );
 const LandingPage = React.lazy(async () => await import('@/features/landing/routes/LandingPage'));
 const ClaimPage = React.lazy(async () => await import('@/features/claim/routes/ClaimPage'));
-const ClaimTokenPage = React.lazy(async () => await import('@/features/claim/routes/token'));
-const ClaimNftPage = React.lazy(async () => await import('@/features/claim/routes/nft'));
-const ClaimGiftPage = React.lazy(async () => await import('@/features/claim/routes/gift'));
-const ClaimTicketPage = React.lazy(async () => await import('@/features/claim/routes/ticket/[id]'));
+const ClaimTokenPage = React.lazy(
+  async () => await import('@/features/claim/routes/TokenClaimPage'),
+);
+const ClaimNftPage = React.lazy(async () => await import('@/features/claim/routes/NFTClaimPage'));
+const ClaimGiftPage = React.lazy(async () => await import('@/features/claim/routes/GiftClaimPage'));
+const ClaimTicketPage = React.lazy(
+  async () => await import('@/features/claim/routes/ticket/TicketClaimPage'),
+);
 const CreateTokenDropPage = React.lazy(
   async () => await import('@/features/create-drop/routes/CreateTokenDropPage'),
 );
