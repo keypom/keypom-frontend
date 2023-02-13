@@ -15,7 +15,11 @@ const DropFlowContext = createContext({
   breadcrumbs: [],
   onNext: undefined,
   onPrevious: undefined,
-  currentFlowPage: undefined,
+  currentFlowPage: {
+    name: '',
+    component: <></>,
+    description: '',
+  },
 });
 
 /**
