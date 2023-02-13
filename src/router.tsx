@@ -118,13 +118,8 @@ export const router = createBrowserRouter([
             element: <ClaimGiftPage />,
           },
           {
-            path: 'ticket',
-            children: [
-              {
-                path: ':id',
-                element: <ClaimTicketPage />,
-              },
-            ],
+            path: 'ticket/:contractId/:secretKey',
+            element: <ClaimTicketPage />,
           },
           {
             path: ':contractId/:secretKey',

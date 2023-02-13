@@ -1,18 +1,19 @@
 import { Center, Flex, Heading, Text, VStack } from '@chakra-ui/react';
-import { useParams } from 'react-router-dom';
 
 import { IconBox } from '@/components/IconBox';
 import { TicketIcon } from '@/components/Icons';
 import { BoxWithShape } from '@/components/BoxWithShape';
+
+import { useClaimForm } from '../ClaimFormContext';
 
 import { QrDetails } from './[id]/QrDetails';
 import { NftGift } from './[id]/NftGift';
 import { TokenGift } from './[id]/TokenGift';
 
 export const ClaimTicketSummaryFlow = () => {
-  const giftId = useParams();
+  const { nftImage, title, qrValue } = useClaimForm();
 
-  const isNftGif = parseInt(giftId as unknown as string) % 2 === 0;
+  const isNftGif = nftImage !== '' && title !== '';
 
   const handleDownloadQr = () => {
     // TODO: handle download QR
@@ -37,11 +38,7 @@ export const ClaimTicketSummaryFlow = () => {
           pb="0"
         >
           <BoxWithShape bg="white" borderTopRadius="8xl" w="full ">
-            <QrDetails
-              qrSrc="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d0/QR_code_for_mobile_English_Wikipedia.svg/1200px-QR_code_for_mobile_English_Wikipedia.svg.png"
-              ticketName="Maple Leafs vs New York Islanders"
-              onClick={handleDownloadQr}
-            />
+            <QrDetails qrValue={qrValue} ticketName={title} onClick={handleDownloadQr} />
           </BoxWithShape>
           <Flex align="center" bg="gray.50" borderBottomRadius="8xl" flexDir="column" px="6" py="8">
             <Text color="gray.800" fontWeight="500" mb="5" size="lg" textAlign="center">

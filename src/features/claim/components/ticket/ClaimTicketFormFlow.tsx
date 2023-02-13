@@ -3,10 +3,13 @@ import { Center, Flex, Heading, VStack } from '@chakra-ui/react';
 import { IconBox } from '@/components/IconBox';
 import { TicketIcon } from '@/components/Icons';
 
+import { useClaimForm } from '../ClaimFormContext';
+
 import { ClaimTicketDetails } from './ClaimTicketDetails';
 import { ClaimTicketForm } from './ClaimTicketForm';
 
 export const ClaimTicketFormFlow = () => {
+  const { nftImage, title } = useClaimForm();
   return (
     <Center>
       {/** the additional gap is to accommodate for the absolute roundIcon size */}
@@ -30,10 +33,7 @@ export const ClaimTicketFormFlow = () => {
             p={{ base: '6', md: '8' }}
             pt={{ base: '12', md: '16' }}
           >
-            <ClaimTicketDetails
-              imageSrc={'https://vaxxeddoggos.com/assets/doggos/1042.png'}
-              ticketName="Maple Leafs vs New York Islanders"
-            />
+            <ClaimTicketDetails imageSrc={nftImage} ticketName={title} />
             <ClaimTicketForm />
           </Flex>
         </IconBox>

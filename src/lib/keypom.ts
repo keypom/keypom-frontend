@@ -138,6 +138,38 @@ class KeypomJS {
     };
   }
 
+  async getTicketNftInformation(secretKey: string) {
+    // given fc
+    const drop = await getDropInformation({ secretKey });
+    console.log(drop);
+
+    const fcMethods = drop.fc?.methods;
+    if (
+      fcMethods === undefined ||
+      fcMethods.length < 3 ||
+      fcMethods[2] === undefined ||
+      fcMethods[2][0] === undefined
+    ) {
+      throw new Error('Unable to retrieve function calls.');
+    }
+
+    const fcMethod = fcMethods[2][0];
+    const { receiver_id: contractId } = fcMethod;
+    const { viewCall } = getEnv();
+    const nftData = await viewCall({
+      contractId,
+      methodName: 'get_series_info',
+      args: { mint_id: parseFloat(drop.drop_id) },
+    });
+
+    return {
+      dropName: drop.metadata,
+      media: `${CLOUDFLARE_IPFS}/${nftData.metadata.media}`, // eslint-disable-line
+      title: nftData.metadata.title,
+      description: nftData.metadata.description,
+    };
+  }
+
   async claim(secretKey: string, walletAddress: string) {
     await claim({ secretKey, accountId: walletAddress });
   }

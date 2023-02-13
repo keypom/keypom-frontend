@@ -33,7 +33,7 @@ export const ClaimTicketForm = ({}: ClaimTicketFormProps) => {
         <EmailField control={control} />
       </VStack>
       <Button type="submit" w="full">
-        Next
+        Show me my ticket
       </Button>
     </form>
   );
