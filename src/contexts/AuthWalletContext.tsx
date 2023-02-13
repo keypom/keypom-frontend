@@ -42,7 +42,7 @@ export const AuthWalletContextProvider = ({ children }: PropsWithChildren) => {
   const [accounts, setAccounts] = useState<AccountState[]>([]);
   const [account, setAccount] = useState<Account | null>(null);
 
-  const accountId = accounts.find((account) => account.active)?.accountId || null;
+  const accountId = accounts.find((account) => account.active)?.accountId ?? null;
 
   const getAccount = useCallback(async (): Promise<Account | null> => {
     if (!accountId) {
@@ -119,7 +119,7 @@ export const AuthWalletContextProvider = ({ children }: PropsWithChildren) => {
 export const useAuthWalletContext = () => {
   const context = useContext(AuthWalletContext);
 
-  if (context == null) {
+  if (context === null) {
     throw new Error('useAuthWalletContext must be used within a AuthWalletContextProvider');
   }
 

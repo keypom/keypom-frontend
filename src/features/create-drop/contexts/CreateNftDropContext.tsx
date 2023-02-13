@@ -19,7 +19,7 @@ const schema = z.object({
   description: z.string().min(1, 'Description required'),
   artwork: z
     .any()
-    .refine((files) => files?.length == 1, 'Image is required.')
+    .refine((files) => files?.length === 1, 'Image is required.')
     .refine((files) => files?.[0]?.size <= MAX_FILE_SIZE, `Max file size is 5MB.`)
     .refine(
       (files) => ACCEPTED_IMAGE_TYPES.includes(files?.[0]?.type),
@@ -35,7 +35,7 @@ type Schema = z.infer<typeof schema>;
 
 // TODO: this is only a mock implementation of the backend api
 const createLinks = async () => {
-  await new Promise((res) => setTimeout(res, 2000));
+  await new Promise((_resolve) => setTimeout(_resolve, 2000));
   return {
     success: true,
   };
@@ -120,7 +120,7 @@ export const CreateNftDropProvider = ({ children }: PropsWithChildren) => {
 
   const handleDropConfirmation = () => {
     // TODO: send transaction/request to backend
-    trigger();
+    void trigger();
   };
 
   const createLinksSWR = {

@@ -18,11 +18,11 @@ export const ArtworkInput = ({ name = FIELD_NAME }: ArtworkInputProps) => {
   const [preview, setPreview] = useState<string>();
 
   useEffect(() => {
-    if (!selectedFile) {
+    if (selectedFile === undefined) {
       setPreview(undefined);
       return;
     }
-    trigger(name); // manually validate
+    void trigger(name); // manually validate
     const objectUrl = URL.createObjectURL(selectedFile[0]);
     setPreview(objectUrl);
 

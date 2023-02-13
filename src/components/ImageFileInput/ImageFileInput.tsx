@@ -63,7 +63,7 @@ export const ImageFileInput = ({
             {...props}
           />
 
-          {selectedFile && preview ? (
+          {selectedFile !== undefined && preview ? (
             <Image alt="Image upload preview" objectFit="cover" src={preview} />
           ) : (
             <Flex

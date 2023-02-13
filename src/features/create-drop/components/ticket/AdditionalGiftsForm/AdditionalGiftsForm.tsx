@@ -31,9 +31,9 @@ export const AdditionalGiftsForm = () => {
   const { dirtyFields } = formState;
 
   useEffect(() => {
-    if (dirtyFields.additionalGift?.token != null) {
+    if (dirtyFields.additionalGift?.token !== null) {
       setValue('additionalGift.type', 'token', { shouldValidate: true });
-    } else if (dirtyFields.additionalGift?.poapNft != null) {
+    } else if (dirtyFields.additionalGift?.poapNft !== null) {
       setValue('additionalGift.type', 'poapNft', { shouldValidate: true });
     } else {
       setValue('additionalGift.type', 'none', { shouldValidate: true });

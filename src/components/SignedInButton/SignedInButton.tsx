@@ -32,7 +32,9 @@ export const SignedInButton = () => {
         window.location.href = '';
       })
       .catch((err) => {
+        // eslint-disable-next-line no-console
         console.log('Failed to sign out');
+        // eslint-disable-next-line no-console
         console.error(err);
       });
   };

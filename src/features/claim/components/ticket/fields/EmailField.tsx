@@ -5,7 +5,7 @@ import { TextInput } from '@/components/TextInput';
 import { type ClaimTicketFormFieldTypes } from '../ClaimTicketForm';
 
 interface EmailFieldProps {
-  control: Control<ClaimTicketFormFieldTypes, any>;
+  control: Control<ClaimTicketFormFieldTypes, unknown>;
 }
 
 const FIELD_NAME = 'email';
