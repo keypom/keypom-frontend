@@ -10,8 +10,14 @@ interface QrDetailsProps {
 export const QrDetails = ({ qrValue, ticketName, onClick }: QrDetailsProps) => {
   return (
     <Flex align="center" flexDir="column" p={{ base: '6', md: '8' }} pt={{ base: '12', md: '16' }}>
-      <Box border="1px solid" borderColor="gray.200" p="2">
-        <QRCode value={qrValue} />
+      <Box
+        border="1px solid"
+        borderColor="gray.200"
+        borderRadius="12px"
+        mb={{ base: '6', md: '10' }}
+        p="5"
+      >
+        <QRCode size={120} value={qrValue} />
       </Box>
       <Text
         color="gray.800"

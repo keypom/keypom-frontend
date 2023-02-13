@@ -46,10 +46,7 @@ export const ClaimTicketSummaryFlow = () => {
             </Text>
 
             {isNftGif ? (
-              <NftGift
-                giftName="Vaxxed Doggos POAP"
-                imageSrc="https://vaxxeddoggos.com/assets/doggos/1042.png"
-              />
+              <NftGift giftName={title} imageSrc={nftImage} />
             ) : (
               <TokenGift
                 tokenList={[
