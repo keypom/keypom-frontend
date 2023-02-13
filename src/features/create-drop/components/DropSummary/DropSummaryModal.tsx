@@ -13,7 +13,7 @@ import { RoundIcon } from '@/components/IconBox/RoundIcon';
 
 interface DropSummaryModalProps extends UseDisclosureProps {
   confirmationText: string;
-  isConfirmed: boolean;
+  isConfirmed?: boolean;
 }
 
 // TODO: enhance css after merging sushan's sign in modal branch

@@ -9,7 +9,28 @@ import { urlRegex } from '@/constants/common';
 import { type PaymentData, type PaymentItem, type SummaryItem } from '../types/types';
 import { WALLET_TOKENS } from '../components/token/data';
 
-const CreateTokenDropContext = createContext(null);
+interface CreateTokenDropContextProps {
+  getSummaryData: () => SummaryItem[];
+  getPaymentData: () => PaymentData;
+  handleDropConfirmation: () => void;
+  createLinksSWR: { data?: { success: boolean }; handleDropConfirmation: () => void };
+}
+
+const CreateTokenDropContext = createContext<CreateTokenDropContextProps>({
+  getSummaryData: () => [{ type: 'text', name: '', value: '' }] as SummaryItem[],
+  getPaymentData: () => ({
+    costsData: [{ name: '', total: 0 }],
+    totalCost: 0,
+    confirmationText: '',
+  }),
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  handleDropConfirmation: () => {},
+  createLinksSWR: {
+    data: undefined,
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    handleDropConfirmation: () => {},
+  },
+});
 
 const schema = z.object({
   dropName: z.string().min(1, 'Drop name required'),
