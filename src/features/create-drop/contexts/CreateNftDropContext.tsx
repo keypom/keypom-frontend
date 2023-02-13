@@ -3,6 +3,7 @@ import { FormProvider, useForm } from 'react-hook-form';
 import useSWRMutation from 'swr/mutation';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import { createDrop, formatNearAmount } from 'keypom-js';
 
 import { urlRegex } from '@/constants/common';
 import {
@@ -90,7 +91,32 @@ export const CreateNftDropProvider = ({ children }: PropsWithChildren) => {
     ];
   };
 
-  const getPaymentData = (): PaymentData => {
+  const getPaymentData = async (): Promise<PaymentData> => {
+    const { nftName, description, artwork } = methods.getValues();
+
+    const numBytes = nftName.length + description.length + artwork[0].size
+
+    console.log(numBytes)
+
+    /*
+    TODO
+    - save nft deets and artwork to localStorage / indexeddb
+    - create required deposit for 2 drops (1 storage payment for nft, 1 for drop itself)
+    - create subtotal for whole payment
+    - create add to balance call for whole payment
+    - return from redirect / await
+    - send drop to worker
+    - worker responds true
+    - create drop for nft lazy mint
+    */
+
+    // const { requiredDeposit } = await createDrop({
+    //   wallet: await window.selector.wallet(),
+    //   depositPerUseNEAR: amountPerLink!,
+    //   numKeys: totalLinks,
+    //   returnTransactions: true,
+    // });
+
     // TODO: assuming this comes from backend
     const totalLinkCost = 20 * 3.5;
     const NEARNetworkFee = 50.15;

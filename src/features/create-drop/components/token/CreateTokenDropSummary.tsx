@@ -9,7 +9,7 @@ export const CreateTokenDropSummary = () => {
 
   const navigate = useNavigate();
 
-  const { data: paymentData, error, isLoading } = useSWR('drops/token/new', getPaymentData);
+  const { data: paymentData, error, isLoading } = useSWR('drop/token/new', getPaymentData);
   if (error) {
     console.warn(error)
     return <div>failed to load</div>
