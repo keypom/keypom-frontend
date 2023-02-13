@@ -35,12 +35,38 @@ export interface CreateTicketDropContextTypes {
   handleDropConfirmation: () => void;
   formSteps: FormStep[];
   createLinksSWR: {
-    data: { success: boolean };
+    data?: { success: boolean };
     handleDropConfirmation: () => void;
   };
 }
 
-const CreateTicketDropContext = createContext<CreateTicketDropContextTypes>(null);
+const CreateTicketDropContext = createContext<CreateTicketDropContextTypes>({
+  onNextStep: function (): void {
+    throw new Error('Function not implemented.');
+  },
+  onPreviousStep: function (): void {
+    throw new Error('Function not implemented.');
+  },
+  currentIndex: 0,
+  getSummaryData: function (): SummaryItem[] {
+    throw new Error('Function not implemented.');
+  },
+  getPaymentData: function (): PaymentData {
+    throw new Error('Function not implemented.');
+  },
+  handleDropConfirmation: function (): void {
+    throw new Error('Function not implemented.');
+  },
+  formSteps: [],
+  createLinksSWR: {
+    data: {
+      success: false,
+    },
+    handleDropConfirmation: function (): void {
+      throw new Error('Function not implemented.');
+    },
+  },
+});
 
 // TODO: this is only a mock implementation of the backend api
 const createLinks = async () => {
@@ -90,7 +116,7 @@ export const CreateTicketDropProvider = ({ children }: PropsWithChildren) => {
     mode: 'onChange',
     defaultValues: {
       eventName: '',
-      totalTickets: null,
+      totalTickets: undefined,
       firstName: false,
       secondName: false,
       emailAddress: false,
@@ -126,7 +152,7 @@ export const CreateTicketDropProvider = ({ children }: PropsWithChildren) => {
       results.push({
         type: 'text',
         name: 'Tokens gifted per ticket',
-        value: `${additionalGift.token.amountPerLink} ${additionalGift.token.selectedFromWallet.symbol}`,
+        value: `${additionalGift.token.amountPerLink} ${additionalGift?.token?.selectedFromWallet?.symbol}`,
       });
     } else if (additionalGift.type === 'poapNft') {
       results.push({

@@ -23,12 +23,14 @@ const CreateTokenDropContext = createContext<CreateTokenDropContextProps>({
     totalCost: 0,
     confirmationText: '',
   }),
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
-  handleDropConfirmation: () => {},
+  handleDropConfirmation: function (): void {
+    throw new Error('Function not implemented.');
+  },
   createLinksSWR: {
     data: undefined,
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    handleDropConfirmation: () => {},
+    handleDropConfirmation: function (): void {
+      throw new Error('Function not implemented.');
+    },
   },
 });
 
