@@ -44,20 +44,6 @@ export const AuthWalletContextProvider = ({ children }: PropsWithChildren) => {
 
   const accountId = accounts.find((account) => account.active)?.accountId || null;
 
-  const initWalletSelector = async () => {
-    const walletSelector = new NearWalletSelector();
-    await walletSelector.init();
-
-    setModal(walletSelector.modal);
-    setSelector(walletSelector.selector);
-    setAccounts(walletSelector.accounts);
-
-    if (typeof window !== undefined) {
-      window.modal = walletSelector.modal;
-      window.selector = walletSelector.selector;
-    }
-  };
-
   const getAccount = useCallback(async (): Promise<Account | null> => {
     if (!accountId) {
       return null;
@@ -79,34 +65,22 @@ export const AuthWalletContextProvider = ({ children }: PropsWithChildren) => {
   }, [accountId, selector?.options]);
 
   useEffect(() => {
-    initWalletSelector();
+    const initWalletSelector = async () => {
+      const walletSelector = new NearWalletSelector();
+      await walletSelector.init();
+
+      setModal(walletSelector.modal);
+      setSelector(walletSelector.selector);
+      setAccounts(walletSelector.accounts);
+
+      if (typeof window !== undefined) {
+        window.modal = walletSelector.modal;
+        window.selector = walletSelector.selector;
+      }
+    };
+
+    initWalletSelector().catch(console.error); // eslint-disable-line no-console
   }, []);
-
-  // COMMENTED OUT
-  // Runtime error when this useEffect is used
-  // Uncaught TypeError: Class extends value undefined is not a constructor or null
-  // TODO: investigate and mitigate
-  //
-  // useEffect(() => {
-  //   if (selector == null) {
-  //     return null;
-  //   }
-
-  //   const subscription = selector.store.observable
-  //     .pipe(
-  //       map((state) => state.accounts),
-  //       distinctUntilChanged(),
-  //     )
-  //     .subscribe((nextAccounts) => {
-  //       console.log('Accounts Update', nextAccounts);
-
-  //       setAccounts(nextAccounts);
-  //     });
-
-  //   return () => {
-  //     subscription.unsubscribe();
-  //   };
-  // }, [selector]);
 
   // set account
   useEffect(() => {
@@ -117,15 +91,25 @@ export const AuthWalletContextProvider = ({ children }: PropsWithChildren) => {
 
     // setLoading(true);
 
-    getAccount().then((nextAccount) => {
-      setAccount(nextAccount);
-      // setLoading(false);
-    });
+    getAccount()
+      .then((nextAccount) => {
+        sessionStorage.setItem('account', JSON.stringify(nextAccount));
+        setAccount(nextAccount);
+        // setLoading(false);
+      })
+      .catch(console.error); // eslint-disable-line no-console
   }, [accountId, getAccount]);
 
   return (
     <AuthWalletContext.Provider
-      value={{ modal, accounts, selector, accountId, isLoggedIn: !(account == null), account }}
+      value={{
+        modal,
+        accounts,
+        selector,
+        accountId,
+        isLoggedIn: Boolean(sessionStorage.getItem('account')), // selector?.isSignedIn(), with null, cant login. with undefined, cant signout properly
+        account,
+      }}
     >
       {children}
     </AuthWalletContext.Provider>
