@@ -9,7 +9,16 @@ interface DropFlowProviderProps {
   breadcrumbs: IBreadcrumbItem[];
 }
 
-const DropFlowContext = createContext({
+interface DropFlowContextProps {
+  currentPageIndex: number;
+  flowPages?: IFlowPage[];
+  breadcrumbs: IBreadcrumbItem[];
+  onNext?: () => void;
+  onPrevious?: () => void;
+  currentFlowPage: IFlowPage;
+}
+
+const DropFlowContext = createContext<DropFlowContextProps>({
   currentPageIndex: 0,
   flowPages: undefined,
   breadcrumbs: [],
