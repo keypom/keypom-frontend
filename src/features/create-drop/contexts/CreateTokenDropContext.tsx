@@ -4,10 +4,13 @@ import useSWRMutation from 'swr/mutation';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 
+import { createDrop, formatNearAmount } from 'keypom-js';
+
 import { urlRegex } from '@/constants/common';
 
 import { type PaymentData, type PaymentItem, type SummaryItem } from '../types/types';
 import { WALLET_TOKENS } from '../components/token/data';
+import { NavigateFunction } from 'react-router-dom';
 
 const CreateTokenDropContext = createContext(null);
 
@@ -91,13 +94,20 @@ export const CreateTokenDropProvider = ({ children }: PropsWithChildren) => {
     ];
   };
 
-  const getPaymentData = (): PaymentData => {
+  const getPaymentData = async (): Promise<PaymentData> => {
     const { totalLinks, amountPerLink } = methods.getValues();
 
     // TODO: assuming this comes from backend
+
+    const { requiredDeposit } = await createDrop({
+      wallet: await window.selector.wallet(),
+      depositPerUseNEAR: amountPerLink!,
+      numKeys: totalLinks,
+      returnTransactions: true,
+    });
+
     const totalLinkCost = totalLinks * amountPerLink;
-    const NEARNetworkFee = 50.15;
-    const totalCost = totalLinkCost + NEARNetworkFee;
+    const totalCost = parseFloat(formatNearAmount(requiredDeposit!, 4));
     const costsData: PaymentItem[] = [
       {
         name: 'Link cost',
@@ -106,7 +116,7 @@ export const CreateTokenDropProvider = ({ children }: PropsWithChildren) => {
       },
       {
         name: 'NEAR network fees',
-        total: NEARNetworkFee,
+        total: Number((totalCost - totalLinkCost).toFixed(4)),
       },
       {
         name: 'Keypom fee',
@@ -121,9 +131,34 @@ export const CreateTokenDropProvider = ({ children }: PropsWithChildren) => {
     return { costsData, totalCost, confirmationText };
   };
 
-  const handleDropConfirmation = () => {
-    // TODO: send transaction/request to backend
-    trigger();
+  const handleDropConfirmation = async (navigate: NavigateFunction) => {
+    const {
+      dropName,
+      totalLinks,
+      amountPerLink,
+      redirectLink,
+      selectedFromWallet,
+    } = methods.getValues();
+
+    try {
+      await createDrop({
+        wallet: await window.selector.wallet(),
+        depositPerUseNEAR: amountPerLink!,
+        numKeys: totalLinks,
+        metadata: JSON.stringify({ name: dropName }),
+        // redirects to drops (so user can see new drop)
+        successUrl: window.location.origin + '/drops',
+      });
+    } catch (e) {
+      console.warn(e)
+      if (/user reject/gi.test(JSON.stringify(e))) {
+        // TODO modal where user informed they rejected TX
+      }
+    }
+
+    navigate('/drops');
+
+    // trigger();
   };
 
   const createLinksSWR = {

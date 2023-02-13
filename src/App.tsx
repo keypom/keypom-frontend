@@ -6,6 +6,11 @@ import { Fonts } from '@/components/Fonts';
 import { Loading } from '@/components/Loading';
 import { theme } from '@/theme';
 import { router } from '@/router';
+import { initKeypom } from 'keypom-js';
+
+initKeypom({
+  network: 'testnet'
+});
 
 import '@near-wallet-selector/modal-ui/styles.css';
 import '@/components/WalletSelectorModal/WalletSelectorModal.css';
