@@ -190,12 +190,16 @@ export const CreateNftDropProvider = ({ children }: PropsWithChildren) => {
     TODO
     x save nft deets and artwork to localStorage / indexeddb
     x create required deposit for 2 drops (1 storage payment for nft, 1 for drop itself)
-    - create subtotal for whole payment
-    - create add to balance call for whole payment
-    - return from redirect / await
+    x create subtotal for whole payment
+    x create add to balance call for whole payment
+    x return from redirect / await
+    WIP
+    - create drop for nft lazy mint
+    - check drop created successfully
+    - create drop for worker
     - send drop to worker
     - worker responds true
-    - create drop for nft lazy mint
+    - show user success
     */
 
     const dropId = Date.now().toString()
