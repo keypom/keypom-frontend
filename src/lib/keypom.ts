@@ -98,10 +98,12 @@ class KeypomJS {
 
   async getTokenClaimInformation(secretKey: string) {
     const drop = await getDropInformation({ secretKey });
+    const dropMetadata = drop.metadata !== undefined ? JSON.parse(drop.metadata) : {};
     const ftMetadata = await getFTMetadata({ contractId: drop.ft?.contract_id as string });
 
     return {
-      dropName: drop.metadata,
+      dropName: dropMetadata.dropName,
+      wallets: dropMetadata.wallets,
       tokens: ftMetadata,
       amount: drop.deposit_per_use,
     };
@@ -110,6 +112,7 @@ class KeypomJS {
   async getNFTClaimInformation(secretKey: string) {
     // given fc
     const drop = await getDropInformation({ secretKey });
+    const dropMetadata = drop.metadata !== undefined ? JSON.parse(drop.metadata) : {};
 
     const fcMethods = drop.fc?.methods;
     if (
@@ -120,7 +123,7 @@ class KeypomJS {
     ) {
       throw new Error('Unable to retrieve function calls.');
     }
-    console.log(drop);
+
     const fcMethod = fcMethods[0][0];
     const { receiver_id: contractId } = fcMethod;
     const { viewCall } = getEnv();
@@ -131,7 +134,8 @@ class KeypomJS {
     });
 
     return {
-      dropName: drop.metadata,
+      dropName: dropMetadata.dropName,
+      wallets: dropMetadata.wallets,
       media: `${CLOUDFLARE_IPFS}/${nftData.metadata.media}`, // eslint-disable-line
       title: nftData.metadata.title,
       description: nftData.metadata.description,
@@ -141,7 +145,7 @@ class KeypomJS {
   async getTicketNftInformation(secretKey: string) {
     // given fc
     const drop = await getDropInformation({ secretKey });
-    console.log(drop);
+    const dropMetadata = drop.metadata !== undefined ? JSON.parse(drop.metadata) : {};
 
     const fcMethods = drop.fc?.methods;
     if (
@@ -163,7 +167,8 @@ class KeypomJS {
     });
 
     return {
-      dropName: drop.metadata,
+      dropName: dropMetadata.dropName,
+      wallets: dropMetadata.wallets,
       media: `${CLOUDFLARE_IPFS}/${nftData.metadata.media}`, // eslint-disable-line
       title: nftData.metadata.title,
       description: nftData.metadata.description,
