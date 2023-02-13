@@ -23,7 +23,7 @@ export const DropSummaryModal = ({
   isConfirmed,
   confirmationText,
 }: DropSummaryModalProps) => (
-  <Modal isOpen={isOpen} onClose={onClose}>
+  <Modal isOpen={isOpen as boolean} onClose={() => onClose?.()}>
     <ModalOverlay />
     <ModalContent p={{ base: '8', md: '16' }} textAlign="center">
       <ModalHeader
