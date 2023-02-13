@@ -14,12 +14,12 @@ interface ClaimTicketFormProps {}
 export const ClaimTicketForm = ({}: ClaimTicketFormProps) => {
   const { onNext } = useClaimTicketFlow();
 
-  const { getClaimFormData } = useClaimForm();
+  const { handleClaim } = useClaimForm();
   // const { handleSubmit, control } = useFormContext<ClaimTicketFormFieldTypes>();
 
-  const handleSubmitClick = () => {
+  const handleSubmitClick = async () => {
     // TODO: handle name/email validation and send email
-    console.log(getClaimFormData());
+    await handleClaim();
     onNext();
   };
 

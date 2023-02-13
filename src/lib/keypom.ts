@@ -175,7 +175,7 @@ class KeypomJS {
     };
   }
 
-  async claim(secretKey: string, walletAddress: string) {
+  async claim(secretKey: string, walletAddress?: string) {
     await claim({ secretKey, accountId: walletAddress });
   }
 }

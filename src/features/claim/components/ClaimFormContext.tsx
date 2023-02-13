@@ -18,6 +18,7 @@ interface ClaimFormContextType {
   title: string;
   nftImage: string;
   qrValue: string;
+  handleClaim: () => Promise<void>;
 }
 
 const ClaimFormContext = createContext<ClaimFormContextType | null>(null);
@@ -54,8 +55,8 @@ export const ClaimFormContextProvider = ({ children }: PropsWithChildren) => {
     loadClaimInfo();
   }, []);
 
-  const handleClaim = async (walletAddress: string) => {
-    await keypomInstance.claim(secretKey, walletAddress);
+  const handleClaim = async () => {
+    await keypomInstance.claim(secretKey);
   };
 
   const getClaimFormData = (): string[] => {
@@ -66,7 +67,7 @@ export const ClaimFormContextProvider = ({ children }: PropsWithChildren) => {
   };
 
   return (
-    <ClaimFormContext.Provider value={{ getClaimFormData, title, nftImage, qrValue }}>
+    <ClaimFormContext.Provider value={{ getClaimFormData, title, nftImage, qrValue, handleClaim }}>
       <FormProvider {...methods}>{children}</FormProvider>
     </ClaimFormContext.Provider>
   );
