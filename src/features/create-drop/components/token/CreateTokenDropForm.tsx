@@ -8,10 +8,24 @@ import { Checkboxes } from '@/components/Checkboxes';
 import { WalletBalanceInput } from '@/components/WalletBalanceInput';
 import { LinkIcon } from '@/components/Icons';
 import { useDropFlowContext } from '@/features/create-drop/contexts';
+import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
+import { formatNearAmount } from 'keypom-js';
 
-import { WALLET_TOKENS, WALLET_OPTIONS } from './data';
+import { NearLogoIcon } from '@/components/Icons';
+import { WALLET_OPTIONS } from './data';
 
 export const CreateTokenDropForm = () => {
+
+  const { account } = useAuthWalletContext();
+  const WALLET_TOKENS = account ? [
+    {
+      amount: formatNearAmount(account.amount, 4),
+      symbol: 'NEAR',
+      wallet: 'near_wallet',
+      icon: <NearLogoIcon height="4" width="4" />,
+    }
+  ] : [];
+
   const { onNext } = useDropFlowContext();
   const {
     setValue,
