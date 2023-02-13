@@ -32,6 +32,6 @@ jobs:
       - name: Check the code style
         run: yarn run lint
       - name: Check the types
-        run: yarn check
+        run: yarn check-types
       - name: Build the project
         run: yarn build
