@@ -31,10 +31,10 @@ export const TokenForm = () => {
   }, [amountPerLink, totalTickets]);
 
   const handleWalletChange = (walletSymbol: string) => {
-    const { symbol, amount } = WALLET_TOKENS.find((wallet) => wallet.symbol === walletSymbol);
+    const foundWallet = WALLET_TOKENS.find((wallet) => wallet.symbol === walletSymbol);
     setValue(
       'additionalGift.token.selectedFromWallet',
-      { symbol, amount },
+      { symbol: foundWallet?.symbol, amount: foundWallet?.amount },
       { shouldDirty: true, shouldValidate: true },
     );
   };
@@ -63,8 +63,8 @@ export const TokenForm = () => {
               onChange={handleWalletChange}
             />
             <WalletBalanceInput.CostDisplay
-              balanceAmount={selectedFromWallet?.amount}
-              symbol={selectedFromWallet?.symbol}
+              balanceAmount={selectedFromWallet?.amount ?? ''}
+              symbol={selectedFromWallet?.symbol ?? ''}
               totalCost={totalCost}
             />
           </WalletBalanceInput>
