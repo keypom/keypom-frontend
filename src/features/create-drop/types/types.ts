@@ -1,3 +1,5 @@
+export const NFT_ATTEMPT_KEY = 'NFT_ATTEMPT';
+
 export interface SummaryItem {
   type: 'text' | 'image' | 'number';
   name: string;

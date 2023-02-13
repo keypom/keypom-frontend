@@ -73,7 +73,8 @@
   "browser": {
     "crypto": false,
     "events": false,
-    "stream": false
+    "stream": false,
+    "string_decoder": false
   },
   "browserslist": [
     "last 2 Chrome versions"

@@ -17,6 +17,7 @@ import {
 import { useEffect, useState } from 'react';
 import { getDrops, getKeySupplyForDrop } from 'keypom-js';
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
+import { handleFinishNFTDrop } from '../../create-drop/contexts/CreateNftDropContext'
 
 import { ChevronDownIcon } from '@chakra-ui/icons';
 import { useNavigate } from 'react-router-dom';
@@ -79,6 +80,9 @@ export default function AllDrops() {
 
   useEffect(() => {
     handleGetDrops();
+    if (accountId) {
+      handleFinishNFTDrop();
+    }
   }, [accountId]);
 
   const dropMenuItems = MENU_ITEMS.map((item) => (
