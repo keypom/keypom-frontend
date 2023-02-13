@@ -23,9 +23,14 @@ const ClaimTokenPage = () => {
   const { secretKey = '' } = useParams();
   const [haveWallet, showInputWallet] = useBoolean(false);
   const [tokens, setTokens] = useState<TokenAsset[]>([]);
+  const [walletsOptions, setWallets] = useState([]);
 
   const loadClaimInfo = async () => {
-    const { tokens: _tokens, amount } = await keypomInstance.getTokenClaimInformation(secretKey);
+    const {
+      tokens: _tokens,
+      amount,
+      wallets,
+    } = await keypomInstance.getTokenClaimInformation(secretKey);
     setTokens([
       {
         icon: _tokens.icon as string,
@@ -33,6 +38,7 @@ const ClaimTokenPage = () => {
         symbol: _tokens.symbol,
       },
     ]);
+    setWallets(wallets);
   };
 
   useEffect(() => {
@@ -87,7 +93,7 @@ const ClaimTokenPage = () => {
               w="full"
             >
               {!haveWallet ? (
-                <CreateWallet onClick={showInputWallet.on} />
+                <CreateWallet wallets={walletsOptions} onClick={showInputWallet.on} />
               ) : (
                 <>
                   {/** TODO: handleSubmit button */}

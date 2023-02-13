@@ -18,6 +18,7 @@ const ClaimNftPage = () => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [nftImage, setNftImage] = useState('');
+  const [walletsOptions, setWallets] = useState([]);
 
   const loadClaimInfo = async () => {
     const nftData = await keypomInstance.getNFTClaimInformation(secretKey);
@@ -25,6 +26,7 @@ const ClaimNftPage = () => {
     setTitle(nftData.title);
     setDescription(nftData.description);
     setNftImage(nftData.media);
+    setWallets(nftData.wallets);
   };
 
   useEffect(() => {
@@ -74,7 +76,7 @@ const ClaimNftPage = () => {
               w="full"
             >
               {!haveWallet ? (
-                <CreateWallet onClick={showInputWallet.on} />
+                <CreateWallet wallets={walletsOptions} onClick={showInputWallet.on} />
               ) : (
                 <>
                   <ExistingWallet handleSubmit={handleClaim} onBack={showInputWallet.off} />
