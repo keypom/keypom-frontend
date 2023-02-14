@@ -58,7 +58,6 @@ interface CreateNftDropContextType {
 
 const CreateNftDropContext = createContext<CreateNftDropContextType | null>(null);
 
-
 const createDropsForNFT = async (dropId, returnTransactions, data) => {
 
   const { numKeys, title, description, media = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' } = data
@@ -69,7 +68,9 @@ const createDropsForNFT = async (dropId, returnTransactions, data) => {
     wallet,
     dropId,
     numKeys,
-    metadata: title,
+    metadata: JSON.stringify({
+      name: title
+    }),
     fcData: {
         methods: [[
             {
@@ -86,7 +87,9 @@ const createDropsForNFT = async (dropId, returnTransactions, data) => {
     returnTransactions,
   });
 
-  console.log(keys, requiredDeposit)
+  if (!returnTransactions && !keys) {
+    throw new Error('Error creating drop')
+  }
 
   const { keys: keys2, requiredDeposit: requiredDeposit2 } = await createDrop({
     wallet,
@@ -122,7 +125,7 @@ const createDropsForNFT = async (dropId, returnTransactions, data) => {
   if (returnTransactions) {
     return { requiredDeposit, requiredDeposit2 }
   }
-  return { keys, keys2 }
+  return { keyPairs: keys!.keyPairs, keyPairs2: keys2!.keyPairs }
 }
 
 export const CreateNftDropProvider = ({ children }: PropsWithChildren) => {
@@ -185,22 +188,6 @@ export const CreateNftDropProvider = ({ children }: PropsWithChildren) => {
       copies: numKeys,
       media,
     })
-
-    /*
-    TODO
-    x save nft deets and artwork to localStorage / indexeddb
-    x create required deposit for 2 drops (1 storage payment for nft, 1 for drop itself)
-    x create subtotal for whole payment
-    x create add to balance call for whole payment
-    x return from redirect / await
-    WIP
-    - create drop for nft lazy mint
-    - check drop created successfully
-    - create drop for worker
-    - send drop to worker
-    - worker responds true
-    - show user success
-    */
 
     const dropId = Date.now().toString()
 
@@ -279,8 +266,6 @@ export const CreateNftDropProvider = ({ children }: PropsWithChildren) => {
   );
 };
 
-
-
 export const handleFinishNFTDrop = async () => {
   const {
     title,
@@ -303,19 +288,42 @@ export const handleFinishNFTDrop = async () => {
   */
   const dropId = Date.now().toString()
 
-  const { keys, keys2 } = await createDropsForNFT(dropId, false, {
-    title,
-    description,
-    numKeys: copies,
-    media: 'somecoolmediacid'
-  })
+  let res
+  try {
+    res = await createDropsForNFT(dropId, false, {
+      title,
+      description,
+      numKeys: copies,
+      media: 'somecoolmediacid',
+    })
+  } catch (e) {
+    console.warn(e)
+  }
 
-  console.log(keys, keys2)
+  const { keyPairs, keyPairs2 } = res
 
-  // TODO get CID hash locally
+  console.log(keyPairs, keyPairs2)
 
+  if (keyPairs.length > 0 && keyPairs2.length > 0) {
+    del(NFT_ATTEMPT_KEY)
+  }
 
-  console.log(title)
+    /*
+    TODO
+    x save nft deets and artwork to localStorage / indexeddb
+    x create required deposit for 2 drops (1 storage payment for nft, 1 for drop itself)
+    x create subtotal for whole payment
+    x create add to balance call for whole payment
+    x return from redirect / await
+    WIP
+    - create drop for nft lazy mint
+    - check drop created successfully
+    - create drop for worker
+    - send drop to worker
+    - worker responds true
+    - show user success
+    */
+
 
 
 }

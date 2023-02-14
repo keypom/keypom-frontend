@@ -15,7 +15,7 @@ import {
 
 
 import { useEffect, useState } from 'react';
-import { getDrops, getKeySupplyForDrop } from 'keypom-js';
+import { getDrops, getKeySupplyForDrop, deleteDrops } from 'keypom-js';
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
 import { handleFinishNFTDrop } from '../../create-drop/contexts/CreateNftDropContext'
 
@@ -62,20 +62,31 @@ export default function AllDrops() {
   const { isOpen, onOpen, onClose } = useDisclosure();
 
   const [data, setData] = useState([])
+  const [wallet, setWallet] = useState({})
 
-  const { accountId } = useAuthWalletContext();
+  const { selector, accountId } = useAuthWalletContext();
 
   const handleGetDrops = async () => {
     if (!accountId) return
     const drops = await getDrops({ accountId });
     console.log(drops)
 
+    setWallet(await selector.wallet())
+
+    // debugging
+    // deleteDrops({
+    //   wallet,
+    //   drops: drops.slice(1)
+    // })
+
     setData(await Promise.all(drops.map(async ({ drop_id: dropId, simple, ft, nft, fc, metadata, next_key_id }) => ({
-      id: dropId,
+      dropId,
       name: JSON.parse(metadata).name,
       type: getDropTypeLabel({ simple, ft, nft, fc }),
       claimed: `${next_key_id - await getKeySupplyForDrop({ dropId })} / ${next_key_id}`,
     }))))
+
+    
   }
 
   useEffect(() => {
@@ -91,8 +102,12 @@ export default function AllDrops() {
     </MenuItem>
   ));
 
-  const handleDeleteClick = () => {
-    // TODO: handle delete drop
+  const handleDeleteClick = async (dropId) => {
+    console.log('deleting drop', dropId)
+    await deleteDrops({
+      wallet,
+      dropIds:[dropId],
+    })
   };
 
   const handleRowClick = () => {
@@ -103,18 +118,18 @@ export default function AllDrops() {
   const getTableRows = (): DataItem[] => {
     if (data === undefined || data?.length === 0) return [];
 
-    return data.map((item) => ({
-      ...item,
-      name: <Text color="gray.800">{item.name}</Text>,
+    return data.map((drop) => ({
+      ...drop,
+      name: <Text color="gray.800">{drop.name}</Text>,
       type: (
         <Text fontWeight="normal" mt="0.5">
-          {item.type}
+          {drop.type}
         </Text>
       ),
-      claimed: <Badge variant="lightgreen">{item.claimed} Claimed</Badge>,
+      claimed: <Badge variant="lightgreen">{drop.claimed} Claimed</Badge>,
       action: (
         <Button size="sm" variant="icon">
-          <DeleteIcon color="red" onClick={handleDeleteClick} />
+          <DeleteIcon color="red" onClick={() => handleDeleteClick(drop.dropId)} />
         </Button>
       ),
     }));
