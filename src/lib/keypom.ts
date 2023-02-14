@@ -6,6 +6,7 @@ import {
   updateKeypomContractId,
   getFTMetadata,
   claim,
+  getKeyInformation,
 } from 'keypom-js';
 
 import { CLOUDFLARE_IPFS, DROP_TYPE } from '@/constants/common';
@@ -32,18 +33,7 @@ class KeypomJS {
       });
   }
 
-  // valid contract id -> v1-3.keypom.testnet
-  // getEnv check for contractid validity
-  // updateKeypomContractId
-  // getDropInformation
-  // check drop type
-  /*
-    ft -> Tokens
-    fc -> Ticket (3 method calls)
-    fc -> NFT (1 method call)
-    simple -> simple drop?
-  */
-  async getLinkdropType(contractId: string, secretKey: string) {
+  async verifyDrop(contractId: string, secretKey: string) {
     const { networkId, supportedKeypomContracts } = getEnv();
 
     if (
@@ -59,6 +49,42 @@ class KeypomJS {
     }
 
     await updateKeypomContractId({ keypomContractId: contractId });
+  }
+
+  async checkTicketRemainingUses(contractId: string, secretKey: string) {
+    await this.verifyDrop(contractId, secretKey);
+
+    const keyInfo = await getKeyInformation({ secretKey });
+    console.log(keyInfo);
+
+    if (keyInfo.remaining_uses === 2) {
+      return true;
+    } else {
+      throw new Error('Ticket should have 2 more uses.');
+    }
+  }
+
+  async claimTicket(secretKey: string, password: string) {
+    await claim({ secretKey, password });
+    const keyInfo = await getKeyInformation({ secretKey });
+    if (keyInfo.remaining_uses !== 1) {
+      throw new Error('Ticket should have remaining 1 use');
+    }
+  }
+
+  // valid contract id -> v1-3.keypom.testnet
+  // getEnv check for contractid validity
+  // updateKeypomContractId
+  // getDropInformation
+  // check drop type
+  /*
+    ft -> Tokens
+    fc -> Ticket (3 method calls)
+    fc -> NFT (1 method call)
+    simple -> simple drop?
+  */
+  async getLinkdropType(contractId: string, secretKey: string) {
+    await this.verifyDrop(contractId, secretKey);
     const drop = await getDropInformation({ secretKey });
 
     return this.getDropType(drop);
@@ -96,9 +122,19 @@ class KeypomJS {
     return null;
   }
 
+  getDropMetadata(metadata: string) {
+    try {
+      return JSON.parse(metadata);
+    } catch (err) {
+      return {
+        title: metadata,
+      };
+    }
+  }
+
   async getTokenClaimInformation(secretKey: string) {
     const drop = await getDropInformation({ secretKey });
-    const dropMetadata = drop.metadata !== undefined ? JSON.parse(drop.metadata) : {};
+    const dropMetadata = drop.metadata !== undefined ? this.getDropMetadata(drop.metadata) : {};
     const ftMetadata = await getFTMetadata({ contractId: drop.ft?.contract_id as string });
 
     return {
@@ -112,7 +148,7 @@ class KeypomJS {
   async getNFTClaimInformation(secretKey: string) {
     // given fc
     const drop = await getDropInformation({ secretKey });
-    const dropMetadata = drop.metadata !== undefined ? JSON.parse(drop.metadata) : {};
+    const dropMetadata = drop.metadata !== undefined ? this.getDropMetadata(drop.metadata) : {};
 
     const fcMethods = drop.fc?.methods;
     if (
@@ -145,7 +181,7 @@ class KeypomJS {
   async getTicketNftInformation(secretKey: string) {
     // given fc
     const drop = await getDropInformation({ secretKey });
-    const dropMetadata = drop.metadata !== undefined ? JSON.parse(drop.metadata) : {};
+    const dropMetadata = drop.metadata !== undefined ? this.getDropMetadata(drop.metadata) : {};
 
     const fcMethods = drop.fc?.methods;
     if (

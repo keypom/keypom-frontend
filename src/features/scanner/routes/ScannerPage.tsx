@@ -1,77 +1,129 @@
 /* eslint-disable @typescript-eslint/no-misused-promises */
-import { Badge, Box, Center, Heading, VStack } from '@chakra-ui/react';
-import { useState } from 'react';
+import {
+  Badge,
+  Box,
+  Button,
+  Center,
+  Heading,
+  Modal,
+  ModalBody,
+  ModalContent,
+  ModalFooter,
+  ModalOverlay,
+  Text,
+  useDisclosure,
+  VStack,
+} from '@chakra-ui/react';
+import { useEffect, useState } from 'react';
 import { QrReader } from 'react-qr-reader';
-import { Account, KeyPair } from 'near-api-js';
-import { useParams } from 'react-router-dom';
 
-import nearConfig from '@/utils/near';
-import { hash } from '@/utils/crypto';
 import { ViewFinder } from '@/components/ViewFinder';
-
-const { connection, contractId, accountSuffix, networkId, keyStore } = nearConfig;
+import { TextInput } from '@/components/TextInput';
+import keypomInstance from '@/lib/keypom';
 
 export const gas = '100000000000000';
+const SCANNER_PASSWORD_KEY = 'scanner_password';
 
-export const view = async (methodName, args) => {
-  const account = new Account(connection, accountSuffix.substring(1));
-  return await account.viewFunction(contractId, methodName, args);
-};
-
-export const getClaimAccount = (secretKey) => {
-  const account = new Account(connection, contractId);
-  keyStore.setKey(networkId, contractId, KeyPair.fromString(secretKey));
-  return account;
-};
-
-export const call = (account, methodName, args, _gas = gas) => {
-  return account.functionCall({
-    contractId,
-    methodName,
-    args,
-    gas: _gas,
-  });
-};
+interface TicketResult {
+  secretKey: string;
+  contractId: string;
+}
 
 const Scanner = () => {
-  const { password } = useParams();
+  const { isOpen, onOpen, onClose } = useDisclosure();
   const [valid, setValid] = useState<string | boolean | null>(null);
+  const [password, setPassword] = useState<string | null>('');
+  const [isClaimRetry, setIsClaimRetry] = useState<boolean>(false);
+  const [ticketRes, setTicketRes] = useState<TicketResult | null>(null);
+  const [modalErrorText, setModalErrorText] = useState('');
 
-  const claim = async (secretKey) => {
-    const keyPair = KeyPair.fromString(secretKey);
-    const publicKey = keyPair.getPublicKey().toString();
-    let keyInfo = await view('get_key_information', { key: publicKey });
+  const getSecretKeyAndContractId = (qrText: string): TicketResult | null => {
+    try {
+      return JSON.parse(qrText);
+    } catch (err) {
+      setValid('QR code is invalid. It should contain secret key and contract Id.');
+    }
 
-    if (keyInfo?.remaining_uses === 1) return false;
-
-    const userAccount = getClaimAccount(keyPair.toString());
-    await call(userAccount, 'claim', {
-      account_id: `testnet`,
-      password: password !== undefined ? await hash(`${password}${publicKey}1`) : undefined,
-    });
-
-    // fast return from scanner, tx in flight
-    // if (keyInfo?.remaining_uses === 2) return true
-
-    keyInfo = await view('get_key_information', { key: publicKey });
-    return keyInfo?.remaining_uses === 1;
+    return null;
   };
 
-  const handleResult = async (result, error) => {
-    if (result != null) {
-      try {
-        const res = await claim(result.getText());
-        setValid(res);
-      } catch (e) {
-        setValid('Network Error. Reload Scanner. Try ticket again but please admit the attendee.');
+  const handleScanResult = async (result, error) => {
+    if (result === undefined || result?.text === '') {
+      setValid('QR code is invalid.');
+      return;
+    }
+
+    if (password === undefined || password === null || password === '') {
+      setValid('Password is empty');
+    }
+
+    if (error !== undefined) {
+      console.error(error);
+    }
+
+    const ticketRes = getSecretKeyAndContractId(result.text);
+    if (ticketRes === null) return;
+
+    const { contractId, secretKey } = ticketRes;
+    setTicketRes(ticketRes);
+
+    try {
+      await keypomInstance.checkTicketRemainingUses(contractId, secretKey);
+      setValid(true);
+    } catch (err) {
+      setValid(err.message);
+    }
+
+    try {
+      await keypomInstance.claimTicket(secretKey, password as string);
+    } catch (err) {
+      if (err.message === 'Ticket should have remaining 1 use') {
+        setValid(err.message);
+        return;
       }
-    }
 
-    if (error != null) {
-      // eslint-disable-next-line no-console
-      console.info(error);
+      setIsClaimRetry(true);
+      setModalErrorText(err.message);
+      onOpen();
     }
   };
+
+  const handleClaimRetry = async () => {
+    try {
+      await keypomInstance.claimTicket(ticketRes?.secretKey as string, password as string);
+    } catch (err) {
+      if (err.message === 'Ticket should have remaining 1 use') {
+        setValid(err.message);
+        return;
+      }
+
+      setModalErrorText(err.message);
+      onOpen();
+    }
+  };
+
+  // When modal OK button is clicked, saves password to localStorage and if retrying a claim, retries a claim
+  const handlePasswordSave = async () => {
+    localStorage.setItem(SCANNER_PASSWORD_KEY, password ?? '');
+
+    if (isClaimRetry) {
+      await handleClaimRetry();
+      onClose();
+      return;
+    }
+
+    onClose();
+  };
+
+  // When modal Cancel button is clicked, reuse the password from local storage
+  const handlePasswordCancel = () => {
+    setPassword(localStorage.getItem(SCANNER_PASSWORD_KEY));
+    onClose();
+  };
+
+  useEffect(() => {
+    onOpen();
+  }, []);
 
   return (
     <Box mb={{ base: '5', md: '14' }} minH="100%" minW="100%" mt={{ base: '52px', md: '100px' }}>
@@ -85,7 +137,7 @@ const Scanner = () => {
                 constraints={{ facingMode: 'environment' }}
                 containerStyle={{ width: '100%', height: '100%' }}
                 ViewFinder={() => <ViewFinder />}
-                onResult={handleResult}
+                onResult={handleScanResult}
               />
             </Center>
           )}
@@ -97,6 +149,30 @@ const Scanner = () => {
           </Center>
         </VStack>
       </Center>
+
+      <Modal isOpen={isOpen} onClose={onClose}>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalBody>
+            {modalErrorText !== '' && <Text variant="error">{modalErrorText}</Text>}
+            <TextInput
+              label="Enter password"
+              onChange={(e) => {
+                setPassword(e.target.value);
+              }}
+            />
+          </ModalBody>
+
+          <ModalFooter>
+            <Button mr={3} onClick={handlePasswordSave}>
+              Ok
+            </Button>
+            <Button variant="ghost" onClick={handlePasswordCancel}>
+              Cancel
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
     </Box>
   );
 };

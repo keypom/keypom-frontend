@@ -1,4 +1,4 @@
-import { Button } from '@chakra-ui/react';
+import { Box, Button } from '@chakra-ui/react';
 
 import { useClaimForm } from '../ClaimFormContext';
 
@@ -24,18 +24,17 @@ export const ClaimTicketForm = ({}: ClaimTicketFormProps) => {
   };
 
   return (
-    <form
+    <Box
       style={{ width: '100%' }}
-      onSubmit={handleSubmitClick}
       // onSubmit={handleSubmit(handleSubmitClick)}
     >
       {/* <VStack mb="8" spacing="4" w="full">
         <NameField control={control} />
         <EmailField control={control} />
       </VStack> */}
-      <Button type="submit" w="full">
+      <Button type="submit" w="full" onClick={handleSubmitClick}>
         Show me my ticket
       </Button>
-    </form>
+    </Box>
   );
 };
