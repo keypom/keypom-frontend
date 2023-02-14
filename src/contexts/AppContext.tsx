@@ -1,12 +1,4 @@
-import {
-  createContext,
-  type PropsWithChildren,
-  useCallback,
-  useContext,
-  useEffect,
-  useState,
-} from 'react';
-
+import { createContext, type PropsWithChildren, useContext, useState } from 'react';
 
 interface AppModalInputs {
   placeholder: string;
@@ -15,27 +7,27 @@ interface AppModalInputs {
 
 interface AppModalOptions {
   label: string;
-  func: any;
+  func: () => void;
 }
 
 interface AppModalValues {
   isOpen: boolean;
   message?: string;
   header?: string;
-  options?: AppModalOptions[]
-  inputs?: AppModalInputs[]
+  options?: AppModalOptions[];
+  inputs?: AppModalInputs[];
 }
 
 interface AppContextValues {
   appModal: AppModalValues;
-  setAppModalOpen: any;
+  setAppModalOpen: (args: AppModalValues) => void;
 }
 
 const AppContext = createContext<AppContextValues | null>(null);
 
 export const AppContextProvider = ({ children }: PropsWithChildren) => {
   const [appModal, setAppModal] = useState<AppModalValues>({
-    isOpen: false
+    isOpen: false,
   });
 
   const value = {

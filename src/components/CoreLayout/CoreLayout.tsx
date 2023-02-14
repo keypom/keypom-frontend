@@ -3,9 +3,7 @@ import { Outlet } from 'react-router-dom';
 
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
-
-import { AppModal } from '@/components/AppModal'
-import { AppContextProvider } from '@/contexts/Appcontext';
+import { AppModal } from '@/components/AppModal';
 
 export const CoreLayout = () => {
   const layoutBg =
