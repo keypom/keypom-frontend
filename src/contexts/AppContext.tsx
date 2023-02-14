@@ -7,10 +7,23 @@ import {
   useState,
 } from 'react';
 
+
+interface AppModalInputs {
+  placeholder: string;
+  valueKey: string;
+}
+
+interface AppModalOptions {
+  label: string;
+  func: any;
+}
+
 interface AppModalValues {
   isOpen: boolean;
   message?: string;
   header?: string;
+  options?: AppModalOptions[]
+  inputs?: AppModalInputs[]
 }
 
 interface AppContextValues {

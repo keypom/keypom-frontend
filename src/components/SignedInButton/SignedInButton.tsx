@@ -16,6 +16,7 @@ import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
 import { useAppContext } from '@/contexts/AppContext';
 import { toYocto } from '@/utils/toYocto';
 import { truncateAddress } from '@/utils/truncateAddress';
+import { set } from '@/utils/localStorage'
 
 import { DropIcon, NearLogoIcon, SignOutIcon } from '../Icons';
 
@@ -50,6 +51,17 @@ export const SignedInButton = () => {
       isOpen: true,
       header: 'Set your master key!'
       message: 'hello world!',
+      inputs: [{
+        placeholder: 'Master Key',
+        valueKey: 'masterKey'
+      }]
+      options: [{
+        label: 'Cancel'
+        func: () => console.log('user cancelled')
+      }, {
+        label: 'Set Master Key'
+        func: ({ masterKey }) => set('MASTER_KEY', masterKey)
+      }]
     })
   }
 

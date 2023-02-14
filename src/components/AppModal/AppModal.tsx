@@ -1,11 +1,15 @@
+import { useState } from 'react'
+
 import {
 	Modal,
 	ModalBody,
+	Button,
+	ButtonGroup,
 	ModalContent,
+	ModalFooter,
 	ModalHeader,
 	ModalOverlay,
-	Spinner,
-	type UseDisclosureProps,
+	Input,
 } from '@chakra-ui/react';
 import { CheckIcon } from '@chakra-ui/icons';
 
@@ -19,6 +23,8 @@ export const AppModal = () => {
 	const {
 		appModal, setAppModal
 	} = useAppContext()
+
+	const [values, setValues] = useState({})
 
 	return (
 		<Modal isOpen={appModal.isOpen} onClose={() => setAppModal({
@@ -37,8 +43,38 @@ export const AppModal = () => {
 			</ModalHeader>
 			<ModalBody>
 				{appModal.message && <p>{appModal.message}</p>}
+
+				{appModal.inputs?.length > 0 && <>
+				
+				{
+					appModal.inputs.map(({ placeholder, valueKey }) => 
+					<Input type="text" placeholder={placeholder} onChange={(e) => setValues({
+						...values,
+						...{ [valueKey]: e.target.value }
+					})} />)
+				}
+
+				</>}
+
 			</ModalBody>
+
+			{appModal.options?.length > 0 && <ModalFooter>
+
+			<ButtonGroup>
+				{
+					appModal.options.map(({
+						label,
+						func
+					}, i) => <Button key={i} onClick={() => {
+						func(values)
+						setAppModal({ isOpen: false })
+					}}>{label}</Button>)
+				}
+			</ButtonGroup>
+			</ModalFooter>}
+
 			</ModalContent>
+			
 		</Modal>
 		);
 }
