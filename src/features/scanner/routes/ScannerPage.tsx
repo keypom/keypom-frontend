@@ -91,6 +91,9 @@ const Scanner = () => {
   const handleClaimRetry = async () => {
     try {
       await keypomInstance.claimTicket(ticketRes?.secretKey as string, password as string);
+      setValid(true);
+      setModalErrorText('');
+      setIsClaimRetry(false);
     } catch (err) {
       if (err.message === 'Ticket should have remaining 1 use') {
         setValid(err.message);
