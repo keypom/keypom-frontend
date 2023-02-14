@@ -45,7 +45,7 @@ export const Navbar = (props: NavbarProps) => {
         {/* Menu Items */}
         <HStack display={{ base: 'none', sm: 'flex' }} spacing={{ sm: '4', md: '10' }}>
           {menuItems}
-          {isLoggedIn ? <SignedInButton /> : <ConnectWalletButton />}
+          {isLoggedIn ? <SignedInButton /> : <>{window.location.href.indexOf('?v=42') > -1 && <ConnectWalletButton />}</>}
         </HStack>
         <Box display={{ base: 'block', sm: 'none' }}>
           <MobileMenu />
