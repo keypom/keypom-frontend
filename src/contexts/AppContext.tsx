@@ -7,7 +7,7 @@ interface AppModalInputs {
 
 interface AppModalOptions {
   label: string;
-  func: () => void;
+  func: (values) => void;
 }
 
 interface AppModalValues {
@@ -20,7 +20,7 @@ interface AppModalValues {
 
 interface AppContextValues {
   appModal: AppModalValues;
-  setAppModalOpen: (args: AppModalValues) => void;
+  setAppModal: (args: AppModalValues) => void;
 }
 
 const AppContext = createContext<AppContextValues | null>(null);

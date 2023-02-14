@@ -42,7 +42,7 @@ export const AppModal = () => {
         <ModalBody>
           {appModal.message && <p>{appModal.message}</p>}
 
-          {appModal.inputs?.length > 0 && (
+          {appModal.inputs && appModal.inputs.length > 0 && (
             <>
               {appModal.inputs.map(({ placeholder, valueKey }, i) => (
                 <Input
@@ -61,7 +61,7 @@ export const AppModal = () => {
           )}
         </ModalBody>
 
-        {appModal.options?.length > 0 && (
+        {appModal.options && appModal.options.length > 0 && (
           <ModalFooter>
             <ButtonGroup>
               {appModal.options.map(({ label, func }, i) => (
