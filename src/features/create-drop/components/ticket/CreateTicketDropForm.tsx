@@ -24,7 +24,7 @@ export const CreateTicketDropForm = () => {
 
   // TODO: add next step to summary
   const handleSubmitClick = () => {
-    onNext();
+    onNext?.();
   };
 
   const handleNextStepClick = () => {

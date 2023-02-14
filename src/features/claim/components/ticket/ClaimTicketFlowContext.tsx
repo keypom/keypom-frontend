@@ -15,10 +15,24 @@ interface ClaimTicketFlowContextType extends ClaimTicketFlowContextProps {
 
 const ClaimTicketFlowContext = createContext<ClaimTicketFlowContextType>({
   currentPageIndex: 0,
-  flowPages: undefined,
-  onNext: undefined,
-  onPrevious: undefined,
-  currentFlowPage: undefined,
+  flowPages: [
+    {
+      name: '',
+      description: '',
+      component: <></>,
+    },
+  ],
+  onNext: function (): void {
+    throw new Error('Function not implemented.');
+  },
+  onPrevious: function (): void {
+    throw new Error('Function not implemented.');
+  },
+  currentFlowPage: {
+    name: '',
+    description: '',
+    component: <></>,
+  },
 });
 
 export const ClaimTicketFlowProvider = ({

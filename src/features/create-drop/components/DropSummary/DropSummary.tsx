@@ -13,7 +13,7 @@ interface DropSummaryProps {
   confirmButtonText: string;
   summaryData: SummaryItem[];
   paymentData: PaymentData;
-  data: {
+  data?: {
     success: boolean;
   };
   onConfirmClick: () => void;

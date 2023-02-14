@@ -16,8 +16,8 @@ import { ImageIcon } from '../Icons';
 
 interface ImageFileInputProps extends InputProps {
   label: string;
-  selectedFile: File;
-  preview: string;
+  selectedFile?: File;
+  preview?: string;
   errorMessage?: string;
   flexProps?: FlexProps;
 }

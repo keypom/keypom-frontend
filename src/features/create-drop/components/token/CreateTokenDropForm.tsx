@@ -35,8 +35,8 @@ export const CreateTokenDropForm = () => {
   }, [amountPerLink, totalLinks]);
 
   const handleWalletChange = (walletSymbol: string) => {
-    const { symbol, amount } = WALLET_TOKENS.find((wallet) => wallet.symbol === walletSymbol);
-    setValue('selectedFromWallet', { symbol, amount });
+    const foundWallet = WALLET_TOKENS.find((wallet) => wallet.symbol === walletSymbol);
+    setValue('selectedFromWallet', { symbol: foundWallet?.symbol, amount: foundWallet?.amount });
   };
 
   const handleCheckboxChange = useCallback(
@@ -47,7 +47,7 @@ export const CreateTokenDropForm = () => {
   );
 
   const handleSubmitClick = () => {
-    onNext();
+    onNext?.();
   };
 
   return (

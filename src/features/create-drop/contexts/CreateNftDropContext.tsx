@@ -46,12 +46,28 @@ interface CreateNftDropContextType {
   getPaymentData: () => PaymentData;
   handleDropConfirmation: () => void;
   createLinksSWR: {
-    data: { success: boolean };
+    data?: { success: boolean };
     handleDropConfirmation: () => void;
   };
 }
 
-const CreateNftDropContext = createContext<CreateNftDropContextType | null>(null);
+const CreateNftDropContext = createContext<CreateNftDropContextType>({
+  getSummaryData: () => [{ type: 'text', name: '', value: '' }] as SummaryItem[],
+  getPaymentData: () => ({
+    costsData: [{ name: '', total: 0 }],
+    totalCost: 0,
+    confirmationText: '',
+  }),
+  handleDropConfirmation: function (): void {
+    throw new Error('Function not implemented.');
+  },
+  createLinksSWR: {
+    data: { success: false },
+    handleDropConfirmation: function (): void {
+      throw new Error('Function not implemented.');
+    },
+  },
+});
 
 export const CreateNftDropProvider = ({ children }: PropsWithChildren) => {
   const { trigger, data } = useSWRMutation('/api/drops/tokens', createLinks);
