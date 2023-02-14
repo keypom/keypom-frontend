@@ -56,7 +56,7 @@ export const ClaimFormContextProvider = ({ children }: PropsWithChildren) => {
   }, []);
 
   const handleClaim = async () => {
-    await keypomInstance.claim(secretKey);
+    await keypomInstance.claim(secretKey, 'foo');
   };
 
   const getClaimFormData = (): string[] => {

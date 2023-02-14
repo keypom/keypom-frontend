@@ -7,6 +7,8 @@ import {
   getFTMetadata,
   claim,
   getKeyInformation,
+  hashPassword,
+  getPubFromSecret,
 } from 'keypom-js';
 
 import { CLOUDFLARE_IPFS, DROP_TYPE } from '@/constants/common';
@@ -55,20 +57,31 @@ class KeypomJS {
     await this.verifyDrop(contractId, secretKey);
 
     const keyInfo = await getKeyInformation({ secretKey });
-    console.log(keyInfo);
 
-    if (keyInfo.remaining_uses === 2) {
-      return true;
-    } else {
-      throw new Error('Ticket should have 2 more uses.');
+    switch (keyInfo.remaining_uses) {
+      case 1:
+        throw new Error('Ticket has already been claimed');
+      case 3:
+        throw new Error('RVSP first to enter');
+      default:
+        return true;
     }
   }
 
   async claimTicket(secretKey: string, password: string) {
-    await claim({ secretKey, password });
     const keyInfo = await getKeyInformation({ secretKey });
-    if (keyInfo.remaining_uses !== 1) {
-      throw new Error('Ticket should have remaining 1 use');
+    const publicKey: string = await getPubFromSecret(secretKey);
+    const passwordForClaim = await hashPassword(
+      password + publicKey + keyInfo.cur_key_use.toString(),
+    );
+    await claim({ secretKey, password: passwordForClaim, accountId: 'foo' });
+    switch (keyInfo.remaining_uses) {
+      case 1:
+        throw new Error('Ticket has already been claimed');
+      case 3:
+        throw new Error('RVSP first to enter');
+      default:
+        return true;
     }
   }
 
