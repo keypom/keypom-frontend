@@ -13,12 +13,18 @@ import {
 } from '@chakra-ui/react';
 
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
+import { useAppContext } from '@/contexts/AppContext';
 import { toYocto } from '@/utils/toYocto';
 import { truncateAddress } from '@/utils/truncateAddress';
 
 import { DropIcon, NearLogoIcon, SignOutIcon } from '../Icons';
 
 export const SignedInButton = () => {
+
+	const {
+		appModal, setAppModal
+	} = useAppContext()
+  
   const { account, selector } = useAuthWalletContext();
   const amountInYocto = toYocto(account === null ? 0 : parseInt(account.amount));
 
@@ -38,6 +44,14 @@ export const SignedInButton = () => {
         console.error(err);
       });
   };
+
+  const handleMasterKey = async () => {
+    setAppModal({
+      isOpen: true,
+      header: 'Set your master key!'
+      message: 'hello world!',
+    })
+  }
 
   return (
     <Menu>
@@ -88,6 +102,10 @@ export const SignedInButton = () => {
                 </Text>
                 NEAR
               </Flex>
+            </MenuItem>
+
+            <MenuItem icon={<SignOutIcon />} onClick={handleMasterKey}>
+              Master Key
             </MenuItem>
             <Link href="/drops">
               <MenuItem icon={<DropIcon />}>My drops</MenuItem>

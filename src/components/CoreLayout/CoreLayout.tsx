@@ -4,6 +4,9 @@ import { Outlet } from 'react-router-dom';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 
+import { AppModal } from '@/components/AppModal'
+import { AppContextProvider } from '@/contexts/Appcontext';
+
 export const CoreLayout = () => {
   const layoutBg =
     'url(.png), linear-gradient(180deg, rgba(239, 250, 253, 0.4) 0%, rgba(239, 250, 253, 0.6) 27.41%), #FFFFFF;';
@@ -33,6 +36,7 @@ export const CoreLayout = () => {
         <Outlet />
       </Box>
       <Footer w="full" />
+      <AppModal />
     </Flex>
   );
 };
