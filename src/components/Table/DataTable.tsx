@@ -10,7 +10,6 @@ import {
   Thead,
   Th,
 } from '@chakra-ui/react';
-import { type Dispatch, type SetStateAction } from 'react';
 
 import { MobileDataTable } from './MobileDataTable';
 import { type Pagination, type ColumnItem, type DataItem } from './types';
@@ -44,7 +43,7 @@ export const DataTable = ({
   ...props
 }: DataTableProps) => {
   const startOfPage = pagination ? pagination.pageSize * pagination.pageIndex : 0;
-  const endOfPage = pagination ? pagination.pageSize * (pagination.pageIndex + 1) - 1 : -1;
+  const endOfPage = pagination ? pagination.pageSize * (pagination.pageIndex + 1) - 1 : undefined;
 
   const getDesktopTableBody = () => {
     if (loading) {
