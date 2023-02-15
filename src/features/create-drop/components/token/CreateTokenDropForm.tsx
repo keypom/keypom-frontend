@@ -12,8 +12,12 @@ import { useDropFlowContext } from '@/features/create-drop/contexts';
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
 
 import { WALLET_OPTIONS } from './data';
+import { get } from '@/utils/localStorage';
+import { MASTER_KEY } from '@/constants/common';
+import { useAppContext, setAppModalHelper } from '@/contexts/AppContext';
 
 export const CreateTokenDropForm = () => {
+  const { setAppModal } = useAppContext();
   const { account } = useAuthWalletContext();
   const WALLET_TOKENS = account
     ? [
@@ -61,7 +65,12 @@ export const CreateTokenDropForm = () => {
   );
 
   const handleSubmitClick = () => {
-    onNext?.();
+
+    const masterKey = get(MASTER_KEY)
+    if (masterKey === undefined) {
+      return setAppModalHelper(setAppModal, onNext?.(), () => {})
+    }
+    onNext?.()
   };
 
   return (

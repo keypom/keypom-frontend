@@ -1,9 +1,14 @@
 import { Badge, Box, Button, Skeleton, Text } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
 
+import { useParams } from 'react-router-dom';
+import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
 import { CopyIcon, DeleteIcon } from '@/components/Icons';
 import { DropManager } from '@/features/drop-manager/components/DropManager';
 import { type ColumnItem } from '@/components/Table/types';
+import { get } from '@/utils/localStorage'
+import { MASTER_KEY } from '@/constants/common'
+import { getDropInformation, generateKeys, getKeySupplyForDrop, getKeyInformationBatch } from 'keypom-js';
 
 interface TokenDropResponse {
   name: string;
@@ -22,7 +27,7 @@ const tableColumns: ColumnItem[] = [
     loadingElement: <Skeleton height="30px" />,
   },
   {
-    title: '',
+    title: 'Action',
     selector: (row) => row.action,
     tdProps: {
       display: 'flex',
@@ -33,25 +38,68 @@ const tableColumns: ColumnItem[] = [
   },
 ];
 
-const data: TokenDropResponse = {
-  name: 'Star Invader 3',
-  links: [
-    { id: 1, slug: '#2138h823h', hasClaimed: true },
-    { id: 2, slug: '#2138h823h', hasClaimed: false },
-    { id: 3, slug: '#c34fd2n32', hasClaimed: false },
-    { id: 4, slug: '#rf5hhfaxm', hasClaimed: true },
-  ],
-};
-
 export default function TokenDropManagerPage() {
+  let { id: dropId } = useParams();
   const [loading, setLoading] = useState(true);
+
+  // TODO make these state vars and controllable by user
+  const PAGE_SIZE = 20;
+  const PAGE_OFFSET = 0;
+
+  const [name, setName] = useState('Drop')
+  const [data, setData] = useState([{
+    id: 1,
+    link: 'https://example.com',
+    slug: 'https://example.com',
+    hasClaimed: false,
+    action: 'delete'
+  }]);
+  const [wallet, setWallet] = useState({});
+
+  const { selector, accountId } = useAuthWalletContext();
+
+  const handleGetDrops = async () => {
+    if (!accountId) return;
+    const drop = await getDropInformation({
+      dropId,
+    });
+
+    setName(JSON.parse(drop.metadata).name)
+
+    const keySupply = await getKeySupplyForDrop({
+      dropId
+    })
+
+    console.log(keySupply)
+
+    const { secretKeys } = await generateKeys({
+      numKeys: Math.min(drop.next_key_id, PAGE_SIZE),
+      rootEntropy: `${get(MASTER_KEY)}-${dropId}`,
+      autoMetaNonceStart: PAGE_OFFSET,
+    })
+
+    const keyInfo = await getKeyInformationBatch({
+      secretKeys
+    })
+
+    console.log(keyInfo)
+
+    setData(secretKeys.map((key, i) => ({
+      id: i,
+      link: 'https://keypom.xyz/claim/' + key.replace('ed25519:', ''),
+      slug: key.substring(8, 16),
+      hasClaimed: keyInfo[i] !== null,
+      action: 'delete',
+
+    })))
+
+    setLoading(false);
+  };
 
   // TODO: Remove this after backend is ready
   useEffect(() => {
-    setTimeout(() => {
-      setLoading(false);
-    }, 5000);
-  }, []);
+    handleGetDrops()
+  }, [accountId]);
 
   // TODO: consider moving these to DropManager if backend request are the same for NFT and Ticket
   const handleCopyClick = () => {
@@ -62,9 +110,9 @@ export default function TokenDropManagerPage() {
   };
 
   const getTableRows = () => {
-    if (data === undefined || data?.links === undefined) return [];
+    if (data === undefined) return [];
 
-    return data.links.map((item) => ({
+    return data.map((item) => ({
       ...item,
       link: (
         <Text color="gray.400" display="flex">
@@ -99,7 +147,7 @@ export default function TokenDropManagerPage() {
           claimedHeaderText="Opened"
           claimedText="200/500"
           data={getTableRows()}
-          dropName={data.name}
+          dropName={name}
           loading={loading}
           showColumns={false}
           tableColumns={tableColumns}

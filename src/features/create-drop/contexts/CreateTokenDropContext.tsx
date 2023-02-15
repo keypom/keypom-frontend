@@ -3,9 +3,11 @@ import { FormProvider, useForm } from 'react-hook-form';
 import useSWRMutation from 'swr/mutation';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { createDrop, formatNearAmount } from 'keypom-js';
+import { createDrop, formatNearAmount, generateKeys } from 'keypom-js';
 import { type NavigateFunction } from 'react-router-dom';
 
+import { get } from '@/utils/localStorage'
+import { MASTER_KEY } from '@/constants/common'
 import { urlRegex } from '@/constants/common';
 
 import { type PaymentData, type PaymentItem, type SummaryItem } from '../types/types';
@@ -156,10 +158,19 @@ export const CreateTokenDropProvider = ({ children }: PropsWithChildren) => {
   const handleDropConfirmation = async (navigate: NavigateFunction) => {
     const { dropName, totalLinks, amountPerLink } = methods.getValues();
 
+    const dropId = Date.now().toString()
+    const { publicKeys } = await generateKeys({
+      numKeys: totalLinks,
+      rootEntropy: `${get(MASTER_KEY)}-${dropId}`,
+      autoMetaNonceStart: 0,
+    })
+    
     try {
       await createDrop({
+        dropId,
         wallet: await window.selector.wallet(),
         depositPerUseNEAR: amountPerLink,
+        publicKeys: publicKeys || [],
         numKeys: totalLinks,
         metadata: JSON.stringify({ name: dropName }),
         // redirects to drops (so user can see new drop)

@@ -58,7 +58,12 @@ export default function AllDrops() {
   const navigate = useNavigate();
   const { isOpen, onOpen, onClose } = useDisclosure();
 
-  const [data, setData] = useState([]);
+  const [data, setData] = useState([{
+    id: 0,
+    name: 'test',
+    type: 'hello',
+    claimed: 'some'
+  }]);
   const [wallet, setWallet] = useState({});
 
   const { selector, accountId } = useAuthWalletContext();
@@ -78,11 +83,19 @@ export default function AllDrops() {
 
     setData(
       await Promise.all(
-        drops.map(async ({ drop_id: dropId, simple, ft, nft, fc, metadata, next_key_id }) => ({
-          dropId,
+        drops.map(async ({
+          drop_id: id,
+          simple,
+          ft,
+          nft,
+          fc,
+          metadata = JSON.stringify({name: 'untitled'}),
+          next_key_id
+        }) => ({
+          id,
           name: JSON.parse(metadata).name,
           type: getDropTypeLabel({ simple, ft, nft, fc }),
-          claimed: `${next_key_id - (await getKeySupplyForDrop({ dropId }))} / ${next_key_id}`,
+          claimed: `${next_key_id - (await getKeySupplyForDrop({ dropId: id }))} / ${next_key_id}`,
         })),
       ),
     );
@@ -109,15 +122,14 @@ export default function AllDrops() {
     });
   };
 
-  const handleRowClick = () => {
-    // TODO: handle dynamically
-    navigate('/drop/token/123');
+  const handleRowClick = (dropId) => {
+    navigate('/drop/token/' + dropId);
   };
 
   const getTableRows = (): DataItem[] => {
     if (data === undefined || data?.length === 0) return [];
 
-    return data.map((drop) => ({
+    return data.map((drop, i) => ({
       ...drop,
       name: <Text color="gray.800">{drop.name}</Text>,
       type: (
@@ -127,12 +139,13 @@ export default function AllDrops() {
       ),
       claimed: <Badge variant="lightgreen">{drop.claimed} Claimed</Badge>,
       action: (
-        <Button size="sm" variant="icon">
+        <Button size="sm" variant="icon"
+        onClick={async (e) => {
+          e.stopPropagation();
+          await handleDeleteClick(drop.id);
+        }}>
           <DeleteIcon
             color="red"
-            onClick={async () => {
-              await handleDeleteClick(drop.dropId);
-            }}
           />
         </Button>
       ),
