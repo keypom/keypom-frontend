@@ -10,11 +10,11 @@ import { WalletBalanceInput } from '@/components/WalletBalanceInput';
 import { LinkIcon, NearLogoIcon } from '@/components/Icons';
 import { useDropFlowContext } from '@/features/create-drop/contexts';
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
-
-import { WALLET_OPTIONS } from './data';
 import { get } from '@/utils/localStorage';
 import { MASTER_KEY } from '@/constants/common';
 import { useAppContext, setAppModalHelper } from '@/contexts/AppContext';
+
+import { WALLET_OPTIONS } from './data';
 
 export const CreateTokenDropForm = () => {
   const { setAppModal } = useAppContext();
@@ -65,12 +65,15 @@ export const CreateTokenDropForm = () => {
   );
 
   const handleSubmitClick = () => {
-
-    const masterKey = get(MASTER_KEY)
+    const masterKey = get(MASTER_KEY);
     if (masterKey === undefined) {
-      return setAppModalHelper(setAppModal, onNext?.(), () => {})
+      setAppModalHelper(setAppModal, onNext?.(), () => {
+        // eslint-disable-next-line no-console
+        console.log('user cancelled');
+      });
+      return;
     }
-    onNext?.()
+    onNext?.();
   };
 
   return (

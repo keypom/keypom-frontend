@@ -1,5 +1,6 @@
 import { createContext, type PropsWithChildren, useContext, useState } from 'react';
-import { set } from '@/utils/localStorage'
+
+import { set } from '@/utils/localStorage';
 
 interface AppModalInputs {
   placeholder: string;
@@ -55,7 +56,8 @@ export const setAppModalHelper = (setAppModal, confirm, cancel) => {
   setAppModal({
     isOpen: true,
     header: 'Set your master key!',
-    message: 'This key is used to generate the links for all of your drops. Do NOT lose it or forget it!',
+    message:
+      'This key is used to generate the links for all of your drops. Do NOT lose it or forget it!',
     inputs: [
       {
         placeholder: 'Master Key',
@@ -68,16 +70,16 @@ export const setAppModalHelper = (setAppModal, confirm, cancel) => {
         func: () => {
           // eslint-disable-next-line no-console
           console.log('user cancelled');
-          if (cancel) cancel()
+          if (cancel) cancel();
         },
       },
       {
         label: 'Set Master Key',
         func: ({ masterKey }) => {
           set('MASTER_KEY', masterKey);
-          if (confirm) confirm()
+          if (confirm) confirm();
         },
       },
     ],
   });
-}
+};

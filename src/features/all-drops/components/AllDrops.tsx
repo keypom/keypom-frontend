@@ -58,12 +58,14 @@ export default function AllDrops() {
   const navigate = useNavigate();
   const { isOpen, onOpen, onClose } = useDisclosure();
 
-  const [data, setData] = useState([{
-    id: 0,
-    name: 'test',
-    type: 'hello',
-    claimed: 'some'
-  }]);
+  const [data, setData] = useState([
+    {
+      id: 0,
+      name: 'test',
+      type: 'hello',
+      claimed: 'some',
+    },
+  ]);
   const [wallet, setWallet] = useState({});
 
   const { selector, accountId } = useAuthWalletContext();
@@ -83,20 +85,24 @@ export default function AllDrops() {
 
     setData(
       await Promise.all(
-        drops.map(async ({
-          drop_id: id,
-          simple,
-          ft,
-          nft,
-          fc,
-          metadata = JSON.stringify({name: 'untitled'}),
-          next_key_id
-        }) => ({
-          id,
-          name: JSON.parse(metadata).name,
-          type: getDropTypeLabel({ simple, ft, nft, fc }),
-          claimed: `${next_key_id - (await getKeySupplyForDrop({ dropId: id }))} / ${next_key_id}`,
-        })),
+        drops.map(
+          async ({
+            drop_id: id,
+            simple,
+            ft,
+            nft,
+            fc,
+            metadata = JSON.stringify({ name: 'untitled' }),
+            next_key_id,
+          }) => ({
+            id,
+            name: JSON.parse(metadata).name,
+            type: getDropTypeLabel({ simple, ft, nft, fc }),
+            claimed: `${
+              next_key_id - (await getKeySupplyForDrop({ dropId: id }))
+            } / ${next_key_id}`,
+          }),
+        ),
       ),
     );
   };
@@ -123,7 +129,7 @@ export default function AllDrops() {
   };
 
   const handleRowClick = (dropId) => {
-    navigate('/drop/token/' + dropId);
+    navigate(`/drop/token/${dropId as string}`);
   };
 
   const getTableRows = (): DataItem[] => {
@@ -139,14 +145,15 @@ export default function AllDrops() {
       ),
       claimed: <Badge variant="lightgreen">{drop.claimed} Claimed</Badge>,
       action: (
-        <Button size="sm" variant="icon"
-        onClick={async (e) => {
-          e.stopPropagation();
-          await handleDeleteClick(drop.id);
-        }}>
-          <DeleteIcon
-            color="red"
-          />
+        <Button
+          size="sm"
+          variant="icon"
+          onClick={async (e) => {
+            e.stopPropagation();
+            await handleDeleteClick(drop.id);
+          }}
+        >
+          <DeleteIcon color="red" />
         </Button>
       ),
     }));

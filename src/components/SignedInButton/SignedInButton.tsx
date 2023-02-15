@@ -43,7 +43,7 @@ export const SignedInButton = () => {
   };
 
   const handleMasterKey = async () => {
-    setAppModalHelper(setAppModal)
+    setAppModalHelper(setAppModal);
   };
 
   return (
