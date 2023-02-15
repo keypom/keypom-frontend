@@ -3,6 +3,7 @@ import { Outlet } from 'react-router-dom';
 
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
+import { AppModal } from '@/components/AppModal';
 
 export const CoreLayout = () => {
   const layoutBg =
@@ -33,6 +34,7 @@ export const CoreLayout = () => {
         <Outlet />
       </Box>
       <Footer w="full" />
+      <AppModal />
     </Flex>
   );
 };
