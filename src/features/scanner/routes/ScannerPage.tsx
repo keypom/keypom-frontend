@@ -53,6 +53,10 @@ const Scanner = () => {
   };
 
   const handleScanResult = async (result, error) => {
+    if (scanningResultInProgress) {
+      return;
+    }
+
     scanningResultInProgress = true;
     if (result === undefined) {
       scanningResultInProgress = false;
@@ -96,9 +100,7 @@ const Scanner = () => {
     setTicketRes(ticketRes);
 
     try {
-      console.log('checking remaining uses');
       await keypomInstance.checkTicketRemainingUses(contractId, secretKey);
-      console.log('valid remaining uses');
     } catch (err) {
       setResultModalErrorText(err.message);
       setIsTxLoading(false);
@@ -107,12 +109,12 @@ const Scanner = () => {
     }
 
     try {
-      console.log('claiming ticket');
       await keypomInstance.claimTicket(secretKey, password);
       console.log('claim is valid');
       setIsTxLoading(false);
       setIsTxSuccess(true);
       onResultModalOpen();
+      scanningResultInProgress = false;
     } catch (err) {
       if (
         err.message === 'Ticket has already been claimed' ||
