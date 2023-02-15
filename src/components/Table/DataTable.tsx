@@ -10,9 +10,10 @@ import {
   Thead,
   Th,
 } from '@chakra-ui/react';
+import { type Dispatch, type SetStateAction } from 'react';
 
 import { MobileDataTable } from './MobileDataTable';
-import { type ColumnItem, type DataItem } from './types';
+import { type Pagination, type ColumnItem, type DataItem } from './types';
 
 /**
  * Example
@@ -30,6 +31,8 @@ interface DataTableProps extends TableProps {
   data: DataItem[];
   loading?: boolean;
   onRowClick?: (id: string | number) => void;
+  pagination?: Pagination;
+  setPagination?: Dispatch<SetStateAction<Pagination>>;
 }
 
 export const DataTable = ({
@@ -38,41 +41,12 @@ export const DataTable = ({
   data = [],
   loading = false,
   onRowClick,
-  defaultPageSize = 10,
+  pagination,
+  setPagination,
   ...props
 }: DataTableProps) => {
-  /** Pagination */
-  const [{ pageIndex, pageSize }, setPagination] = useState({
-    pageIndex: 0,
-    pageSize: defaultPageSize,
-  });
-
-  const pagination = useMemo(
-    () => ({
-      pageIndex,
-      pageSize,
-    }),
-    [pageIndex, pageSize],
-  );
-
-  const handleNextPage = () => {
-    if (pagination.pageSize * pagination.pageIndex + 1 > data.length) return; // last page
-    setPagination((prev) => ({
-      pageIndex: prev.pageIndex + 1,
-      pageSize: defaultPageSize,
-    }));
-  };
-
-  const handlePrevPage = () => {
-    if (pagination.pageIndex === 0) return; // last page
-    setPagination((prev) => ({
-      pageIndex: prev.pageIndex - 1,
-      pageSize: defaultPageSize,
-    }));
-  };
-
-  const hasPagination = data.length > defaultPageSize;
-  /** end of pagination */
+  const startOfPage = pagination ? pagination.pageSize * pagination.pageIndex : 0;
+  const endOfPage = pagination ? pagination.pageSize * (pagination.pageIndex + 1) - 1 : -1;
 
   const getDesktopTableBody = () => {
     if (loading) {
@@ -87,7 +61,7 @@ export const DataTable = ({
       ));
     }
 
-    return data.map((drop) => (
+    return data.slice(startOfPage, endOfPage).map((drop) => (
       <Tr
         key={drop.id}
         onClick={() => {
@@ -127,7 +101,13 @@ export const DataTable = ({
 
       {/* Mobile table */}
       <Hide above="md">
-        <MobileDataTable columns={columns} data={data} {...props} />
+        <MobileDataTable
+          columns={columns}
+          data={data}
+          rowEnd={endOfPage}
+          rowStart={startOfPage}
+          {...props}
+        />
       </Hide>
     </>
   );

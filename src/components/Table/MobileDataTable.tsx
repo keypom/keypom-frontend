@@ -15,12 +15,20 @@ interface MobileDataTableProps extends TableProps {
   showColumns?: boolean;
   columns: ColumnItem[];
   data: DataItem[];
+  rowStart: number;
+  rowEnd: number;
 }
 
-export const MobileDataTable = ({ columns, data, ...props }: MobileDataTableProps) => {
+export const MobileDataTable = ({
+  columns,
+  data,
+  rowStart,
+  rowEnd,
+  ...props
+}: MobileDataTableProps) => {
   const actionColumn = columns[columns.length - 1];
   const getMobileTableBody = () =>
-    data.map((drop) => (
+    data.slice(rowStart, rowEnd).map((drop) => (
       <Tr key={drop.id}>
         <Td>
           <VStack align="flex-start" spacing="2">

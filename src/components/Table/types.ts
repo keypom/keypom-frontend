@@ -13,3 +13,8 @@ export interface ColumnItem {
   loadingElement?: React.ReactNode;
   tdProps?: TableCellProps;
 }
+
+export interface Pagination {
+  pageIndex: number;
+  pageSize: number;
+}
