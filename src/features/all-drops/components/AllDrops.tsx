@@ -32,6 +32,9 @@ const COLUMNS: ColumnItem[] = [
   {
     title: 'Drop name',
     selector: (drop) => drop.name,
+    thProps: {
+      minW: '240px',
+    },
   },
   {
     title: 'Drop type',

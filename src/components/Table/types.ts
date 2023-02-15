@@ -12,6 +12,7 @@ export interface ColumnItem {
   selector: (arg: DataItem) => React.ReactNode | Primitive;
   loadingElement?: React.ReactNode;
   tdProps?: TableCellProps;
+  thProps?: TableCellProps;
 }
 
 export interface Pagination {
