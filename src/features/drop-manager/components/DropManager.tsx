@@ -1,4 +1,15 @@
-import { Box, Button, Heading, HStack, Stack, type TableProps, Text } from '@chakra-ui/react';
+import {
+  Box,
+  Button,
+  Heading,
+  HStack,
+  Stack,
+  type TableProps,
+  Text,
+  IconButton,
+} from '@chakra-ui/react';
+import { useMemo, useState } from 'react';
+import { ChevronLeftIcon, ChevronRightIcon } from '@chakra-ui/icons';
 
 import { type ColumnItem, type DataItem } from '@/components/Table/types';
 import { DataTable } from '@/components/Table';
@@ -27,6 +38,41 @@ export const DropManager = ({
   tableProps,
   loading = false,
 }: DropManagerProps) => {
+  /** Pagination utils */
+  const [{ pageIndex, pageSize }, setPagination] = useState({
+    pageIndex: 0, // set the starting page index
+    pageSize: 10, // set the default page size
+  });
+
+  const pagination = useMemo(
+    () => ({
+      pageIndex,
+      pageSize,
+    }),
+    [pageIndex, pageSize],
+  );
+
+  const hasPagination = pagination.pageSize < data.length;
+  const firstPage = pagination.pageIndex === 0;
+  const lastPage = pagination.pageSize * (pagination.pageIndex + 1) > data.length;
+
+  const handleNextPage = () => {
+    if (lastPage) return; // last page
+    setPagination((prev) => ({
+      pageIndex: prev.pageIndex + 1,
+      pageSize: pagination?.pageSize,
+    }));
+  };
+
+  const handlePrevPage = () => {
+    if (firstPage) return; // first page
+    setPagination((prev) => ({
+      pageIndex: prev.pageIndex - 1,
+      pageSize: pagination?.pageSize,
+    }));
+  };
+  /** end of pagination */
+
   const breadcrumbItems = [
     {
       name: 'All drops',
@@ -67,12 +113,28 @@ export const DropManager = ({
 
         {/* Right Section */}
         <HStack alignItems="end" justify="end" mt="1rem !important">
+          {hasPagination && (
+            <IconButton
+              aria-label="previous-page-button"
+              icon={<ChevronLeftIcon h="5" w="5" />}
+              isDisabled={!!firstPage}
+              onClick={handlePrevPage}
+            />
+          )}
           <Button variant="secondary" w={{ base: '100%', sm: 'initial' }}>
             Cancel all
           </Button>
           <Button variant="secondary" w={{ base: '100%', sm: 'initial' }}>
             Export .CSV
           </Button>
+          {hasPagination && (
+            <IconButton
+              aria-label="next-page-button"
+              icon={<ChevronRightIcon h="5" w="5" />}
+              isDisabled={!!lastPage}
+              onClick={handleNextPage}
+            />
+          )}
         </HStack>
       </Stack>
       <Box>
@@ -81,6 +143,8 @@ export const DropManager = ({
           data={data}
           loading={loading}
           mt={{ base: '4', md: '6' }}
+          pagination={pagination}
+          setPagination={setPagination}
           showColumns={showColumns}
           {...tableProps}
         />
