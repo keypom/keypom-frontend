@@ -1,4 +1,5 @@
 import useSWR from 'swr';
+
 import { DropSummary } from '@/features/create-drop/components/DropSummary';
 
 import { useCreateNftDrop } from '../../contexts/CreateNftDropContext';
@@ -9,10 +10,10 @@ export const CreateNftDropSummary = () => {
 
   const { data: paymentData, error, isLoading } = useSWR('drop/nft/new', getPaymentData);
   if (error) {
-    console.warn(error)
-    return <div>failed to load</div>
+    console.warn(error);
+    return <div>failed to load</div>;
   }
-  if (isLoading) return <div>loading...</div>
+  if (isLoading) return <div>loading...</div>;
 
   const { data, handleDropConfirmation } = createLinksSWR;
 
@@ -22,7 +23,9 @@ export const CreateNftDropSummary = () => {
       data={data}
       paymentData={paymentData}
       summaryData={summaryData}
-      onConfirmClick={() => handleDropConfirmation(paymentData)}
+      onConfirmClick={() => {
+        handleDropConfirmation(paymentData);
+      }}
     />
   );
 };

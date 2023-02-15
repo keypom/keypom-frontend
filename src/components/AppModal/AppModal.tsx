@@ -22,11 +22,11 @@ export const AppModal = () => {
   return (
     <Modal
       isOpen={appModal.isOpen}
-      onClose={() =>
+      onClose={() => {
         setAppModal({
           isOpen: false,
-        })
-      }
+        });
+      }}
     >
       <ModalOverlay />
       <ModalContent p={{ base: '8', md: '16' }} textAlign="center">

@@ -17,10 +17,10 @@ export const NumberInput = ({ control }: NumberInputProps) => {
       name={FIELD_NAME}
       render={({ field, fieldState: { error } }) => (
         <TextInput
+          defaultValue={1}
           errorMessage={error?.message}
           isInvalid={!!error?.message}
           label="Number"
-          defaultValue={1}
           type="number"
           {...field}
         />

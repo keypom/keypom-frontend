@@ -3,14 +3,13 @@ import { FormProvider, useForm } from 'react-hook-form';
 import useSWRMutation from 'swr/mutation';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-
 import { createDrop, formatNearAmount } from 'keypom-js';
+import { type NavigateFunction } from 'react-router-dom';
 
 import { urlRegex } from '@/constants/common';
 
 import { type PaymentData, type PaymentItem, type SummaryItem } from '../types/types';
 import { WALLET_TOKENS } from '../components/token/data';
-import { NavigateFunction } from 'react-router-dom';
 
 interface CreateTokenDropContextProps {
   getSummaryData: () => SummaryItem[];
@@ -69,7 +68,7 @@ const createLinks = async () => {
  * Context for managing form state
  */
 export const CreateTokenDropProvider = ({ children }: PropsWithChildren) => {
-  const { trigger, data } = useSWRMutation('/api/drops/tokens', createLinks);
+  const { data } = useSWRMutation('/api/drops/tokens', createLinks);
   const methods = useForm<Schema>({
     mode: 'onChange',
     defaultValues: {
@@ -124,7 +123,7 @@ export const CreateTokenDropProvider = ({ children }: PropsWithChildren) => {
 
     const { requiredDeposit } = await createDrop({
       wallet: await window.selector.wallet(),
-      depositPerUseNEAR: amountPerLink!,
+      depositPerUseNEAR: amountPerLink,
       numKeys: totalLinks,
       returnTransactions: true,
     });
@@ -155,33 +154,25 @@ export const CreateTokenDropProvider = ({ children }: PropsWithChildren) => {
   };
 
   const handleDropConfirmation = async (navigate: NavigateFunction) => {
-    const {
-      dropName,
-      totalLinks,
-      amountPerLink,
-      redirectLink,
-      selectedFromWallet,
-    } = methods.getValues();
+    const { dropName, totalLinks, amountPerLink } = methods.getValues();
 
     try {
       await createDrop({
         wallet: await window.selector.wallet(),
-        depositPerUseNEAR: amountPerLink!,
+        depositPerUseNEAR: amountPerLink,
         numKeys: totalLinks,
         metadata: JSON.stringify({ name: dropName }),
         // redirects to drops (so user can see new drop)
         successUrl: window.location.origin + '/drops',
       });
     } catch (e) {
-      console.warn(e)
+      console.warn(e);
       if (/user reject/gi.test(JSON.stringify(e))) {
         // TODO modal where user informed they rejected TX
       }
     }
 
     navigate('/drops');
-
-    // trigger();
   };
 
   const createLinksSWR = {

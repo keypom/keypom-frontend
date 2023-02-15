@@ -12,27 +12,24 @@ import {
   useDisclosure,
   Heading,
 } from '@chakra-ui/react';
-
-
 import { useEffect, useState } from 'react';
 import { getDrops, getKeySupplyForDrop, deleteDrops } from 'keypom-js';
-import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
-import { handleFinishNFTDrop } from '../../create-drop/contexts/CreateNftDropContext'
-
 import { ChevronDownIcon } from '@chakra-ui/icons';
 import { useNavigate } from 'react-router-dom';
 
+import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
 import { type ColumnItem, type DataItem } from '@/components/Table/types';
 import { DataTable } from '@/components/Table';
 import { DeleteIcon } from '@/components/Icons';
 
+import { handleFinishNFTDrop } from '../../create-drop/contexts/CreateNftDropContext';
 import { MENU_ITEMS } from '../config/menuItems';
 
 import { MobileDrawerMenu } from './MobileDrawerMenu';
 
 const getDropTypeLabel = ({ simple, ft, nft, fc }) => {
-  return (simple && 'Token') || (ft && 'Token') || (nft && 'NFT') || (fc && 'Ticket')
-}
+  return (simple && 'Token') || (ft && 'Token') || (nft && 'NFT') || (fc && 'Ticket');
+};
 
 const COLUMNS: ColumnItem[] = [
   {
@@ -61,17 +58,17 @@ export default function AllDrops() {
   const navigate = useNavigate();
   const { isOpen, onOpen, onClose } = useDisclosure();
 
-  const [data, setData] = useState([])
-  const [wallet, setWallet] = useState({})
+  const [data, setData] = useState([]);
+  const [wallet, setWallet] = useState({});
 
   const { selector, accountId } = useAuthWalletContext();
 
   const handleGetDrops = async () => {
-    if (!accountId) return
+    if (!accountId) return;
     const drops = await getDrops({ accountId });
-    console.log(drops)
+    console.log(drops);
 
-    setWallet(await selector.wallet())
+    setWallet(await selector.wallet());
 
     // debugging
     // deleteDrops({
@@ -79,15 +76,17 @@ export default function AllDrops() {
     //   drops: drops.slice(1)
     // })
 
-    setData(await Promise.all(drops.map(async ({ drop_id: dropId, simple, ft, nft, fc, metadata, next_key_id }) => ({
-      dropId,
-      name: JSON.parse(metadata).name,
-      type: getDropTypeLabel({ simple, ft, nft, fc }),
-      claimed: `${next_key_id - await getKeySupplyForDrop({ dropId })} / ${next_key_id}`,
-    }))))
-
-    
-  }
+    setData(
+      await Promise.all(
+        drops.map(async ({ drop_id: dropId, simple, ft, nft, fc, metadata, next_key_id }) => ({
+          dropId,
+          name: JSON.parse(metadata).name,
+          type: getDropTypeLabel({ simple, ft, nft, fc }),
+          claimed: `${next_key_id - (await getKeySupplyForDrop({ dropId }))} / ${next_key_id}`,
+        })),
+      ),
+    );
+  };
 
   useEffect(() => {
     handleGetDrops();
@@ -103,11 +102,11 @@ export default function AllDrops() {
   ));
 
   const handleDeleteClick = async (dropId) => {
-    console.log('deleting drop', dropId)
+    console.log('deleting drop', dropId);
     await deleteDrops({
       wallet,
-      dropIds:[dropId],
-    })
+      dropIds: [dropId],
+    });
   };
 
   const handleRowClick = () => {
@@ -129,7 +128,12 @@ export default function AllDrops() {
       claimed: <Badge variant="lightgreen">{drop.claimed} Claimed</Badge>,
       action: (
         <Button size="sm" variant="icon">
-          <DeleteIcon color="red" onClick={() => handleDeleteClick(drop.dropId)} />
+          <DeleteIcon
+            color="red"
+            onClick={async () => {
+              await handleDeleteClick(drop.dropId);
+            }}
+          />
         </Button>
       ),
     }));

@@ -19,7 +19,7 @@ import { DescriptionInput } from './Fields/DescriptionInput';
 export interface CreateNftDropFormFieldTypes {
   title: string;
   description: string;
-  number: number,
+  number: number;
   artwork: string;
   selectedToWallets: string[];
   redirectLink?: string;
