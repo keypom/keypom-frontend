@@ -42,15 +42,16 @@ export const AuthWalletContextProvider = ({ children }: PropsWithChildren) => {
   const [accounts, setAccounts] = useState<AccountState[]>([]);
   const [account, setAccount] = useState<Account | null>(null);
 
-  const accountId = accounts.find((account) => account.active)?.accountId || null;
+  const accountId = accounts.find((account) => account.active)?.accountId ?? null;
 
   const getAccount = useCallback(async (): Promise<Account | null> => {
     if (!accountId) {
       return null;
     }
 
-    const { network } = selector.options;
-    const provider = new providers.JsonRpcProvider({ url: network.nodeUrl });
+    const provider = new providers.JsonRpcProvider({
+      url: selector?.options?.network.nodeUrl ?? '',
+    });
 
     return await provider
       .query<AccountView>({
@@ -100,26 +101,22 @@ export const AuthWalletContextProvider = ({ children }: PropsWithChildren) => {
       .catch(console.error); // eslint-disable-line no-console
   }, [accountId, getAccount]);
 
-  return (
-    <AuthWalletContext.Provider
-      value={{
-        modal,
-        accounts,
-        selector,
-        accountId,
-        isLoggedIn: Boolean(sessionStorage.getItem('account')), // selector?.isSignedIn(), with null, cant login. with undefined, cant signout properly
-        account,
-      }}
-    >
-      {children}
-    </AuthWalletContext.Provider>
-  );
+  const value = {
+    modal: modal as WalletSelectorModal,
+    selector: selector as WalletSelector,
+    accounts,
+    accountId,
+    isLoggedIn: Boolean(sessionStorage.getItem('account')), // selector?.isSignedIn(), with null, cant login. with undefined, cant signout properly
+    account: account as Account,
+  };
+
+  return <AuthWalletContext.Provider value={value}>{children}</AuthWalletContext.Provider>;
 };
 
 export const useAuthWalletContext = () => {
   const context = useContext(AuthWalletContext);
 
-  if (context == null) {
+  if (context === null) {
     throw new Error('useAuthWalletContext must be used within a AuthWalletContextProvider');
   }
 

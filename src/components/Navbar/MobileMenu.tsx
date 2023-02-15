@@ -21,7 +21,7 @@ import { MENU_ITEMS } from './Navbar';
 export const MobileMenu = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   // const { isLoggedIn } = useAuthWalletContext();
-  const btnRef = useRef();
+  const btnRef = useRef(null);
   return (
     <Box>
       <Box ref={btnRef} aria-label="menu-button" as="button" onClick={onOpen}>

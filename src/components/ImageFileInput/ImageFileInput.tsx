@@ -16,8 +16,8 @@ import { ImageIcon } from '../Icons';
 
 interface ImageFileInputProps extends InputProps {
   label: string;
-  selectedFile: File;
-  preview: string;
+  selectedFile?: File;
+  preview?: string;
   errorMessage?: string;
   flexProps?: FlexProps;
 }
@@ -63,7 +63,7 @@ export const ImageFileInput = ({
             {...props}
           />
 
-          {selectedFile && preview ? (
+          {selectedFile !== undefined && preview ? (
             <Image alt="Image upload preview" objectFit="cover" src={preview} />
           ) : (
             <Flex

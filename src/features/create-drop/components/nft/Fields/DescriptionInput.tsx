@@ -4,7 +4,7 @@ import { TextAreaInput } from '@/components/TextAreaInput';
 import { type CreateNftDropFormFieldTypes } from '@/features/create-drop/components/nft/CreateNftDropForm';
 
 interface DescriptionProps {
-  control: Control<CreateNftDropFormFieldTypes, any>;
+  control: Control<CreateNftDropFormFieldTypes, unknown>;
 }
 
 const FIELD_NAME = 'description';

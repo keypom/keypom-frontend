@@ -57,7 +57,7 @@ export const DataTable = ({
       <Tr
         key={drop.id}
         onClick={() => {
-          onRowClick(drop.id);
+          onRowClick?.(drop.id);
         }}
       >
         {columns.map((column) => (

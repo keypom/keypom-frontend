@@ -5,7 +5,7 @@ import { TextInput } from '@/components/TextInput';
 import { type CreateNftDropFormFieldTypes } from '../CreateNftDropForm';
 
 interface NftNameInputProps {
-  control: Control<CreateNftDropFormFieldTypes, any>;
+  control: Control<CreateNftDropFormFieldTypes, unknown>;
 }
 
 const FIELD_NAME = 'title';
