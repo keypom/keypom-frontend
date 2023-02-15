@@ -1,4 +1,4 @@
-import { Button, Center, Text } from '@chakra-ui/react';
+import { Button, Center, Spinner, Text } from '@chakra-ui/react';
 import { useState } from 'react';
 
 import { ChevronLeftIcon } from '@/components/Icons';
@@ -7,9 +7,18 @@ import { TextInput } from '@/components/TextInput';
 interface ExistingWalletProps {
   onBack: () => void;
   handleSubmit: (walletAddress: string) => Promise<void>;
+  isSuccess: boolean;
+  isLoading: boolean;
+  claimErrorText: string;
 }
 
-export const ExistingWallet = ({ onBack, handleSubmit }: ExistingWalletProps) => {
+export const ExistingWallet = ({
+  onBack,
+  handleSubmit,
+  isSuccess,
+  isLoading,
+  claimErrorText,
+}: ExistingWalletProps) => {
   const [walletAddress, setWalletAddress] = useState('');
   return (
     <>
@@ -34,14 +43,23 @@ export const ExistingWallet = ({ onBack, handleSubmit }: ExistingWalletProps) =>
           setWalletAddress(e.target.value);
         }}
       />
-      <Button
-        w="full"
-        onClick={() => {
-          handleSubmit(walletAddress);
-        }}
-      >
-        Send
-      </Button>
+      {isSuccess && <Text>Claim successful</Text>}
+      {isLoading && (
+        <Center>
+          <Spinner />
+        </Center>
+      )}
+      {!isSuccess && !isLoading && (
+        <Button
+          w="full"
+          onClick={async () => {
+            await handleSubmit(walletAddress);
+          }}
+        >
+          Send
+        </Button>
+      )}
+      {claimErrorText !== undefined && <Text variant="error">{claimErrorText}</Text>}
     </>
   );
 };

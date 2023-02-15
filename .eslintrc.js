@@ -58,6 +58,7 @@ module.exports = {
         checkForEach: true,
       },
     ],
+    '@typescript-eslint/no-misused-promises': 'off',
     '@typescript-eslint/no-empty-interface': 'off',
     'prettier/prettier': 'error',
     'simple-import-sort/exports': 'error',

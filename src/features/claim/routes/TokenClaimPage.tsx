@@ -24,6 +24,9 @@ const ClaimTokenPage = () => {
   const [haveWallet, showInputWallet] = useBoolean(false);
   const [tokens, setTokens] = useState<TokenAsset[]>([]);
   const [walletsOptions, setWallets] = useState([]);
+  const [isClaimSuccessful, setIsClaimSuccessful] = useState(false);
+  const [isClaimLoading, setIsClaimLoading] = useState(false);
+  const [claimError, setClaimError] = useState('');
 
   const loadClaimInfo = async () => {
     const {
@@ -50,7 +53,14 @@ const ClaimTokenPage = () => {
   }, []);
 
   const handleClaim = async (walletAddress: string) => {
-    await keypomInstance.claim(secretKey, walletAddress);
+    setIsClaimLoading(true);
+    try {
+      await keypomInstance.claim(secretKey, walletAddress);
+    } catch (err) {
+      setClaimError(err);
+    }
+    setIsClaimLoading(false);
+    setIsClaimSuccessful(true);
   };
 
   return (
@@ -95,10 +105,13 @@ const ClaimTokenPage = () => {
               {!haveWallet ? (
                 <CreateWallet wallets={walletsOptions} onClick={showInputWallet.on} />
               ) : (
-                <>
-                  {/** TODO: handleSubmit button */}
-                  <ExistingWallet handleSubmit={handleClaim} onBack={showInputWallet.off} />
-                </>
+                <ExistingWallet
+                  claimErrorText={claimError}
+                  handleSubmit={handleClaim}
+                  isLoading={isClaimLoading}
+                  isSuccess={isClaimSuccessful}
+                  onBack={showInputWallet.off}
+                />
               )}
             </VStack>
           </IconBox>

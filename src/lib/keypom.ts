@@ -74,7 +74,8 @@ class KeypomJS {
     const passwordForClaim = await hashPassword(
       password + publicKey + keyInfo.cur_key_use.toString(),
     );
-    await claim({ secretKey, password: passwordForClaim, accountId: 'foo' });
+    const claimInfo = await claim({ secretKey, password: passwordForClaim, accountId: 'foo' });
+    console.log({ claimInfo });
     switch (keyInfo.remaining_uses) {
       case 1:
         throw new Error('Ticket has already been claimed');

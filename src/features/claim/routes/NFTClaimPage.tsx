@@ -19,6 +19,9 @@ const ClaimNftPage = () => {
   const [description, setDescription] = useState('');
   const [nftImage, setNftImage] = useState('');
   const [walletsOptions, setWallets] = useState([]);
+  const [isClaimSuccessful, setIsClaimSuccessful] = useState(false);
+  const [isClaimLoading, setIsClaimLoading] = useState(false);
+  const [claimError, setClaimError] = useState('');
 
   const loadClaimInfo = async () => {
     const nftData = await keypomInstance.getNFTClaimInformation(secretKey);
@@ -38,7 +41,14 @@ const ClaimNftPage = () => {
   }, []);
 
   const handleClaim = async (walletAddress: string) => {
-    await keypomInstance.claim(secretKey, walletAddress);
+    setIsClaimLoading(true);
+    try {
+      await keypomInstance.claim(secretKey, walletAddress);
+    } catch (err) {
+      setClaimError(err);
+    }
+    setIsClaimLoading(false);
+    setIsClaimSuccessful(true);
   };
 
   return (
@@ -79,7 +89,13 @@ const ClaimNftPage = () => {
                 <CreateWallet wallets={walletsOptions} onClick={showInputWallet.on} />
               ) : (
                 <>
-                  <ExistingWallet handleSubmit={handleClaim} onBack={showInputWallet.off} />
+                  <ExistingWallet
+                    claimErrorText={claimError}
+                    handleSubmit={handleClaim}
+                    isLoading={isClaimLoading}
+                    isSuccess={isClaimSuccessful}
+                    onBack={showInputWallet.off}
+                  />
                 </>
               )}
             </VStack>

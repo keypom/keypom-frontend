@@ -31,7 +31,6 @@ const Scanner = () => {
     onOpen: onResultModalOpen,
     onClose: onResultModalClose,
   } = useDisclosure();
-  // const [valid, setValid] = useState<string | boolean | null>(null);
   const [password, setPassword] = useState<string | null>('');
   const [isClaimRetry, setIsClaimRetry] = useState<boolean>(false);
   const [ticketRes, setTicketRes] = useState<TicketResult | null>(null);
@@ -39,8 +38,6 @@ const Scanner = () => {
   const [isTxSuccess, setIsTxSuccess] = useState(false);
   const [isTxLoading, setIsTxLoading] = useState(false);
   const [resultModalErrorText, setResultModalErrorText] = useState('');
-
-  // TODO: stop concurrent handling of scan result
 
   const getSecretKeyAndContractId = (qrText: string): TicketResult | null => {
     try {
