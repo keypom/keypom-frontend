@@ -38,8 +38,42 @@ export const DataTable = ({
   data = [],
   loading = false,
   onRowClick,
+  defaultPageSize = 10,
   ...props
 }: DataTableProps) => {
+  /** Pagination */
+  const [{ pageIndex, pageSize }, setPagination] = useState({
+    pageIndex: 0,
+    pageSize: defaultPageSize,
+  });
+
+  const pagination = useMemo(
+    () => ({
+      pageIndex,
+      pageSize,
+    }),
+    [pageIndex, pageSize],
+  );
+
+  const handleNextPage = () => {
+    if (pagination.pageSize * pagination.pageIndex + 1 > data.length) return; // last page
+    setPagination((prev) => ({
+      pageIndex: prev.pageIndex + 1,
+      pageSize: defaultPageSize,
+    }));
+  };
+
+  const handlePrevPage = () => {
+    if (pagination.pageIndex === 0) return; // last page
+    setPagination((prev) => ({
+      pageIndex: prev.pageIndex - 1,
+      pageSize: defaultPageSize,
+    }));
+  };
+
+  const hasPagination = data.length > defaultPageSize;
+  /** end of pagination */
+
   const getDesktopTableBody = () => {
     if (loading) {
       return Array.from([1, 2, 3]).map((_, index) => (
