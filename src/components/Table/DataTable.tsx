@@ -32,7 +32,6 @@ interface DataTableProps extends TableProps {
   loading?: boolean;
   onRowClick?: (id: string | number) => void;
   pagination?: Pagination;
-  setPagination?: Dispatch<SetStateAction<Pagination>>;
 }
 
 export const DataTable = ({
@@ -42,7 +41,6 @@ export const DataTable = ({
   loading = false,
   onRowClick,
   pagination,
-  setPagination,
   ...props
 }: DataTableProps) => {
   const startOfPage = pagination ? pagination.pageSize * pagination.pageIndex : 0;
