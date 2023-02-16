@@ -14,3 +14,8 @@ export interface ColumnItem {
   tdProps?: TableCellProps;
   thProps?: TableCellProps;
 }
+
+export interface Pagination {
+  pageIndex: number;
+  pageSize: number;
+}
