@@ -87,11 +87,8 @@ export default function AllDrops() {
   const lastPage = PAGE_SIZE_LIMIT * (pageIndex + 1) > dataSize;
 
   const handleNextPage = async () => {
+    if (lastPage) return;
     setIsLoading((prev) => ({ ...prev, loadRight: true }));
-    if (lastPage) {
-      setIsLoading((prev) => ({ ...prev, loadRight: false }));
-      return;
-    }
     await handleGetDrops({
       start: (pageIndex + 1) * PAGE_SIZE_LIMIT,
       limit: PAGE_SIZE_LIMIT,
@@ -101,11 +98,8 @@ export default function AllDrops() {
   };
 
   const handlePrevPage = async () => {
+    if (firstPage) return;
     setIsLoading((prev) => ({ ...prev, loadLeft: true }));
-    if (firstPage) {
-      setIsLoading((prev) => ({ ...prev, loadLeft: false }));
-      return;
-    }
     await handleGetDrops({
       start: (pageIndex - 1) * PAGE_SIZE_LIMIT,
       limit: PAGE_SIZE_LIMIT,
