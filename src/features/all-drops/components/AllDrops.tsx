@@ -13,7 +13,7 @@ import {
   Heading,
 } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
-import { getDrops, getKeySupplyForDrop, deleteDrops } from 'keypom-js';
+import { getDrops, getKeySupplyForDrop, getDropSupplyForOwner, deleteDrops } from 'keypom-js';
 import { ChevronDownIcon } from '@chakra-ui/icons';
 import { useNavigate } from 'react-router-dom';
 
@@ -21,8 +21,12 @@ import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
 import { type ColumnItem, type DataItem } from '@/components/Table/types';
 import { DataTable } from '@/components/Table';
 import { DeleteIcon } from '@/components/Icons';
+import { handleFinishNFTDrop } from '@/features/create-drop/contexts/CreateNftDropContext';
+import { PAGE_SIZE_LIMIT } from '@/constants/common';
+import { truncateAddress } from '@/utils/truncateAddress';
+import { NextButton, PrevButton } from '@/components/Pagination';
+import { usePagination } from '@/hooks/usePagination';
 
-import { handleFinishNFTDrop } from '../../create-drop/contexts/CreateNftDropContext';
 import { MENU_ITEMS } from '../config/menuItems';
 
 import { MobileDrawerMenu } from './MobileDrawerMenu';
@@ -35,6 +39,9 @@ const COLUMNS: ColumnItem[] = [
   {
     title: 'Drop name',
     selector: (drop) => drop.name,
+    thProps: {
+      minW: '240px',
+    },
   },
   {
     title: 'Drop type',
@@ -58,7 +65,8 @@ export default function AllDrops() {
   const navigate = useNavigate();
   const { isOpen, onOpen, onClose } = useDisclosure();
 
-  const [data, setData] = useState([
+  const [dataSize, setDataSize] = useState<number>(0);
+  const [data, setData] = useState<DataItem[]>([
     {
       id: 0,
       name: 'test',
@@ -68,20 +76,45 @@ export default function AllDrops() {
   ]);
   const [wallet, setWallet] = useState({});
 
+  const {
+    hasPagination,
+    pagination,
+    firstPage,
+    lastPage,
+    loading,
+    handleNextPage,
+    handlePrevPage,
+  } = usePagination({
+    dataSize,
+    handlePrevApiCall: async () => {
+      await handleGetDrops({
+        start: (pagination.pageIndex - 1) * PAGE_SIZE_LIMIT,
+        limit: PAGE_SIZE_LIMIT,
+      });
+    },
+    handleNextApiCall: async () => {
+      await handleGetDrops({
+        start: (pagination.pageIndex + 1) * PAGE_SIZE_LIMIT,
+        limit: PAGE_SIZE_LIMIT,
+      });
+    },
+  });
+
   const { selector, accountId } = useAuthWalletContext();
 
-  const handleGetDrops = async () => {
-    if (!accountId) return;
-    const drops = await getDrops({ accountId });
-    console.log(drops);
+  const handleGetDropsSize = async () => {
+    const numDrops = await getDropSupplyForOwner({
+      accountId,
+    });
+
+    setDataSize(numDrops);
+  };
+
+  const handleGetDrops = async ({ start = 0, limit = PAGE_SIZE_LIMIT }) => {
+    const drops = await getDrops({ accountId, start, limit });
+    // console.log(drops);
 
     setWallet(await selector.wallet());
-
-    // debugging
-    // deleteDrops({
-    //   wallet,
-    //   drops: drops.slice(1)
-    // })
 
     setData(
       await Promise.all(
@@ -92,26 +125,32 @@ export default function AllDrops() {
             ft,
             nft,
             fc,
-            metadata = JSON.stringify({ name: 'untitled' }),
+            metadata = JSON.stringify({ dropName: 'untitled' }),
             next_key_id,
-          }) => ({
-            id,
-            name: JSON.parse(metadata).name,
-            type: getDropTypeLabel({ simple, ft, nft, fc }),
-            claimed: `${
-              next_key_id - (await getKeySupplyForDrop({ dropId: id }))
-            } / ${next_key_id}`,
-          }),
+          }) => {
+            const meta = JSON.parse(metadata);
+            if (meta.dropName) {
+              meta.dropName = 'Untitled Drop';
+            }
+            return {
+              id,
+              name: truncateAddress(meta.dropName),
+              type: getDropTypeLabel({ simple, ft, nft, fc }),
+              claimed: `${
+                next_key_id - (await getKeySupplyForDrop({ dropId: id }))
+              } / ${next_key_id}`,
+            };
+          },
         ),
       ),
     );
   };
 
   useEffect(() => {
-    handleGetDrops();
-    if (accountId) {
-      handleFinishNFTDrop();
-    }
+    if (!accountId) return;
+    handleGetDropsSize();
+    handleGetDrops({});
+    handleFinishNFTDrop();
   }, [accountId]);
 
   const dropMenuItems = MENU_ITEMS.map((item) => (
@@ -161,49 +200,60 @@ export default function AllDrops() {
 
   return (
     <Box minH="100%" minW="100%">
-      {/* <PageHead
-        removeTitleAppend
-        description="Page containing all drops created by user"
-        name="All Drops"
-      /> */}
-
       {/* Header Bar */}
       <HStack alignItems="center" display="flex" spacing="auto">
         <Heading>All drops</Heading>
-
         {/* Desktop Dropdown Menu */}
-        <Show above="sm">
-          <Menu>
-            {({ isOpen }) => (
-              <Box>
-                <MenuButton
-                  as={Button}
-                  isActive={isOpen}
-                  px="6"
-                  py="3"
-                  rightIcon={<ChevronDownIcon />}
-                  variant="secondary"
-                >
-                  Create a drop
-                </MenuButton>
-                <MenuList>{dropMenuItems}</MenuList>
-              </Box>
-            )}
-          </Menu>
-        </Show>
+        <HStack>
+          {hasPagination && (
+            <PrevButton
+              id="all-drops"
+              isDisabled={!!firstPage}
+              isLoading={loading.previous}
+              onClick={handlePrevPage}
+            />
+          )}
+          <Show above="sm">
+            <Menu>
+              {({ isOpen }) => (
+                <Box>
+                  <MenuButton
+                    as={Button}
+                    isActive={isOpen}
+                    px="6"
+                    py="3"
+                    rightIcon={<ChevronDownIcon />}
+                    variant="secondary"
+                  >
+                    Create a drop
+                  </MenuButton>
+                  <MenuList>{dropMenuItems}</MenuList>
+                </Box>
+              )}
+            </Menu>
+          </Show>
 
-        {/* Mobile Menu Button */}
-        <Show below="sm">
-          <Button
-            px="6"
-            py="3"
-            rightIcon={<ChevronDownIcon />}
-            variant="secondary"
-            onClick={onOpen}
-          >
-            Create a drop
-          </Button>
-        </Show>
+          {/* Mobile Menu Button */}
+          <Show below="sm">
+            <Button
+              px="6"
+              py="3"
+              rightIcon={<ChevronDownIcon />}
+              variant="secondary"
+              onClick={onOpen}
+            >
+              Create a drop
+            </Button>
+          </Show>
+          {hasPagination && (
+            <NextButton
+              id="all-drops"
+              isDisabled={!!lastPage}
+              isLoading={loading.next}
+              onClick={handleNextPage}
+            />
+          )}
+        </HStack>
       </HStack>
 
       <DataTable

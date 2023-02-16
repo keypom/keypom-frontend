@@ -56,6 +56,12 @@ export const DataTable = ({
     return data.map((drop) => (
       <Tr
         key={drop.id}
+        _hover={
+          onRowClick && {
+            cursor: 'pointer',
+            background: 'gray.50',
+          }
+        }
         onClick={() => {
           onRowClick?.(drop.id);
         }}
@@ -79,7 +85,7 @@ export const DataTable = ({
               <Thead>
                 <Tr>
                   {columns.map((col) => (
-                    <Th key={col.title} fontFamily="body">
+                    <Th key={col.title} fontFamily="body" {...col.thProps}>
                       {col.title}
                     </Th>
                   ))}

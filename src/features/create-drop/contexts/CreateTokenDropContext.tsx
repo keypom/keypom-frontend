@@ -171,7 +171,7 @@ export const CreateTokenDropProvider = ({ children }: PropsWithChildren) => {
         depositPerUseNEAR: amountPerLink,
         publicKeys: publicKeys || [],
         numKeys: totalLinks,
-        metadata: JSON.stringify({ name: dropName }),
+        metadata: JSON.stringify({ dropName }),
         // redirects to drops (so user can see new drop)
         successUrl: window.location.origin + '/drops',
       });
