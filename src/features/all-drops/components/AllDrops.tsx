@@ -25,6 +25,7 @@ import { handleFinishNFTDrop } from '@/features/create-drop/contexts/CreateNftDr
 import { PAGE_SIZE_LIMIT } from '@/constants/common';
 import { truncateAddress } from '@/utils/truncateAddress';
 import { NextButton, PrevButton } from '@/components/Pagination';
+import { usePagination } from '@/hooks/usePagination';
 
 import { MENU_ITEMS } from '../config/menuItems';
 
@@ -75,39 +76,29 @@ export default function AllDrops() {
   ]);
   const [wallet, setWallet] = useState({});
 
-  /** Pagination utils */
-  const [pageIndex, setPagination] = useState<number>(0); // initial page index
-  const [{ loadLeft, loadRight }, setIsLoading] = useState({
-    loadLeft: false,
-    loadRight: false,
+  const {
+    hasPagination,
+    currentPageIndex,
+    firstPage,
+    lastPage,
+    loading,
+    handleNextPage,
+    handlePrevPage,
+  } = usePagination({
+    dataSize,
+    handlePrevApiCall: async () => {
+      await handleGetDrops({
+        start: (currentPageIndex - 1) * PAGE_SIZE_LIMIT,
+        limit: PAGE_SIZE_LIMIT,
+      });
+    },
+    handleNextApiCall: async () => {
+      await handleGetDrops({
+        start: (currentPageIndex + 1) * PAGE_SIZE_LIMIT,
+        limit: PAGE_SIZE_LIMIT,
+      });
+    },
   });
-
-  const hasPagination = PAGE_SIZE_LIMIT < dataSize;
-  const firstPage = pageIndex === 0;
-  const lastPage = PAGE_SIZE_LIMIT * (pageIndex + 1) > dataSize;
-
-  const handleNextPage = async () => {
-    if (lastPage) return;
-    setIsLoading((prev) => ({ ...prev, loadRight: true }));
-    await handleGetDrops({
-      start: (pageIndex + 1) * PAGE_SIZE_LIMIT,
-      limit: PAGE_SIZE_LIMIT,
-    });
-    setPagination((prev) => prev + 1);
-    setIsLoading((prev) => ({ ...prev, loadRight: false }));
-  };
-
-  const handlePrevPage = async () => {
-    if (firstPage) return;
-    setIsLoading((prev) => ({ ...prev, loadLeft: true }));
-    await handleGetDrops({
-      start: (pageIndex - 1) * PAGE_SIZE_LIMIT,
-      limit: PAGE_SIZE_LIMIT,
-    });
-    setPagination((prev) => prev - 1);
-    setIsLoading((prev) => ({ ...prev, loadLeft: false }));
-  };
-  /** end of pagination utils */
 
   const { selector, accountId } = useAuthWalletContext();
 
@@ -212,12 +203,6 @@ export default function AllDrops() {
 
   return (
     <Box minH="100%" minW="100%">
-      {/* <PageHead
-        removeTitleAppend
-        description="Page containing all drops created by user"
-        name="All Drops"
-      /> */}
-
       {/* Header Bar */}
       <HStack alignItems="center" display="flex" spacing="auto">
         <Heading>All drops</Heading>
@@ -226,13 +211,13 @@ export default function AllDrops() {
             <PrevButton
               id="all-drops"
               isDisabled={!!firstPage}
-              isLoading={loadLeft}
+              isLoading={loading.previous}
               onClick={handlePrevPage}
             />
             <NextButton
               id="all-drops"
               isDisabled={!!lastPage}
-              isLoading={loadRight}
+              isLoading={loading.next}
               onClick={handleNextPage}
             />
           </>
