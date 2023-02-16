@@ -56,6 +56,12 @@ export const DataTable = ({
     return data.map((drop) => (
       <Tr
         key={drop.id}
+        _hover={
+          onRowClick && {
+            cursor: 'pointer',
+            background: 'gray.50',
+          }
+        }
         onClick={() => {
           onRowClick?.(drop.id);
         }}
