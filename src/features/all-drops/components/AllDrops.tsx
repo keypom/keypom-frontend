@@ -206,55 +206,57 @@ export default function AllDrops() {
       {/* Header Bar */}
       <HStack alignItems="center" display="flex" spacing="auto">
         <Heading>All drops</Heading>
-        {hasPagination && (
-          <>
+        {/* Desktop Dropdown Menu */}
+        <HStack>
+          {hasPagination && (
             <PrevButton
               id="all-drops"
               isDisabled={!!firstPage}
               isLoading={loading.previous}
               onClick={handlePrevPage}
             />
+          )}
+          <Show above="sm">
+            <Menu>
+              {({ isOpen }) => (
+                <Box>
+                  <MenuButton
+                    as={Button}
+                    isActive={isOpen}
+                    px="6"
+                    py="3"
+                    rightIcon={<ChevronDownIcon />}
+                    variant="secondary"
+                  >
+                    Create a drop
+                  </MenuButton>
+                  <MenuList>{dropMenuItems}</MenuList>
+                </Box>
+              )}
+            </Menu>
+          </Show>
+
+          {/* Mobile Menu Button */}
+          <Show below="sm">
+            <Button
+              px="6"
+              py="3"
+              rightIcon={<ChevronDownIcon />}
+              variant="secondary"
+              onClick={onOpen}
+            >
+              Create a drop
+            </Button>
+          </Show>
+          {hasPagination && (
             <NextButton
               id="all-drops"
               isDisabled={!!lastPage}
               isLoading={loading.next}
               onClick={handleNextPage}
             />
-          </>
-        )}
-        {/* Desktop Dropdown Menu */}
-        <Show above="sm">
-          <Menu>
-            {({ isOpen }) => (
-              <Box>
-                <MenuButton
-                  as={Button}
-                  isActive={isOpen}
-                  px="6"
-                  py="3"
-                  rightIcon={<ChevronDownIcon />}
-                  variant="secondary"
-                >
-                  Create a drop
-                </MenuButton>
-                <MenuList>{dropMenuItems}</MenuList>
-              </Box>
-            )}
-          </Menu>
-        </Show>
-
-        {/* Mobile Menu Button */}
-        <Show below="sm">
-          <Button
-            px="6"
-            py="3"
-            rightIcon={<ChevronDownIcon />}
-            variant="secondary"
-            onClick={onOpen}
-          >
-            Create a drop
-          </Button>
-        </Show>
+          )}
+        </HStack>
       </HStack>
 
       <DataTable
