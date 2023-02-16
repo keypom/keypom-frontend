@@ -3,6 +3,7 @@ import { Box, Button, Heading, HStack, Stack, type TableProps, Text } from '@cha
 import { type ColumnItem, type DataItem } from '@/components/Table/types';
 import { DataTable } from '@/components/Table';
 import { Breadcrumbs } from '@/components/Breadcrumbs';
+import { NextButton, PrevButton } from '@/components/Pagination';
 
 interface DropManagerProps {
   dropName: string;
@@ -11,6 +12,18 @@ interface DropManagerProps {
   tableColumns: ColumnItem[];
   showColumns?: boolean;
   data: DataItem[];
+  pagination?: {
+    hasPagination: boolean;
+    id: string;
+    paginationLoading: {
+      previous: boolean;
+      next: boolean;
+    };
+    firstPage: boolean;
+    lastPage: boolean;
+    handlePrevPage: () => void;
+    handleNextPage: () => void;
+  };
   tableProps?: TableProps;
   loading?: boolean;
   onExportCSVClick?: () => void;
@@ -25,6 +38,7 @@ export const DropManager = ({
   data = [],
   showColumns = true,
   tableProps,
+  pagination,
   loading = false,
 }: DropManagerProps) => {
   const breadcrumbItems = [
@@ -67,12 +81,28 @@ export const DropManager = ({
 
         {/* Right Section */}
         <HStack alignItems="end" justify="end" mt="1rem !important">
+          {pagination?.hasPagination && (
+            <PrevButton
+              id={pagination.id}
+              isDisabled={!!pagination.firstPage}
+              isLoading={pagination.paginationLoading.previous}
+              onClick={pagination.handlePrevPage}
+        />
+          )}
           <Button variant="secondary" w={{ base: '100%', sm: 'initial' }}>
             Cancel all
           </Button>
           <Button variant="secondary" w={{ base: '100%', sm: 'initial' }}>
             Export .CSV
           </Button>
+          {pagination?.hasPagination && (
+            <NextButton
+              id={pagination.id}
+              isDisabled={!!pagination.lastPage}
+              isLoading={pagination.paginationLoading.next}
+              onClick={pagination.handleNextPage}
+            />
+          )}
         </HStack>
       </Stack>
       <Box>
