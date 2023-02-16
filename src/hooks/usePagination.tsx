@@ -63,12 +63,12 @@ export const usePagination = ({
 
   return {
     hasPagination,
-    pagination: { pageIndex, pageSize },
+    currentPageIndex: pageIndex,
     firstPage,
     lastPage,
     loading: { previous, next },
     handleNextPage,
     handlePrevPage,
-    setPagination, // use this to allow user to customise pageSize
+    setPagination,
   };
 };
