@@ -103,7 +103,6 @@ export default function AllDrops() {
   const { selector, accountId } = useAuthWalletContext();
 
   const handleGetDropsSize = async () => {
-    if (!accountId) return;
     const numDrops = await getDropSupplyForOwner({
       accountId,
     });
@@ -112,17 +111,10 @@ export default function AllDrops() {
   };
 
   const handleGetDrops = async ({ start = 0, limit = PAGE_SIZE_LIMIT }) => {
-    if (!accountId) return;
     const drops = await getDrops({ accountId, start, limit });
-    console.log(drops);
+    // console.log(drops);
 
     setWallet(await selector.wallet());
-
-    // debugging
-    // deleteDrops({
-    //   wallet,
-    //   drops: drops.slice(1)
-    // })
 
     setData(
       await Promise.all(
@@ -135,25 +127,30 @@ export default function AllDrops() {
             fc,
             metadata = JSON.stringify({ dropName: 'untitled' }),
             next_key_id,
-          }) => ({
-            id,
-            name: truncateAddress(JSON.parse(metadata).dropName),
-            type: getDropTypeLabel({ simple, ft, nft, fc }),
-            claimed: `${
-              next_key_id - (await getKeySupplyForDrop({ dropId: id }))
-            } / ${next_key_id}`,
-          }),
+          }) => {
+            const meta = JSON.parse(metadata)
+            if (meta.dropName) {
+              meta.dropName = 'Untitled Drop'
+            }
+            return {
+              id,
+              name: truncateAddress(meta.dropName),
+              type: getDropTypeLabel({ simple, ft, nft, fc }),
+              claimed: `${
+                next_key_id - (await getKeySupplyForDrop({ dropId: id }))
+              } / ${next_key_id}`,
+            }
+          },
         ),
       ),
     );
   };
 
   useEffect(() => {
+    if (!accountId) return
     handleGetDropsSize();
     handleGetDrops({});
-    if (accountId) {
-      handleFinishNFTDrop();
-    }
+    handleFinishNFTDrop();
   }, [accountId]);
 
   const dropMenuItems = MENU_ITEMS.map((item) => (
