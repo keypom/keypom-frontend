@@ -99,7 +99,7 @@ export default function AllDrops() {
             next_key_id,
           }) => ({
             id,
-            name: JSON.parse(metadata).name,
+            name: truncateAddress(JSON.parse(metadata).dropName),
             type: getDropTypeLabel({ simple, ft, nft, fc }),
             claimed: `${
               next_key_id - (await getKeySupplyForDrop({ dropId: id }))
