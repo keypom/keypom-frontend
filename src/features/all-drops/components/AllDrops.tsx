@@ -141,7 +141,7 @@ export default function AllDrops() {
             ft,
             nft,
             fc,
-            metadata = JSON.stringify({ name: 'untitled' }),
+            metadata = JSON.stringify({ dropName: 'untitled' }),
             next_key_id,
           }) => ({
             id,
