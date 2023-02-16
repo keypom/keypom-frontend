@@ -8,13 +8,16 @@ import { Fonts } from '@/components/Fonts';
 import { Loading } from '@/components/Loading';
 import { theme } from '@/theme';
 import { router } from '@/router';
+import nearConfig from '@/utils/near';
 
 import '@near-wallet-selector/modal-ui/styles.css';
 import '@/components/WalletSelectorModal/WalletSelectorModal.css';
 
+const { networkId, contractId } = nearConfig;
 // @eslint-disable-next-line typescript-eslint/no-floating-promises
 initKeypom({
-  network: 'testnet',
+  network: networkId,
+  keypomContractId: contractId,
 });
 
 const ChakraProvider = React.lazy(
