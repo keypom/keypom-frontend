@@ -11,18 +11,21 @@ import {
   Text,
   useDisclosure,
   Heading,
+  IconButton,
 } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
-import { getDrops, getKeySupplyForDrop, deleteDrops } from 'keypom-js';
-import { ChevronDownIcon } from '@chakra-ui/icons';
+import { getDrops, getKeySupplyForDrop, getDropSupplyForOwner, deleteDrops } from 'keypom-js';
+import { ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon } from '@chakra-ui/icons';
 import { useNavigate } from 'react-router-dom';
 
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
 import { type ColumnItem, type DataItem } from '@/components/Table/types';
 import { DataTable } from '@/components/Table';
 import { DeleteIcon } from '@/components/Icons';
+import { handleFinishNFTDrop } from '@/features/create-drop/contexts/CreateNftDropContext';
+import { PAGE_SIZE_LIMIT } from '@/constants/common';
+import { truncateAddress } from '@/utils/truncateAddress';
 
-import { handleFinishNFTDrop } from '../../create-drop/contexts/CreateNftDropContext';
 import { MENU_ITEMS } from '../config/menuItems';
 
 import { MobileDrawerMenu } from './MobileDrawerMenu';
@@ -61,7 +64,8 @@ export default function AllDrops() {
   const navigate = useNavigate();
   const { isOpen, onOpen, onClose } = useDisclosure();
 
-  const [data, setData] = useState([
+  const [dataSize, setDataSize] = useState<number>(0);
+  const [data, setData] = useState<DataItem[]>([
     {
       id: 0,
       name: 'test',
@@ -71,11 +75,59 @@ export default function AllDrops() {
   ]);
   const [wallet, setWallet] = useState({});
 
+  /** Pagination utils */
+  const [pageIndex, setPagination] = useState<number>(0); // initial page index
+  const [{ loadLeft, loadRight }, setIsLoading] = useState({
+    loadLeft: false,
+    loadRight: false,
+  });
+
+  const hasPagination = PAGE_SIZE_LIMIT < dataSize;
+  const firstPage = pageIndex === 0;
+  const lastPage = PAGE_SIZE_LIMIT * (pageIndex + 1) > dataSize;
+
+  const handleNextPage = async () => {
+    setIsLoading((prev) => ({ ...prev, loadRight: true }));
+    if (lastPage) {
+      setIsLoading((prev) => ({ ...prev, loadRight: false }));
+      return;
+    }
+    await handleGetDrops({
+      start: (pageIndex + 1) * PAGE_SIZE_LIMIT,
+      limit: PAGE_SIZE_LIMIT,
+    });
+    setPagination((prev) => prev + 1);
+    setIsLoading((prev) => ({ ...prev, loadRight: false }));
+  };
+
+  const handlePrevPage = async () => {
+    setIsLoading((prev) => ({ ...prev, loadLeft: true }));
+    if (firstPage) {
+      setIsLoading((prev) => ({ ...prev, loadLeft: false }));
+      return;
+    }
+    await handleGetDrops({
+      start: (pageIndex - 1) * PAGE_SIZE_LIMIT,
+      limit: PAGE_SIZE_LIMIT,
+    });
+    setPagination((prev) => prev - 1);
+    setIsLoading((prev) => ({ ...prev, loadLeft: false }));
+  };
+  /** end of pagination utils */
   const { selector, accountId } = useAuthWalletContext();
 
-  const handleGetDrops = async () => {
+  const handleGetDropsSize = async () => {
     if (!accountId) return;
-    const drops = await getDrops({ accountId });
+    const numDrops = await getDropSupplyForOwner({
+      accountId,
+    });
+
+    setDataSize(numDrops);
+  };
+
+  const handleGetDrops = async ({ start = 0, limit = PAGE_SIZE_LIMIT }) => {
+    if (!accountId) return;
+    const drops = await getDrops({ accountId, start, limit });
     console.log(drops);
 
     setWallet(await selector.wallet());
@@ -111,7 +163,8 @@ export default function AllDrops() {
   };
 
   useEffect(() => {
-    handleGetDrops();
+    handleGetDropsSize();
+    handleGetDrops({});
     if (accountId) {
       handleFinishNFTDrop();
     }
@@ -173,7 +226,24 @@ export default function AllDrops() {
       {/* Header Bar */}
       <HStack alignItems="center" display="flex" spacing="auto">
         <Heading>All drops</Heading>
-
+        {hasPagination && (
+          <>
+            <IconButton
+              aria-label="previous-page-button"
+              icon={<ChevronLeftIcon h="5" w="5" />}
+              isDisabled={!!firstPage}
+              isLoading={loadLeft}
+              onClick={handlePrevPage}
+            />
+            <IconButton
+              aria-label="next-page-button"
+              icon={<ChevronRightIcon h="5" w="5" />}
+              isDisabled={!!lastPage}
+              isLoading={loadRight}
+              onClick={handleNextPage}
+            />
+          </>
+        )}
         {/* Desktop Dropdown Menu */}
         <Show above="sm">
           <Menu>
