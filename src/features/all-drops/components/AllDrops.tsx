@@ -11,11 +11,10 @@ import {
   Text,
   useDisclosure,
   Heading,
-  IconButton,
 } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
 import { getDrops, getKeySupplyForDrop, getDropSupplyForOwner, deleteDrops } from 'keypom-js';
-import { ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon } from '@chakra-ui/icons';
+import { ChevronDownIcon } from '@chakra-ui/icons';
 import { useNavigate } from 'react-router-dom';
 
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
@@ -25,6 +24,7 @@ import { DeleteIcon } from '@/components/Icons';
 import { handleFinishNFTDrop } from '@/features/create-drop/contexts/CreateNftDropContext';
 import { PAGE_SIZE_LIMIT } from '@/constants/common';
 import { truncateAddress } from '@/utils/truncateAddress';
+import { NextButton, PrevButton } from '@/components/Pagination';
 
 import { MENU_ITEMS } from '../config/menuItems';
 
@@ -108,6 +108,7 @@ export default function AllDrops() {
     setIsLoading((prev) => ({ ...prev, loadLeft: false }));
   };
   /** end of pagination utils */
+
   const { selector, accountId } = useAuthWalletContext();
 
   const handleGetDropsSize = async () => {
@@ -222,16 +223,14 @@ export default function AllDrops() {
         <Heading>All drops</Heading>
         {hasPagination && (
           <>
-            <IconButton
-              aria-label="previous-page-button"
-              icon={<ChevronLeftIcon h="5" w="5" />}
+            <PrevButton
+              id="all-drops"
               isDisabled={!!firstPage}
               isLoading={loadLeft}
               onClick={handlePrevPage}
             />
-            <IconButton
-              aria-label="next-page-button"
-              icon={<ChevronRightIcon h="5" w="5" />}
+            <NextButton
+              id="all-drops"
               isDisabled={!!lastPage}
               isLoading={loadRight}
               onClick={handleNextPage}
