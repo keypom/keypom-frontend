@@ -78,7 +78,7 @@ export default function AllDrops() {
 
   const {
     hasPagination,
-    currentPageIndex,
+    pagination,
     firstPage,
     lastPage,
     loading,
@@ -88,13 +88,13 @@ export default function AllDrops() {
     dataSize,
     handlePrevApiCall: async () => {
       await handleGetDrops({
-        start: (currentPageIndex - 1) * PAGE_SIZE_LIMIT,
+        start: (pagination.pageIndex - 1) * PAGE_SIZE_LIMIT,
         limit: PAGE_SIZE_LIMIT,
       });
     },
     handleNextApiCall: async () => {
       await handleGetDrops({
-        start: (currentPageIndex + 1) * PAGE_SIZE_LIMIT,
+        start: (pagination.pageIndex + 1) * PAGE_SIZE_LIMIT,
         limit: PAGE_SIZE_LIMIT,
       });
     },
