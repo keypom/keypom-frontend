@@ -7,8 +7,8 @@ import {
 import { setupModal, type WalletSelectorModal } from '@near-wallet-selector/modal-ui';
 import { setupNearWallet } from '@near-wallet-selector/near-wallet';
 
-const NETWORK_ID = process.env.NEXT_PUBLIC_NETWORK_ID ?? 'testnet';
-const CONTRACT_ID = process.env.NEXT_PUBLIC_CONTRACT_ID ?? 'v1-4.keypom.testnet';
+const NETWORK_ID = process.env.NETWORK_ID ?? 'testnet';
+const CONTRACT_ID = process.env.CONTRACT_ID ?? 'v1-4.keypom.testnet';
 
 export class NearWalletSelector {
   public accounts: AccountState[];
