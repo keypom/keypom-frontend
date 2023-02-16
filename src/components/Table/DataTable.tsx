@@ -79,7 +79,7 @@ export const DataTable = ({
               <Thead>
                 <Tr>
                   {columns.map((col) => (
-                    <Th key={col.title} fontFamily="body">
+                    <Th key={col.title} fontFamily="body" {...col.thProps}>
                       {col.title}
                     </Th>
                   ))}
