@@ -1,4 +1,5 @@
-import { Box, Button } from '@chakra-ui/react';
+import { Box, Button, Center, Spinner } from '@chakra-ui/react';
+import { useState } from 'react';
 
 import { useClaimForm } from '../ClaimFormContext';
 
@@ -11,13 +12,15 @@ export interface ClaimTicketFormFieldTypes {
 
 export const ClaimTicketForm = () => {
   const { onNext } = useClaimTicketFlow();
+  const [isLoading, setIsLoading] = useState(false);
 
   const { handleClaim } = useClaimForm();
   // const { handleSubmit, control } = useFormContext<ClaimTicketFormFieldTypes>();
 
   const handleSubmitClick = async () => {
-    // TODO: handle name/email validation and send email
+    setIsLoading(true);
     await handleClaim();
+    setIsLoading(false);
     onNext();
   };
 
@@ -27,12 +30,18 @@ export const ClaimTicketForm = () => {
       // onSubmit={handleSubmit(handleSubmitClick)}
     >
       {/* <VStack mb="8" spacing="4" w="full">
-        <NameField control={control} />
+        <NameField control={control} /> TODO: to be readded in future
         <EmailField control={control} />
       </VStack> */}
-      <Button type="submit" w="full" onClick={handleSubmitClick}>
-        Show me my ticket
-      </Button>
+      {isLoading ? (
+        <Center>
+          <Spinner size="lg" />
+        </Center>
+      ) : (
+        <Button type="submit" w="full" onClick={handleSubmitClick}>
+          Show me my ticket
+        </Button>
+      )}
     </Box>
   );
 };

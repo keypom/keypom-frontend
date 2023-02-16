@@ -69,20 +69,16 @@ class KeypomJS {
   }
 
   async claimTicket(secretKey: string, password: string) {
-    const keyInfo = await getKeyInformation({ secretKey });
+    let keyInfo = await getKeyInformation({ secretKey });
     const publicKey: string = await getPubFromSecret(secretKey);
     const passwordForClaim = await hashPassword(
       password + publicKey + keyInfo.cur_key_use.toString(),
     );
-    const claimInfo = await claim({ secretKey, password: passwordForClaim, accountId: 'foo' });
-    console.log({ claimInfo });
-    switch (keyInfo.remaining_uses) {
-      case 1:
-        throw new Error('Ticket has already been claimed');
-      case 3:
-        throw new Error('RVSP first to enter');
-      default:
-        return true;
+    await claim({ secretKey, password: passwordForClaim, accountId: 'foo' });
+
+    keyInfo = await getKeyInformation({ secretKey });
+    if (keyInfo.remaining_uses === 2) {
+      throw new Error('Password is incorrect. Please try again.');
     }
   }
 

@@ -49,6 +49,34 @@ const Scanner = () => {
     return null;
   };
 
+  const handleTicketClaim = async (secretKey: string) => {
+    try {
+      await keypomInstance.claimTicket(secretKey, password as string);
+      console.log('claim is valid');
+      setIsTxLoading(false);
+      setIsTxSuccess(true);
+      onResultModalOpen();
+      scanningResultInProgress = false;
+    } catch (err) {
+      if (
+        err.message === 'Ticket has already been claimed' ||
+        err.message === 'RVSP first to enter'
+      ) {
+        setResultModalErrorText(err.message);
+        setIsTxLoading(false);
+        scanningResultInProgress = false;
+        return;
+      }
+
+      setIsClaimRetry(true);
+      setPasswordErrorText(err.message);
+      onPasswordModalOpen();
+      onResultModalClose();
+      setIsTxLoading(true);
+      scanningResultInProgress = false;
+    }
+  };
+
   const handleScanResult = async (result, error) => {
     if (scanningResultInProgress) {
       return;
@@ -89,6 +117,7 @@ const Scanner = () => {
     const ticketRes = getSecretKeyAndContractId(result.text);
     if (ticketRes === null) {
       console.error('Error parsing QR code');
+      setResultModalErrorText('Error parsing QR code');
       scanningResultInProgress = false;
       return;
     }
@@ -105,64 +134,19 @@ const Scanner = () => {
       return;
     }
 
-    try {
-      await keypomInstance.claimTicket(secretKey, password);
-      console.log('claim is valid');
-      setIsTxLoading(false);
-      setIsTxSuccess(true);
-      onResultModalOpen();
-      scanningResultInProgress = false;
-    } catch (err) {
-      if (
-        err.message === 'Ticket has already been claimed' ||
-        err.message === 'RVSP first to enter'
-      ) {
-        setResultModalErrorText(err.message);
-        setIsTxLoading(false);
-        scanningResultInProgress = false;
-        return;
-      }
-
-      setIsClaimRetry(true);
-      setPasswordErrorText(err.message);
-      onPasswordModalOpen();
-      setIsTxLoading(true);
-      scanningResultInProgress = false;
-    }
-  };
-
-  const handleClaimRetry = async () => {
-    try {
-      await keypomInstance.claimTicket(ticketRes?.secretKey as string, password as string);
-      onResultModalOpen();
-      setResultModalErrorText('');
-      setPasswordErrorText('');
-      setIsClaimRetry(false);
-    } catch (err) {
-      if (
-        err.message === 'Ticket has already been claimed' ||
-        err.message === 'RVSP first to enter'
-      ) {
-        setResultModalErrorText(err.message);
-        return;
-      }
-
-      setPasswordErrorText(err.message);
-      onPasswordModalOpen();
-    }
+    await handleTicketClaim(secretKey);
   };
 
   // When modal OK button is clicked, saves password to localStorage and if retrying a claim, retries a claim
   const handlePasswordSave = async () => {
     localStorage.setItem(SCANNER_PASSWORD_KEY, password ?? '');
+    onPasswordModalClose();
 
     if (isClaimRetry) {
-      await handleClaimRetry();
+      onResultModalOpen();
+      await handleTicketClaim(ticketRes?.secretKey as string);
       onPasswordModalClose();
-      return;
     }
-
-    onPasswordModalClose();
   };
 
   // When modal Cancel button is clicked, reuse the password from local storage
@@ -173,7 +157,6 @@ const Scanner = () => {
 
   useEffect(() => {
     onPasswordModalOpen();
-    // onResultModalOpen();
   }, []);
 
   return (
