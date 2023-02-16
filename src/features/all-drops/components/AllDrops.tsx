@@ -128,9 +128,9 @@ export default function AllDrops() {
             metadata = JSON.stringify({ dropName: 'untitled' }),
             next_key_id,
           }) => {
-            const meta = JSON.parse(metadata)
+            const meta = JSON.parse(metadata);
             if (meta.dropName) {
-              meta.dropName = 'Untitled Drop'
+              meta.dropName = 'Untitled Drop';
             }
             return {
               id,
@@ -139,7 +139,7 @@ export default function AllDrops() {
               claimed: `${
                 next_key_id - (await getKeySupplyForDrop({ dropId: id }))
               } / ${next_key_id}`,
-            }
+            };
           },
         ),
       ),
@@ -147,7 +147,7 @@ export default function AllDrops() {
   };
 
   useEffect(() => {
-    if (!accountId) return
+    if (!accountId) return;
     handleGetDropsSize();
     handleGetDrops({});
     handleFinishNFTDrop();
