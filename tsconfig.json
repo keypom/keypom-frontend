@@ -19,6 +19,7 @@
     "experimentalDecorators": true,
     "skipLibCheck": true,
     "baseUrl": "./",
+    "outDir": "dist",
     "paths": {
       "@/*": ["src/*"],
       "~/*": ["public/*"]

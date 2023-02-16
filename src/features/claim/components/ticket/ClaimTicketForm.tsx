@@ -9,9 +9,7 @@ export interface ClaimTicketFormFieldTypes {
   email: string;
 }
 
-interface ClaimTicketFormProps {}
-
-export const ClaimTicketForm = ({}: ClaimTicketFormProps) => {
+export const ClaimTicketForm = () => {
   const { onNext } = useClaimTicketFlow();
 
   const { handleClaim } = useClaimForm();

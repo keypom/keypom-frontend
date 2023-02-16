@@ -81,5 +81,22 @@ module.exports = {
         'newlines-between': 'always',
       },
     ],
+    '@typescript-eslint/strict-boolean-expressions': [
+      'error',
+      {
+        allowNullableBoolean: true,
+        allowNullableString: true,
+        allowNullableNumber: true,
+        allowAny: true,
+        allowRuleToRunWithoutStrictNullChecksIKnowWhatIAmDoing: true,
+      },
+    ],
+    '@typescript-eslint/restrict-template-expressions': [
+      'error',
+      {
+        allowNullish: true,
+      },
+    ],
+    '@typescript-eslint/no-misused-promises': 'off',
   },
 };

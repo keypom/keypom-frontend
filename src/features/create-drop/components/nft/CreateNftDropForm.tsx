@@ -40,7 +40,7 @@ export const CreateNftDropForm = () => {
   );
 
   const handleSubmitClick = () => {
-    onNext();
+    onNext?.();
   };
 
   return (

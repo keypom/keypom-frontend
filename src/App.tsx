@@ -2,6 +2,7 @@ import React from 'react';
 import { RouterProvider } from 'react-router-dom';
 
 import { AuthWalletContextProvider } from '@/contexts/AuthWalletContext';
+import { AppContextProvider } from '@/contexts/AppContext';
 import { Fonts } from '@/components/Fonts';
 import { Loading } from '@/components/Loading';
 import { theme } from '@/theme';
@@ -25,9 +26,11 @@ export const App = () => {
     <React.Suspense fallback={<Loading />}>
       <ChakraProvider theme={theme}>
         <Fonts />
-        <AuthWalletContextProvider>
-          <RouterProvider router={router} />
-        </AuthWalletContextProvider>
+        <AppContextProvider>
+          <AuthWalletContextProvider>
+            <RouterProvider router={router} />
+          </AuthWalletContextProvider>
+        </AppContextProvider>
       </ChakraProvider>
     </React.Suspense>
   );

@@ -46,7 +46,7 @@ export const Checkboxes = ({ items = [], defaultValues = [], onChange }: Checkbo
         {...getCheckboxProps({ value: item.value })}
       >
         <Box alignItems="center" display="flex">
-          {item.icon && (
+          {item.icon !== undefined && (
             <Box display="inline-block" mx="4">
               {item.icon}
             </Box>
