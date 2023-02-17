@@ -11,6 +11,7 @@ import {
   Text,
   useDisclosure,
   Heading,
+  Avatar,
 } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
 import {
@@ -22,6 +23,8 @@ import {
   type ProtocolReturnedFTData,
   type ProtocolReturnedNFTData,
   type ProtocolReturnedFCData,
+  type ProtocolReturnedMethod,
+  getEnv,
 } from 'keypom-js';
 import { ChevronDownIcon } from '@chakra-ui/icons';
 
@@ -30,7 +33,6 @@ import { type ColumnItem, type DataItem } from '@/components/Table/types';
 import { DataTable } from '@/components/Table';
 import { DeleteIcon } from '@/components/Icons';
 import { handleFinishNFTDrop } from '@/features/create-drop/contexts/CreateNftDropContext';
-import { PAGE_SIZE_LIMIT } from '@/constants/common';
 import { truncateAddress } from '@/utils/truncateAddress';
 import { NextButton, PrevButton } from '@/components/Pagination';
 import { usePagination } from '@/hooks/usePagination';
@@ -38,6 +40,8 @@ import { usePagination } from '@/hooks/usePagination';
 import { MENU_ITEMS } from '../config/menuItems';
 
 import { MobileDrawerMenu } from './MobileDrawerMenu';
+
+const FETCH_NFT_METHOD_NAME = 'get_series_info';
 
 const getDropTypeLabel = ({
   simple,
@@ -50,8 +54,7 @@ const getDropTypeLabel = ({
   nft?: ProtocolReturnedNFTData;
   fc?: ProtocolReturnedFCData;
 }) => {
-  if (nft) return 'NFT';
-  else if (fc) {
+  if (fc) {
     const { methods } = fc;
     if (methods.length === 1) {
       return 'NFT';
@@ -69,6 +72,10 @@ const COLUMNS: ColumnItem[] = [
     thProps: {
       minW: '240px',
     },
+  },
+  {
+    title: '',
+    selector: (drop) => drop.media,
   },
   {
     title: 'Drop type',
@@ -89,6 +96,7 @@ const COLUMNS: ColumnItem[] = [
 ];
 
 export default function AllDrops() {
+  const { viewCall } = getEnv();
   const { isOpen, onOpen, onClose } = useDisclosure();
 
   const [dataSize, setDataSize] = useState<number>(0);
@@ -114,14 +122,14 @@ export default function AllDrops() {
     dataSize,
     handlePrevApiCall: async () => {
       await handleGetDrops({
-        start: (pagination.pageIndex - 1) * PAGE_SIZE_LIMIT,
-        limit: PAGE_SIZE_LIMIT,
+        start: (pagination.pageIndex - 1) * pagination.pageSize,
+        limit: pagination.pageSize,
       });
     },
     handleNextApiCall: async () => {
       await handleGetDrops({
-        start: (pagination.pageIndex + 1) * PAGE_SIZE_LIMIT,
-        limit: PAGE_SIZE_LIMIT,
+        start: (pagination.pageIndex + 1) * pagination.pageSize,
+        limit: pagination.pageSize,
       });
     },
   });
@@ -136,7 +144,7 @@ export default function AllDrops() {
     setDataSize(numDrops);
   };
 
-  const handleGetDrops = async ({ start = 0, limit = PAGE_SIZE_LIMIT }) => {
+  const handleGetDrops = async ({ start = 0, limit = pagination.pageSize }) => {
     const drops = await getDrops({ accountId, start, limit });
 
     setWallet(await selector.wallet());
@@ -157,10 +165,30 @@ export default function AllDrops() {
             if (!meta.dropName) {
               meta.dropName = 'Untitled Drop';
             }
+
+            const type = getDropTypeLabel({ simple, ft, nft, fc });
+
+            let nftHref = '';
+            if (type === 'NFT') {
+              const fcMethod = (fc as ProtocolReturnedFCData).methods[0]?.[0];
+              const { receiver_id } = fcMethod as ProtocolReturnedMethod;
+
+              const nftData = await viewCall({
+                contractId: receiver_id,
+                methodName: FETCH_NFT_METHOD_NAME,
+                args: {
+                  mint_id: parseInt(id),
+                },
+              });
+              nftHref = nftData.metadata.media;
+            }
+
             return {
               id,
               name: truncateAddress(meta.dropName, 'end', 36),
-              type: getDropTypeLabel({ simple, ft, nft, fc }),
+              type,
+              media:
+                type === 'NFT' ? `${process.env.REACT_APP_CLOUDFLARE_IFPS}/${nftHref}` : undefined,
               claimed: `${
                 next_key_id - (await getKeySupplyForDrop({ dropId: id }))
               } / ${next_key_id}`,
@@ -203,6 +231,7 @@ export default function AllDrops() {
           {drop.type}
         </Text>
       ),
+      media: drop.media !== undefined && <Avatar src={drop.media as string} />,
       claimed: <Badge variant="lightgreen">{drop.claimed} Claimed</Badge>,
       action: (
         <Button
