@@ -109,7 +109,6 @@ export default function TokenDropManagerPage() {
     setLoading(false);
   };
 
-  // TODO: Remove this after backend is ready
   useEffect(() => {
     handleGetDrops({});
   }, [accountId]);
