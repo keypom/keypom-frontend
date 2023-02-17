@@ -45,8 +45,8 @@ export default function TokenDropManagerPage() {
       action: 'delete',
     },
   ]);
-  // const [wallet, setWallet] = useState({});
-  const { selector, accountId } = useAuthWalletContext();
+
+  const { accountId } = useAuthWalletContext();
 
   const {
     hasPagination,
@@ -93,8 +93,6 @@ export default function TokenDropManagerPage() {
       publicKeys,
       secretKeys,
     });
-    console.log('keyInfo', keyInfo);
-    console.log('secretKeys', secretKeys);
 
     setData(
       secretKeys.map((key, i) => ({

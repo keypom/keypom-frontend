@@ -93,8 +93,6 @@ export default function NFTDropManagerPage() {
       publicKeys,
       secretKeys,
     });
-    console.log('keyInfo', keyInfo);
-    console.log('secretKeys', secretKeys);
 
     setData(
       secretKeys.map((key, i) => ({
