@@ -15,7 +15,6 @@ import {
 import { useEffect, useState } from 'react';
 import { getDrops, getKeySupplyForDrop, getDropSupplyForOwner, deleteDrops } from 'keypom-js';
 import { ChevronDownIcon } from '@chakra-ui/icons';
-import { useNavigate } from 'react-router-dom';
 
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
 import { type ColumnItem, type DataItem } from '@/components/Table/types';
@@ -62,7 +61,6 @@ const COLUMNS: ColumnItem[] = [
 ];
 
 export default function AllDrops() {
-  const navigate = useNavigate();
   const { isOpen, onOpen, onClose } = useDisclosure();
 
   const [dataSize, setDataSize] = useState<number>(0);
@@ -167,14 +165,10 @@ export default function AllDrops() {
     });
   };
 
-  const handleRowClick = (dropId) => {
-    navigate(`/drop/token/${dropId as string}`);
-  };
-
   const getTableRows = (): DataItem[] => {
     if (data === undefined || data?.length === 0) return [];
 
-    return data.map((drop, i) => ({
+    return data.map((drop) => ({
       ...drop,
       name: <Text color="gray.800">{drop.name}</Text>,
       type: (
@@ -195,6 +189,7 @@ export default function AllDrops() {
           <DeleteIcon color="red" />
         </Button>
       ),
+      href: `/drop/${(drop.type as string).toLowerCase()}/${drop.id}`,
     }));
   };
 
@@ -256,12 +251,7 @@ export default function AllDrops() {
         </HStack>
       </HStack>
 
-      <DataTable
-        columns={COLUMNS}
-        data={getTableRows()}
-        mt={{ base: '6', md: '7' }}
-        onRowClick={handleRowClick}
-      />
+      <DataTable columns={COLUMNS} data={getTableRows()} mt={{ base: '6', md: '7' }} />
 
       {/* Mobile Menu For Creating Drop */}
       <Show below="sm">
