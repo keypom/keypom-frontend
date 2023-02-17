@@ -129,7 +129,7 @@ export default function AllDrops() {
             next_key_id,
           }) => {
             const meta = JSON.parse(metadata);
-            if (meta.dropName) {
+            if (!meta.dropName) {
               meta.dropName = 'Untitled Drop';
             }
             return {
