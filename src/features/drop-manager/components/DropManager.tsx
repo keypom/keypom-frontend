@@ -87,7 +87,7 @@ export const DropManager = ({
               isDisabled={!!pagination.firstPage}
               isLoading={pagination.paginationLoading.previous}
               onClick={pagination.handlePrevPage}
-        />
+            />
           )}
           <Button variant="secondary" w={{ base: '100%', sm: 'initial' }}>
             Cancel all
