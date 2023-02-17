@@ -47,8 +47,6 @@ const getBadgeType = (status: TicketClaimStatus): React.ReactNode => {
 };
 
 const tableColumns: ColumnItem[] = [
-  { title: 'Name', selector: (row) => row.name, loadingElement: <Skeleton height="30px" /> },
-  { title: 'Email', selector: (row) => row.email, loadingElement: <Skeleton height="30px" /> },
   { title: 'Link', selector: (row) => row.link, loadingElement: <Skeleton height="30px" /> },
   {
     title: 'Claim Status',
@@ -76,8 +74,6 @@ export default function TicketDropManagerPage() {
   const [data, setData] = useState([
     {
       id: 1,
-      email: 'chealseaislan@mail.com',
-      name: 'Chelsea Islan',
       slug: '#2138h823h',
       claimStatus: 'Unclaimed' as TicketClaimStatus,
       action: 'delete',
@@ -134,8 +130,6 @@ export default function TicketDropManagerPage() {
     setData(
       secretKeys.map((key, i) => ({
         id: i,
-        name: 'chelsea',
-        email: 'chelsea@gmail.com',
         link: 'https://keypom.xyz/claim/' + key.replace('ed25519:', ''),
         slug: key.substring(8, 16),
         claimStatus: getClaimStatus(keyInfo[i]),
@@ -163,8 +157,6 @@ export default function TicketDropManagerPage() {
 
     return data.map((item) => ({
       ...item,
-      name: <Text fontWeight="medium">{item.name}</Text>,
-      email: <Text>{item.email}</Text>,
       link: (
         <Text color="gray.400" display="flex">
           keypom.xyz/
