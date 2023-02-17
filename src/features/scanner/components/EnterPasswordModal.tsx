@@ -32,7 +32,11 @@ export const EnterPasswordModal = ({
       <ModalOverlay />
       <ModalContent>
         <ModalBody>
-          {modalErrorText !== '' && <Text variant="error">{modalErrorText}</Text>}
+          {modalErrorText !== '' && (
+            <Text mb="3" variant="error">
+              {modalErrorText}
+            </Text>
+          )}
           <TextInput
             label="Enter password"
             onChange={(e) => {

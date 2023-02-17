@@ -6,6 +6,7 @@ import { IconBox } from '@/components/IconBox';
 import { BoxWithShape } from '@/components/BoxWithShape';
 import { TicketIcon } from '@/components/Icons';
 import keypomInstance from '@/lib/keypom';
+import { checkClaimedDrop, storeClaimDrop } from '@/utils/claimedDrops';
 
 import { CreateWallet } from '../components/CreateWallet';
 import { ExistingWallet } from '../components/ExistingWallet';
@@ -22,6 +23,7 @@ const ClaimNftPage = () => {
   const [isClaimSuccessful, setIsClaimSuccessful] = useState(false);
   const [isClaimLoading, setIsClaimLoading] = useState(false);
   const [claimError, setClaimError] = useState('');
+  const [isDropClaimed, setIsDropClaimed] = useState(false);
 
   const loadClaimInfo = async () => {
     const nftData = await keypomInstance.getNFTClaimInformation(secretKey);
@@ -36,6 +38,8 @@ const ClaimNftPage = () => {
     if (secretKey === '') {
       navigate('/');
     }
+
+    setIsDropClaimed(checkClaimedDrop(secretKey));
     // eslint-disable-next-line
     loadClaimInfo();
   }, []);
@@ -44,12 +48,21 @@ const ClaimNftPage = () => {
     setIsClaimLoading(true);
     try {
       await keypomInstance.claim(secretKey, walletAddress);
+      storeClaimDrop(secretKey);
     } catch (err) {
       setClaimError(err);
     }
     setIsClaimLoading(false);
     setIsClaimSuccessful(true);
   };
+
+  if (isDropClaimed) {
+    return (
+      <Box mb={{ base: '5', md: '14' }} minH="100%" minW="100%" mt={{ base: '52px', md: '100px' }}>
+        <Center>This drop has been claimed.</Center>
+      </Box>
+    );
+  }
 
   return (
     <Box mb={{ base: '5', md: '14' }} minH="100%" minW="100%" mt={{ base: '52px', md: '100px' }}>

@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-misused-promises */
-import { Box, Center, Heading, useDisclosure, VStack } from '@chakra-ui/react';
+import { Box, Button, Center, Heading, useDisclosure, VStack } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
 import { QrReader } from 'react-qr-reader';
 
@@ -165,7 +165,7 @@ const Scanner = () => {
         <VStack gap={{ base: 'calc(24px + 8px)', md: 'calc(32px + 10px)' }}>
           <Heading textAlign="center">Scanner</Heading>
           {/** keypom scanner placeholder */}
-          {password !== '' && (
+          {password !== '' ? (
             <Center h={{ base: '280px', md: '440px' }} w={{ base: '280px', md: '440px' }}>
               <QrReader
                 constraints={{ facingMode: 'environment' }}
@@ -175,6 +175,14 @@ const Scanner = () => {
                 onResult={handleScanResult}
               />
             </Center>
+          ) : (
+            <Button
+              onClick={() => {
+                onPasswordModalOpen();
+              }}
+            >
+              Enter password
+            </Button>
           )}
         </VStack>
       </Center>
