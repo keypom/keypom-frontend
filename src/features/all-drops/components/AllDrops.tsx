@@ -138,7 +138,6 @@ export default function AllDrops() {
 
   const handleGetDrops = async ({ start = 0, limit = PAGE_SIZE_LIMIT }) => {
     const drops = await getDrops({ accountId, start, limit });
-    // console.log(drops);
 
     setWallet(await selector.wallet());
 
