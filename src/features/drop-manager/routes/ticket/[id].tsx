@@ -1,27 +1,57 @@
 import { Badge, Box, Button, Skeleton, Text } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
+import { useParams } from 'react-router-dom';
+import {
+  generateKeys,
+  getDropInformation,
+  getKeyInformationBatch,
+  type ProtocolReturnedKeyInfo,
+} from 'keypom-js';
 
 import { CopyIcon, DeleteIcon } from '@/components/Icons';
 import { DropManager } from '@/features/drop-manager/components/DropManager';
 import { type ColumnItem } from '@/components/Table/types';
+import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
+import { MASTER_KEY, PAGE_SIZE_LIMIT } from '@/constants/common';
+import { get } from '@/utils/localStorage';
+import { usePagination } from '@/hooks/usePagination';
 
-interface TicketDropResponse {
-  name: string;
-  links: Array<{
-    id: number;
-    slug: string;
-    email: string;
-    name: string;
-    hasClaimed: boolean;
-  }>;
-}
+type TicketClaimStatus = 'Unclaimed' | 'Viewed' | 'Attended' | 'Claimed';
+const getClaimStatus = (key: ProtocolReturnedKeyInfo | null): TicketClaimStatus => {
+  if (!key) return 'Claimed';
+  const { cur_key_use } = key;
+
+  switch (cur_key_use) {
+    case 0:
+      return 'Unclaimed';
+    case 1:
+      return 'Viewed';
+    case 2:
+    default:
+      return 'Attended';
+  }
+};
+
+const getBadgeType = (status: TicketClaimStatus): React.ReactNode => {
+  switch (status) {
+    case 'Unclaimed':
+      return <Badge variant="gray">Unclaimed</Badge>;
+    case 'Viewed':
+      return <Badge variant="blue">Viewed</Badge>;
+    case 'Attended':
+      return <Badge variant="pink">Attended</Badge>;
+    case 'Claimed':
+    default:
+      return <Badge variant="lightgreen">Claimed</Badge>;
+  }
+};
 
 const tableColumns: ColumnItem[] = [
   { title: 'Name', selector: (row) => row.name, loadingElement: <Skeleton height="30px" /> },
   { title: 'Email', selector: (row) => row.email, loadingElement: <Skeleton height="30px" /> },
   { title: 'Link', selector: (row) => row.link, loadingElement: <Skeleton height="30px" /> },
   {
-    title: 'Status',
+    title: 'Claim Status',
     selector: (row) => row.hasClaimed,
     loadingElement: <Skeleton height="30px" />,
   },
@@ -37,42 +67,87 @@ const tableColumns: ColumnItem[] = [
   },
 ];
 
-const data: TicketDropResponse = {
-  name: 'Star Invader 3',
-  links: [
-    { id: 1, email: 'johndoe@mail.com', name: 'John Doe', slug: '#2138h823h', hasClaimed: true },
+export default function TicketDropManagerPage() {
+  const { id: dropId } = useParams();
+  const [loading, setLoading] = useState(true);
+
+  const [name, setName] = useState('Drop');
+  const [dataSize, setDataSize] = useState<number>(0);
+  const [data, setData] = useState([
     {
-      id: 2,
+      id: 1,
       email: 'chealseaislan@mail.com',
       name: 'Chelsea Islan',
       slug: '#2138h823h',
-      hasClaimed: false,
+      claimStatus: 'Unclaimed' as TicketClaimStatus,
+      action: 'delete',
     },
-    {
-      id: 3,
-      email: 'pevitapearce@mail.com',
-      name: 'Pevita Pearce',
-      slug: '#c34fd2n32',
-      hasClaimed: false,
-    },
-    {
-      id: 4,
-      email: 'maudyayunda@mail.com',
-      name: 'Maudy Ayunda',
-      slug: '#rf5hhfaxm',
-      hasClaimed: true,
-    },
-  ],
-};
+  ]);
 
-export default function TicketDropManagerPage() {
-  const [loading, setLoading] = useState(true);
+  const { accountId } = useAuthWalletContext();
 
-  // TODO: Remove this after backend is ready
+  const {
+    hasPagination,
+    pagination,
+    firstPage,
+    lastPage,
+    loading: paginationLoading,
+    handleNextPage,
+    handlePrevPage,
+  } = usePagination({
+    dataSize,
+    handlePrevApiCall: async () => {
+      await handleGetDrops({
+        pageIndex: pagination.pageIndex - 1,
+        pageSize: pagination.pageSize,
+      });
+    },
+    handleNextApiCall: async () => {
+      await handleGetDrops({
+        pageIndex: pagination.pageIndex + 1,
+        pageSize: pagination.pageSize,
+      });
+    },
+  });
+
+  const handleGetDrops = async ({ pageIndex = 0, pageSize = PAGE_SIZE_LIMIT }) => {
+    if (!accountId) return;
+    const drop = await getDropInformation({
+      dropId,
+    });
+
+    setDataSize(drop.next_key_id);
+
+    setName(JSON.parse(drop.metadata as string).dropName);
+
+    const { publicKeys, secretKeys } = await generateKeys({
+      numKeys: Math.min(drop.next_key_id, pageSize),
+      rootEntropy: `${get(MASTER_KEY) as string}-${dropId}`,
+      autoMetaNonceStart: pageIndex * pageSize,
+    });
+
+    const keyInfo = await getKeyInformationBatch({
+      publicKeys,
+      secretKeys,
+    });
+
+    setData(
+      secretKeys.map((key, i) => ({
+        id: i,
+        name: 'chelsea',
+        email: 'chelsea@gmail.com',
+        link: 'https://keypom.xyz/claim/' + key.replace('ed25519:', ''),
+        slug: key.substring(8, 16),
+        claimStatus: getClaimStatus(keyInfo[i]),
+        action: 'delete',
+      })),
+    );
+
+    setLoading(false);
+  };
+
   useEffect(() => {
-    setTimeout(() => {
-      setLoading(false);
-    }, 5000);
+    handleGetDrops({});
   }, []);
 
   // TODO: consider moving these to DropManager if backend request are the same for NFT and Ticket
@@ -84,9 +159,9 @@ export default function TicketDropManagerPage() {
   };
 
   const getTableRows = () => {
-    if (data === undefined || data?.links === undefined) return [];
+    if (data === undefined) return [];
 
-    return data.links.map((item) => ({
+    return data.map((item) => ({
       ...item,
       name: <Text fontWeight="medium">{item.name}</Text>,
       email: <Text>{item.email}</Text>,
@@ -98,11 +173,7 @@ export default function TicketDropManagerPage() {
           </Text>
         </Text>
       ),
-      hasClaimed: item.hasClaimed ? (
-        <Badge variant="lightgreen">Claimed</Badge>
-      ) : (
-        <Badge variant="gray">Unclaimed</Badge>
-      ),
+      hasClaimed: getBadgeType(item.claimStatus),
       action: (
         <>
           <Button mr="1" size="sm" variant="icon" onClick={handleCopyClick}>
@@ -123,8 +194,17 @@ export default function TicketDropManagerPage() {
           claimedHeaderText="Scanned"
           claimedText="200/500"
           data={getTableRows()}
-          dropName={data.name}
+          dropName={name}
           loading={loading}
+          pagination={{
+            hasPagination,
+            id: 'token',
+            paginationLoading,
+            firstPage,
+            lastPage,
+            handleNextPage,
+            handlePrevPage,
+          }}
           tableColumns={tableColumns}
           tableProps={{ variant: 'secondary' }}
         />
