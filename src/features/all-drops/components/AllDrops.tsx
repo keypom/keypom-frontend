@@ -13,7 +13,16 @@ import {
   Heading,
 } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
-import { getDrops, getKeySupplyForDrop, getDropSupplyForOwner, deleteDrops } from 'keypom-js';
+import {
+  getDrops,
+  getKeySupplyForDrop,
+  getDropSupplyForOwner,
+  deleteDrops,
+  type ProtocolReturnedSimpleData,
+  type ProtocolReturnedFTData,
+  type ProtocolReturnedNFTData,
+  type ProtocolReturnedFCData,
+} from 'keypom-js';
 import { ChevronDownIcon } from '@chakra-ui/icons';
 
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
@@ -30,8 +39,27 @@ import { MENU_ITEMS } from '../config/menuItems';
 
 import { MobileDrawerMenu } from './MobileDrawerMenu';
 
-const getDropTypeLabel = ({ simple, ft, nft, fc }) => {
-  return (simple && 'Token') || (ft && 'Token') || (nft && 'NFT') || (fc && 'Ticket');
+const getDropTypeLabel = ({
+  simple,
+  ft,
+  nft,
+  fc,
+}: {
+  simple?: ProtocolReturnedSimpleData;
+  ft?: ProtocolReturnedFTData;
+  nft?: ProtocolReturnedNFTData;
+  fc?: ProtocolReturnedFCData;
+}) => {
+  if (nft) return 'NFT';
+  else if (fc) {
+    const { methods } = fc;
+    if (methods.length === 1) {
+      return 'NFT';
+    }
+    return 'Ticket';
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+  } else if (simple || ft) return 'Token';
+  else return 'Token';
 };
 
 const COLUMNS: ColumnItem[] = [
