@@ -1,69 +1,21 @@
-import { Badge, Box, Button, Skeleton, Text } from '@chakra-ui/react';
+import { Box, Button, Text } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import {
-  generateKeys,
-  getDropInformation,
-  getKeyInformationBatch,
-  type ProtocolReturnedKeyInfo,
-} from 'keypom-js';
+import { generateKeys, getDropInformation, getKeyInformationBatch } from 'keypom-js';
 
 import { CopyIcon, DeleteIcon } from '@/components/Icons';
 import { DropManager } from '@/features/drop-manager/components/DropManager';
-import { type ColumnItem } from '@/components/Table/types';
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
 import { MASTER_KEY, PAGE_SIZE_LIMIT } from '@/constants/common';
 import { get } from '@/utils/localStorage';
 import { usePagination } from '@/hooks/usePagination';
+import { type DataItem } from '@/components/Table/types';
 
-type TicketClaimStatus = 'Unclaimed' | 'Viewed' | 'Attended' | 'Claimed';
-const getClaimStatus = (key: ProtocolReturnedKeyInfo | null): TicketClaimStatus => {
-  if (!key) return 'Claimed';
-  const { cur_key_use } = key;
-
-  switch (cur_key_use) {
-    case 0:
-      return 'Unclaimed';
-    case 1:
-      return 'Viewed';
-    case 2:
-    default:
-      return 'Attended';
-  }
-};
-
-const getBadgeType = (status: TicketClaimStatus): React.ReactNode => {
-  switch (status) {
-    case 'Unclaimed':
-      return <Badge variant="gray">Unclaimed</Badge>;
-    case 'Viewed':
-      return <Badge variant="blue">Viewed</Badge>;
-    case 'Attended':
-      return <Badge variant="pink">Attended</Badge>;
-    case 'Claimed':
-    default:
-      return <Badge variant="lightgreen">Claimed</Badge>;
-  }
-};
-
-const tableColumns: ColumnItem[] = [
-  { title: 'Link', selector: (row) => row.link, loadingElement: <Skeleton height="30px" /> },
-  {
-    title: 'Claim Status',
-    selector: (row) => row.hasClaimed,
-    loadingElement: <Skeleton height="30px" />,
-  },
-  {
-    title: '',
-    selector: (row) => row.action,
-    tdProps: {
-      display: 'flex',
-      justifyContent: 'right',
-      verticalAlign: 'middle',
-    },
-    loadingElement: <Skeleton height="30px" />,
-  },
-];
+import { getClaimStatus } from '../../utils/getClaimStatus';
+import { getBadgeType } from '../../utils/getBadgeType';
+import { tableColumns } from '../../components/TableColumn';
+import { INITIAL_SAMPLE_DATA } from '../../constants/common';
+import { type TicketClaimStatus } from '../../types/types';
 
 export default function TicketDropManagerPage() {
   const { id: dropId } = useParams();
@@ -71,14 +23,7 @@ export default function TicketDropManagerPage() {
 
   const [name, setName] = useState('Drop');
   const [dataSize, setDataSize] = useState<number>(0);
-  const [data, setData] = useState([
-    {
-      id: 1,
-      slug: '#2138h823h',
-      claimStatus: 'Unclaimed' as TicketClaimStatus,
-      action: 'delete',
-    },
-  ]);
+  const [data, setData] = useState<DataItem[]>([INITIAL_SAMPLE_DATA[1]]);
 
   const { accountId } = useAuthWalletContext();
 
@@ -165,7 +110,7 @@ export default function TicketDropManagerPage() {
           </Text>
         </Text>
       ),
-      hasClaimed: getBadgeType(item.claimStatus),
+      hasClaimed: getBadgeType(item.claimStatus as TicketClaimStatus),
       action: (
         <>
           <Button mr="1" size="sm" variant="icon" onClick={handleCopyClick}>

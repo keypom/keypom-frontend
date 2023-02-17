@@ -1,34 +1,18 @@
-import { Badge, Box, Button, Skeleton, Text } from '@chakra-ui/react';
+import { Badge, Box, Button, Text } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { getDropInformation, generateKeys, getKeyInformationBatch } from 'keypom-js';
 
 import { CopyIcon, DeleteIcon } from '@/components/Icons';
 import { DropManager } from '@/features/drop-manager/components/DropManager';
-import { type ColumnItem } from '@/components/Table/types';
 import { get } from '@/utils/localStorage';
 import { MASTER_KEY, PAGE_SIZE_LIMIT } from '@/constants/common';
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
 import { usePagination } from '@/hooks/usePagination';
+import { type DataItem } from '@/components/Table/types';
 
-const tableColumns: ColumnItem[] = [
-  { title: 'Link', selector: (row) => row.link, loadingElement: <Skeleton height="30px" /> },
-  {
-    title: 'Claim Status',
-    selector: (row) => row.hasClaimed,
-    loadingElement: <Skeleton height="30px" />,
-  },
-  {
-    title: 'Action',
-    selector: (row) => row.action,
-    tdProps: {
-      display: 'flex',
-      justifyContent: 'right',
-      verticalAlign: 'middle',
-    },
-    loadingElement: <Skeleton height="30px" />,
-  },
-];
+import { tableColumns } from '../../components/TableColumn';
+import { INITIAL_SAMPLE_DATA } from '../../constants/common';
 
 export default function TokenDropManagerPage() {
   const { id: dropId } = useParams();
@@ -36,15 +20,7 @@ export default function TokenDropManagerPage() {
 
   const [name, setName] = useState('Drop');
   const [dataSize, setDataSize] = useState<number>(0);
-  const [data, setData] = useState([
-    {
-      id: 1,
-      link: 'https://example.com',
-      slug: 'https://example.com',
-      hasClaimed: false,
-      action: 'delete',
-    },
-  ]);
+  const [data, setData] = useState<DataItem[]>([INITIAL_SAMPLE_DATA[0]]);
 
   const { accountId } = useAuthWalletContext();
 
