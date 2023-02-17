@@ -132,7 +132,7 @@ export default function AllDrops() {
             }
             return {
               id,
-              name: truncateAddress(meta.dropName),
+              name: truncateAddress(meta.dropName, 'end', 36),
               type: getDropTypeLabel({ simple, ft, nft, fc }),
               claimed: `${
                 next_key_id - (await getKeySupplyForDrop({ dropId: id }))
