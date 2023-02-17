@@ -96,6 +96,7 @@ class KeypomJS {
   async getLinkdropType(contractId: string, secretKey: string) {
     await this.verifyDrop(contractId, secretKey);
     const drop = await getDropInformation({ secretKey });
+    console.log(drop);
 
     return this.getDropType(drop);
   }
@@ -176,7 +177,7 @@ class KeypomJS {
     const nftData = await viewCall({
       contractId,
       methodName: 'get_series_info',
-      args: { mint_id: parseFloat(drop.drop_id) },
+      args: { mint_id: parseInt(drop.drop_id) },
     });
 
     return {
