@@ -7,7 +7,6 @@ import { BoxWithShape } from '@/components/BoxWithShape';
 import { StarIcon } from '@/components/Icons';
 import { DropBox } from '@/components/DropBox/DropBox';
 import keypomInstance from '@/lib/keypom';
-import { toYocto } from '@/utils/toYocto';
 import { checkClaimedDrop, storeClaimDrop } from '@/utils/claimedDrops';
 
 import { ExistingWallet } from '../components/ExistingWallet';
@@ -31,16 +30,20 @@ const ClaimTokenPage = () => {
   const [isDropClaimed, setIsDropClaimed] = useState(false);
 
   const loadClaimInfo = async () => {
-    const {
-      tokens: _tokens,
-      amount,
-      wallets,
-    } = await keypomInstance.getTokenClaimInformation(secretKey);
+    const { ftMetadata, amountNEAR, amountTokens, wallets } =
+      await keypomInstance.getTokenClaimInformation(secretKey);
+    console.log('ftMetadata: ', ftMetadata);
+
     setTokens([
       {
-        icon: _tokens.icon as string,
-        value: toYocto(parseFloat(amount)),
-        symbol: _tokens.symbol,
+        icon: 'near',
+        value: amountNEAR || '0',
+        symbol: 'NEAR',
+      },
+      ftMetadata && {
+        icon: ftMetadata.icon as string,
+        value: amountTokens,
+        symbol: ftMetadata.symbol,
       },
     ]);
     setWallets(wallets);

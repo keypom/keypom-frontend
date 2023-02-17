@@ -9,6 +9,7 @@ import {
   getKeyInformation,
   hashPassword,
   getPubFromSecret,
+  formatNearAmount,
 } from 'keypom-js';
 
 import { CLOUDFLARE_IPFS, DROP_TYPE } from '@/constants/common';
@@ -102,7 +103,7 @@ class KeypomJS {
   }
 
   getDropType(drop: ProtocolReturnedDrop) {
-    if (drop.ft !== undefined) {
+    if (drop.fc === undefined && drop.nft === undefined) {
       return DROP_TYPE.TOKEN;
     }
 
@@ -122,14 +123,6 @@ class KeypomJS {
       return null;
     }
 
-    if (drop.nft !== undefined) {
-      return DROP_TYPE.NFT;
-    }
-
-    if (drop.simple !== undefined) {
-      return DROP_TYPE.SIMPLE;
-    }
-
     return null;
   }
 
@@ -146,13 +139,17 @@ class KeypomJS {
   async getTokenClaimInformation(secretKey: string) {
     const drop = await getDropInformation({ secretKey });
     const dropMetadata = drop.metadata !== undefined ? this.getDropMetadata(drop.metadata) : {};
-    const ftMetadata = await getFTMetadata({ contractId: drop.ft?.contract_id as string });
+    let ftMetadata;
+    if (drop.ft !== undefined) {
+      ftMetadata = await getFTMetadata({ contractId: drop.ft.contract_id });
+    }
 
     return {
       dropName: dropMetadata.dropName,
       wallets: dropMetadata.wallets,
-      tokens: ftMetadata,
-      amount: drop.deposit_per_use,
+      ftMetadata,
+      amountTokens: drop.ft?.balance_per_use, // TODO: format correctly with FT metadata
+      amountNEAR: formatNearAmount(drop.deposit_per_use, 4),
     };
   }
 
