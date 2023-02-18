@@ -7,7 +7,6 @@ import { BoxWithShape } from '@/components/BoxWithShape';
 import { StarIcon } from '@/components/Icons';
 import { DropBox } from '@/components/DropBox/DropBox';
 import keypomInstance from '@/lib/keypom';
-import { toYocto } from '@/utils/toYocto';
 import { checkClaimedDrop, storeClaimDrop } from '@/utils/claimedDrops';
 
 import { ExistingWallet } from '../components/ExistingWallet';
@@ -15,7 +14,7 @@ import { CreateWallet } from '../components/CreateWallet';
 
 interface TokenAsset {
   icon: string;
-  value: number;
+  value: string;
   symbol: string;
 }
 
@@ -31,18 +30,25 @@ const ClaimTokenPage = () => {
   const [isDropClaimed, setIsDropClaimed] = useState(false);
 
   const loadClaimInfo = async () => {
-    const {
-      tokens: _tokens,
-      amount,
-      wallets,
-    } = await keypomInstance.getTokenClaimInformation(secretKey);
-    setTokens([
+    const { ftMetadata, amountNEAR, amountTokens, wallets } =
+    await keypomInstance.getTokenClaimInformation(secretKey);
+    const tokens:TokenAsset[] = [
       {
-        icon: _tokens.icon as string,
-        value: toYocto(parseFloat(amount)),
-        symbol: _tokens.symbol,
-      },
-    ]);
+        icon: 'https://cryptologos.cc/logos/near-protocol-near-logo.svg?v=024',
+        // icon: 'https://near.org/wp-content/uploads/2021/09/brand-icon-300x300.png',
+        value: amountNEAR || '0',
+        symbol: 'NEAR',
+      }
+    ]
+    if (ftMetadata) {
+      tokens.push({
+        icon: ftMetadata.icon as string,
+        value: amountTokens || '0',
+        symbol: ftMetadata.symbol,
+      })
+    }
+
+    setTokens(tokens);
     setWallets(wallets);
   };
 
@@ -51,7 +57,7 @@ const ClaimTokenPage = () => {
       navigate('/');
     }
 
-    setIsDropClaimed(checkClaimedDrop(secretKey));
+    // setIsDropClaimed(checkClaimedDrop(secretKey));
 
     // eslint-disable-next-line
     loadClaimInfo();

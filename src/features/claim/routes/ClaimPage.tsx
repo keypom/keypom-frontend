@@ -7,6 +7,7 @@ import { DROP_TYPE } from '@/constants/common';
 
 const ClaimPage = () => {
   const { contractId = '', secretKey = '' } = useParams();
+
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
