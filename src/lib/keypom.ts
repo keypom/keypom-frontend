@@ -97,7 +97,6 @@ class KeypomJS {
   async getLinkdropType(contractId: string, secretKey: string) {
     await this.verifyDrop(contractId, secretKey);
     const drop = await getDropInformation({ secretKey });
-    console.log(drop);
 
     return this.getDropType(drop);
   }

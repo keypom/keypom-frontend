@@ -3,7 +3,7 @@ import { get, set } from './localStorage';
 const CLAIMED_DROPS_KEY = 'claimed_drop_keys';
 
 // check if local storage if drop has been claimed before
-export const checkClaimedDrop = (secretKey) => {
+export const checkClaimedDrop = (secretKey: string) => {
   const claimedDropItem: string[] = get(CLAIMED_DROPS_KEY);
 
   if (claimedDropItem === undefined) {

@@ -31,21 +31,23 @@ const ClaimTokenPage = () => {
 
   const loadClaimInfo = async () => {
     const { ftMetadata, amountNEAR, amountTokens, wallets } =
-    await keypomInstance.getTokenClaimInformation(secretKey);
-    const tokens:TokenAsset[] = [
+      await keypomInstance.getTokenClaimInformation(secretKey);
+    const tokens: TokenAsset[] = [
       {
         icon: 'https://cryptologos.cc/logos/near-protocol-near-logo.svg?v=024',
-        // icon: 'https://near.org/wp-content/uploads/2021/09/brand-icon-300x300.png',
         value: amountNEAR || '0',
         symbol: 'NEAR',
-      }
-    ]
+      },
+    ];
     if (ftMetadata) {
-      tokens.push({
-        icon: ftMetadata.icon as string,
-        value: amountTokens || '0',
-        symbol: ftMetadata.symbol,
-      })
+      setTokens([
+        ...tokens,
+        {
+          icon: ftMetadata.icon as string,
+          value: amountTokens ?? '0',
+          symbol: ftMetadata.symbol,
+        },
+      ]);
     }
 
     setTokens(tokens);
@@ -57,7 +59,11 @@ const ClaimTokenPage = () => {
       navigate('/');
     }
 
-    // setIsDropClaimed(checkClaimedDrop(secretKey));
+    const hasDropClaimedBefore = checkClaimedDrop(secretKey);
+    if (hasDropClaimedBefore) {
+      setIsDropClaimed(hasDropClaimedBefore);
+      return;
+    }
 
     // eslint-disable-next-line
     loadClaimInfo();

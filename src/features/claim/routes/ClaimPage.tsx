@@ -4,6 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 
 import keypomInstance from '@/lib/keypom';
 import { DROP_TYPE } from '@/constants/common';
+import { checkClaimedDrop } from '@/utils/claimedDrops';
 
 const ClaimPage = () => {
   const { contractId = '', secretKey = '' } = useParams();
@@ -11,6 +12,7 @@ const ClaimPage = () => {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const [isDropClaimed, setIsDropClaimed] = useState(false);
 
   const getClaimInfo = async () => {
     try {
@@ -38,9 +40,24 @@ const ClaimPage = () => {
     if (contractId === '' || secretKey === '') {
       navigate('/');
     }
+
+    const hasDropClaimedBefore = checkClaimedDrop(secretKey);
+    if (hasDropClaimedBefore) {
+      setIsDropClaimed(hasDropClaimedBefore);
+      return;
+    }
+
     // eslint-disable-next-line
     getClaimInfo();
   }, []);
+
+  if (isDropClaimed) {
+    return (
+      <Center h={{ base: '300px', md: '500px' }}>
+        <Center>This drop has been claimed.</Center>
+      </Center>
+    );
+  }
 
   return (
     <Center h={{ base: '300px', md: '500px' }}>

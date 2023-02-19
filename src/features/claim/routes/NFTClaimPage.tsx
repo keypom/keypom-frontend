@@ -39,7 +39,12 @@ const ClaimNftPage = () => {
       navigate('/');
     }
 
-    setIsDropClaimed(checkClaimedDrop(secretKey));
+    const hasDropClaimedBefore = checkClaimedDrop(secretKey);
+    if (hasDropClaimedBefore) {
+      setIsDropClaimed(hasDropClaimedBefore);
+      return;
+    }
+
     // eslint-disable-next-line
     loadClaimInfo();
   }, []);

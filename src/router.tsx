@@ -103,7 +103,6 @@ export const router = createBrowserRouter([
       },
       {
         path: 'claim',
-        element: <ProtectedRoute />,
         children: [
           {
             path: 'token/:secretKey',
