@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { Controller, useFormContext } from 'react-hook-form';
 
 import { FormControl } from '@/components/FormControl';
-import { WalletBalanceInput } from '@/components/WalletBalanceInput';
+import { WalletBalanceInput, type WalletToken } from '@/components/WalletBalanceInput';
 import { type CreateTicketFieldsSchema } from '@/features/create-drop/contexts/CreateTicketDropContext/CreateTicketDropContext';
 
 import { WALLET_TOKENS } from '../data';
@@ -24,17 +24,17 @@ export const TokenForm = () => {
     'totalTickets',
   ]);
   const totalCost = useMemo(() => {
-    if (totalTickets && amountPerLink) {
+    if (totalTickets && amountPerLink !== undefined) {
       return totalTickets * (amountPerLink as number);
     }
     return 0;
   }, [amountPerLink, totalTickets]);
 
   const handleWalletChange = (walletSymbol: string) => {
-    const { symbol, amount } = WALLET_TOKENS.find((wallet) => wallet.symbol === walletSymbol);
+    const foundWallet = WALLET_TOKENS.find((wallet) => wallet.symbol === walletSymbol);
     setValue(
       'additionalGift.token.selectedFromWallet',
-      { symbol, amount },
+      { symbol: foundWallet?.symbol, amount: foundWallet?.amount },
       { shouldDirty: true, shouldValidate: true },
     );
   };
@@ -45,7 +45,7 @@ export const TokenForm = () => {
       name="additionalGift.token.amountPerLink"
       render={({ field, fieldState: { error } }) => (
         <FormControl
-          errorText={error?.message || selectedFromWalletError?.message}
+          errorText={error?.message ?? selectedFromWalletError?.message}
           label="Add tokens"
           my="0"
         >
@@ -54,17 +54,17 @@ export const TokenForm = () => {
             isInvalid={Boolean(error?.message)}
             onChange={(e) => {
               field.onChange(parseFloat(e.target.value));
-              trigger(); // errors not getting updated if its not manually validated
+              void trigger(); // errors not getting updated if its not manually validated
             }}
           >
             <WalletBalanceInput.TokenMenu
-              selectedWalletToken={selectedFromWallet}
+              selectedWalletToken={selectedFromWallet as Partial<WalletToken>}
               tokens={WALLET_TOKENS}
               onChange={handleWalletChange}
             />
             <WalletBalanceInput.CostDisplay
-              balanceAmount={selectedFromWallet?.amount}
-              symbol={selectedFromWallet?.symbol}
+              balanceAmount={selectedFromWallet?.amount ?? ''}
+              symbol={selectedFromWallet?.symbol ?? ''}
               totalCost={totalCost}
             />
           </WalletBalanceInput>

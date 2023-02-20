@@ -12,9 +12,7 @@ export interface ClaimTicketFormFieldTypes {
   email: string;
 }
 
-interface ClaimTicketFormProps {}
-
-export const ClaimTicketForm = ({}: ClaimTicketFormProps) => {
+export const ClaimTicketForm = () => {
   const { onNext } = useClaimTicketFlow();
 
   const { getClaimFormData } = useClaimForm();
@@ -22,6 +20,7 @@ export const ClaimTicketForm = ({}: ClaimTicketFormProps) => {
 
   const handleSubmitClick = () => {
     // TODO: handle name/email validation and send email
+    // eslint-disable-next-line no-console
     console.log(getClaimFormData());
     onNext();
   };

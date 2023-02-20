@@ -19,7 +19,7 @@ const schema = z.object({
   description: z.string().min(1, 'Description required'),
   artwork: z
     .any()
-    .refine((files) => files?.length == 1, 'Image is required.')
+    .refine((files) => files?.length === 1, 'Image is required.')
     .refine((files) => files?.[0]?.size <= MAX_FILE_SIZE, `Max file size is 5MB.`)
     .refine(
       (files) => ACCEPTED_IMAGE_TYPES.includes(files?.[0]?.type),
@@ -35,7 +35,7 @@ type Schema = z.infer<typeof schema>;
 
 // TODO: this is only a mock implementation of the backend api
 const createLinks = async () => {
-  await new Promise((res) => setTimeout(res, 2000));
+  await new Promise((_resolve) => setTimeout(_resolve, 2000));
   return {
     success: true,
   };
@@ -46,12 +46,28 @@ interface CreateNftDropContextType {
   getPaymentData: () => PaymentData;
   handleDropConfirmation: () => void;
   createLinksSWR: {
-    data: { success: boolean };
+    data?: { success: boolean };
     handleDropConfirmation: () => void;
   };
 }
 
-const CreateNftDropContext = createContext<CreateNftDropContextType | null>(null);
+const CreateNftDropContext = createContext<CreateNftDropContextType>({
+  getSummaryData: () => [{ type: 'text', name: '', value: '' }] as SummaryItem[],
+  getPaymentData: () => ({
+    costsData: [{ name: '', total: 0 }],
+    totalCost: 0,
+    confirmationText: '',
+  }),
+  handleDropConfirmation: function (): void {
+    throw new Error('Function not implemented.');
+  },
+  createLinksSWR: {
+    data: { success: false },
+    handleDropConfirmation: function (): void {
+      throw new Error('Function not implemented.');
+    },
+  },
+});
 
 export const CreateNftDropProvider = ({ children }: PropsWithChildren) => {
   const { trigger, data } = useSWRMutation('/api/drops/tokens', createLinks);
@@ -120,7 +136,7 @@ export const CreateNftDropProvider = ({ children }: PropsWithChildren) => {
 
   const handleDropConfirmation = () => {
     // TODO: send transaction/request to backend
-    trigger();
+    void trigger();
   };
 
   const createLinksSWR = {

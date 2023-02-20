@@ -4,6 +4,9 @@ import { IconBox } from '@/components/IconBox';
 
 interface DropsTemplateProps {
   imageNumber: number;
+  subHeadingText: string;
+  headingText: string;
+  description: string;
   ctaText: string;
   ctaOnClick: () => void;
 }
@@ -11,7 +14,14 @@ interface DropsTemplateProps {
 const IMAGES = ['/assets/nft_banner.png', '/assets/ticket_banner.png', '/assets/token_banner.png'];
 const IMAGES_TOP_DISTANCE = ['calc(50% - 208px)', 'calc(50% - 188px)', 'calc(50% - 183px)'];
 
-export const DropsTemplate = ({ imageNumber, ctaText, ctaOnClick }: DropsTemplateProps) => {
+export const DropsTemplate = ({
+  imageNumber,
+  subHeadingText,
+  headingText,
+  description,
+  ctaText,
+  ctaOnClick,
+}: DropsTemplateProps) => {
   return (
     <>
       {/** Outer box helps to set component's padding */}
@@ -57,13 +67,13 @@ export const DropsTemplate = ({ imageNumber, ctaText, ctaOnClick }: DropsTemplat
             </Hide>
 
             <Text color="blue.400" fontWeight="500" mb="1" size={{ base: 'md', md: 'lg' }}>
-              Token Drops
+              {subHeadingText}
             </Text>
             <Text color="gray.900" fontWeight="500" mb="4" size={{ base: 'xl', md: '3xl' }}>
-              Instantly drop tokens in a link.
+              {headingText}
             </Text>
             <Text color="gray.400" mb={{ base: '6', md: '28px' }} size={{ base: 'md', md: '2xl' }}>
-              Great for giveaways, promotions, and marketing
+              {description}
             </Text>
             <Button variant="landing" w="fit-content" onClick={ctaOnClick}>
               {ctaText}

@@ -13,7 +13,7 @@ import { RoundIcon } from '@/components/IconBox/RoundIcon';
 
 interface DropSummaryModalProps extends UseDisclosureProps {
   confirmationText: string;
-  isConfirmed: boolean;
+  isConfirmed?: boolean;
 }
 
 // TODO: enhance css after merging sushan's sign in modal branch
@@ -23,7 +23,7 @@ export const DropSummaryModal = ({
   isConfirmed,
   confirmationText,
 }: DropSummaryModalProps) => (
-  <Modal isOpen={isOpen} onClose={onClose}>
+  <Modal isOpen={isOpen as boolean} onClose={() => onClose?.()}>
     <ModalOverlay />
     <ModalContent p={{ base: '8', md: '16' }} textAlign="center">
       <ModalHeader

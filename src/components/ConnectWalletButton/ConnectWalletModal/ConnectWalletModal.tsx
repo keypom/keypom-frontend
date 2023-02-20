@@ -34,7 +34,6 @@ export const ConnectWalletModal = ({ isOpen, onClose }: ConnectWalletModalProps)
             size={{ base: 'sm', md: 'md' }}
             variant="primary"
             onClick={() => {
-              console.log('hello');
               modal.show();
             }}
           >

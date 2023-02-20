@@ -9,7 +9,30 @@ import { urlRegex } from '@/constants/common';
 import { type PaymentData, type PaymentItem, type SummaryItem } from '../types/types';
 import { WALLET_TOKENS } from '../components/token/data';
 
-const CreateTokenDropContext = createContext(null);
+interface CreateTokenDropContextProps {
+  getSummaryData: () => SummaryItem[];
+  getPaymentData: () => PaymentData;
+  handleDropConfirmation: () => void;
+  createLinksSWR: { data?: { success: boolean }; handleDropConfirmation: () => void };
+}
+
+const CreateTokenDropContext = createContext<CreateTokenDropContextProps>({
+  getSummaryData: () => [{ type: 'text', name: '', value: '' }] as SummaryItem[],
+  getPaymentData: () => ({
+    costsData: [{ name: '', total: 0 }],
+    totalCost: 0,
+    confirmationText: '',
+  }),
+  handleDropConfirmation: function (): void {
+    throw new Error('Function not implemented.');
+  },
+  createLinksSWR: {
+    data: undefined,
+    handleDropConfirmation: function (): void {
+      throw new Error('Function not implemented.');
+    },
+  },
+});
 
 const schema = z.object({
   dropName: z.string().min(1, 'Drop name required'),
@@ -32,7 +55,7 @@ type Schema = z.infer<typeof schema>;
 
 // TODO: this is only a mock implementation of the backend api
 const createLinks = async () => {
-  await new Promise((res) => setTimeout(res, 2000));
+  await new Promise((_resolve) => setTimeout(_resolve, 2000));
   return {
     success: true,
   };
@@ -86,7 +109,7 @@ export const CreateTokenDropProvider = ({ children }: PropsWithChildren) => {
       {
         type: 'text',
         name: 'Redirect link',
-        value: redirectLink,
+        value: redirectLink ?? '',
       },
     ];
   };
@@ -123,7 +146,7 @@ export const CreateTokenDropProvider = ({ children }: PropsWithChildren) => {
 
   const handleDropConfirmation = () => {
     // TODO: send transaction/request to backend
-    trigger();
+    void trigger();
   };
 
   const createLinksSWR = {

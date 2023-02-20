@@ -1,3 +1,4 @@
+# Simple workflow for deploying static content to GitHub Pages
 name: Build
 
 on: [pull_request]
@@ -11,34 +12,26 @@ jobs:
         node-version: [16.x]
     steps:
       - name: Check out repo
-        uses: actions/checkout@v3
-      - name: Install Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
+        uses: actions/checkout@v2
+      - name: Configure yarn caching
+        uses: actions/cache@v2
         with:
-          node-version: 16.x
-      - name: Install pnpm
-        uses: pnpm/action-setup@v2
-        id: pnpm-install
-        with:
-          version: 7
-          run_install: false
-      - name: Get pnpm store directory
-        id: pnpm-cache
-        shell: bash
-        run: |
-          echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
-      - name: Setup pnpm cache
-        uses: actions/cache@v3
-        with:
-          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          path: ~/.yarn
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/workflows/prettier.yml') }}
           restore-keys: |
-            ${{ runner.os }}-pnpm-store-
+            ${{ runner.os }}-yarn-
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'yarn'
       - name: Install dependencies
-        run: pnpm install
+        run: yarn install
       - name: Format the code
-        run: pnpm run format
+        run: yarn run format
       - name: Check the code style
-        run: pnpm run lint
+        run: yarn run lint
       - name: Check the types
-        run: pnpm run check
+        run: yarn check-types
+      - name: Build the project
+        run: yarn build

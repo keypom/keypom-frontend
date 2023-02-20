@@ -7,8 +7,14 @@ export interface StepItem {
   component: React.ReactNode;
 }
 
+export interface StepProps {
+  index?: number;
+  stepItem: StepItem;
+  isActive?: boolean;
+}
+
 // TODO: to refactor separately
-export const Step = ({ index, stepItem, isActive }) => {
+export const Step = ({ index, stepItem, isActive }: StepProps) => {
   if (isActive) {
     return (
       <HStack key={stepItem.name} alignItems="center">

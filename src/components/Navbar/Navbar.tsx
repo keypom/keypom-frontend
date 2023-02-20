@@ -1,6 +1,10 @@
 import { Box, Flex, HStack, Link, type BoxProps } from '@chakra-ui/react';
 
 import { KeypomLogo } from '@/components/KeypomLogo';
+import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
+
+import { SignedInButton } from '../SignedInButton';
+import { ConnectWalletButton } from '../ConnectWalletButton';
 
 import { MobileMenu } from './MobileMenu';
 
@@ -18,7 +22,7 @@ export const MENU_ITEMS = [
 ];
 
 export const Navbar = (props: NavbarProps) => {
-  // const { isLoggedIn } = useAuthWalletContext();
+  const { isLoggedIn } = useAuthWalletContext();
   const menuItems = MENU_ITEMS.map((item) => (
     <Link key={item.name} isExternal href={item.href}>
       <Box fontSize={{ base: 'sm', md: 'md' }}>{item.name}</Box>
@@ -41,7 +45,11 @@ export const Navbar = (props: NavbarProps) => {
         {/* Menu Items */}
         <HStack display={{ base: 'none', sm: 'flex' }} spacing={{ sm: '4', md: '10' }}>
           {menuItems}
-          {/* {isLoggedIn ? <SignedInButton /> : <ConnectWalletButton />} */}
+          {isLoggedIn ? (
+            <SignedInButton />
+          ) : (
+            <>{window.location.href.includes('?v=42') && <ConnectWalletButton />}</>
+          )}
         </HStack>
         <Box display={{ base: 'block', sm: 'none' }}>
           <MobileMenu />

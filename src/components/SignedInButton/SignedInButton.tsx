@@ -8,28 +8,68 @@ import {
   MenuButton,
   MenuItem,
   MenuList,
+  Spinner,
   Text,
 } from '@chakra-ui/react';
 
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
+import { useAppContext } from '@/contexts/AppContext';
 import { toYocto } from '@/utils/toYocto';
+import { truncateAddress } from '@/utils/truncateAddress';
+import { set } from '@/utils/localStorage';
 
 import { DropIcon, NearLogoIcon, SignOutIcon } from '../Icons';
 
 export const SignedInButton = () => {
+  const { setAppModal } = useAppContext();
+
   const { account, selector } = useAuthWalletContext();
-  const amountInYocto = toYocto(+account.amount);
+  const amountInYocto = toYocto(account === null ? 0 : parseInt(account.amount));
 
   const handleSignOut = async () => {
     const wallet = await selector.wallet();
 
     wallet
       .signOut()
-      .then((res) => (window.location.href = ''))
+      .then((_) => {
+        sessionStorage.removeItem('account');
+        window.location.href = '';
+      })
       .catch((err) => {
+        // eslint-disable-next-line no-console
         console.log('Failed to sign out');
+        // eslint-disable-next-line no-console
         console.error(err);
       });
+  };
+
+  const handleMasterKey = async () => {
+    setAppModal({
+      isOpen: true,
+      header: 'Set your master key!',
+      message: 'hello world!',
+      inputs: [
+        {
+          placeholder: 'Master Key',
+          valueKey: 'masterKey',
+        },
+      ],
+      options: [
+        {
+          label: 'Cancel',
+          func: () => {
+            // eslint-disable-next-line no-console
+            console.log('user cancelled');
+          },
+        },
+        {
+          label: 'Set Master Key',
+          func: ({ masterKey }) => {
+            set('MASTER_KEY', masterKey);
+          },
+        },
+      ],
+    });
   };
 
   return (
@@ -55,7 +95,11 @@ export const SignedInButton = () => {
                 mr="2"
                 w="4"
               />
-              <Text>{account.account_id}</Text>
+              {account === null || account === undefined ? (
+                <Spinner />
+              ) : (
+                <Text>{truncateAddress(account.account_id)}</Text>
+              )}
             </Center>
           </MenuButton>
           <MenuList>
@@ -77,6 +121,10 @@ export const SignedInButton = () => {
                 </Text>
                 NEAR
               </Flex>
+            </MenuItem>
+
+            <MenuItem icon={<SignOutIcon />} onClick={handleMasterKey}>
+              Master Key
             </MenuItem>
             <Link href="/drops">
               <MenuItem icon={<DropIcon />}>My drops</MenuItem>
