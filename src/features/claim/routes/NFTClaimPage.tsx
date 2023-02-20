@@ -93,7 +93,7 @@ const ClaimNftPage = () => {
       isLoading: false,
       isError: Boolean(claimError),
       isSuccess: isClaimSuccessful,
-      message: claimError || 'Token claimed!',
+      message: claimError || 'NFT claimed!',
     });
   };
 
