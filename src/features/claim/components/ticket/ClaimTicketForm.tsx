@@ -13,7 +13,6 @@ export interface ClaimTicketFormFieldTypes {
 export const ClaimTicketForm = () => {
   const { onNext } = useClaimTicketFlow();
   const [isLoading, setIsLoading] = useState(false);
-
   const { handleClaim } = useClaimForm();
   // const { handleSubmit, control } = useFormContext<ClaimTicketFormFieldTypes>();
 

@@ -1,4 +1,4 @@
-import { Center, Flex, Heading, VStack } from '@chakra-ui/react';
+import { Center, Flex, Heading, Spinner, Text, VStack } from '@chakra-ui/react';
 
 import { IconBox } from '@/components/IconBox';
 import { TicketIcon } from '@/components/Icons';
@@ -9,7 +9,24 @@ import { ClaimTicketDetails } from './ClaimTicketDetails';
 import { ClaimTicketForm } from './ClaimTicketForm';
 
 export const ClaimTicketFormFlow = () => {
-  const { nftImage, title } = useClaimForm();
+  const { nftImage, title, claimError, isClaimInfoLoading } = useClaimForm();
+
+  if (claimError) {
+    return (
+      <Center h={{ base: '300px', md: '500px' }}>
+        <Text variant="error">{claimError}</Text>
+      </Center>
+    );
+  }
+
+  if (isClaimInfoLoading) {
+    return (
+      <Center h={{ base: '300px', md: '500px' }}>
+        <Spinner size="lg" />
+      </Center>
+    );
+  }
+
   return (
     <Center>
       {/** the additional gap is to accommodate for the absolute roundIcon size */}

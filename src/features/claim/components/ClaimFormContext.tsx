@@ -19,6 +19,8 @@ interface ClaimFormContextType {
   nftImage: string;
   qrValue: string;
   handleClaim: () => Promise<void>;
+  claimError: string | null;
+  isClaimInfoLoading: boolean;
 }
 
 const ClaimFormContext = createContext<ClaimFormContextType | null>(null);
@@ -30,6 +32,9 @@ export const ClaimFormContextProvider = ({ children }: PropsWithChildren) => {
   const [title, setTitle] = useState('');
   const [nftImage, setNftImage] = useState('');
   const [qrValue, setQrValue] = useState('');
+  const [isClaimInfoLoading, setIsLoading] = useState(true);
+  const [claimError, setClaimError] = useState<string | null>(null);
+
   const methods = useForm<Schema>({
     mode: 'onChange',
     defaultValues: {
@@ -40,11 +45,17 @@ export const ClaimFormContextProvider = ({ children }: PropsWithChildren) => {
   });
 
   const loadClaimInfo = async () => {
-    const nftData = await keypomInstance.getTicketNftInformation(secretKey);
+    setIsLoading(true);
+    try {
+      const nftData = await keypomInstance.getTicketNftInformation(contractId, secretKey);
 
-    setTitle(nftData.title);
-    setNftImage(nftData.media);
-    setQrValue(JSON.stringify({ contractId, secretKey }));
+      setTitle(nftData.title);
+      setNftImage(nftData.media);
+      setQrValue(JSON.stringify({ contractId, secretKey }));
+    } catch (err) {
+      setClaimError(err.message);
+    }
+    setIsLoading(false);
   };
 
   useEffect(() => {
@@ -67,7 +78,17 @@ export const ClaimFormContextProvider = ({ children }: PropsWithChildren) => {
   };
 
   return (
-    <ClaimFormContext.Provider value={{ getClaimFormData, title, nftImage, qrValue, handleClaim }}>
+    <ClaimFormContext.Provider
+      value={{
+        getClaimFormData,
+        title,
+        nftImage,
+        qrValue,
+        handleClaim,
+        claimError,
+        isClaimInfoLoading,
+      }}
+    >
       <FormProvider {...methods}>{children}</FormProvider>
     </ClaimFormContext.Provider>
   );

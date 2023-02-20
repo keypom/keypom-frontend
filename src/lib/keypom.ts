@@ -59,19 +59,17 @@ class KeypomJS {
 
     const keyInfo = await getKeyInformation({ secretKey });
 
-    switch (keyInfo.remaining_uses) {
-      case 1:
-        throw new Error('Ticket has already been claimed');
-      case 3:
-        throw new Error('RVSP first to enter');
-      default:
-        return true;
+    if (keyInfo === null || keyInfo === undefined) {
+      throw new Error('Ticket has been deleted or has already been claimed');
     }
+
+    return keyInfo.remaining_uses;
   }
 
   async claimTicket(secretKey: string, password: string) {
     let keyInfo = await getKeyInformation({ secretKey });
     const publicKey: string = await getPubFromSecret(secretKey);
+    console.log({ password });
     const passwordForClaim = await hashPassword(
       password + publicKey + keyInfo.cur_key_use.toString(),
     );
@@ -185,8 +183,13 @@ class KeypomJS {
     };
   }
 
-  async getTicketNftInformation(secretKey: string) {
-    // given fc
+  async getTicketNftInformation(contractId: string, secretKey: string) {
+    const remainingUses = await this.checkTicketRemainingUses(contractId, secretKey);
+
+    if (remainingUses < 2) {
+      throw new Error('This drop has been claimed.');
+    }
+
     const drop = await getDropInformation({ secretKey });
     const dropMetadata = drop.metadata !== undefined ? this.getDropMetadata(drop.metadata) : {};
 
@@ -201,10 +204,10 @@ class KeypomJS {
     }
 
     const fcMethod = fcMethods[2][0];
-    const { receiver_id: contractId } = fcMethod;
+    const { receiver_id: receiverId } = fcMethod;
     const { viewCall } = getEnv();
     const nftData = await viewCall({
-      contractId,
+      contractId: receiverId,
       methodName: 'get_series_info',
       args: { mint_id: parseFloat(drop.drop_id) },
     });
