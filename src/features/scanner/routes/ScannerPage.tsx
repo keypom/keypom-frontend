@@ -126,7 +126,6 @@ const Scanner = () => {
         case 3:
           throw new Error('RVSP first to enter');
         default:
-          return true;
       }
     } catch (err) {
       setTxError(err.message);

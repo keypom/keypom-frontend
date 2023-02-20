@@ -34,6 +34,7 @@ export const ClaimFormContextProvider = ({ children }: PropsWithChildren) => {
   const [qrValue, setQrValue] = useState('');
   const [isClaimInfoLoading, setIsLoading] = useState(true);
   const [claimError, setClaimError] = useState<string | null>(null);
+  const [remainingUses, setRemainingUses] = useState<number | null>(null);
 
   const methods = useForm<Schema>({
     mode: 'onChange',
@@ -47,11 +48,12 @@ export const ClaimFormContextProvider = ({ children }: PropsWithChildren) => {
   const loadClaimInfo = async () => {
     setIsLoading(true);
     try {
-      const nftData = await keypomInstance.getTicketNftInformation(contractId, secretKey);
+      const claimInfo = await keypomInstance.getTicketNftInformation(contractId, secretKey);
 
-      setTitle(nftData.title);
-      setNftImage(nftData.media);
+      setTitle(claimInfo.title);
+      setNftImage(claimInfo.media);
       setQrValue(JSON.stringify({ contractId, secretKey }));
+      setRemainingUses(claimInfo.remainingUses);
     } catch (err) {
       setClaimError(err.message);
     }
@@ -67,7 +69,10 @@ export const ClaimFormContextProvider = ({ children }: PropsWithChildren) => {
   }, []);
 
   const handleClaim = async () => {
-    await keypomInstance.claim(secretKey, 'foo');
+    // Only allow claiming when there are 3 remaining uses
+    if (remainingUses === 3) {
+      await keypomInstance.claim(secretKey, 'foo');
+    }
   };
 
   const getClaimFormData = (): string[] => {

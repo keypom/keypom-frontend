@@ -1,7 +1,8 @@
-import { Center, Flex, Heading, Spinner, Text, VStack } from '@chakra-ui/react';
+import { Center, Flex, Heading, Spinner, VStack } from '@chakra-ui/react';
 
 import { IconBox } from '@/components/IconBox';
 import { TicketIcon } from '@/components/Icons';
+import { ErrorBox } from '@/components/ErrorBox';
 
 import { useClaimForm } from '../ClaimFormContext';
 
@@ -12,11 +13,7 @@ export const ClaimTicketFormFlow = () => {
   const { nftImage, title, claimError, isClaimInfoLoading } = useClaimForm();
 
   if (claimError) {
-    return (
-      <Center h={{ base: '300px', md: '500px' }}>
-        <Text variant="error">{claimError}</Text>
-      </Center>
-    );
+    return <ErrorBox message={claimError} />;
   }
 
   if (isClaimInfoLoading) {

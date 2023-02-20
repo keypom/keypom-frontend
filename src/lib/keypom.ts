@@ -185,7 +185,6 @@ class KeypomJS {
 
   async getTicketNftInformation(contractId: string, secretKey: string) {
     const remainingUses = await this.checkTicketRemainingUses(contractId, secretKey);
-
     if (remainingUses < 2) {
       throw new Error('This drop has been claimed.');
     }
@@ -213,6 +212,7 @@ class KeypomJS {
     });
 
     return {
+      remainingUses,
       dropName: dropMetadata.dropName,
       wallets: dropMetadata.wallets,
       media: `${CLOUDFLARE_IPFS}/${nftData.metadata.media}`, // eslint-disable-line

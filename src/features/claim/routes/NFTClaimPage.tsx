@@ -8,6 +8,7 @@ import { TicketIcon } from '@/components/Icons';
 import keypomInstance from '@/lib/keypom';
 import { checkClaimedDrop, storeClaimDrop } from '@/utils/claimedDrops';
 import { useAppContext } from '@/contexts/AppContext';
+import { ErrorBox } from '@/components/ErrorBox';
 
 import { CreateWallet } from '../components/CreateWallet';
 import { ExistingWallet } from '../components/ExistingWallet';
@@ -97,11 +98,7 @@ const ClaimNftPage = () => {
   };
 
   if (isDropClaimed) {
-    return (
-      <Box mb={{ base: '5', md: '14' }} minH="100%" minW="100%" mt={{ base: '52px', md: '100px' }}>
-        <Center>This drop has been claimed.</Center>
-      </Box>
-    );
+    return <ErrorBox message="This drop has been claimed." />;
   }
 
   return (

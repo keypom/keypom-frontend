@@ -5,6 +5,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import keypomInstance from '@/lib/keypom';
 import { DROP_TYPE } from '@/constants/common';
 import { checkClaimedDrop } from '@/utils/claimedDrops';
+import { ErrorBox } from '@/components/ErrorBox';
 
 const ClaimPage = () => {
   const { contractId = '', secretKey = '' } = useParams();
@@ -53,11 +54,7 @@ const ClaimPage = () => {
   }, []);
 
   if (isDropClaimed) {
-    return (
-      <Center h={{ base: '300px', md: '500px' }}>
-        <Center>This drop has been claimed.</Center>
-      </Center>
-    );
+    return <ErrorBox message="This drop has been claimed." />;
   }
 
   return (
