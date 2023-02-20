@@ -194,7 +194,7 @@ export default function AllDrops() {
 
             return {
               id,
-              name: truncateAddress(meta.dropName, 'end', 36),
+              name: truncateAddress(meta.dropName, 'end', 48),
               type,
               media: type === 'NFT' ? nftHref : undefined,
               claimed: `${

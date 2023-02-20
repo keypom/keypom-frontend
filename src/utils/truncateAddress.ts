@@ -8,12 +8,12 @@ export const truncateAddress = (
   if (address.length > maxLength) {
     switch (placement) {
       case 'start':
-        return '...' + address.slice(-10);
+        return '...' + address.slice(-maxLength);
       case 'middle':
-        return address.slice(0, 4) + '...' + address.slice(-6);
+        return address.slice(0, maxLength - 6) + '...' + address.slice(-6);
       case 'end':
       default:
-        return address.slice(0, 12) + '...';
+        return address.slice(0, maxLength) + '...';
     }
   }
 
