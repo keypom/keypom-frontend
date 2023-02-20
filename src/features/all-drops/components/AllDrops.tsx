@@ -12,6 +12,7 @@ import {
   useDisclosure,
   Heading,
   Avatar,
+  Skeleton,
 } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
 import {
@@ -74,18 +75,22 @@ const COLUMNS: ColumnItem[] = [
     thProps: {
       minW: '240px',
     },
+    loadingElement: <Skeleton height="30px" />,
   },
   {
     title: '',
     selector: (drop) => drop.media,
+    loadingElement: <Skeleton height="30px" />,
   },
   {
     title: 'Drop type',
     selector: (drop) => drop.type,
+    loadingElement: <Skeleton height="30px" />,
   },
   {
     title: 'Claimed',
     selector: (drop) => drop.claimed,
+    loadingElement: <Skeleton height="30px" />,
   },
   {
     title: '',
@@ -94,22 +99,17 @@ const COLUMNS: ColumnItem[] = [
       display: 'flex',
       justifyContent: 'right',
     },
+    loadingElement: <Skeleton height="30px" />,
   },
 ];
 
 export default function AllDrops() {
   const { viewCall } = getEnv();
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const [isLoading, setIsLoading] = useState(true);
 
   const [dataSize, setDataSize] = useState<number>(0);
-  const [data, setData] = useState<DataItem[]>([
-    {
-      id: 0,
-      name: 'test',
-      type: 'hello',
-      claimed: 'some',
-    },
-  ]);
+  const [data, setData] = useState<DataItem[]>([]);
   const [wallet, setWallet] = useState({});
 
   const {
@@ -205,6 +205,8 @@ export default function AllDrops() {
         ),
       ),
     );
+
+    setIsLoading(false);
   };
 
   useEffect(() => {
@@ -315,7 +317,12 @@ export default function AllDrops() {
         </HStack>
       </HStack>
 
-      <DataTable columns={COLUMNS} data={getTableRows()} mt={{ base: '6', md: '7' }} />
+      <DataTable
+        columns={COLUMNS}
+        data={getTableRows()}
+        loading={isLoading}
+        mt={{ base: '6', md: '7' }}
+      />
 
       {/* Mobile Menu For Creating Drop */}
       <Show below="sm">
