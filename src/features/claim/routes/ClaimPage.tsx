@@ -9,7 +9,7 @@ import { checkClaimedDrop } from '@/utils/claimedDrops';
 const ClaimPage = () => {
   const { contractId = '', secretKey = '' } = useParams();
 
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const [isDropClaimed, setIsDropClaimed] = useState(false);
@@ -31,7 +31,8 @@ const ClaimPage = () => {
           throw new Error('This linkdrop is unsupported.');
       }
     } catch (err) {
-      setError(err.message);
+      setError('Unable to claim. This drop may have been claimed before.');
+      console.error(err);
       setLoading(false);
     }
   };
