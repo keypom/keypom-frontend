@@ -37,6 +37,7 @@ import { truncateAddress } from '@/utils/truncateAddress';
 import { NextButton, PrevButton } from '@/components/Pagination';
 import { usePagination } from '@/hooks/usePagination';
 import getConfig from '@/config/config';
+import { asyncWithTimeout } from '@/utils/asyncWithTimeout';
 
 import { MENU_ITEMS } from '../config/menuItems';
 
@@ -174,21 +175,28 @@ export default function AllDrops() {
               const fcMethod = (fc as ProtocolReturnedFCData).methods[0]?.[0];
               const { receiver_id } = fcMethod as ProtocolReturnedMethod;
 
-              const nftData = await viewCall({
-                contractId: receiver_id,
-                methodName: FETCH_NFT_METHOD_NAME,
-                args: {
-                  mint_id: parseInt(id),
-                },
+              const nftData = await asyncWithTimeout(
+                viewCall({
+                  contractId: receiver_id,
+                  methodName: FETCH_NFT_METHOD_NAME,
+                  args: {
+                    mint_id: parseInt(id),
+                  },
+                }),
+              ).catch((_) => {
+                console.error(); // eslint-disable-line no-console
               });
-              nftHref = nftData.metadata.media;
+
+              nftHref =
+                `${getConfig().cloudflareIfps}/${nftData?.metadata?.media as string}` ??
+                'https://placekitten.com/200/300';
             }
 
             return {
               id,
               name: truncateAddress(meta.dropName, 'end', 36),
               type,
-              media: type === 'NFT' ? `${getConfig().cloudflareIfps}/${nftHref}` : undefined,
+              media: type === 'NFT' ? nftHref : undefined,
               claimed: `${
                 next_key_id - (await getKeySupplyForDrop({ dropId: id }))
               } / ${next_key_id}`,
