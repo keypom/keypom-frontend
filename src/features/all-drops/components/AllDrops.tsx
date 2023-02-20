@@ -36,6 +36,7 @@ import { handleFinishNFTDrop } from '@/features/create-drop/contexts/CreateNftDr
 import { truncateAddress } from '@/utils/truncateAddress';
 import { NextButton, PrevButton } from '@/components/Pagination';
 import { usePagination } from '@/hooks/usePagination';
+import getConfig from '@/config/config';
 
 import { MENU_ITEMS } from '../config/menuItems';
 
@@ -187,8 +188,7 @@ export default function AllDrops() {
               id,
               name: truncateAddress(meta.dropName, 'end', 36),
               type,
-              media:
-                type === 'NFT' ? `${process.env.REACT_APP_CLOUDFLARE_IFPS}/${nftHref}` : undefined,
+              media: type === 'NFT' ? `${getConfig().cloudflareIfps}/${nftHref}` : undefined,
               claimed: `${
                 next_key_id - (await getKeySupplyForDrop({ dropId: id }))
               } / ${next_key_id}`,

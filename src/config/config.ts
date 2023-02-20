@@ -1,5 +1,5 @@
-const contractName = process.env.REACT_APP_CONTRACT_ID ?? 'beta.keypom.testnet';
-
+const contractName = process.env.REACT_APP_CONTRACT_ID ?? 'v1-4.keypom.testnet';
+const cloudflareIfps = process.env.REACT_APP_CLOUDFLARE_IFPS ?? 'https://cloudflare-ipfs.com/ipfs';
 // eslint-disable-next-line no-console
 console.log(process.env.REACT_APP_NETWORK_ID, process.env.REACT_APP_CONTRACT_ID);
 
@@ -17,6 +17,7 @@ export interface Config {
   NEW_CONTRACT_AMOUNT: string;
   contractId: string;
   isBrowser: boolean;
+  cloudflareIfps: string;
 }
 
 function getConfig(network = process.env.REACT_APP_NETWORK_ID ?? 'testnet'): Config {
@@ -36,6 +37,7 @@ function getConfig(network = process.env.REACT_APP_NETWORK_ID ?? 'testnet'): Con
         NEW_CONTRACT_AMOUNT: '5000000000000000000000000',
         contractId: contractName,
         isBrowser: typeof window !== 'undefined',
+        cloudflareIfps,
       };
 
     case 'mainnet':
@@ -53,6 +55,7 @@ function getConfig(network = process.env.REACT_APP_NETWORK_ID ?? 'testnet'): Con
         NEW_CONTRACT_AMOUNT: '5000000000000000000000000',
         contractId: contractName,
         isBrowser: typeof window !== 'undefined',
+        cloudflareIfps,
       };
     default:
       throw Error(`Unconfigured environment '${network}'. Can be configured in src/config.ts.`);
