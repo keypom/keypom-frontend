@@ -3,7 +3,7 @@ import { Center, Flex, HStack, Image, Text } from '@chakra-ui/react';
 interface DropBoxProps {
   icon: string;
   symbol: string;
-  value: number;
+  value: string;
 }
 
 export const DropBox = ({ icon, value, symbol }: DropBoxProps) => {

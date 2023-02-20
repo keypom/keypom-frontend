@@ -16,6 +16,10 @@ interface AppModalValues {
   header?: string;
   options?: AppModalOptions[];
   inputs?: AppModalInputs[];
+  bodyComponent?: React.ReactNode;
+  isLoading?: boolean;
+  isSuccess?: boolean;
+  isError?: boolean;
 }
 
 interface AppContextValues {

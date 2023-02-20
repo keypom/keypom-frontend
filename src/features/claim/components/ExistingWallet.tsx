@@ -37,13 +37,14 @@ export const ExistingWallet = ({
       </Center>
       <TextInput
         label="Your wallet address"
+        mb="5"
         placeholder="yourname.near"
         value={walletAddress}
         onChange={(e) => {
           setWalletAddress(e.target.value);
         }}
       />
-      {isSuccess && <Text>Claim successful</Text>}
+      {isSuccess && <Text color="green.600">✅ Claim successful</Text>}
       {isLoading && (
         <Center>
           <Spinner />

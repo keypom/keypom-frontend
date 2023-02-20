@@ -8,6 +8,7 @@ import { StarIcon } from '@/components/Icons';
 import { DropBox } from '@/components/DropBox/DropBox';
 import keypomInstance from '@/lib/keypom';
 import { checkClaimedDrop, storeClaimDrop } from '@/utils/claimedDrops';
+import { useAppContext } from '@/contexts/AppContext';
 
 import { ExistingWallet } from '../components/ExistingWallet';
 import { CreateWallet } from '../components/CreateWallet';
@@ -21,6 +22,7 @@ interface TokenAsset {
 const ClaimTokenPage = () => {
   const navigate = useNavigate();
   const { secretKey = '' } = useParams();
+  const { setAppModal } = useAppContext();
   const [haveWallet, showInputWallet] = useBoolean(false);
   const [tokens, setTokens] = useState<TokenAsset[]>([]);
   const [walletsOptions, setWallets] = useState([]);
@@ -28,6 +30,8 @@ const ClaimTokenPage = () => {
   const [isClaimLoading, setIsClaimLoading] = useState(false);
   const [claimError, setClaimError] = useState('');
   const [isDropClaimed, setIsDropClaimed] = useState(false);
+  const [openLoadingModal, setOpenLoadingModal] = useState(false);
+  const [openResultModal, setOpenResultModal] = useState(false);
 
   const loadClaimInfo = async () => {
     const { ftMetadata, amountNEAR, amountTokens, wallets } =
@@ -69,14 +73,28 @@ const ClaimTokenPage = () => {
     loadClaimInfo();
   }, []);
 
+  useEffect(() => {
+    if (openLoadingModal) {
+      openTransactionLoadingModal();
+    }
+  }, [openLoadingModal]);
+
+  useEffect(() => {
+    if (openResultModal) {
+      openTransactionResultModal();
+    }
+  }, [openResultModal]);
+
   const handleClaim = async (walletAddress: string) => {
     setIsClaimLoading(true);
+    setOpenLoadingModal(true);
     try {
       await keypomInstance.claim(secretKey, walletAddress);
       storeClaimDrop(secretKey);
     } catch (err) {
       setClaimError(err);
     }
+    setOpenResultModal(true);
     setIsClaimLoading(false);
     setIsClaimSuccessful(true);
   };
@@ -88,6 +106,23 @@ const ClaimTokenPage = () => {
       </Box>
     );
   }
+
+  const openTransactionLoadingModal = () => {
+    setAppModal({
+      isOpen: true,
+      isLoading: true,
+    });
+  };
+
+  const openTransactionResultModal = () => {
+    setAppModal({
+      isOpen: true,
+      isLoading: false,
+      isError: Boolean(claimError),
+      isSuccess: isClaimSuccessful,
+      message: claimError || 'Token claimed!',
+    });
+  };
 
   return (
     <Box mb={{ base: '5', md: '14' }} minH="100%" minW="100%" mt={{ base: '52px', md: '100px' }}>
