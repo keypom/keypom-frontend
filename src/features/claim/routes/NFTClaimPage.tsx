@@ -7,6 +7,7 @@ import { BoxWithShape } from '@/components/BoxWithShape';
 import { TicketIcon } from '@/components/Icons';
 import keypomInstance from '@/lib/keypom';
 import { checkClaimedDrop, storeClaimDrop } from '@/utils/claimedDrops';
+import { useAppContext } from '@/contexts/AppContext';
 
 import { CreateWallet } from '../components/CreateWallet';
 import { ExistingWallet } from '../components/ExistingWallet';
@@ -15,6 +16,7 @@ import { NftReward } from '../components/nft/NftReward';
 const ClaimNftPage = () => {
   const navigate = useNavigate();
   const { secretKey = '' } = useParams();
+  const { setAppModal } = useAppContext();
   const [haveWallet, showInputWallet] = useBoolean(false);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -24,6 +26,8 @@ const ClaimNftPage = () => {
   const [isClaimLoading, setIsClaimLoading] = useState(false);
   const [claimError, setClaimError] = useState('');
   const [isDropClaimed, setIsDropClaimed] = useState(false);
+  const [openLoadingModal, setOpenLoadingModal] = useState(false);
+  const [openResultModal, setOpenResultModal] = useState(false);
 
   const loadClaimInfo = async () => {
     const nftData = await keypomInstance.getNFTClaimInformation(secretKey);
@@ -49,16 +53,47 @@ const ClaimNftPage = () => {
     loadClaimInfo();
   }, []);
 
+  useEffect(() => {
+    if (openLoadingModal) {
+      openTransactionLoadingModal();
+    }
+  }, [openLoadingModal]);
+
+  useEffect(() => {
+    if (openResultModal) {
+      openTransactionResultModal();
+    }
+  }, [openResultModal]);
+
   const handleClaim = async (walletAddress: string) => {
     setIsClaimLoading(true);
+    setOpenLoadingModal(true);
     try {
       await keypomInstance.claim(secretKey, walletAddress);
       storeClaimDrop(secretKey);
     } catch (err) {
       setClaimError(err);
     }
+    setOpenResultModal(true);
     setIsClaimLoading(false);
     setIsClaimSuccessful(true);
+  };
+
+  const openTransactionLoadingModal = () => {
+    setAppModal({
+      isOpen: true,
+      isLoading: true,
+    });
+  };
+
+  const openTransactionResultModal = () => {
+    setAppModal({
+      isOpen: true,
+      isLoading: false,
+      isError: Boolean(claimError),
+      isSuccess: isClaimSuccessful,
+      message: claimError || 'Token claimed!',
+    });
   };
 
   if (isDropClaimed) {

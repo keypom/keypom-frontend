@@ -99,14 +99,6 @@ const ClaimTokenPage = () => {
     setIsClaimSuccessful(true);
   };
 
-  if (isDropClaimed) {
-    return (
-      <Box mb={{ base: '5', md: '14' }} minH="100%" minW="100%" mt={{ base: '52px', md: '100px' }}>
-        <Center>This drop has been claimed.</Center>
-      </Box>
-    );
-  }
-
   const openTransactionLoadingModal = () => {
     setAppModal({
       isOpen: true,
@@ -123,6 +115,14 @@ const ClaimTokenPage = () => {
       message: claimError || 'Token claimed!',
     });
   };
+
+  if (isDropClaimed) {
+    return (
+      <Box mb={{ base: '5', md: '14' }} minH="100%" minW="100%" mt={{ base: '52px', md: '100px' }}>
+        <Center>This drop has been claimed.</Center>
+      </Box>
+    );
+  }
 
   return (
     <Box mb={{ base: '5', md: '14' }} minH="100%" minW="100%" mt={{ base: '52px', md: '100px' }}>
