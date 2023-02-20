@@ -76,7 +76,7 @@ export const DropManager = ({
               <Heading>{claimedText}</Heading>
             </Stack>
           </Stack>
-          <Text>Track link status and export to them to CSV for use in email campaigns here.</Text>
+          <Text>Track link status and export them to CSV for use in email campaigns here.</Text>
         </Box>
 
         {/* Right Section */}
