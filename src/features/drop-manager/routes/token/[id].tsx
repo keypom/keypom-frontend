@@ -52,16 +52,19 @@ export default function TokenDropManagerPage() {
       action: 'delete',
     },
   ]);
-  const [wallet, setWallet] = useState({});
-  const { selector, accountId } = useAuthWalletContext();
+  const { accountId } = useAuthWalletContext();
 
   const handleGetDrops = async () => {
     if (!accountId) return null;
     const drop = await getDropInformation({
       dropId,
     });
+    if (!drop)
+      drop = {
+        metadata: '{}',
+      };
 
-    setName(JSON.parse(drop.metadata).name);
+    setName(JSON.parse(drop.metadata as unknown as string).name);
 
     const keySupply = await getKeySupplyForDrop({
       dropId,
