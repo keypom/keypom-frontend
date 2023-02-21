@@ -7,7 +7,7 @@ interface AppModalInputs {
 
 interface AppModalOptions {
   label: string;
-  func: (values) => void;
+  func: (values) => any | Promise<any>;
 }
 
 interface AppModalValues {

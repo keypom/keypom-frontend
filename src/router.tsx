@@ -113,7 +113,7 @@ export const router = createBrowserRouter([
             element: <ClaimNftPage />,
           },
           {
-            path: 'gift',
+            path: 'gift/:contractId/:secretKey',
             element: <ClaimGiftPage />,
           },
           {

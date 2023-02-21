@@ -41,9 +41,10 @@ const Scanner = () => {
     return null;
   };
 
-  const handleTicketClaim = async (secretKey: string) => {
+  const handleTicketClaim = async (secretKey: string, password: string) => {
     try {
-      await keypomInstance.claimTicket(secretKey, password as string);
+      console.log('claiming ticket');
+      await keypomInstance.claimTicket(secretKey, password);
       console.log('claim is valid');
       setIsTxLoading(false);
       setIsTxSuccess(true);
@@ -86,13 +87,14 @@ const Scanner = () => {
     setIsTxLoading(true);
     onResultModalOpen();
 
-    if (result?.text === '') {
+    if (result && result?.text === '') {
       setTxError('QR code is invalid');
       scanningResultInProgress = false;
       return;
     }
 
     if (password === undefined || password === null || password === '') {
+      setIsTxLoading(false);
       setTxError('Password is empty');
       scanningResultInProgress = false;
       return;
@@ -100,6 +102,7 @@ const Scanner = () => {
 
     if (error !== undefined) {
       console.error(error);
+      setIsTxLoading(false);
       setTxError('Error parsing QR code');
       scanningResultInProgress = false;
       return;
@@ -108,7 +111,7 @@ const Scanner = () => {
     const ticketRes = getSecretKeyAndContractId(result.text);
     if (ticketRes === null) {
       console.error('Error parsing QR code');
-      setTxError('Error parsing QR code');
+      setIsTxLoading(false);
       scanningResultInProgress = false;
       return;
     }
@@ -117,6 +120,7 @@ const Scanner = () => {
     setTicketRes(ticketRes);
 
     try {
+      console.log(contractId, secretKey);
       const remainingUses = await keypomInstance.checkTicketRemainingUses(contractId, secretKey);
 
       switch (remainingUses) {
@@ -128,13 +132,14 @@ const Scanner = () => {
         default:
       }
     } catch (err) {
+      console.error(err);
       setTxError(err.message);
       setIsTxLoading(false);
       scanningResultInProgress = false;
       return;
     }
 
-    await handleTicketClaim(secretKey);
+    await handleTicketClaim(secretKey, password);
   };
 
   const openResultModal = () => {
@@ -145,6 +150,16 @@ const Scanner = () => {
       isSuccess: isTxSuccess,
       message: isTxLoading ? '' : txError || 'Ticket is valid!',
     });
+  };
+
+  const handlePasswordSaveClick = (password: string) => {
+    setPassword(() => password);
+    set(SCANNER_PASSWORD_KEY, password ?? '');
+
+    if (isClaimRetry) {
+      // eslint-disable-next-line
+      handleScanResult({ text: JSON.stringify(ticketRes) }, undefined);
+    }
   };
 
   const openPasswordModal = () => {
@@ -171,16 +186,8 @@ const Scanner = () => {
         },
         {
           label: 'Ok',
-          func: async ({ password }) => {
-            setPassword(password);
-            set(SCANNER_PASSWORD_KEY, password ?? '');
-            // onPasswordModalClose();
-
-            if (isClaimRetry) {
-              onResultModalOpen();
-              await handleTicketClaim(ticketRes?.secretKey as string);
-              // onPasswordModalClose();
-            }
+          func: ({ password }) => {
+            handlePasswordSaveClick(password);
           },
         },
       ],
@@ -214,7 +221,7 @@ const Scanner = () => {
               <QrReader
                 constraints={{ facingMode: 'environment' }}
                 containerStyle={{ width: '100%', height: '100%' }}
-                scanDelay={2000}
+                scanDelay={1000}
                 ViewFinder={() => <ViewFinder />}
                 onResult={handleScanResult}
               />
@@ -222,7 +229,7 @@ const Scanner = () => {
           ) : (
             <Button
               onClick={() => {
-                onPasswordModalOpen();
+                openPasswordModal();
               }}
             >
               Enter password

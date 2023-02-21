@@ -50,6 +50,10 @@ export const ClaimFormContextProvider = ({ children }: PropsWithChildren) => {
     try {
       const claimInfo = await keypomInstance.getTicketNftInformation(contractId, secretKey);
 
+      if (claimInfo.remainingUses === 1) {
+        navigate(`/gift/${contractId}/${secretKey}`);
+      }
+
       setTitle(claimInfo.title);
       setNftImage(claimInfo.media);
       setQrValue(JSON.stringify({ contractId, secretKey }));

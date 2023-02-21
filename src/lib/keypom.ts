@@ -184,12 +184,12 @@ class KeypomJS {
   }
 
   async getTicketNftInformation(contractId: string, secretKey: string) {
+    const drop = await getDropInformation({ secretKey });
     const remainingUses = await this.checkTicketRemainingUses(contractId, secretKey);
     if (remainingUses < 2) {
       throw new Error('This drop has been claimed.');
     }
 
-    const drop = await getDropInformation({ secretKey });
     const dropMetadata = drop.metadata !== undefined ? this.getDropMetadata(drop.metadata) : {};
 
     const fcMethods = drop.fc?.methods;
