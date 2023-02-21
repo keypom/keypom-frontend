@@ -8,6 +8,7 @@ import {
   getKeyInformationBatch,
 } from 'keypom-js';
 
+import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
 import { CopyIcon, DeleteIcon } from '@/components/Icons';
 import { DropManager } from '@/features/drop-manager/components/DropManager';
 import { type ColumnItem } from '@/components/Table/types';
@@ -51,11 +52,11 @@ export default function TokenDropManagerPage() {
       action: 'delete',
     },
   ]);
-  // const [wallet, setWallet] = useState({});
-  // const { selector, accountId } = useAuthWalletContext();
+  const [wallet, setWallet] = useState({});
+  const { selector, accountId } = useAuthWalletContext();
 
   const handleGetDrops = async () => {
-    if (!accountId) return;
+    if (!accountId) return null;
     const drop = await getDropInformation({
       dropId,
     });

@@ -4467,9 +4467,9 @@ jsonc-parser@^3.2.0:
     object.assign "^4.1.3"
 
 keypom-js@1.3.6-rc.1:
-  version "1.3.5-rc.1"
-  resolved "https://registry.yarnpkg.com/keypom-js/-/keypom-js-1.3.5-rc.1.tgz#060aa3c7c3ef57b3612d20e3c7f5d3d691ab7f8e"
-  integrity sha512-s1did6Ft81okrDgQGfUnBonYUPOk2G2pDIOuVsIdFKIVQU2wUQV0m0teh2o4mvrh7HckbpOiKBpXOGQDUJ6Vgg==
+  version "1.3.6-rc.1"
+  resolved "https://registry.yarnpkg.com/keypom-js/-/keypom-js-1.3.6-rc.1.tgz#8ef493cddef64d4614e10985ca2b6c924b70249a"
+  integrity sha512-vN4BoPfO6v3+e3D7jXVlS0u7Ivy36xoiQjaTaGF2EoIZ992da3/AoD9SzRXGB78F7BkJN7G2sSvkcN8c1BqoGg==
   dependencies:
     "@near-wallet-selector/core" "^7.5.0"
     "@types/react" "^18.0.26"
