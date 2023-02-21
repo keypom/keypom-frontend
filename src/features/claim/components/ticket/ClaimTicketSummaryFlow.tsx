@@ -15,11 +15,6 @@ export const ClaimTicketSummaryFlow = () => {
 
   const isNftGif = nftImage !== '' && title !== '';
 
-  const handleDownloadQr = () => {
-    // TODO: handle download QR
-    return null;
-  };
-
   return (
     <Center>
       {/** the additional gap is to accommodate for the absolute roundIcon size */}
@@ -38,7 +33,7 @@ export const ClaimTicketSummaryFlow = () => {
           pb="0"
         >
           <BoxWithShape bg="white" borderTopRadius="8xl" w="full ">
-            <QrDetails qrValue={qrValue} ticketName={title} onClick={handleDownloadQr} />
+            <QrDetails qrValue={qrValue} ticketName={title} />
           </BoxWithShape>
           <Flex align="center" bg="gray.50" borderBottomRadius="8xl" flexDir="column" px="6" py="8">
             <Text color="gray.800" fontWeight="500" mb="5" size="lg" textAlign="center">

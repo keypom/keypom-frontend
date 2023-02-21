@@ -60,7 +60,7 @@ export const QrDetails = ({ qrValue, ticketName }: QrDetailsProps) => {
         {ticketName}
       </Text>
       <Text color="gray.600" mb="6" size={{ base: 'sm', md: 'md' }} textAlign="center">
-        A copy has been sent to your email. Save this QR code and show it at the event.{' '}
+        Save this QR code and show it at the event to gain entry.
       </Text>
       <Button variant="outline" w="full" onClick={handleDownloadQrCode}>
         Download QR code
