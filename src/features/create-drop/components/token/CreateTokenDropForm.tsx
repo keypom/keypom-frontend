@@ -14,7 +14,7 @@ import { get } from '@/utils/localStorage';
 import { MASTER_KEY } from '@/constants/common';
 import { useAppContext, setAppModalHelper } from '@/contexts/AppContext';
 
-import { WALLET_OPTIONS } from './data';
+import { WALLET_OPTIONS } from '../WalletComponent';
 
 export const CreateTokenDropForm = () => {
   const { setAppModal } = useAppContext();
@@ -95,7 +95,7 @@ export const CreateTokenDropForm = () => {
               >
                 <Input
                   isInvalid={Boolean(error?.message)}
-                  placeholder="Star Invasion Beta Invites"
+                  placeholder="NEARCon Token Giveaway"
                   type="text"
                   {...field}
                 />

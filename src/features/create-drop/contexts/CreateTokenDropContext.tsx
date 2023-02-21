@@ -10,7 +10,7 @@ import { get } from '@/utils/localStorage';
 import { MASTER_KEY, urlRegex } from '@/constants/common';
 
 import { type PaymentData, type PaymentItem, type SummaryItem } from '../types/types';
-import { WALLET_TOKENS } from '../components/token/data';
+import { WALLET_TOKENS } from '../components/WalletComponent';
 
 interface CreateTokenDropContextProps {
   getSummaryData: () => SummaryItem[];

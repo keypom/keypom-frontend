@@ -10,8 +10,8 @@ import { IconBox } from '@/components/IconBox';
 import { useDropFlowContext } from '@/features/create-drop/contexts/DropFlowContext';
 
 import { ArtworkInput } from '../Fields/ArtworkInput';
+import { WALLET_OPTIONS } from '../WalletComponent';
 
-import { WALLET_OPTIONS } from './data';
 import { NftNameInput } from './Fields/NftNameInput';
 import { NumberInput } from './Fields/NumberInput';
 import { DescriptionInput } from './Fields/DescriptionInput';
