@@ -1,4 +1,4 @@
-const contractName = process.env.REACT_APP_CONTRACT_ID ?? 'v1-4.keypom.testnet';
+const contractName = process.env.REACT_APP_CONTRACT_ID ?? 'v2.keypom.testnet';
 const cloudflareIfps = process.env.REACT_APP_CLOUDFLARE_IFPS ?? 'https://cloudflare-ipfs.com/ipfs';
 // eslint-disable-next-line no-console
 console.log(process.env.REACT_APP_NETWORK_ID, process.env.REACT_APP_CONTRACT_ID);
