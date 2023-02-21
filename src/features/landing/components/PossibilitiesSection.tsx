@@ -25,7 +25,7 @@ export const PossibilitiesSection = () => {
       >
         <LandingCard
           buttonText="See the docs"
-          description="Our SDK lets your build custom solutions around link-based wallets."
+          description="Our SDK lets you build custom solutions around link-based wallets."
           header="Craft your own"
           onClick={() => {
             window.location.href = 'https://docs.keypom.xyz';
