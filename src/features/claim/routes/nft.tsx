@@ -38,8 +38,8 @@ const ClaimNftPage = () => {
               {/** div placeholder */}
               <NftReward
                 artworkSrc="https://vaxxeddoggos.com/assets/doggos/1042.png"
-                description={`Here’s your cute character to commemorate the Danny Daze Annual event`}
-                nftName="Danny Daze NFT"
+                description={`A commemorative NFT for attending the Vandelay Industries networking event.`}
+                nftName="Art Vandelay Official"
               />
             </BoxWithShape>
             <VStack
