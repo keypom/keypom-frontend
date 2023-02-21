@@ -260,6 +260,7 @@ export default function AllDrops() {
         columns={COLUMNS}
         data={getTableRows()}
         mt={{ base: '6', md: '7' }}
+        type="all-drops"
         onRowClick={handleRowClick}
       />
 
