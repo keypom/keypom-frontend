@@ -1,11 +1,11 @@
 import { createContext, type PropsWithChildren, useContext, useState } from 'react';
 
-interface AppModalInputs {
+export interface AppModalInputs {
   placeholder: string;
   valueKey: string;
 }
 
-interface AppModalOptions {
+export interface AppModalOptions {
   label: string;
   func: (values) => any | Promise<any>;
 }

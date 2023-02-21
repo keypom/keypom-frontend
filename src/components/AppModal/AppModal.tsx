@@ -12,6 +12,7 @@ import {
   Box,
   Center,
   Spinner,
+  Text,
 } from '@chakra-ui/react';
 import { CheckIcon, CloseIcon } from '@chakra-ui/icons';
 
@@ -27,6 +28,7 @@ export const AppModal = () => {
 
   return (
     <Modal
+      closeOnOverlayClick
       isOpen={appModal.isOpen}
       onClose={() => {
         setAppModal({
@@ -69,7 +71,7 @@ export const AppModal = () => {
             </Center>
           )}
 
-          {appModal.message && <p>{appModal.message}</p>}
+          {appModal.message && <Text my={2}>{appModal.message}</Text>}
 
           {appModal.bodyComponent !== undefined && <Box>{appModal.bodyComponent}</Box>}
 

@@ -60,7 +60,7 @@ export const ClaimFormContextProvider = ({ children }: PropsWithChildren) => {
       setQrValue(JSON.stringify({ contractId, secretKey }));
       setRemainingUses(claimInfo.remainingUses);
     } catch (err) {
-      setClaimError(err.message);
+      setClaimError('Unable to claim. This drop may have been claimed before.');
     }
     setIsLoading(false);
   };

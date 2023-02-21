@@ -5,7 +5,7 @@ import { QrReader } from 'react-qr-reader';
 
 import { ViewFinder } from '@/components/ViewFinder';
 import keypomInstance from '@/lib/keypom';
-import { useAppContext } from '@/contexts/AppContext';
+import { useAppContext, type AppModalOptions } from '@/contexts/AppContext';
 import { get, set } from '@/utils/localStorage';
 
 export const gas = '100000000000000';
@@ -20,10 +20,17 @@ interface TicketResult {
 let scanningResultInProgress = false;
 
 const Scanner = () => {
-  const { isOpen: isPasswordModalOpen, onOpen: onPasswordModalOpen } = useDisclosure();
+  const {
+    isOpen: isPasswordModalOpen,
+    onOpen: onPasswordModalOpen,
+    onClose: onPasswordModalClose,
+  } = useDisclosure();
   const { setAppModal } = useAppContext();
-  const { isOpen: isResultModalOpen, onOpen: onResultModalOpen } = useDisclosure();
-  const [password, setPassword] = useState<string | null>('');
+  const {
+    isOpen: isResultModalOpen,
+    onOpen: onResultModalOpen,
+    onClose: onResultModalClose,
+  } = useDisclosure();
   const [isClaimRetry, setIsClaimRetry] = useState<boolean>(false);
   const [ticketRes, setTicketRes] = useState<TicketResult | null>(null);
   const [passwordErrorText, setPasswordErrorText] = useState('');
@@ -46,10 +53,9 @@ const Scanner = () => {
       console.log('claiming ticket');
       await keypomInstance.claimTicket(secretKey, password);
       console.log('claim is valid');
-      setIsTxLoading(false);
       setIsTxSuccess(true);
+      setIsTxLoading(false);
       onResultModalOpen();
-      scanningResultInProgress = false;
     } catch (err) {
       if (
         err.message === 'Ticket has already been claimed' ||
@@ -61,12 +67,14 @@ const Scanner = () => {
         return;
       }
 
+      console.error(err);
       setIsClaimRetry(true);
+      setIsTxLoading(false);
+      onResultModalClose();
       setPasswordErrorText(err.message);
       onPasswordModalOpen();
-      setIsTxLoading(true);
-      scanningResultInProgress = false;
     }
+    scanningResultInProgress = false;
   };
 
   const handleScanResult = async (result, error) => {
@@ -80,22 +88,15 @@ const Scanner = () => {
       return;
     }
 
+    setIsTxLoading(true);
     setTxError('');
     setPasswordErrorText('');
     setIsClaimRetry(false);
     setIsTxSuccess(false);
-    setIsTxLoading(true);
     onResultModalOpen();
 
     if (result && result?.text === '') {
       setTxError('QR code is invalid');
-      scanningResultInProgress = false;
-      return;
-    }
-
-    if (password === undefined || password === null || password === '') {
-      setIsTxLoading(false);
-      setTxError('Password is empty');
       scanningResultInProgress = false;
       return;
     }
@@ -139,23 +140,45 @@ const Scanner = () => {
       return;
     }
 
+    const password = get(SCANNER_PASSWORD_KEY);
     await handleTicketClaim(secretKey, password);
   };
 
   const openResultModal = () => {
+    let message = '';
+    const options: AppModalOptions[] = [];
+    if (isTxSuccess) {
+      message = 'Ticket is valid!';
+      options.push({
+        label: 'Ok',
+        func: () => {
+          console.log('tx acknowledged');
+        },
+      });
+    }
+    if (txError) {
+      message = txError;
+      options.push({
+        label: 'Ok',
+        func: () => {
+          console.log('error acknowledged');
+        },
+      });
+    }
+
     setAppModal({
       isOpen: true,
       isLoading: isTxLoading,
       isError: Boolean(txError),
       isSuccess: isTxSuccess,
-      message: isTxLoading ? '' : txError || 'Ticket is valid!',
+      message,
+      options,
     });
   };
 
   const handlePasswordSaveClick = (password: string) => {
-    setPassword(() => password);
     set(SCANNER_PASSWORD_KEY, password ?? '');
-
+    onPasswordModalClose();
     if (isClaimRetry) {
       // eslint-disable-next-line
       handleScanResult({ text: JSON.stringify(ticketRes) }, undefined);
@@ -163,6 +186,7 @@ const Scanner = () => {
   };
 
   const openPasswordModal = () => {
+    console.log('opening password modal');
     setAppModal({
       isOpen: true,
       header: 'Enter your password',
@@ -181,7 +205,10 @@ const Scanner = () => {
             console.log('Using password from local storage.');
 
             const cachedPassword = get(SCANNER_PASSWORD_KEY);
-            setPassword(cachedPassword);
+
+            if (cachedPassword === undefined) {
+              set(SCANNER_PASSWORD_KEY, '');
+            }
           },
         },
         {
@@ -210,52 +237,35 @@ const Scanner = () => {
     onPasswordModalOpen();
   }, []);
 
+  // console.log({ isAppModalOpen });
+
   return (
     <Box mb={{ base: '5', md: '14' }} minH="100%" minW="100%" mt={{ base: '52px', md: '100px' }}>
       <Center>
         <VStack gap={{ base: 'calc(24px + 8px)', md: 'calc(32px + 10px)' }}>
           <Heading textAlign="center">Scanner</Heading>
           {/** keypom scanner placeholder */}
-          {password !== '' ? (
-            <Center h={{ base: '280px', md: '440px' }} w={{ base: '280px', md: '440px' }}>
-              <QrReader
-                constraints={{ facingMode: 'environment' }}
-                containerStyle={{ width: '100%', height: '100%' }}
-                scanDelay={1000}
-                ViewFinder={() => <ViewFinder />}
-                onResult={handleScanResult}
-              />
-            </Center>
-          ) : (
-            <Button
-              onClick={() => {
-                openPasswordModal();
-              }}
-            >
-              Enter password
-            </Button>
-          )}
+          {/* {!isAppModalOpen && ( */}
+          <Center h={{ base: '280px', md: '440px' }} w={{ base: '280px', md: '440px' }}>
+            <QrReader
+              constraints={{ facingMode: 'environment' }}
+              containerStyle={{ width: '100%', height: '100%' }}
+              scanDelay={1000}
+              ViewFinder={() => <ViewFinder />}
+              onResult={handleScanResult}
+            />
+          </Center>
+          {/* )} */}
+          <Button
+            mt={4}
+            onClick={() => {
+              openPasswordModal();
+            }}
+          >
+            Enter password
+          </Button>
         </VStack>
       </Center>
-
-      {/* <EnterPasswordModal
-        handleCancelClick={handlePasswordCancel}
-        handleOkClick={handlePasswordSave}
-        isOpen={isPasswordModalOpen}
-        modalErrorText={passwordErrorText}
-        passwordOnChange={(val) => {
-          setPassword(val);
-        }}
-        onClose={onPasswordModalClose}
-      />
-
-      <ResultModal
-        errorText={resultModalErrorText}
-        isLoading={isTxLoading}
-        isOpen={isResultModalOpen}
-        isSuccess={isTxSuccess}
-        onClose={onResultModalClose}
-      /> */}
     </Box>
   );
 };
