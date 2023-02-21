@@ -9,9 +9,21 @@ interface QrDetailsProps {
 export const QrDetails = ({ qrValue, ticketName }: QrDetailsProps) => {
   const handleDownloadQrCode = () => {
     const svg = document.getElementById('QRCode');
+
+    if (svg === null) {
+      console.error('QR code is not found on document.');
+      return;
+    }
+
     const svgData = new XMLSerializer().serializeToString(svg);
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
+
+    if (ctx === null) {
+      console.error('ctx is null');
+      return;
+    }
+
     const img = new Image();
 
     img.onload = () => {
