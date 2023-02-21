@@ -1,16 +1,25 @@
 import { type ReactElement } from 'react';
-import { Center, TabPanel, TabPanels } from '@chakra-ui/react';
+import { Center, TabPanel, TabPanels, useToast } from '@chakra-ui/react';
 import { useNavigate } from 'react-router-dom';
 
 import { ImageIcon, StarIcon, TicketIcon } from '@/components/Icons';
 import { RoundedTabs, type TabListItem } from '@/components/RoundedTabs';
+import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
+import { UNAUTHORIZED_TOAST } from '@/constants/toast';
 
 import { DropsTemplate } from './DropsTemplate';
 
 type DropsTabItem = TabListItem & { content: ReactElement };
 
 export const DropsSection = () => {
+  const toast = useToast();
+  const { isLoggedIn } = useAuthWalletContext();
   const navigate = useNavigate();
+
+  const dropCta = (dropType: string) => {
+    if (isLoggedIn) navigate(`/drop/${dropType}/new`);
+    else toast(UNAUTHORIZED_TOAST);
+  };
 
   const TAB_LIST: DropsTabItem[] = [
     {
@@ -20,7 +29,7 @@ export const DropsSection = () => {
       content: (
         <DropsTemplate
           ctaOnClick={() => {
-            navigate('/drop/token/new');
+            dropCta('token');
           }}
           ctaText="Create a Token Drop"
           description="Great for giveaways, promotions, and marketing."
@@ -37,7 +46,7 @@ export const DropsSection = () => {
       content: (
         <DropsTemplate
           ctaOnClick={() => {
-            navigate('/drop/ticket/new');
+            dropCta('ticket');
           }}
           ctaText="Create an Ticket Drop"
           description="Generate QRs for each guest, set them up with a wallet and optionally drop attendance proof NFTs."
@@ -54,7 +63,7 @@ export const DropsSection = () => {
       content: (
         <DropsTemplate
           ctaOnClick={() => {
-            navigate('/drop/nft/new');
+            dropCta('nft');
           }}
           ctaText="Create a NFT Drop"
           description="Easily drop NFTs to a large audience, without needing their wallets."
