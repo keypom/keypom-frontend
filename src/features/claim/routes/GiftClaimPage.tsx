@@ -39,7 +39,7 @@ const ClaimGiftPage = () => {
       return;
     }
 
-    const nftData = await keypomInstance.getNFTClaimInformation(secretKey);
+    const nftData = await keypomInstance.getTicketNftInformation(contractId, secretKey);
 
     setTitle(nftData.title);
     setDescription(nftData.description);
@@ -115,7 +115,7 @@ const ClaimGiftPage = () => {
         {/** the additional gap is to accommodate for the absolute roundIcon size */}
         <VStack gap={{ base: 'calc(24px + 8px)', md: 'calc(32px + 10px)' }}>
           {/** Prompt text */}
-          <Heading textAlign="center">{`Collect your gifts`}</Heading>
+          <Heading textAlign="center">Collect your gifts</Heading>
 
           {/** Claim gift component */}
           <IconBox
