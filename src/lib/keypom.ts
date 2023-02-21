@@ -69,7 +69,6 @@ class KeypomJS {
   async claimTicket(secretKey: string, password: string) {
     let keyInfo = await getKeyInformation({ secretKey });
     const publicKey: string = await getPubFromSecret(secretKey);
-    console.log({ password });
     const passwordForClaim = await hashPassword(
       password + publicKey + keyInfo.cur_key_use.toString(),
     );

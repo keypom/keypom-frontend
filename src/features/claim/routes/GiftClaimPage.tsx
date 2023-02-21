@@ -1,15 +1,113 @@
 import { Box, Center, Heading, useBoolean, VStack } from '@chakra-ui/react';
+import { useEffect, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 
 import { IconBox } from '@/components/IconBox';
 import { BoxWithShape } from '@/components/BoxWithShape';
 import { TicketIcon } from '@/components/Icons';
+import { useAppContext } from '@/contexts/AppContext';
+import keypomInstance from '@/lib/keypom';
+import { checkClaimedDrop, storeClaimDrop } from '@/utils/claimedDrops';
+import { ErrorBox } from '@/components/ErrorBox';
 
 import { CreateWallet } from '../components/CreateWallet';
 import { ExistingWallet } from '../components/ExistingWallet';
-import { GiftDetails } from '../components/gift/GiftDetails';
+import { NftReward } from '../components/nft/NftReward';
 
 const ClaimGiftPage = () => {
+  const navigate = useNavigate();
+  const { secretKey = '', contractId = '' } = useParams();
+  const { setAppModal } = useAppContext();
   const [haveWallet, showInputWallet] = useBoolean(false);
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [nftImage, setNftImage] = useState('');
+  const [walletsOptions, setWallets] = useState([]);
+  const [isClaimSuccessful, setIsClaimSuccessful] = useState(false);
+  const [isClaimLoading, setIsClaimLoading] = useState(false);
+  const [claimError, setClaimError] = useState('');
+  const [isDropClaimed, setIsDropClaimed] = useState(false);
+  const [openLoadingModal, setOpenLoadingModal] = useState(false);
+  const [openResultModal, setOpenResultModal] = useState(false);
+
+  const loadClaimInfo = async () => {
+    const remainingUses = await keypomInstance.checkTicketRemainingUses(contractId, secretKey);
+
+    // should only show this page if claim remaining uses is 1
+    if (remainingUses > 1) {
+      navigate(`/claim/${contractId}/${secretKey}`);
+      return;
+    }
+
+    const nftData = await keypomInstance.getNFTClaimInformation(secretKey);
+
+    setTitle(nftData.title);
+    setDescription(nftData.description);
+    setNftImage(nftData.media);
+    setWallets(nftData.wallets);
+  };
+
+  useEffect(() => {
+    if (secretKey === '' || contractId === '') {
+      navigate('/');
+    }
+
+    const hasDropClaimedBefore = checkClaimedDrop(secretKey);
+    if (hasDropClaimedBefore) {
+      setIsDropClaimed(hasDropClaimedBefore);
+      return;
+    }
+
+    // eslint-disable-next-line
+    loadClaimInfo();
+  }, []);
+
+  useEffect(() => {
+    if (openLoadingModal) {
+      openTransactionLoadingModal();
+    }
+  }, [openLoadingModal]);
+
+  useEffect(() => {
+    if (openResultModal) {
+      openTransactionResultModal();
+    }
+  }, [openResultModal]);
+
+  const handleClaim = async (walletAddress: string) => {
+    setIsClaimLoading(true);
+    setOpenLoadingModal(true);
+    try {
+      await keypomInstance.claim(secretKey, walletAddress);
+      storeClaimDrop(secretKey);
+    } catch (err) {
+      setClaimError(err);
+    }
+    setOpenResultModal(true);
+    setIsClaimLoading(false);
+    setIsClaimSuccessful(true);
+  };
+
+  const openTransactionLoadingModal = () => {
+    setAppModal({
+      isOpen: true,
+      isLoading: true,
+    });
+  };
+
+  const openTransactionResultModal = () => {
+    setAppModal({
+      isOpen: true,
+      isLoading: false,
+      isError: Boolean(claimError),
+      isSuccess: isClaimSuccessful,
+      message: claimError || 'NFT claimed!',
+    });
+  };
+
+  if (isDropClaimed) {
+    return <ErrorBox message="This drop has been claimed." />;
+  }
 
   return (
     <Box mb={{ base: '5', md: '14' }} minH="100%" minW="100%" mt={{ base: '52px', md: '100px' }}>
@@ -37,10 +135,7 @@ const ClaimGiftPage = () => {
               w="full "
             >
               {/** div placeholder */}
-              <GiftDetails
-                giftName="Vaxxed Doggos NFT"
-                imageSrc={'https://vaxxeddoggos.com/assets/doggos/1042.png'}
-              />
+              <NftReward artworkSrc={nftImage} description={description} nftName={title} />
             </BoxWithShape>
             <VStack
               bg="gray.50"
@@ -50,11 +145,16 @@ const ClaimGiftPage = () => {
               w="full"
             >
               {!haveWallet ? (
-                <CreateWallet onClick={showInputWallet.on} />
+                <CreateWallet wallets={walletsOptions} onClick={showInputWallet.on} />
               ) : (
                 <>
-                  {/** TODO: handleSubmit button */}
-                  <ExistingWallet handleSubmit={() => null} onBack={showInputWallet.off} />
+                  <ExistingWallet
+                    claimErrorText={claimError}
+                    handleSubmit={handleClaim}
+                    isLoading={isClaimLoading}
+                    isSuccess={isClaimSuccessful}
+                    onBack={showInputWallet.off}
+                  />
                 </>
               )}
             </VStack>
