@@ -4,6 +4,7 @@ import { type ColumnItem, type DataItem } from '@/components/Table/types';
 import { DataTable } from '@/components/Table';
 import { Breadcrumbs } from '@/components/Breadcrumbs';
 import { NextButton, PrevButton } from '@/components/Pagination';
+import { file } from '@/utils/file';
 
 interface DropManagerProps {
   dropName: string;
@@ -26,7 +27,6 @@ interface DropManagerProps {
   };
   tableProps?: TableProps;
   loading?: boolean;
-  onExportCSVClick?: () => void;
   onCancelAllClick?: () => void;
 }
 
@@ -39,6 +39,7 @@ export const DropManager = ({
   showColumns = true,
   tableProps,
   pagination,
+  onCancelAllClick,
   loading = false,
 }: DropManagerProps) => {
   const breadcrumbItems = [
@@ -51,6 +52,13 @@ export const DropManager = ({
       href: '',
     },
   ];
+
+  const handleExportCSVClick = () => {
+    if (data.length > 0) {
+      const links = data.map(({ dropLink }) => `${dropLink as string}`);
+      file(`Drop ID ${data[0].dropId as string}`, links.join('\r\n'));
+    }
+  };
 
   return (
     <Box px="1" py={{ base: '3.25rem', md: '5rem' }}>
@@ -89,10 +97,18 @@ export const DropManager = ({
               onClick={pagination.handlePrevPage}
             />
           )}
-          <Button variant="secondary" w={{ base: '100%', sm: 'initial' }}>
+          <Button
+            variant="secondary"
+            w={{ base: '100%', sm: 'initial' }}
+            onClick={onCancelAllClick}
+          >
             Cancel all
           </Button>
-          <Button variant="secondary" w={{ base: '100%', sm: 'initial' }}>
+          <Button
+            variant="secondary"
+            w={{ base: '100%', sm: 'initial' }}
+            onClick={handleExportCSVClick}
+          >
             Export .CSV
           </Button>
           {pagination?.hasPagination && (

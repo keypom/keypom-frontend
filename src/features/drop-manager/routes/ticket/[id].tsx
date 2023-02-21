@@ -102,6 +102,8 @@ export default function TicketDropManagerPage() {
 
     return data.map((item) => ({
       ...item,
+      dropId,
+      dropLink: item.link,
       link: (
         <Text color="gray.400" display="flex">
           keypom.xyz/
