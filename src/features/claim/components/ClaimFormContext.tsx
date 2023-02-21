@@ -51,7 +51,8 @@ export const ClaimFormContextProvider = ({ children }: PropsWithChildren) => {
       const claimInfo = await keypomInstance.getTicketNftInformation(contractId, secretKey);
 
       if (claimInfo.remainingUses === 1) {
-        navigate(`/gift/${contractId}/${secretKey}`);
+        navigate(`/claim/gift/${contractId}/${secretKey}`);
+        return;
       }
 
       setTitle(claimInfo.title);

@@ -63,6 +63,8 @@ class KeypomJS {
       throw new Error('Ticket has been deleted or has already been claimed');
     }
 
+    console.log(keyInfo);
+
     return keyInfo.remaining_uses;
   }
 
@@ -185,9 +187,6 @@ class KeypomJS {
   async getTicketNftInformation(contractId: string, secretKey: string) {
     const drop = await getDropInformation({ secretKey });
     const remainingUses = await this.checkTicketRemainingUses(contractId, secretKey);
-    if (remainingUses < 2) {
-      throw new Error('This drop has been claimed.');
-    }
 
     const dropMetadata = drop.metadata !== undefined ? this.getDropMetadata(drop.metadata) : {};
 
