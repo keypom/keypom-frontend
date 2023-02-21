@@ -10,6 +10,7 @@ import {
   MenuList,
   Spinner,
   Text,
+  useBoolean,
 } from '@chakra-ui/react';
 
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
@@ -20,6 +21,7 @@ import { truncateAddress } from '@/utils/truncateAddress';
 import { DropIcon, NearLogoIcon, SignOutIcon } from '../Icons';
 
 export const SignedInButton = () => {
+  const [showAll, setShowAll] = useBoolean(false);
   const { setAppModal } = useAppContext();
 
   const { account, selector } = useAuthWalletContext();
@@ -47,7 +49,15 @@ export const SignedInButton = () => {
   };
 
   return (
-    <Menu>
+    <Menu
+      placement="bottom-end"
+      onClose={() => {
+        setShowAll.off();
+      }}
+      onOpen={() => {
+        setShowAll.on();
+      }}
+    >
       {({ isOpen }) => (
         <Box>
           <MenuButton
@@ -72,7 +82,7 @@ export const SignedInButton = () => {
               {account === null || account === undefined ? (
                 <Spinner />
               ) : (
-                <Text>{truncateAddress(account.account_id)}</Text>
+                <Text>{showAll ? account.account_id : truncateAddress(account.account_id)}</Text>
               )}
             </Center>
           </MenuButton>
