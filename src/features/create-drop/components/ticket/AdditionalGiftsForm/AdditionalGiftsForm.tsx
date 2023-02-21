@@ -6,7 +6,6 @@ import { RoundedTabs, type TabListItem } from '@/components/RoundedTabs';
 import { POAPNftIcon } from '@/components/Icons';
 import { type CreateTicketFieldsSchema } from '@/features/create-drop/contexts/CreateTicketDropContext/CreateTicketDropContext';
 
-import { TokenForm } from './TokenForm';
 import { POAPNftForm } from './POAPNftForm';
 
 interface AdditionalGiftTabItem extends TabListItem {
@@ -49,9 +48,9 @@ export const AdditionalGiftsForm = () => {
     <Box mt={{ base: '6', md: '8' }}>
       <RoundedTabs tablist={TAB_LIST} onChange={handleChange}>
         <TabPanels mt={{ base: '5', md: '7' }}>
-          <TabPanel px="0">
+          {/* <TabPanel px="0">
             <TokenForm />
-          </TabPanel>
+          </TabPanel> */}
           <TabPanel>
             <POAPNftForm />
           </TabPanel>
