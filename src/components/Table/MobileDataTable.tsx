@@ -8,6 +8,7 @@ import {
   Tr,
   VStack,
 } from '@chakra-ui/react';
+import { useNavigate } from 'react-router-dom';
 
 import { type ColumnItem, type DataItem } from './types';
 
@@ -15,13 +16,50 @@ interface MobileDataTableProps extends TableProps {
   showColumns?: boolean;
   columns: ColumnItem[];
   data: DataItem[];
+  loading: boolean;
 }
 
-export const MobileDataTable = ({ columns, data, ...props }: MobileDataTableProps) => {
+export const MobileDataTable = ({
+  columns,
+  data,
+  loading = false,
+  ...props
+}: MobileDataTableProps) => {
+  const navigate = useNavigate();
+
   const actionColumn = columns[columns.length - 1];
-  const getMobileTableBody = () =>
-    data.map((drop) => (
-      <Tr key={drop.id}>
+  const getMobileTableBody = () => {
+    if (loading) {
+      return Array.from([1, 2, 3]).map((_, index) => (
+        <Tr key={index}>
+          {columns.map((column) => (
+            <Td key={`${column.title}-${index}`} {...column.tdProps}>
+              {column.loadingElement}
+            </Td>
+          ))}
+        </Tr>
+      ));
+    }
+
+    return data.map((drop) => (
+      <Tr
+        key={drop.id}
+        _hover={
+          (drop.href as string | undefined)
+            ? {
+                cursor: 'pointer',
+                background: 'gray.50',
+              }
+            : {}
+        }
+        onClick={
+          (drop.href as string | undefined)
+            ? () => {
+                navigate(drop.href as string);
+              }
+            : undefined
+        }
+      >
         <Td>
           <VStack align="flex-start" spacing="2">
             {columns
@@ -34,6 +72,7 @@ export const MobileDataTable = ({ columns, data, ...props }: MobileDataTableProp
         <Td verticalAlign="middle">{actionColumn.selector(drop)}</Td>
       </Tr>
     ));
+  };
 
   return (
     <TableContainer>

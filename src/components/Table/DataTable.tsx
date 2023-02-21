@@ -106,7 +106,7 @@ export const DataTable = ({
 
       {/* Mobile table */}
       <Hide above="md">
-        <MobileDataTable columns={columns} data={data} {...props} />
+        <MobileDataTable columns={columns} data={data} loading={loading} {...props} />
       </Hide>
     </>
   );
