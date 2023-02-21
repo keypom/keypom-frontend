@@ -3,7 +3,7 @@ import { useFormContext } from 'react-hook-form';
 import { useEffect } from 'react';
 
 import { RoundedTabs, type TabListItem } from '@/components/RoundedTabs';
-import { LinkIcon, POAPNftIcon } from '@/components/Icons';
+import { POAPNftIcon } from '@/components/Icons';
 import { type CreateTicketFieldsSchema } from '@/features/create-drop/contexts/CreateTicketDropContext/CreateTicketDropContext';
 
 import { TokenForm } from './TokenForm';
@@ -14,11 +14,12 @@ interface AdditionalGiftTabItem extends TabListItem {
 }
 
 const TAB_LIST: AdditionalGiftTabItem[] = [
-  {
-    name: 'token',
-    label: 'Token',
-    icon: <LinkIcon h={{ base: '4', md: '5' }} w={{ base: '4', md: '5' }} />,
-  },
+  /** token is commented in case there's a need for it in the future */
+  // {
+  //   name: 'token',
+  //   label: 'Token',
+  //   icon: <LinkIcon h={{ base: '4', md: '5' }} w={{ base: '4', md: '5' }} />,
+  // },
   {
     name: 'poapNft',
     label: 'POAP NFT',
