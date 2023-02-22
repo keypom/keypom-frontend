@@ -83,7 +83,7 @@ export default function NFTDropManagerPage() {
       secretKeys.map((key, i) => ({
         id: i,
         publicKey: publicKeys[i],
-        link: 'https://keypom.xyz/claim/' + key.replace('ed25519:', ''),
+        link: `https://keypom.xyz/claim/${dropId}#${key.replace('ed25519:', '')})`,
         slug: key.substring(8, 16),
         hasClaimed: keyInfo[i] === null,
         action: 'delete',
