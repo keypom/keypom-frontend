@@ -1,7 +1,7 @@
 import { Box, Button, Text } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { generateKeys, getDropInformation, getKeyInformationBatch } from 'keypom-js';
+import { deleteKeys, generateKeys, getDropInformation, getKeyInformationBatch } from 'keypom-js';
 
 import { CopyIcon, DeleteIcon } from '@/components/Icons';
 import { DropManager } from '@/features/drop-manager/components/DropManager';
@@ -20,6 +20,7 @@ import { type TicketClaimStatus } from '../../types/types';
 export default function TicketDropManagerPage() {
   const { id: dropId } = useParams();
   const [loading, setLoading] = useState(true);
+  const [deleting, setDeleting] = useState(false);
 
   const [name, setName] = useState('Drop');
   const [dataSize, setDataSize] = useState<number>(0);
@@ -53,13 +54,17 @@ export default function TicketDropManagerPage() {
 
   const handleGetDrops = async ({ pageIndex = 0, pageSize = PAGE_SIZE_LIMIT }) => {
     if (!accountId) return;
-    const drop = await getDropInformation({
+    let drop = await getDropInformation({
       dropId,
     });
+    if (!drop)
+      drop = {
+        metadata: '{}',
+      };
 
     setDataSize(drop.next_key_id);
 
-    setName(JSON.parse(drop.metadata as string).dropName);
+    setName(JSON.parse(drop.metadata as unknown as string).dropName);
 
     const { publicKeys, secretKeys } = await generateKeys({
       numKeys: Math.min(drop.next_key_id, pageSize),
@@ -75,6 +80,7 @@ export default function TicketDropManagerPage() {
     setData(
       secretKeys.map((key, i) => ({
         id: i,
+        publicKey: publicKeys[i],
         link: 'https://keypom.xyz/claim/' + key.replace('ed25519:', ''),
         slug: key.substring(8, 16),
         claimStatus: getClaimStatus(keyInfo[i]),
@@ -93,8 +99,14 @@ export default function TicketDropManagerPage() {
   const handleCopyClick = () => {
     // TODO: copy handler
   };
-  const handleDeleteClick = () => {
-    // TODO: copy handler
+  const handleDeleteClick = async (pubKey: string) => {
+    setDeleting(true);
+
+    await deleteKeys({
+      dropId,
+      publicKeys: pubKey,
+    });
+    setDeleting(false);
   };
 
   const getTableRows = () => {
@@ -118,7 +130,14 @@ export default function TicketDropManagerPage() {
           <Button mr="1" size="sm" variant="icon" onClick={handleCopyClick}>
             <CopyIcon />
           </Button>
-          <Button size="sm" variant="icon" onClick={handleDeleteClick}>
+          <Button
+            isLoading={deleting}
+            size="sm"
+            variant="icon"
+            onClick={async () => {
+              await handleDeleteClick(item.publicKey as string);
+            }}
+          >
             <DeleteIcon color="red" />
           </Button>
         </>

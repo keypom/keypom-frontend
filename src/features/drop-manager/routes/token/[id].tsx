@@ -1,14 +1,13 @@
 import { Badge, Box, Button, Text } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { getDropInformation, generateKeys, getKeyInformationBatch } from 'keypom-js';
+import { getDropInformation, generateKeys, getKeyInformationBatch, deleteKeys } from 'keypom-js';
 
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
 import { CopyIcon, DeleteIcon } from '@/components/Icons';
 import { DropManager } from '@/features/drop-manager/components/DropManager';
 import { get } from '@/utils/localStorage';
 import { MASTER_KEY, PAGE_SIZE_LIMIT } from '@/constants/common';
-import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
 import { usePagination } from '@/hooks/usePagination';
 import { type DataItem } from '@/components/Table/types';
 
@@ -18,6 +17,7 @@ import { INITIAL_SAMPLE_DATA } from '../../constants/common';
 export default function TokenDropManagerPage() {
   const { id: dropId } = useParams();
   const [loading, setLoading] = useState(true);
+  const [deleting, setDeleting] = useState(false);
 
   const [name, setName] = useState('Drop');
   const [dataSize, setDataSize] = useState<number>(0);
@@ -51,7 +51,7 @@ export default function TokenDropManagerPage() {
 
   const handleGetDrops = async ({ pageIndex = 0, pageSize = PAGE_SIZE_LIMIT }) => {
     if (!accountId) return null;
-    const drop = await getDropInformation({
+    let drop = await getDropInformation({
       dropId,
     });
     if (!drop)
@@ -77,6 +77,7 @@ export default function TokenDropManagerPage() {
     setData(
       secretKeys.map((key, i) => ({
         id: i,
+        publicKey: publicKeys[i],
         link: 'https://keypom.xyz/claim/' + key.replace('ed25519:', ''),
         slug: key.substring(8, 16),
         hasClaimed: keyInfo[i] === null,
@@ -95,8 +96,14 @@ export default function TokenDropManagerPage() {
   const handleCopyClick = () => {
     // TODO: copy handler
   };
-  const handleDeleteClick = () => {
-    // TODO: copy handler
+  const handleDeleteClick = async (pubKey: string) => {
+    setDeleting(true);
+
+    await deleteKeys({
+      dropId,
+      publicKeys: pubKey,
+    });
+    setDeleting(false);
   };
 
   const getTableRows = () => {
@@ -124,7 +131,14 @@ export default function TokenDropManagerPage() {
           <Button mr="1" size="sm" variant="icon" onClick={handleCopyClick}>
             <CopyIcon />
           </Button>
-          <Button size="sm" variant="icon" onClick={handleDeleteClick}>
+          <Button
+            isLoading={deleting}
+            size="sm"
+            variant="icon"
+            onClick={async () => {
+              await handleDeleteClick(item.publicKey as string);
+            }}
+          >
             <DeleteIcon color="red" />
           </Button>
         </>
