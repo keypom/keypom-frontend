@@ -101,6 +101,7 @@ class KeypomJS {
   }
 
   getDropType(drop: ProtocolReturnedDrop) {
+
     if (drop.fc === undefined && drop.nft === undefined) {
       return DROP_TYPE.TOKEN;
     }
@@ -148,8 +149,9 @@ class KeypomJS {
     }
 
     return {
-      dropName: dropMetadata.dropName,
-      wallets: dropMetadata.wallets,
+      // TODO WHAT DEFAULTS?
+      dropName: dropMetadata?.dropName || '',
+      wallets: dropMetadata?.wallets || [],
       ftMetadata,
       amountTokens: drop.ft?.balance_per_use, // TODO: format correctly with FT metadata
       amountNEAR: formatNearAmount(drop.deposit_per_use, 4),

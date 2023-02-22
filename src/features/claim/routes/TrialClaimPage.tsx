@@ -14,6 +14,8 @@ import { ErrorBox } from '@/components/ErrorBox';
 import { ExistingWallet } from '../components/ExistingWallet';
 import { CreateWallet } from '../components/CreateWallet';
 
+import { claimTrialAccountDrop, accountExists, claim } from 'keypom-js';
+
 interface TokenAsset {
   icon: string;
   value: string;
@@ -35,42 +37,21 @@ const TrialClaimPage = () => {
   const [openResultModal, setOpenResultModal] = useState(false);
 
   const loadClaimInfo = async () => {
-    const { ftMetadata, amountNEAR, amountTokens, wallets } =
-      await keypomInstance.getTokenClaimInformation(secretKey);
-    const tokens: TokenAsset[] = [
-      {
-        icon: 'https://cryptologos.cc/logos/near-protocol-near-logo.svg?v=024',
-        value: amountNEAR || '0',
-        symbol: 'NEAR',
-      },
-    ];
-    if (ftMetadata) {
-      setTokens([
-        ...tokens,
-        {
-          icon: ftMetadata.icon as string,
-          value: amountTokens ?? '0',
-          symbol: ftMetadata.symbol,
-        },
-      ]);
+    try {
+      const drop = await keypomInstance.getTokenClaimInformation(secretKey);
+      console.log(drop)
+    } catch(e) {
+      console.log(e)
+      // `no drop ID for PK` is error we should pass through to the redirect URL
+      setClaimError('No drop for this link!');
     }
-
-    setTokens(tokens);
-    setWallets(wallets);
   };
 
   useEffect(() => {
     if (secretKey === '') {
       navigate('/');
     }
-
-    const hasDropClaimedBefore = checkClaimedDrop(secretKey);
-    if (hasDropClaimedBefore) {
-      setIsDropClaimed(hasDropClaimedBefore);
-      return;
-    }
-
-    // eslint-disable-next-line
+    
     loadClaimInfo();
   }, []);
 
@@ -87,17 +68,39 @@ const TrialClaimPage = () => {
   }, [openResultModal]);
 
   const handleClaim = async (walletAddress: string) => {
-    setIsClaimLoading(true);
-    setOpenLoadingModal(true);
-    try {
-      await keypomInstance.claim(secretKey, walletAddress);
-      storeClaimDrop(secretKey);
-    } catch (err) {
-      setClaimError(err);
+
+    const root = '.linkdrop-beta.keypom.testnet'
+    const desiredAccountId = walletAddress + root
+
+    console.log('attempting ', walletAddress);
+
+    const exists = await accountExists(desiredAccountId);
+
+    if (exists) {
+      return console.warn('exists')
     }
-    setOpenResultModal(true);
-    setIsClaimLoading(false);
-    setIsClaimSuccessful(true);
+
+    try {
+      await claimTrialAccountDrop({
+        secretKey: '4MVfyqUDiWV66c3dMmqcU3rMsavNQqongEJCfd316eNToqi3rfR95Ehj7wm57rYmZrrM5FopxyUaeWuFepvzfbj4',
+        desiredAccountId,
+      })
+    } catch(e) {
+      console.log(e)
+    }
+    
+
+    // setIsClaimLoading(true);
+    // setOpenLoadingModal(true);
+    // try {
+    //   await keypomInstance.claim(secretKey, walletAddress);
+    //   storeClaimDrop(secretKey);
+    // } catch (err) {
+    //   setClaimError(err);
+    // }
+    // setOpenResultModal(true);
+    // setIsClaimLoading(false);
+    // setIsClaimSuccessful(true);
   };
 
   const openTransactionLoadingModal = () => {
@@ -119,6 +122,14 @@ const TrialClaimPage = () => {
 
   if (isDropClaimed) {
     return <ErrorBox message="This drop has been claimed." />;
+  }
+
+  if (claimError.length > 0) {
+    return <Box mb={{ base: '5', md: '14' }} minH="100%" minW="100%" mt={{ base: '52px', md: '100px' }}>
+    <Center>
+      No drop for that link!
+      </Center>
+      </Box>
   }
 
   return (
@@ -160,17 +171,16 @@ const TrialClaimPage = () => {
               spacing={{ base: '4', md: '5' }}
               w="full"
             >
-              {!haveWallet ? (
-                <CreateWallet wallets={walletsOptions} onClick={showInputWallet.on} />
-              ) : (
-                <ExistingWallet
-                  claimErrorText={claimError}
-                  handleSubmit={handleClaim}
-                  isLoading={isClaimLoading}
-                  isSuccess={isClaimSuccessful}
-                  onBack={showInputWallet.off}
-                />
-              )}
+              <ExistingWallet
+                noBackIcon={true}
+                message={`Create Your Account`}
+                label={`Your Account Name`}
+                claimErrorText={claimError}
+                handleSubmit={handleClaim}
+                isLoading={isClaimLoading}
+                isSuccess={isClaimSuccessful}
+                onBack={showInputWallet.off}
+              />
             </VStack>
           </IconBox>
         </VStack>

@@ -10,6 +10,9 @@ interface ExistingWalletProps {
   isSuccess: boolean;
   isLoading: boolean;
   claimErrorText: string;
+  message?: string;
+  label?: string;
+  noBackIcon?: boolean;
 }
 
 export const ExistingWallet = ({
@@ -18,6 +21,9 @@ export const ExistingWallet = ({
   isSuccess,
   isLoading,
   claimErrorText,
+  message = 'Send to existing wallet',
+  label = 'Your wallet address',
+  noBackIcon = false,
 }: ExistingWalletProps) => {
   const [walletAddress, setWalletAddress] = useState('');
   return (
@@ -30,13 +36,13 @@ export const ExistingWallet = ({
         w="full"
         onClick={onBack}
       >
-        <ChevronLeftIcon color="gray.400" left="0" position="absolute" />
+        {!noBackIcon && <ChevronLeftIcon color="gray.400" left="0" position="absolute" />}
         <Text color="gray.800" fontWeight="500" size={{ base: 'md', md: 'lg' }}>
-          Send to existing wallet
+          {message}
         </Text>
       </Center>
       <TextInput
-        label="Your wallet address"
+        label={label}
         mb="5"
         placeholder="yourname.near"
         value={walletAddress}
