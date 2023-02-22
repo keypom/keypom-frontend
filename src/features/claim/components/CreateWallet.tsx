@@ -12,6 +12,8 @@ interface CreateWalletProps {
   secretKey: string;
 }
 
+const defaultWallet = WALLET_OPTIONS[0];
+
 export const CreateWallet = ({
   contractId,
   secretKey,
@@ -23,21 +25,34 @@ export const CreateWallet = ({
     window.location.href = url;
   };
 
+  const walletOptions = WALLET_OPTIONS.filter((wallet) => wallets.includes(wallet.id)).map(
+    (options, index) => (
+      <WalletOption
+        key={index}
+        handleWalletClick={async () => {
+          await handleWalletClick(options.id);
+        }}
+        {...options}
+      />
+    ),
+  );
+
   return (
     <>
       <Text color="gray.800" fontWeight="500" size={{ base: 'md', md: 'lg' }}>
         Create a wallet to store your assets
       </Text>
       <VStack spacing="1" w="full">
-        {WALLET_OPTIONS.filter((wallet) => wallets.includes(wallet.id)).map((options, index) => (
+        {walletOptions.length !== 0 ? (
+          walletOptions
+        ) : (
           <WalletOption
-            key={index}
             handleWalletClick={async () => {
-              await handleWalletClick(options.id);
+              await handleWalletClick(defaultWallet?.id);
             }}
-            {...options}
+            {...defaultWallet}
           />
-        ))}
+        )}
       </VStack>
       <Text
         _hover={{
