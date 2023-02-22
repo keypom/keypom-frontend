@@ -13,11 +13,13 @@ import { ArtworkInput } from '../Fields/ArtworkInput';
 
 import { WALLET_OPTIONS } from './data';
 import { NftNameInput } from './Fields/NftNameInput';
+import { NumberInput } from './Fields/NumberInput';
 import { DescriptionInput } from './Fields/DescriptionInput';
 
 export interface CreateNftDropFormFieldTypes {
-  nftName: string;
+  title: string;
   description: string;
+  number: number;
   artwork: string;
   selectedToWallets: string[];
   redirectLink?: string;
@@ -53,6 +55,8 @@ export const CreateNftDropForm = () => {
         <VStack spacing={{ base: '4', md: '5' }}>
           <NftNameInput control={control} />
           <DescriptionInput control={control} />
+          <NumberInput control={control} />
+
           <ArtworkInput />
 
           <Controller

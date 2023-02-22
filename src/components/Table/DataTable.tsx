@@ -10,6 +10,7 @@ import {
   Thead,
   Th,
 } from '@chakra-ui/react';
+import { useNavigate } from 'react-router-dom';
 
 import { MobileDataTable } from './MobileDataTable';
 import { type ColumnItem, type DataItem } from './types';
@@ -29,7 +30,6 @@ interface DataTableProps extends TableProps {
   columns: ColumnItem[];
   data: DataItem[];
   loading?: boolean;
-  onRowClick?: (id: string | number) => void;
 }
 
 export const DataTable = ({
@@ -37,9 +37,10 @@ export const DataTable = ({
   columns = [],
   data = [],
   loading = false,
-  onRowClick,
   ...props
 }: DataTableProps) => {
+  const navigate = useNavigate();
+
   const getDesktopTableBody = () => {
     if (loading) {
       return Array.from([1, 2, 3]).map((_, index) => (
@@ -56,9 +57,21 @@ export const DataTable = ({
     return data.map((drop) => (
       <Tr
         key={drop.id}
-        onClick={() => {
-          onRowClick?.(drop.id);
-        }}
+        _hover={
+          (drop.href as string | undefined)
+            ? {
+                cursor: 'pointer',
+                background: 'gray.50',
+              }
+            : {}
+        }
+        onClick={
+          (drop.href as string | undefined)
+            ? () => {
+                navigate(drop.href as string);
+              }
+            : undefined
+        }
       >
         {columns.map((column) => (
           <Td key={`${column.title}-${drop.id}`} {...column.tdProps}>
@@ -79,7 +92,7 @@ export const DataTable = ({
               <Thead>
                 <Tr>
                   {columns.map((col) => (
-                    <Th key={col.title} fontFamily="body">
+                    <Th key={col.title} fontFamily="body" {...col.thProps}>
                       {col.title}
                     </Th>
                   ))}
@@ -93,7 +106,7 @@ export const DataTable = ({
 
       {/* Mobile table */}
       <Hide above="md">
-        <MobileDataTable columns={columns} data={data} {...props} />
+        <MobileDataTable columns={columns} data={data} loading={loading} {...props} />
       </Hide>
     </>
   );
