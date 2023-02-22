@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { getDropInformation, generateKeys, getKeyInformationBatch } from 'keypom-js';
 
+import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
 import { CopyIcon, DeleteIcon } from '@/components/Icons';
 import { DropManager } from '@/features/drop-manager/components/DropManager';
 import { get } from '@/utils/localStorage';
@@ -49,15 +50,18 @@ export default function TokenDropManagerPage() {
   });
 
   const handleGetDrops = async ({ pageIndex = 0, pageSize = PAGE_SIZE_LIMIT }) => {
-    if (!accountId) return;
-
+    if (!accountId) return null;
     const drop = await getDropInformation({
       dropId,
     });
+    if (!drop)
+      drop = {
+        metadata: '{}',
+      };
 
     setDataSize(drop.next_key_id);
 
-    setName(JSON.parse(drop.metadata as string).dropName);
+    setName(JSON.parse(drop.metadata as unknown as string).dropName);
 
     const { publicKeys, secretKeys } = await generateKeys({
       numKeys: Math.min(drop.next_key_id, pageSize),
