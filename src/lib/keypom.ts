@@ -10,6 +10,7 @@ import {
   hashPassword,
   getPubFromSecret,
   formatNearAmount,
+  formatLinkdropUrl,
 } from 'keypom-js';
 
 import { CLOUDFLARE_IPFS, DROP_TYPE } from '@/constants/common';
@@ -132,6 +133,25 @@ class KeypomJS {
         title: metadata,
       };
     }
+  }
+
+  async generateExternalWalletLink(walletName: string, contractId: string, secretKey: string) {
+    // verify the drop first
+    try {
+      await getDropInformation({ secretKey });
+    } catch (err) {
+      throw new Error('This drop has been claimed.');
+    }
+
+    // generate the link to navigate to
+    const url = formatLinkdropUrl({
+      claimPage: walletName,
+      contractId,
+      secretKeys: [secretKey],
+    });
+
+    console.log(url);
+    return true;
   }
 
   async getTokenClaimInformation(secretKey: string) {
