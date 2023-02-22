@@ -2,7 +2,13 @@ import copy from 'copy-to-clipboard';
 import { Badge, Box, Button, Text, useToast } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { getDropInformation, generateKeys, getKeyInformationBatch, deleteKeys } from 'keypom-js';
+import {
+  getDropInformation,
+  generateKeys,
+  getKeyInformationBatch,
+  deleteKeys,
+  getKeySupplyForDrop,
+} from 'keypom-js';
 
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
 import { CopyIcon, DeleteIcon } from '@/components/Icons';
@@ -27,6 +33,7 @@ export default function TokenDropManagerPage() {
 
   const [name, setName] = useState('Drop');
   const [dataSize, setDataSize] = useState<number>(0);
+  const [claimed, setClaimed] = useState<number>(0);
   const [data, setData] = useState<DataItem[]>([INITIAL_SAMPLE_DATA[0]]);
 
   const [wallet, setWallet] = useState({});
@@ -74,6 +81,7 @@ export default function TokenDropManagerPage() {
       };
 
     setDataSize(drop.next_key_id);
+    setClaimed(await getKeySupplyForDrop({ dropId }));
 
     setName(JSON.parse(drop.metadata as unknown as string).dropName);
 
@@ -177,7 +185,7 @@ export default function TokenDropManagerPage() {
       {data !== undefined && (
         <DropManager
           claimedHeaderText="Opened"
-          claimedText="200/500"
+          claimedText={`${dataSize - claimed} / ${dataSize}`}
           data={getTableRows()}
           dropName={name}
           loading={loading}

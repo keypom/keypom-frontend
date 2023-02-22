@@ -2,7 +2,13 @@ import copy from 'copy-to-clipboard';
 import { Badge, Box, Button, Text, useToast } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { deleteKeys, generateKeys, getDropInformation, getKeyInformationBatch } from 'keypom-js';
+import {
+  deleteKeys,
+  generateKeys,
+  getDropInformation,
+  getKeyInformationBatch,
+  getKeySupplyForDrop,
+} from 'keypom-js';
 
 import { CopyIcon, DeleteIcon } from '@/components/Icons';
 import { DropManager } from '@/features/drop-manager/components/DropManager';
@@ -27,6 +33,7 @@ export default function NFTDropManagerPage() {
 
   const [name, setName] = useState('Drop');
   const [dataSize, setDataSize] = useState<number>(0);
+  const [claimed, setClaimed] = useState<number>(0);
   const [data, setData] = useState<DataItem[]>([INITIAL_SAMPLE_DATA[0]]);
 
   const [wallet, setWallet] = useState({});
@@ -74,6 +81,7 @@ export default function NFTDropManagerPage() {
       };
 
     setDataSize(drop.next_key_id);
+    setClaimed(await getKeySupplyForDrop({ dropId }));
 
     setName(JSON.parse(drop.metadata as unknown as string).dropName);
 
@@ -177,7 +185,7 @@ export default function NFTDropManagerPage() {
       {data !== undefined && (
         <DropManager
           claimedHeaderText="NFT editions claimed"
-          claimedText="200/500"
+          claimedText={`${dataSize - claimed} / ${dataSize}`}
           data={getTableRows()}
           dropName={name}
           loading={loading}
