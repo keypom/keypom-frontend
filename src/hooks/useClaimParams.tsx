@@ -28,8 +28,6 @@ export const useClaimParams = () => {
 
   // TODO: add validation for contract and secret key in case if the order is wrong
 
-  console.log({ contractId, secretKey });
-
   return {
     contractId,
     secretKey,

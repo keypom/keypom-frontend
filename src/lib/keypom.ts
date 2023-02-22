@@ -97,6 +97,7 @@ class KeypomJS {
   async getLinkdropType(contractId: string, secretKey: string) {
     await this.verifyDrop(contractId, secretKey);
     const drop = await getDropInformation({ secretKey });
+    console.log({ drop });
 
     return this.getDropType(drop);
   }
@@ -126,6 +127,10 @@ class KeypomJS {
   }
 
   getDropMetadata(metadata: string) {
+    if (metadata === null) {
+      return {};
+    }
+
     try {
       return JSON.parse(metadata);
     } catch (err) {
@@ -137,21 +142,22 @@ class KeypomJS {
 
   async generateExternalWalletLink(walletName: string, contractId: string, secretKey: string) {
     // verify the drop first
+    console.log({ walletName, contractId, secretKey });
     try {
       await getDropInformation({ secretKey });
     } catch (err) {
+      console.error(err);
       throw new Error('This drop has been claimed.');
     }
 
     // generate the link to navigate to
-    const url = formatLinkdropUrl({
+    const urls = formatLinkdropUrl({
       claimPage: walletName,
       contractId,
       secretKeys: [secretKey],
     });
 
-    console.log(url);
-    return true;
+    return urls[0];
   }
 
   async getTokenClaimInformation(secretKey: string) {

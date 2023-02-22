@@ -19,7 +19,8 @@ export const CreateWallet = ({
   wallets = ['mynearwallet', 'herewallet'],
 }: CreateWalletProps) => {
   const handleWalletClick = async (walletName: string) => {
-    await keypomInstance.generateExternalWalletLink(walletName, contractId, secretKey);
+    const url = await keypomInstance.generateExternalWalletLink(walletName, contractId, secretKey);
+    window.location.href = url;
   };
 
   return (
@@ -29,7 +30,13 @@ export const CreateWallet = ({
       </Text>
       <VStack spacing="1" w="full">
         {WALLET_OPTIONS.filter((wallet) => wallets.includes(wallet.id)).map((options, index) => (
-          <WalletOption key={index} onClick={handleWalletClick} {...options} />
+          <WalletOption
+            key={index}
+            handleWalletClick={async () => {
+              await handleWalletClick(options.id);
+            }}
+            {...options}
+          />
         ))}
       </VStack>
       <Text

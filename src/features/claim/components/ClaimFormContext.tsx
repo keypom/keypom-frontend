@@ -2,9 +2,10 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { createContext, type PropsWithChildren, useContext, useState, useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as z from 'zod';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 import keypomInstance from '@/lib/keypom';
+import { useClaimParams } from '@/hooks/useClaimParams';
 
 const schema = z.object({
   name: z.string().min(1, 'Ticket holder name required'),
@@ -28,7 +29,7 @@ const ClaimFormContext = createContext<ClaimFormContextType | null>(null);
 // TODO: refactor this context name
 export const ClaimFormContextProvider = ({ children }: PropsWithChildren) => {
   const navigate = useNavigate();
-  const { secretKey = '', contractId = '' } = useParams();
+  const { secretKey, contractId } = useClaimParams();
 
   const [title, setTitle] = useState('');
   const [nftImage, setNftImage] = useState('');

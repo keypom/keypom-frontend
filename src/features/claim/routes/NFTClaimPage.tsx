@@ -1,6 +1,6 @@
 import { Box, Center, Heading, useBoolean, VStack } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 import { IconBox } from '@/components/IconBox';
 import { BoxWithShape } from '@/components/BoxWithShape';
@@ -9,6 +9,7 @@ import keypomInstance from '@/lib/keypom';
 import { checkClaimedDrop, storeClaimDrop } from '@/utils/claimedDrops';
 import { useAppContext } from '@/contexts/AppContext';
 import { ErrorBox } from '@/components/ErrorBox';
+import { useClaimParams } from '@/hooks/useClaimParams';
 
 import { CreateWallet } from '../components/CreateWallet';
 import { ExistingWallet } from '../components/ExistingWallet';
@@ -16,7 +17,7 @@ import { NftReward } from '../components/nft/NftReward';
 
 const ClaimNftPage = () => {
   const navigate = useNavigate();
-  const { secretKey = '' } = useParams();
+  const { contractId, secretKey } = useClaimParams();
   const { setAppModal } = useAppContext();
   const [haveWallet, showInputWallet] = useBoolean(false);
   const [title, setTitle] = useState('');
@@ -136,7 +137,12 @@ const ClaimNftPage = () => {
               w="full"
             >
               {!haveWallet ? (
-                <CreateWallet wallets={walletsOptions} onClick={showInputWallet.on} />
+                <CreateWallet
+                  contractId={contractId}
+                  secretKey={secretKey}
+                  wallets={walletsOptions}
+                  onClick={showInputWallet.on}
+                />
               ) : (
                 <>
                   <ExistingWallet

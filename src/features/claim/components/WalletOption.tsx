@@ -5,7 +5,7 @@ import { CoinIcon } from '@/components/CoinIcon';
 export interface WalletOptionProps extends CenterProps {
   coin: string;
   walletName: string;
-  handleWalletClick: (walletName: string) => Promise<void>;
+  handleWalletClick: () => Promise<void>;
 }
 
 export const WalletOption = ({
@@ -30,7 +30,7 @@ export const WalletOption = ({
       py="2"
       w="full"
       onClick={async () => {
-        await handleWalletClick(walletName);
+        await handleWalletClick();
       }}
       {...props}
     >
