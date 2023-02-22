@@ -31,7 +31,15 @@ export default function TicketDropManagerPage() {
   const [dataSize, setDataSize] = useState<number>(0);
   const [data, setData] = useState<DataItem[]>([INITIAL_SAMPLE_DATA[1]]);
 
-  const { accountId } = useAuthWalletContext();
+  const [wallet, setWallet] = useState({});
+  const { selector, accountId } = useAuthWalletContext();
+
+  useEffect(() => {
+    const getWallet = async () => {
+      setWallet(await selector.wallet());
+    };
+    getWallet();
+  }, []);
 
   const {
     hasPagination,
@@ -110,6 +118,7 @@ export default function TicketDropManagerPage() {
       setAppModal,
       async () => {
         await deleteKeys({
+          wallet,
           dropId,
           publicKeys: pubKey,
         });
