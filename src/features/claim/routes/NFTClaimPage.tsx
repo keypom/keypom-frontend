@@ -27,17 +27,21 @@ const ClaimNftPage = () => {
   const [isClaimSuccessful, setIsClaimSuccessful] = useState(false);
   const [isClaimLoading, setIsClaimLoading] = useState(false);
   const [claimError, setClaimError] = useState('');
-  const [isDropClaimed, setIsDropClaimed] = useState(false);
+  const [dropError, setDropError] = useState('');
   const [openLoadingModal, setOpenLoadingModal] = useState(false);
   const [openResultModal, setOpenResultModal] = useState(false);
 
   const loadClaimInfo = async () => {
-    const nftData = await keypomInstance.getNFTClaimInformation(secretKey);
+    try {
+      const nftData = await keypomInstance.getNFTClaimInformation(contractId, secretKey);
 
-    setTitle(nftData.title);
-    setDescription(nftData.description);
-    setNftImage(nftData.media);
-    setWallets(nftData.wallets);
+      setTitle(nftData.title);
+      setDescription(nftData.description);
+      setNftImage(nftData.media);
+      setWallets(nftData.wallets);
+    } catch (err) {
+      setDropError(err.message);
+    }
   };
 
   useEffect(() => {
@@ -47,7 +51,7 @@ const ClaimNftPage = () => {
 
     const hasDropClaimedBefore = checkClaimedDrop(secretKey);
     if (hasDropClaimedBefore) {
-      setIsDropClaimed(hasDropClaimedBefore);
+      setDropError('This drop has been claimed.');
       return;
     }
 
@@ -98,8 +102,8 @@ const ClaimNftPage = () => {
     });
   };
 
-  if (isDropClaimed) {
-    return <ErrorBox message="This drop has been claimed." />;
+  if (dropError) {
+    return <ErrorBox message={dropError} />;
   }
 
   return (

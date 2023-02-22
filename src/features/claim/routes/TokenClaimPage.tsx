@@ -31,33 +31,37 @@ const ClaimTokenPage = () => {
   const [isClaimSuccessful, setIsClaimSuccessful] = useState(false);
   const [isClaimLoading, setIsClaimLoading] = useState(false);
   const [claimError, setClaimError] = useState('');
-  const [isDropClaimed, setIsDropClaimed] = useState(false);
+  const [dropError, setDropError] = useState('');
   const [openLoadingModal, setOpenLoadingModal] = useState(false);
   const [openResultModal, setOpenResultModal] = useState(false);
 
   const loadClaimInfo = async () => {
-    const { ftMetadata, amountNEAR, amountTokens, wallets } =
-      await keypomInstance.getTokenClaimInformation(secretKey);
-    const tokens: TokenAsset[] = [
-      {
-        icon: 'https://cryptologos.cc/logos/near-protocol-near-logo.svg?v=024',
-        value: amountNEAR || '0',
-        symbol: 'NEAR',
-      },
-    ];
-    if (ftMetadata) {
-      setTokens([
-        ...tokens,
+    try {
+      const { ftMetadata, amountNEAR, amountTokens, wallets } =
+        await keypomInstance.getTokenClaimInformation(contractId, secretKey);
+      const tokens: TokenAsset[] = [
         {
-          icon: ftMetadata.icon as string,
-          value: amountTokens ?? '0',
-          symbol: ftMetadata.symbol,
+          icon: 'https://cryptologos.cc/logos/near-protocol-near-logo.svg?v=024',
+          value: amountNEAR || '0',
+          symbol: 'NEAR',
         },
-      ]);
-    }
+      ];
+      if (ftMetadata) {
+        setTokens([
+          ...tokens,
+          {
+            icon: ftMetadata.icon as string,
+            value: amountTokens ?? '0',
+            symbol: ftMetadata.symbol,
+          },
+        ]);
+      }
 
-    setTokens(tokens);
-    setWallets(wallets);
+      setTokens(tokens);
+      setWallets(wallets);
+    } catch (err) {
+      setDropError(err.message);
+    }
   };
 
   useEffect(() => {
@@ -67,7 +71,7 @@ const ClaimTokenPage = () => {
 
     const hasDropClaimedBefore = checkClaimedDrop(secretKey);
     if (hasDropClaimedBefore) {
-      setIsDropClaimed(hasDropClaimedBefore);
+      setDropError('This drop has been claimed.');
       return;
     }
 
@@ -118,8 +122,8 @@ const ClaimTokenPage = () => {
     });
   };
 
-  if (isDropClaimed) {
-    return <ErrorBox message="This drop has been claimed." />;
+  if (dropError) {
+    return <ErrorBox message={dropError} />;
   }
 
   return (

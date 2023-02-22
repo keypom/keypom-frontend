@@ -160,7 +160,15 @@ class KeypomJS {
     return urls[0];
   }
 
-  async getTokenClaimInformation(secretKey: string) {
+  async getTokenClaimInformation(contractId: string, secretKey: string) {
+    // verify if secretKey is a token drop
+    const linkdropType = await this.getLinkdropType(contractId, secretKey);
+    if (linkdropType !== DROP_TYPE.SIMPLE && linkdropType !== DROP_TYPE.TOKEN) {
+      throw new Error(
+        'This drop is not a Simple drop or Token drop. Please contact your drop creator.',
+      );
+    }
+
     const drop = await getDropInformation({ secretKey });
     const dropMetadata = drop.metadata !== undefined ? this.getDropMetadata(drop.metadata) : {};
     let ftMetadata;
@@ -177,7 +185,12 @@ class KeypomJS {
     };
   }
 
-  async getNFTClaimInformation(secretKey: string) {
+  async getNFTClaimInformation(contractId: string, secretKey: string) {
+    // verify if secretKey is a nft drop
+    const linkdropType = await this.getLinkdropType(contractId, secretKey);
+    if (linkdropType !== DROP_TYPE.NFT) {
+      throw new Error('This drop is not an NFT drop. Please contact your drop creator.');
+    }
     // given fc
     const drop = await getDropInformation({ secretKey });
     const dropMetadata = drop.metadata !== undefined ? this.getDropMetadata(drop.metadata) : {};
@@ -193,10 +206,10 @@ class KeypomJS {
     }
 
     const fcMethod = fcMethods[0][0];
-    const { receiver_id: contractId } = fcMethod;
+    const { receiver_id: receiverId } = fcMethod;
     const { viewCall } = getEnv();
     const nftData = await viewCall({
-      contractId,
+      contractId: receiverId,
       methodName: 'get_series_info',
       args: { mint_id: parseInt(drop.drop_id) },
     });
@@ -211,7 +224,18 @@ class KeypomJS {
   }
 
   async getTicketNftInformation(contractId: string, secretKey: string) {
-    const drop = await getDropInformation({ secretKey });
+    // verify if secretKey is a ticket drop
+    const linkdropType = await this.getLinkdropType(contractId, secretKey);
+    if (linkdropType !== DROP_TYPE.TICKET) {
+      throw new Error('This drop is not a Ticket drop. Please contact your drop creator.');
+    }
+
+    let drop;
+    try {
+      drop = await getDropInformation({ secretKey });
+    } catch (err) {
+      throw new Error('Unable to claim. This drop may have been claimed before.');
+    }
     const remainingUses = await this.checkTicketRemainingUses(contractId, secretKey);
 
     const dropMetadata = drop.metadata !== undefined ? this.getDropMetadata(drop.metadata) : {};
