@@ -1,62 +1,78 @@
-import { Badge, Box, Button, Skeleton, Text } from '@chakra-ui/react';
+import copy from 'copy-to-clipboard';
+import { Badge, Box, Button, Text, useToast } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import {
   getDropInformation,
   generateKeys,
-  getKeySupplyForDrop,
   getKeyInformationBatch,
+  deleteKeys,
+  getKeySupplyForDrop,
 } from 'keypom-js';
 
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
 import { CopyIcon, DeleteIcon } from '@/components/Icons';
 import { DropManager } from '@/features/drop-manager/components/DropManager';
-import { type ColumnItem } from '@/components/Table/types';
 import { get } from '@/utils/localStorage';
-import { MASTER_KEY } from '@/constants/common';
+import { MASTER_KEY, PAGE_SIZE_LIMIT } from '@/constants/common';
+import { usePagination } from '@/hooks/usePagination';
+import { type DataItem } from '@/components/Table/types';
+import { useAppContext } from '@/contexts/AppContext';
+import getConfig from '@/config/config';
 
-const tableColumns: ColumnItem[] = [
-  { title: 'Link', selector: (row) => row.link, loadingElement: <Skeleton height="30px" /> },
-  {
-    title: 'Claim Status',
-    selector: (row) => row.hasClaimed,
-    loadingElement: <Skeleton height="30px" />,
-  },
-  {
-    title: 'Action',
-    selector: (row) => row.action,
-    tdProps: {
-      display: 'flex',
-      justifyContent: 'right',
-      verticalAlign: 'middle',
-    },
-    loadingElement: <Skeleton height="30px" />,
-  },
-];
+import { tableColumns } from '../../components/TableColumn';
+import { INITIAL_SAMPLE_DATA } from '../../constants/common';
+import { setConfirmationModalHelper } from '../../components/ConfirmationModal';
 
 export default function TokenDropManagerPage() {
+  const { setAppModal } = useAppContext();
+  const toast = useToast();
+
   const { id: dropId } = useParams();
   const [loading, setLoading] = useState(true);
 
-  // TODO make these state vars and controllable by user
-  const PAGE_SIZE = 20;
-  const PAGE_OFFSET = 0;
-
   const [name, setName] = useState('Drop');
-  const [data, setData] = useState([
-    {
-      id: 1,
-      link: 'https://example.com',
-      slug: 'https://example.com',
-      hasClaimed: false,
-      action: 'delete',
-    },
-  ]);
-  const { accountId } = useAuthWalletContext();
+  const [dataSize, setDataSize] = useState<number>(0);
+  const [claimed, setClaimed] = useState<number>(0);
+  const [data, setData] = useState<DataItem[]>([INITIAL_SAMPLE_DATA[0]]);
 
-  const handleGetDrops = async () => {
+  const [wallet, setWallet] = useState({});
+  const { selector, accountId } = useAuthWalletContext();
+
+  useEffect(() => {
+    const getWallet = async () => {
+      setWallet(await selector.wallet());
+    };
+    getWallet();
+  }, []);
+
+  const {
+    hasPagination,
+    pagination,
+    firstPage,
+    lastPage,
+    loading: paginationLoading,
+    handleNextPage,
+    handlePrevPage,
+  } = usePagination({
+    dataSize,
+    handlePrevApiCall: async () => {
+      await handleGetDrops({
+        pageIndex: pagination.pageIndex - 1,
+        pageSize: pagination.pageSize,
+      });
+    },
+    handleNextApiCall: async () => {
+      await handleGetDrops({
+        pageIndex: pagination.pageIndex + 1,
+        pageSize: pagination.pageSize,
+      });
+    },
+  });
+
+  const handleGetDrops = async ({ pageIndex = 0, pageSize = PAGE_SIZE_LIMIT }) => {
     if (!accountId) return null;
-    const drop = await getDropInformation({
+    let drop = await getDropInformation({
       dropId,
     });
     if (!drop)
@@ -64,32 +80,29 @@ export default function TokenDropManagerPage() {
         metadata: '{}',
       };
 
-    setName(JSON.parse(drop.metadata as unknown as string).name);
+    setDataSize(drop.next_key_id);
+    setClaimed(await getKeySupplyForDrop({ dropId }));
 
-    const keySupply = await getKeySupplyForDrop({
-      dropId,
-    });
+    setName(JSON.parse(drop.metadata as unknown as string).dropName);
 
-    console.log(keySupply);
-
-    const { secretKeys } = await generateKeys({
-      numKeys: Math.min(drop.next_key_id, PAGE_SIZE),
+    const { publicKeys, secretKeys } = await generateKeys({
+      numKeys: Math.min(drop.next_key_id, pageSize),
       rootEntropy: `${get(MASTER_KEY) as string}-${dropId}`,
-      autoMetaNonceStart: PAGE_OFFSET,
+      autoMetaNonceStart: pageIndex * pageSize,
     });
 
     const keyInfo = await getKeyInformationBatch({
+      publicKeys,
       secretKeys,
     });
-
-    console.log(keyInfo);
 
     setData(
       secretKeys.map((key, i) => ({
         id: i,
-        link: 'https://keypom.xyz/claim/' + key.replace('ed25519:', ''),
+        publicKey: publicKeys[i],
+        link: `https://keypom.xyz/claim/${getConfig().contractId}#${key.replace('ed25519:', '')}`,
         slug: key.substring(8, 16),
-        hasClaimed: keyInfo[i] !== null,
+        hasClaimed: keyInfo[i] === null,
         action: 'delete',
       })),
     );
@@ -97,17 +110,28 @@ export default function TokenDropManagerPage() {
     setLoading(false);
   };
 
-  // TODO: Remove this after backend is ready
   useEffect(() => {
-    handleGetDrops();
+    handleGetDrops({});
   }, [accountId]);
 
-  // TODO: consider moving these to DropManager if backend request are the same for NFT and Ticket
-  const handleCopyClick = () => {
-    // TODO: copy handler
+  const handleCopyClick = (link: string) => {
+    copy(link);
+    toast({ title: 'Copied!', status: 'success', duration: 1000, isClosable: true });
   };
-  const handleDeleteClick = () => {
-    // TODO: copy handler
+
+  const handleDeleteClick = async (pubKey: string) => {
+    setConfirmationModalHelper(
+      setAppModal,
+      async () => {
+        await deleteKeys({
+          wallet,
+          dropId,
+          publicKeys: pubKey,
+        });
+      },
+      () => null,
+      'key',
+    );
   };
 
   const getTableRows = () => {
@@ -115,6 +139,8 @@ export default function TokenDropManagerPage() {
 
     return data.map((item) => ({
       ...item,
+      dropId,
+      dropLink: item.link,
       link: (
         <Text color="gray.400" display="flex">
           keypom.xyz/
@@ -130,10 +156,23 @@ export default function TokenDropManagerPage() {
       ),
       action: (
         <>
-          <Button mr="1" size="sm" variant="icon" onClick={handleCopyClick}>
+          <Button
+            mr="1"
+            size="sm"
+            variant="icon"
+            onClick={() => {
+              handleCopyClick(item.link as string);
+            }}
+          >
             <CopyIcon />
           </Button>
-          <Button size="sm" variant="icon" onClick={handleDeleteClick}>
+          <Button
+            size="sm"
+            variant="icon"
+            onClick={async () => {
+              await handleDeleteClick(item.publicKey as string);
+            }}
+          >
             <DeleteIcon color="red" />
           </Button>
         </>
@@ -146,10 +185,19 @@ export default function TokenDropManagerPage() {
       {data !== undefined && (
         <DropManager
           claimedHeaderText="Opened"
-          claimedText="200/500"
+          claimedText={`${dataSize - claimed} / ${dataSize}`}
           data={getTableRows()}
           dropName={name}
           loading={loading}
+          pagination={{
+            hasPagination,
+            id: 'token',
+            paginationLoading,
+            firstPage,
+            lastPage,
+            handleNextPage,
+            handlePrevPage,
+          }}
           showColumns={false}
           tableColumns={tableColumns}
         />
