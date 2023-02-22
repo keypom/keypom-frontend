@@ -1,10 +1,13 @@
 import { Box, Button, Heading, HStack, Stack, type TableProps, Text } from '@chakra-ui/react';
+import { useEffect, useState } from 'react';
+import { deleteDrops } from 'keypom-js';
 
 import { type ColumnItem, type DataItem } from '@/components/Table/types';
 import { DataTable } from '@/components/Table';
 import { Breadcrumbs } from '@/components/Breadcrumbs';
 import { NextButton, PrevButton } from '@/components/Pagination';
 import { file } from '@/utils/file';
+import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
 
 interface DropManagerProps {
   dropName: string;
@@ -27,7 +30,6 @@ interface DropManagerProps {
   };
   tableProps?: TableProps;
   loading?: boolean;
-  onCancelAllClick?: () => void;
 }
 
 export const DropManager = ({
@@ -39,9 +41,20 @@ export const DropManager = ({
   showColumns = true,
   tableProps,
   pagination,
-  onCancelAllClick,
   loading = false,
 }: DropManagerProps) => {
+  const [wallet, setWallet] = useState({});
+  const { selector } = useAuthWalletContext();
+
+  const [deleting, setDeleting] = useState<boolean>(false);
+
+  useEffect(() => {
+    const getWallet = async () => {
+      setWallet(await selector.wallet());
+    };
+    getWallet();
+  }, []);
+
   const breadcrumbItems = [
     {
       name: 'All drops',
@@ -57,6 +70,21 @@ export const DropManager = ({
     if (data.length > 0) {
       const links = data.map(({ dropLink }) => `${dropLink as string}`);
       file(`Drop ID ${data[0].dropId as string}`, links.join('\r\n'));
+    }
+  };
+
+  const handleCancelAllClick = async () => {
+    if (data.length > 0) {
+      setDeleting(true);
+
+      const dropId = data[0].dropId;
+
+      console.log('deleting drop', dropId);
+      await deleteDrops({
+        wallet,
+        dropIds: [dropId as string],
+      });
+      setDeleting(false);
     }
   };
 
@@ -98,9 +126,10 @@ export const DropManager = ({
             />
           )}
           <Button
+            isLoading={deleting}
             variant="secondary"
             w={{ base: '100%', sm: 'initial' }}
-            onClick={onCancelAllClick}
+            onClick={handleCancelAllClick}
           >
             Cancel all
           </Button>
