@@ -10,17 +10,20 @@ import { MASTER_KEY, PAGE_SIZE_LIMIT } from '@/constants/common';
 import { get } from '@/utils/localStorage';
 import { usePagination } from '@/hooks/usePagination';
 import { type DataItem } from '@/components/Table/types';
+import { useAppContext } from '@/contexts/AppContext';
 
 import { getClaimStatus } from '../../utils/getClaimStatus';
 import { getBadgeType } from '../../utils/getBadgeType';
 import { tableColumns } from '../../components/TableColumn';
 import { INITIAL_SAMPLE_DATA } from '../../constants/common';
 import { type TicketClaimStatus } from '../../types/types';
+import { setConfirmationModalHelper } from '../../components/ConfirmationModal';
 
 export default function TicketDropManagerPage() {
+  const { setAppModal } = useAppContext();
+
   const { id: dropId } = useParams();
   const [loading, setLoading] = useState(true);
-  const [deleting, setDeleting] = useState(false);
 
   const [name, setName] = useState('Drop');
   const [dataSize, setDataSize] = useState<number>(0);
@@ -100,13 +103,17 @@ export default function TicketDropManagerPage() {
     // TODO: copy handler
   };
   const handleDeleteClick = async (pubKey: string) => {
-    setDeleting(true);
-
-    await deleteKeys({
-      dropId,
-      publicKeys: pubKey,
-    });
-    setDeleting(false);
+    setConfirmationModalHelper(
+      setAppModal,
+      async () => {
+        await deleteKeys({
+          dropId,
+          publicKeys: pubKey,
+        });
+      },
+      () => null,
+      'key',
+    );
   };
 
   const getTableRows = () => {
@@ -131,7 +138,6 @@ export default function TicketDropManagerPage() {
             <CopyIcon />
           </Button>
           <Button
-            isLoading={deleting}
             size="sm"
             variant="icon"
             onClick={async () => {

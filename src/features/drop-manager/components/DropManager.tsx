@@ -8,6 +8,9 @@ import { Breadcrumbs } from '@/components/Breadcrumbs';
 import { NextButton, PrevButton } from '@/components/Pagination';
 import { file } from '@/utils/file';
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
+import { useAppContext } from '@/contexts/AppContext';
+
+import { setConfirmationModalHelper } from './ConfirmationModal';
 
 interface DropManagerProps {
   dropName: string;
@@ -43,6 +46,7 @@ export const DropManager = ({
   pagination,
   loading = false,
 }: DropManagerProps) => {
+  const { setAppModal } = useAppContext();
   const [wallet, setWallet] = useState({});
   const { selector } = useAuthWalletContext();
 
@@ -79,11 +83,18 @@ export const DropManager = ({
 
       const dropId = data[0].dropId;
 
+      setConfirmationModalHelper(
+        setAppModal,
+        async () => {
+          await deleteDrops({
+            wallet,
+            dropIds: [dropId as string],
+          });
+        },
+        () => null,
+        'drop',
+      );
       console.log('deleting drop', dropId);
-      await deleteDrops({
-        wallet,
-        dropIds: [dropId as string],
-      });
       setDeleting(false);
     }
   };
