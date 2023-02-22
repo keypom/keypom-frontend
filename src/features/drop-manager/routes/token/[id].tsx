@@ -100,7 +100,7 @@ export default function TokenDropManagerPage() {
       secretKeys.map((key, i) => ({
         id: i,
         publicKey: publicKeys[i],
-        link: `https://keypom.xyz/claim/${getConfig().contractId}#${key.replace('ed25519:', '')})`,
+        link: `https://keypom.xyz/claim/${getConfig().contractId}#${key.replace('ed25519:', '')}`,
         slug: key.substring(8, 16),
         hasClaimed: keyInfo[i] === null,
         action: 'delete',

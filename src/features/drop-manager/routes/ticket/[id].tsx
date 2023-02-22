@@ -103,7 +103,7 @@ export default function TicketDropManagerPage() {
       secretKeys.map((key, i) => ({
         id: i,
         publicKey: publicKeys[i],
-        link: `https://keypom.xyz/claim/${getConfig().contractId}#${key.replace('ed25519:', '')})`,
+        link: `https://keypom.xyz/claim/${getConfig().contractId}#${key.replace('ed25519:', '')}`,
         slug: key.substring(8, 16),
         claimStatus: getClaimStatus(keyInfo[i]),
         action: 'delete',
