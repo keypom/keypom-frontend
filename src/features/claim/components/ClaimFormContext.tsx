@@ -25,6 +25,7 @@ interface ClaimFormContextType {
 
 const ClaimFormContext = createContext<ClaimFormContextType | null>(null);
 
+// TODO: refactor this context name
 export const ClaimFormContextProvider = ({ children }: PropsWithChildren) => {
   const navigate = useNavigate();
   const { secretKey = '', contractId = '' } = useParams();
@@ -51,7 +52,7 @@ export const ClaimFormContextProvider = ({ children }: PropsWithChildren) => {
       const claimInfo = await keypomInstance.getTicketNftInformation(contractId, secretKey);
 
       if (claimInfo.remainingUses === 1) {
-        navigate(`/claim/gift/${contractId}/${secretKey}`);
+        navigate(`/claim/gift/${contractId}#${secretKey}`);
         return;
       }
 

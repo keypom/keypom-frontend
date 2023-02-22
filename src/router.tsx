@@ -105,23 +105,23 @@ export const router = createBrowserRouter([
         path: 'claim',
         children: [
           {
-            path: 'token/:secretKey',
+            path: 'token/:contractIdSecretKey',
             element: <ClaimTokenPage />,
           },
           {
-            path: 'nft/:contractId/:secretKey',
+            path: 'nft/:contractIdSecretKey',
             element: <ClaimNftPage />,
           },
           {
-            path: 'gift/:contractId/:secretKey',
+            path: 'gift/:contractIdSecretKey',
             element: <ClaimGiftPage />,
           },
           {
-            path: 'ticket/:contractId/:secretKey',
+            path: 'ticket/:contractIdSecretKey',
             element: <ClaimTicketPage />,
           },
           {
-            path: ':contractId/:secretKey',
+            path: ':contractIdSecretKey',
             element: <ClaimPage />,
           },
         ],

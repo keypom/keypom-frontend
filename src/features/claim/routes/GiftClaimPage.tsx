@@ -35,7 +35,7 @@ const ClaimGiftPage = () => {
 
     // should only show this page if claim remaining uses is 1
     if (remainingUses > 1) {
-      navigate(`/claim/${contractId}/${secretKey}`);
+      navigate(`/claim/${contractId}#${secretKey}`);
       return;
     }
 
