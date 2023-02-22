@@ -24,6 +24,7 @@
     "@near-wallet-selector/modal-ui": "^7.6.1",
     "@near-wallet-selector/near-wallet": "^7.6.1",
     "bn.js": "^5.2.1",
+    "copy-to-clipboard": "^3.3.3",
     "framer-motion": "^8.5.5",
     "keypom-js": "^1.4.0-rc.1",
     "lodash": "^4.17.21",

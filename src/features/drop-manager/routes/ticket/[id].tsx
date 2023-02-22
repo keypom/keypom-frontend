@@ -1,4 +1,5 @@
-import { Box, Button, Text } from '@chakra-ui/react';
+import copy from 'copy-to-clipboard';
+import { Box, Button, Text, useToast } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { deleteKeys, generateKeys, getDropInformation, getKeyInformationBatch } from 'keypom-js';
@@ -21,6 +22,7 @@ import { setConfirmationModalHelper } from '../../components/ConfirmationModal';
 
 export default function TicketDropManagerPage() {
   const { setAppModal } = useAppContext();
+  const toast = useToast();
 
   const { id: dropId } = useParams();
   const [loading, setLoading] = useState(true);
@@ -98,10 +100,11 @@ export default function TicketDropManagerPage() {
     handleGetDrops({});
   }, []);
 
-  // TODO: consider moving these to DropManager if backend request are the same for NFT and Ticket
-  const handleCopyClick = () => {
-    // TODO: copy handler
+  const handleCopyClick = (link: string) => {
+    copy(link);
+    toast({ title: 'Copied!', status: 'success', duration: 1000, isClosable: true });
   };
+
   const handleDeleteClick = async (pubKey: string) => {
     setConfirmationModalHelper(
       setAppModal,
@@ -134,7 +137,14 @@ export default function TicketDropManagerPage() {
       hasClaimed: getBadgeType(item.claimStatus as TicketClaimStatus),
       action: (
         <>
-          <Button mr="1" size="sm" variant="icon" onClick={handleCopyClick}>
+          <Button
+            mr="1"
+            size="sm"
+            variant="icon"
+            onClick={() => {
+              handleCopyClick(item.link as string);
+            }}
+          >
             <CopyIcon />
           </Button>
           <Button
