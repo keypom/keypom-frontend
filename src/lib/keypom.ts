@@ -106,6 +106,11 @@ class KeypomJS {
     }
 
     if (drop.fc !== undefined) {
+      
+      if (drop.fc.methods[0]?.length === 2) {
+        return DROP_TYPE.TRIAL;
+      }
+
       if (drop.fc.methods.length === 3) {
         return DROP_TYPE.TICKET;
       }
