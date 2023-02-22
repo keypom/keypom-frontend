@@ -130,7 +130,7 @@ const ClaimNftPage = () => {
               px={{ base: '6', md: '8' }}
               w="full "
             >
-              {/** div placeholder */}
+              {/** in future we may have tokens */}
               <NftReward artworkSrc={nftImage} description={description} nftName={title} />
             </BoxWithShape>
             <VStack
