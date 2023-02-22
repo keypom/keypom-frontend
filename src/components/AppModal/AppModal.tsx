@@ -18,6 +18,7 @@ export const AppModal = () => {
   const { appModal, setAppModal } = useAppContext();
 
   const [values, setValues] = useState({});
+  const [loading, setLoading] = useState(false);
 
   return (
     <Modal
@@ -64,13 +65,17 @@ export const AppModal = () => {
         {appModal.options && appModal.options.length > 0 && (
           <ModalFooter>
             <ButtonGroup>
-              {appModal.options.map(({ label, func }, i) => (
+              {appModal.options.map(({ label, func, buttonProps }, i) => (
                 <Button
                   key={i}
-                  onClick={() => {
-                    func(values);
+                  isLoading={loading}
+                  onClick={async () => {
+                    setLoading(true);
+                    await func(values);
+                    setLoading(false);
                     setAppModal({ isOpen: false });
                   }}
+                  {...buttonProps}
                 >
                   {label}
                 </Button>
