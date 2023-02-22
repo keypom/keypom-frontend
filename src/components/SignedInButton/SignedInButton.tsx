@@ -17,11 +17,13 @@ import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
 import { useAppContext, setAppModalHelper } from '@/contexts/AppContext';
 import { toYocto } from '@/utils/toYocto';
 import { truncateAddress } from '@/utils/truncateAddress';
+import { formatAmount } from '@/utils/formatAmount';
 
 import { DropIcon, NearLogoIcon, SignOutIcon } from '../Icons';
 
 export const SignedInButton = () => {
   const [showAll, setShowAll] = useBoolean(false);
+  const [showNear, setShowNear] = useBoolean(false);
   const { setAppModal } = useAppContext();
 
   const { account, selector } = useAuthWalletContext();
@@ -90,20 +92,24 @@ export const SignedInButton = () => {
             <MenuItem
               borderBottom="1px solid"
               borderBottomColor="gray.100"
-              icon={<NearLogoIcon height="3.5" width="3.5" />}
+              closeOnSelect={false}
+              icon={<NearLogoIcon height="3.5" mt="-0.5" width="3.5" />}
+              onClick={setShowNear.toggle}
             >
               <Flex>
                 <Text
                   fontWeight="medium"
-                  maxW="80px"
                   mr="1"
                   overflow="hidden"
                   textOverflow="ellipsis"
                   whiteSpace="nowrap"
                 >
-                  {amountInYocto}
+                  {showNear
+                    ? formatAmount(amountInYocto, { style: undefined, maximumFractionDigits: 3 })
+                    : formatAmount(amountInYocto, { style: undefined, maximumFractionDigits: 0 }) +
+                      '...'}
                 </Text>
-                NEAR
+                <Text>NEAR</Text>
               </Flex>
             </MenuItem>
 
