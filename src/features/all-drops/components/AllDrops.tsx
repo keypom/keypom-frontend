@@ -39,10 +39,12 @@ import { NextButton, PrevButton } from '@/components/Pagination';
 import { usePagination } from '@/hooks/usePagination';
 import getConfig from '@/config/config';
 import { asyncWithTimeout } from '@/utils/asyncWithTimeout';
+import { useAppContext } from '@/contexts/AppContext';
 
 import { MENU_ITEMS } from '../config/menuItems';
 
 import { MobileDrawerMenu } from './MobileDrawerMenu';
+import { setConfirmationModalHelper } from './ConfirmationModal';
 
 const FETCH_NFT_METHOD_NAME = 'get_series_info';
 
@@ -104,6 +106,8 @@ const COLUMNS: ColumnItem[] = [
 ];
 
 export default function AllDrops() {
+  const { setAppModal } = useAppContext();
+
   const { viewCall } = getEnv();
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [isLoading, setIsLoading] = useState(true);
@@ -223,11 +227,18 @@ export default function AllDrops() {
   ));
 
   const handleDeleteClick = async (dropId) => {
-    console.log('deleting drop', dropId);
-    await deleteDrops({
-      wallet,
-      dropIds: [dropId],
-    });
+    setConfirmationModalHelper(
+      setAppModal,
+      async () => {
+        console.log('deleting drop', dropId);
+        await deleteDrops({
+          wallet,
+          dropIds: [dropId],
+        });
+      },
+      () => null,
+      'key',
+    );
   };
 
   const getTableRows = (): DataItem[] => {
