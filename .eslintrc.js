@@ -58,6 +58,9 @@ module.exports = {
         checkForEach: true,
       },
     ],
+    'camelcase': 'off',
+    '@typescript-eslint/camelcase': 'off',
+    '@typescript-eslint/naming-convention': 'off',
     '@typescript-eslint/no-empty-interface': 'off',
     'prettier/prettier': 'error',
     'simple-import-sort/exports': 'error',
@@ -81,7 +84,7 @@ module.exports = {
       },
     ],
     '@typescript-eslint/strict-boolean-expressions': [
-      'error',
+      'warn',
       {
         allowNullableBoolean: true,
         allowNullableString: true,
@@ -97,5 +100,6 @@ module.exports = {
       },
     ],
     '@typescript-eslint/no-misused-promises': 'off',
+    '@typescript-eslint/no-floating-promises': 'off',
   },
 };

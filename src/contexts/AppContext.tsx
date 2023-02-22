@@ -1,4 +1,7 @@
 import { createContext, type PropsWithChildren, useContext, useState } from 'react';
+import { type ButtonProps } from '@chakra-ui/react';
+
+import { set } from '@/utils/localStorage';
 
 interface AppModalInputs {
   placeholder: string;
@@ -7,7 +10,8 @@ interface AppModalInputs {
 
 interface AppModalOptions {
   label: string;
-  func: (values) => void;
+  func: (values) => Promise<void> | void;
+  buttonProps?: ButtonProps;
 }
 
 interface AppModalValues {
@@ -46,4 +50,38 @@ export const useAppContext = () => {
   }
 
   return context;
+};
+
+/// helpers
+
+export const setAppModalHelper = (setAppModal, confirm, cancel) => {
+  setAppModal({
+    isOpen: true,
+    header: 'Set your master key!',
+    message:
+      'This key is used to generate the links for all of your drops. Do NOT lose it or forget it!',
+    inputs: [
+      {
+        placeholder: 'Master Key',
+        valueKey: 'masterKey',
+      },
+    ],
+    options: [
+      {
+        label: 'Cancel',
+        func: () => {
+          // eslint-disable-next-line no-console
+          console.log('user cancelled');
+          if (cancel) cancel();
+        },
+      },
+      {
+        label: 'Set Master Key',
+        func: ({ masterKey }) => {
+          set('MASTER_KEY', masterKey);
+          if (confirm) confirm();
+        },
+      },
+    ],
+  });
 };

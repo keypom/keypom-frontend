@@ -1,17 +1,35 @@
 import { Button, Flex, Input } from '@chakra-ui/react';
 import { useCallback, useMemo } from 'react';
 import { Controller, useFormContext } from 'react-hook-form';
+import { formatNearAmount } from 'keypom-js';
 
 import { IconBox } from '@/components/IconBox';
 import { FormControl } from '@/components/FormControl';
 import { Checkboxes } from '@/components/Checkboxes';
 import { WalletBalanceInput } from '@/components/WalletBalanceInput';
-import { LinkIcon } from '@/components/Icons';
+import { LinkIcon, NearLogoIcon } from '@/components/Icons';
 import { useDropFlowContext } from '@/features/create-drop/contexts';
+import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
+import { get } from '@/utils/localStorage';
+import { MASTER_KEY } from '@/constants/common';
+import { useAppContext, setAppModalHelper } from '@/contexts/AppContext';
 
-import { WALLET_TOKENS, WALLET_OPTIONS } from './data';
+import { WALLET_OPTIONS } from './data';
 
 export const CreateTokenDropForm = () => {
+  const { setAppModal } = useAppContext();
+  const { account } = useAuthWalletContext();
+  const WALLET_TOKENS = account
+    ? [
+        {
+          amount: formatNearAmount(account.amount, 4),
+          symbol: 'NEAR',
+          wallet: 'near_wallet',
+          icon: <NearLogoIcon height="4" width="4" />,
+        },
+      ]
+    : [];
+
   const { onNext } = useDropFlowContext();
   const {
     setValue,
@@ -47,6 +65,14 @@ export const CreateTokenDropForm = () => {
   );
 
   const handleSubmitClick = () => {
+    const masterKey = get(MASTER_KEY);
+    if (masterKey === undefined) {
+      setAppModalHelper(setAppModal, onNext?.(), () => {
+        // eslint-disable-next-line no-console
+        console.log('user cancelled');
+      });
+      return;
+    }
     onNext?.();
   };
 

@@ -13,10 +13,9 @@ import {
 } from '@chakra-ui/react';
 
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
-import { useAppContext } from '@/contexts/AppContext';
+import { useAppContext, setAppModalHelper } from '@/contexts/AppContext';
 import { toYocto } from '@/utils/toYocto';
 import { truncateAddress } from '@/utils/truncateAddress';
-import { set } from '@/utils/localStorage';
 
 import { DropIcon, NearLogoIcon, SignOutIcon } from '../Icons';
 
@@ -44,32 +43,7 @@ export const SignedInButton = () => {
   };
 
   const handleMasterKey = async () => {
-    setAppModal({
-      isOpen: true,
-      header: 'Set your master key!',
-      message: 'hello world!',
-      inputs: [
-        {
-          placeholder: 'Master Key',
-          valueKey: 'masterKey',
-        },
-      ],
-      options: [
-        {
-          label: 'Cancel',
-          func: () => {
-            // eslint-disable-next-line no-console
-            console.log('user cancelled');
-          },
-        },
-        {
-          label: 'Set Master Key',
-          func: ({ masterKey }) => {
-            set('MASTER_KEY', masterKey);
-          },
-        },
-      ],
-    });
+    setAppModalHelper(setAppModal);
   };
 
   return (
