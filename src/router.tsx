@@ -101,27 +101,28 @@ export const router = createBrowserRouter([
           },
         ],
       },
+      //  claim structure should be claim/:contractId#secretKey
       {
         path: 'claim',
         children: [
           {
-            path: 'token/:contractIdSecretKey',
+            path: 'token/:contractId',
             element: <ClaimTokenPage />,
           },
           {
-            path: 'nft/:contractIdSecretKey',
+            path: 'nft/:contractId',
             element: <ClaimNftPage />,
           },
           {
-            path: 'gift/:contractIdSecretKey',
+            path: 'gift/:contractId',
             element: <ClaimGiftPage />,
           },
           {
-            path: 'ticket/:contractIdSecretKey',
+            path: 'ticket/:contractId',
             element: <ClaimTicketPage />,
           },
           {
-            path: ':contractIdSecretKey',
+            path: ':contractId',
             element: <ClaimPage />,
           },
         ],

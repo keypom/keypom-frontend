@@ -1,16 +1,20 @@
-import { useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
 export const useClaimParams = () => {
   const navigate = useNavigate();
-  const { contractIdSecretKey } = useParams<{ contractIdSecretKey: string }>();
-  const param = contractIdSecretKey?.split('#');
+  const { hash } = useLocation();
+  const { contractId } = useParams<{ contractId: string }>();
+
+  let secretKey = '';
+  if (hash !== undefined) {
+    secretKey = hash.replace('#', '');
+  }
+
   if (
-    param === undefined ||
-    param?.length !== 2 ||
-    param[0] === undefined ||
-    param[1] === undefined ||
-    param[0] === '' ||
-    param[1] === ''
+    contractId === undefined ||
+    contractId === '' ||
+    secretKey === undefined ||
+    secretKey === ''
   ) {
     console.error(
       'Navigating to home page. ContractId or SecretKey are not found in the URL paramater',
@@ -24,8 +28,10 @@ export const useClaimParams = () => {
 
   // TODO: add validation for contract and secret key in case if the order is wrong
 
+  console.log({ contractId, secretKey });
+
   return {
-    contractId: param[0],
-    secretKey: param[1],
+    contractId,
+    secretKey,
   };
 };
