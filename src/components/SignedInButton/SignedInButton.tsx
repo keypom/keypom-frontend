@@ -109,7 +109,6 @@ export const SignedInButton = () => {
                     : formatAmount(amountInYocto, { style: undefined, maximumFractionDigits: 0 }) +
                       '...'}
                 </Text>
-                <Text>NEAR</Text>
               </Flex>
             </MenuItem>
 
