@@ -3,12 +3,12 @@ import { type ButtonProps } from '@chakra-ui/react';
 
 import { set } from '@/utils/localStorage';
 
-interface AppModalInputs {
+export interface AppModalInputs {
   placeholder: string;
   valueKey: string;
 }
 
-interface AppModalOptions {
+export interface AppModalOptions {
   label: string;
   func: (values) => Promise<void> | void;
   buttonProps?: ButtonProps;
@@ -20,6 +20,10 @@ interface AppModalValues {
   header?: string;
   options?: AppModalOptions[];
   inputs?: AppModalInputs[];
+  bodyComponent?: React.ReactNode;
+  isLoading?: boolean;
+  isSuccess?: boolean;
+  isError?: boolean;
 }
 
 interface AppContextValues {

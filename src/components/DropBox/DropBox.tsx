@@ -1,13 +1,12 @@
-import { Center, Flex, HStack, Text } from '@chakra-ui/react';
-
-import { CoinIcon } from '@/components/CoinIcon';
+import { Center, Flex, HStack, Image, Text } from '@chakra-ui/react';
 
 interface DropBoxProps {
-  coin: string;
-  value: number;
+  icon: string;
+  symbol: string;
+  value: string;
 }
 
-export const DropBox = ({ coin, value }: DropBoxProps) => {
+export const DropBox = ({ icon, value, symbol }: DropBoxProps) => {
   return (
     <Flex
       bg="blue.50"
@@ -25,10 +24,11 @@ export const DropBox = ({ coin, value }: DropBoxProps) => {
           h={{ base: '6', md: '30px' }}
           w={{ base: '6', md: '30px' }}
         >
-          <CoinIcon h={{ base: '4', md: '5' }} symbol={coin} w={{ base: '4', md: '5' }} />
+          <Image h={{ base: '4', md: '5' }} src={icon} w={{ base: '4', md: '5' }} />
+          {/* <CoinIcon h={{ base: '4', md: '5' }} symbol={coin} w={{ base: '4', md: '5' }} /> */}
         </Center>
         <Text fontWeight="500">
-          {value} {coin}
+          {value} {symbol}
         </Text>
       </HStack>
     </Flex>
