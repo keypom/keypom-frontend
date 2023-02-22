@@ -73,7 +73,7 @@ export const DropManager = ({
   const handleExportCSVClick = () => {
     if (data.length > 0) {
       const links = data.map(({ dropLink }) => `${dropLink as string}`);
-      file(`Drop ID ${data[0].dropId as string}`, links.join('\r\n'));
+      file(`Drop ID ${data[0].dropId as string}.csv`, links.join('\r\n'));
     }
   };
 

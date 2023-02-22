@@ -12,6 +12,7 @@ import { MASTER_KEY, PAGE_SIZE_LIMIT } from '@/constants/common';
 import { usePagination } from '@/hooks/usePagination';
 import { type DataItem } from '@/components/Table/types';
 import { useAppContext } from '@/contexts/AppContext';
+import getConfig from '@/config/config';
 
 import { tableColumns } from '../../components/TableColumn';
 import { INITIAL_SAMPLE_DATA } from '../../constants/common';
@@ -91,7 +92,7 @@ export default function NFTDropManagerPage() {
       secretKeys.map((key, i) => ({
         id: i,
         publicKey: publicKeys[i],
-        link: `https://keypom.xyz/claim/${dropId}#${key.replace('ed25519:', '')})`,
+        link: `https://keypom.xyz/claim/${getConfig().contractId}#${key.replace('ed25519:', '')})`,
         slug: key.substring(8, 16),
         hasClaimed: keyInfo[i] === null,
         action: 'delete',

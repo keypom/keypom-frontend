@@ -12,6 +12,7 @@ import { get } from '@/utils/localStorage';
 import { usePagination } from '@/hooks/usePagination';
 import { type DataItem } from '@/components/Table/types';
 import { useAppContext } from '@/contexts/AppContext';
+import getConfig from '@/config/config';
 
 import { getClaimStatus } from '../../utils/getClaimStatus';
 import { getBadgeType } from '../../utils/getBadgeType';
@@ -94,7 +95,7 @@ export default function TicketDropManagerPage() {
       secretKeys.map((key, i) => ({
         id: i,
         publicKey: publicKeys[i],
-        link: `https://keypom.xyz/claim/${dropId}#${key.replace('ed25519:', '')})`,
+        link: `https://keypom.xyz/claim/${getConfig().contractId}#${key.replace('ed25519:', '')})`,
         slug: key.substring(8, 16),
         claimStatus: getClaimStatus(keyInfo[i]),
         action: 'delete',
