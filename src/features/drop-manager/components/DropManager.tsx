@@ -1,6 +1,6 @@
 import { Box, Button, Heading, HStack, Stack, type TableProps, Text } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
-import { deleteDrops } from 'keypom-js';
+import { deleteDrops, generateKeys, getDropInformation } from 'keypom-js';
 
 import { type ColumnItem, type DataItem } from '@/components/Table/types';
 import { DataTable } from '@/components/Table';
@@ -9,6 +9,9 @@ import { NextButton, PrevButton } from '@/components/Pagination';
 import { file } from '@/utils/file';
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
 import { useAppContext } from '@/contexts/AppContext';
+import { get } from '@/utils/localStorage';
+import { MASTER_KEY } from '@/constants/common';
+import getConfig from '@/config/config';
 
 import { setConfirmationModalHelper } from './ConfirmationModal';
 
@@ -51,6 +54,7 @@ export const DropManager = ({
   const { selector } = useAuthWalletContext();
 
   const [deleting, setDeleting] = useState<boolean>(false);
+  const [exporting, setExporting] = useState<boolean>(false);
 
   useEffect(() => {
     if (selector === null) return;
@@ -72,10 +76,26 @@ export const DropManager = ({
     },
   ];
 
-  const handleExportCSVClick = () => {
+  const handleExportCSVClick = async () => {
     if (data.length > 0) {
-      const links = data.map(({ dropLink }) => `${dropLink as string}`);
+      setExporting(true);
+      const drop = await getDropInformation({ dropId: data[0].dropId as string });
+      const { secretKeys } = await generateKeys({
+        numKeys: drop.next_key_id,
+        rootEntropy: `${get(MASTER_KEY) as string}-${data[0].dropId as string}`,
+        autoMetaNonceStart: 0,
+      });
+
+      const links = secretKeys.map(
+        (key, i) =>
+          `${window.location.origin}/claim/${getConfig().contractId}#${key.replace(
+            'ed25519:',
+            '',
+          )}`,
+      );
+
       file(`Drop ID ${data[0].dropId as string}.csv`, links.join('\r\n'));
+      setExporting(false);
     }
   };
 
@@ -147,6 +167,7 @@ export const DropManager = ({
             Cancel all
           </Button>
           <Button
+            isLoading={exporting}
             variant="secondary"
             w={{ base: '100%', sm: 'initial' }}
             onClick={handleExportCSVClick}
