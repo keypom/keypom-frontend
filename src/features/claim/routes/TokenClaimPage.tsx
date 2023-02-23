@@ -21,7 +21,11 @@ export interface TokenAsset {
   symbol: string;
 }
 
-const ClaimTokenPage = () => {
+interface ClaimTokenPageProps {
+  skipLinkDropCheck?: boolean;
+}
+
+const ClaimTokenPage = ({ skipLinkDropCheck = false }: ClaimTokenPageProps) => {
   const navigate = useNavigate();
   const { contractId, secretKey } = useClaimParams();
   const { setAppModal } = useAppContext();
@@ -38,7 +42,7 @@ const ClaimTokenPage = () => {
   const loadClaimInfo = async () => {
     try {
       const { ftMetadata, amountNEAR, amountTokens, wallets } =
-        await keypomInstance.getTokenClaimInformation(contractId, secretKey);
+        await keypomInstance.getTokenClaimInformation(contractId, secretKey, skipLinkDropCheck);
       const tokens: TokenAsset[] = [
         {
           icon: 'https://cryptologos.cc/logos/near-protocol-near-logo.svg?v=024',

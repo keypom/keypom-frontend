@@ -6,6 +6,9 @@ import { useNavigate } from 'react-router-dom';
 
 import keypomInstance from '@/lib/keypom';
 import { useClaimParams } from '@/hooks/useClaimParams';
+import { DROP_TYPE } from '@/constants/common';
+
+import { type TokenAsset } from '../routes/TokenClaimPage';
 
 const schema = z.object({
   name: z.string().min(1, 'Ticket holder name required'),
@@ -20,8 +23,11 @@ interface ClaimFormContextType {
   nftImage: string;
   qrValue: string;
   handleClaim: () => Promise<void>;
-  claimError: string | null;
   isClaimInfoLoading: boolean;
+  showTokenDrop: boolean;
+  tokens: TokenAsset[];
+  giftType: string;
+  claimInfoError: string | null;
 }
 
 const ClaimFormContext = createContext<ClaimFormContextType | null>(null);
@@ -35,8 +41,11 @@ export const ClaimFormContextProvider = ({ children }: PropsWithChildren) => {
   const [nftImage, setNftImage] = useState('');
   const [qrValue, setQrValue] = useState('');
   const [isClaimInfoLoading, setIsLoading] = useState(true);
-  const [claimError, setClaimError] = useState<string | null>(null);
+  const [claimInfoError, setClaimInfoError] = useState<string | null>(null);
   const [remainingUses, setRemainingUses] = useState<number | null>(null);
+  const [showTokenDrop, setShowTokenDrop] = useState(false);
+  const [tokens, setTokens] = useState<TokenAsset[]>([]);
+  const [giftType, setGiftType] = useState(DROP_TYPE.NFT);
 
   const methods = useForm<Schema>({
     mode: 'onChange',
@@ -47,7 +56,35 @@ export const ClaimFormContextProvider = ({ children }: PropsWithChildren) => {
     resolver: zodResolver(schema),
   });
 
-  const loadClaimInfo = async () => {
+  const loadTokenClaimInfo = async () => {
+    try {
+      const { ftMetadata, amountNEAR, amountTokens } =
+        await keypomInstance.getTokenClaimInformation(contractId, secretKey, true);
+      const tokens: TokenAsset[] = [
+        {
+          icon: 'https://cryptologos.cc/logos/near-protocol-near-logo.svg?v=024',
+          value: amountNEAR || '0',
+          symbol: 'NEAR',
+        },
+      ];
+      if (ftMetadata) {
+        setTokens([
+          ...tokens,
+          {
+            icon: ftMetadata.icon as string,
+            value: amountTokens ?? '0',
+            symbol: ftMetadata.symbol,
+          },
+        ]);
+      }
+
+      setTokens(tokens);
+    } catch (err) {
+      setClaimInfoError(err.message);
+    }
+  };
+
+  const loadNFTClaimInfo = async () => {
     setIsLoading(true);
     try {
       const claimInfo = await keypomInstance.getTicketNftInformation(contractId, secretKey);
@@ -62,7 +99,16 @@ export const ClaimFormContextProvider = ({ children }: PropsWithChildren) => {
       setQrValue(JSON.stringify({ contractId, secretKey }));
       setRemainingUses(claimInfo.remainingUses);
     } catch (err) {
-      setClaimError(err.message);
+      if (err.message === 'NFT series not found') {
+        // show tokens instead
+        setShowTokenDrop(true);
+        setGiftType(DROP_TYPE.TOKEN);
+        await loadTokenClaimInfo();
+        setIsLoading(false);
+        return;
+      }
+
+      setClaimInfoError(err.message);
     }
     setIsLoading(false);
   };
@@ -72,13 +118,13 @@ export const ClaimFormContextProvider = ({ children }: PropsWithChildren) => {
       navigate('/');
     }
     // eslint-disable-next-line
-    loadClaimInfo();
+    loadNFTClaimInfo();
   }, []);
 
   const handleClaim = async () => {
     // Only allow claiming when there are 3 remaining uses
     if (remainingUses === 3) {
-      await keypomInstance.claim(secretKey, 'foo.near');
+      await keypomInstance.claim(secretKey, 'foo', true);
     }
   };
 
@@ -92,13 +138,16 @@ export const ClaimFormContextProvider = ({ children }: PropsWithChildren) => {
   return (
     <ClaimFormContext.Provider
       value={{
+        showTokenDrop,
         getClaimFormData,
         title,
         nftImage,
         qrValue,
         handleClaim,
-        claimError,
         isClaimInfoLoading,
+        tokens,
+        giftType,
+        claimInfoError,
       }}
     >
       <FormProvider {...methods}>{children}</FormProvider>

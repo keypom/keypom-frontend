@@ -336,8 +336,10 @@ class KeypomJS {
     };
   };
 
-  claim = async (secretKey: string, walletAddress: string) => {
-    await this.validateAccountId(walletAddress);
+  claim = async (secretKey: string, walletAddress: string, skipValidation = false) => {
+    if (!skipValidation) {
+      await this.validateAccountId(walletAddress);
+    }
     await claim({ secretKey, accountId: walletAddress });
   };
 }

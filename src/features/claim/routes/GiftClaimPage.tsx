@@ -1,4 +1,4 @@
-import { Box, Center, Heading, useBoolean, VStack } from '@chakra-ui/react';
+import { Box, Center, Heading, Spinner, useBoolean, VStack } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -15,6 +15,8 @@ import { CreateWallet } from '../components/CreateWallet';
 import { ExistingWallet } from '../components/ExistingWallet';
 import { NftReward } from '../components/nft/NftReward';
 
+import ClaimTokenPage from './TokenClaimPage';
+
 const ClaimGiftPage = () => {
   const navigate = useNavigate();
   const { secretKey, contractId } = useClaimParams();
@@ -27,9 +29,11 @@ const ClaimGiftPage = () => {
   const [isClaimSuccessful, setIsClaimSuccessful] = useState(false);
   const [isClaimLoading, setIsClaimLoading] = useState(false);
   const [claimError, setClaimError] = useState('');
-  const [isDropClaimed, setIsDropClaimed] = useState(false);
+  const [dropError, setDropError] = useState('');
   const [openLoadingModal, setOpenLoadingModal] = useState(false);
   const [openResultModal, setOpenResultModal] = useState(false);
+  const [isClaimInfoLoading, setClaimInfoLoading] = useState(true);
+  const [showTokenDrop, setShowTokenDrop] = useState(false);
 
   const loadClaimInfo = async () => {
     const remainingUses = await keypomInstance.checkTicketRemainingUses(contractId, secretKey);
@@ -40,12 +44,23 @@ const ClaimGiftPage = () => {
       return;
     }
 
-    const nftData = await keypomInstance.getTicketNftInformation(contractId, secretKey);
+    try {
+      const nftData = await keypomInstance.getTicketNftInformation(contractId, secretKey);
 
-    setTitle(nftData.title);
-    setDescription(nftData.description);
-    setNftImage(nftData.media);
-    setWallets(nftData.wallets);
+      setTitle(nftData.title);
+      setDescription(nftData.description);
+      setNftImage(nftData.media);
+      setWallets(nftData.wallets);
+    } catch (err) {
+      if (err.message === 'NFT series not found') {
+        // show tokens instead
+        setShowTokenDrop(true);
+        setClaimInfoLoading(false);
+        return;
+      }
+
+      setDropError(err.message);
+    }
   };
 
   useEffect(() => {
@@ -55,7 +70,7 @@ const ClaimGiftPage = () => {
 
     const hasDropClaimedBefore = checkClaimedDrop(secretKey);
     if (hasDropClaimedBefore) {
-      setIsDropClaimed(hasDropClaimedBefore);
+      setDropError('This drop has been claimed.');
       return;
     }
 
@@ -76,17 +91,20 @@ const ClaimGiftPage = () => {
   }, [openResultModal]);
 
   const handleClaim = async (walletAddress: string) => {
+    setClaimError('');
     setIsClaimLoading(true);
     setOpenLoadingModal(true);
     try {
       await keypomInstance.claim(secretKey, walletAddress);
       storeClaimDrop(secretKey);
+      setOpenResultModal(true);
+      setIsClaimLoading(false);
+      setIsClaimSuccessful(true);
     } catch (err) {
       setClaimError(err.message);
+      setIsClaimLoading(false);
+      setOpenResultModal(true);
     }
-    setOpenResultModal(true);
-    setIsClaimLoading(false);
-    setIsClaimSuccessful(true);
   };
 
   const openTransactionLoadingModal = () => {
@@ -106,8 +124,21 @@ const ClaimGiftPage = () => {
     });
   };
 
-  if (isDropClaimed) {
-    return <ErrorBox message="This drop has been claimed." />;
+  if (dropError) {
+    return <ErrorBox message={dropError} />;
+  }
+
+  if (isClaimInfoLoading) {
+    return (
+      <Center h={{ base: '300px', md: '500px' }}>
+        <Spinner size="xl" />
+      </Center>
+    );
+  }
+
+  // default to token drop if NFT series is not found
+  if (showTokenDrop) {
+    return <ClaimTokenPage skipLinkDropCheck />;
   }
 
   return (

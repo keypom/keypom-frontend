@@ -10,13 +10,12 @@ import { checkClaimedDrop, storeClaimDrop } from '@/utils/claimedDrops';
 import { useAppContext } from '@/contexts/AppContext';
 import { ErrorBox } from '@/components/ErrorBox';
 import { useClaimParams } from '@/hooks/useClaimParams';
-import { DropBox } from '@/components/DropBox';
 
 import { CreateWallet } from '../components/CreateWallet';
 import { ExistingWallet } from '../components/ExistingWallet';
 import { NftReward } from '../components/nft/NftReward';
 
-import { type TokenAsset } from './TokenClaimPage';
+import ClaimTokenPage from './TokenClaimPage';
 
 const ClaimNftPage = () => {
   const navigate = useNavigate();
@@ -34,38 +33,7 @@ const ClaimNftPage = () => {
   const [openLoadingModal, setOpenLoadingModal] = useState(false);
   const [openResultModal, setOpenResultModal] = useState(false);
   const [isClaimInfoLoading, setClaimInfoLoading] = useState(true);
-
   const [showTokenDrop, setShowTokenDrop] = useState(false);
-  const [tokens, setTokens] = useState<TokenAsset[]>([]);
-
-  const loadTokenClaimInfo = async () => {
-    try {
-      const { ftMetadata, amountNEAR, amountTokens, wallets } =
-        await keypomInstance.getTokenClaimInformation(contractId, secretKey, true);
-      const tokens: TokenAsset[] = [
-        {
-          icon: 'https://cryptologos.cc/logos/near-protocol-near-logo.svg?v=024',
-          value: amountNEAR || '0',
-          symbol: 'NEAR',
-        },
-      ];
-      if (ftMetadata) {
-        setTokens([
-          ...tokens,
-          {
-            icon: ftMetadata.icon as string,
-            value: amountTokens ?? '0',
-            symbol: ftMetadata.symbol,
-          },
-        ]);
-      }
-
-      setTokens(tokens);
-      setWallets(wallets);
-    } catch (err) {
-      setDropError(err.message);
-    }
-  };
 
   const loadNFTClaimInfo = async () => {
     try {
@@ -79,7 +47,6 @@ const ClaimNftPage = () => {
       if (err.message === 'NFT series not found') {
         // show tokens instead
         setShowTokenDrop(true);
-        await loadTokenClaimInfo();
         setClaimInfoLoading(false);
         return;
       }
@@ -162,16 +129,17 @@ const ClaimNftPage = () => {
     );
   }
 
-  // show token drop if NFT series does not exist
-  const headingTitle = showTokenDrop ? `You've received a Keypom Drop!` : `You've received an NFT`;
-
+  // default to token drop if NFT series is not found
+  if (showTokenDrop) {
+    return <ClaimTokenPage skipLinkDropCheck />;
+  }
   return (
     <Box mb={{ base: '5', md: '14' }} minH="100%" minW="100%" mt={{ base: '52px', md: '100px' }}>
       <Center>
         {/** the additional gap is to accommodate for the absolute roundIcon size */}
         <VStack gap={{ base: 'calc(24px + 8px)', md: 'calc(32px + 10px)' }}>
           {/** Prompt text */}
-          <Heading textAlign="center">{headingTitle}</Heading>
+          <Heading textAlign="center">{`You've received an NFT`}</Heading>
 
           {/** Claim nft component */}
           <IconBox
@@ -189,16 +157,7 @@ const ClaimNftPage = () => {
               px={{ base: '6', md: '8' }}
               w="full "
             >
-              {showTokenDrop ? (
-                <VStack>
-                  {/** div placeholder */}
-                  {tokens.map(({ icon, value, symbol }, index) => (
-                    <DropBox key={index} icon={icon} symbol={symbol} value={value} />
-                  ))}
-                </VStack>
-              ) : (
-                <NftReward artworkSrc={nftImage} description={description} nftName={title} />
-              )}
+              <NftReward artworkSrc={nftImage} description={description} nftName={title} />
             </BoxWithShape>
             <VStack
               bg="gray.50"

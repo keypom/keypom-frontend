@@ -20,11 +20,9 @@ export const AvatarImage = ({ altName, imageSrc, ...props }: AvatarImageProps) =
       w={{ base: '7.5rem', md: '11.25rem' }}
       {...props}
     >
-      {/* {isImageLoading && <Skeleton borderRadius={{ base: '5xl', md: '6xl' }} height="100%" />} */}
       <ChakraImage
         alt={replaceSpace(altName)}
         borderRadius={{ base: '5xl', md: '6xl' }}
-        // display={isImageLoading ? 'none' : 'block'}
         fallback={<Skeleton borderRadius={{ base: '5xl', md: '6xl' }} height="100%" />}
         objectFit="cover"
         position="absolute"

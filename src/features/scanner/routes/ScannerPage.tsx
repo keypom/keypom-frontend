@@ -186,7 +186,6 @@ const Scanner = () => {
   };
 
   const openPasswordModal = () => {
-    console.log('opening password modal');
     setAppModal({
       isOpen: true,
       header: 'Enter your password',
@@ -237,15 +236,12 @@ const Scanner = () => {
     onPasswordModalOpen();
   }, []);
 
-  // console.log({ isAppModalOpen });
-
   return (
     <Box mb={{ base: '5', md: '14' }} minH="100%" minW="100%" mt={{ base: '52px', md: '100px' }}>
       <Center>
         <VStack gap={{ base: 'calc(24px + 8px)', md: 'calc(32px + 10px)' }}>
           <Heading textAlign="center">Scanner</Heading>
           {/** keypom scanner placeholder */}
-          {/* {!isAppModalOpen && ( */}
           <Center h={{ base: '280px', md: '440px' }} w={{ base: '280px', md: '440px' }}>
             <QrReader
               constraints={{ facingMode: 'environment' }}

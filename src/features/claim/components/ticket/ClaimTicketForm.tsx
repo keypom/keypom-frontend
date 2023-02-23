@@ -1,4 +1,4 @@
-import { Box, Button, Center, Spinner } from '@chakra-ui/react';
+import { Box, Button, Center, Spinner, Text } from '@chakra-ui/react';
 import { useState } from 'react';
 
 import { useClaimForm } from '../ClaimFormContext';
@@ -13,15 +13,30 @@ export interface ClaimTicketFormFieldTypes {
 export const ClaimTicketForm = () => {
   const { onNext } = useClaimTicketFlow();
   const [isLoading, setIsLoading] = useState(false);
+  const [claimError, setClaimError] = useState('');
   const { handleClaim } = useClaimForm();
   // const { handleSubmit, control } = useFormContext<ClaimTicketFormFieldTypes>();
 
   const handleSubmitClick = async () => {
     setIsLoading(true);
-    await handleClaim();
+    try {
+      await handleClaim();
+    } catch (err) {
+      setClaimError(err.message);
+      setIsLoading(false);
+      return;
+    }
     setIsLoading(false);
     onNext();
   };
+
+  if (claimError) {
+    return (
+      <Box w="100%">
+        <Text variant="error">{claimError}</Text>
+      </Box>
+    );
+  }
 
   return (
     <Box
