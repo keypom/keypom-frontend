@@ -1,4 +1,3 @@
-import copy from 'copy-to-clipboard';
 import { Box, Button, Text, useToast } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
@@ -19,6 +18,7 @@ import { usePagination } from '@/hooks/usePagination';
 import { type DataItem } from '@/components/Table/types';
 import { useAppContext } from '@/contexts/AppContext';
 import getConfig from '@/config/config';
+import { share } from '@/utils/share';
 
 import { getClaimStatus } from '../../utils/getClaimStatus';
 import { getBadgeType } from '../../utils/getBadgeType';
@@ -121,7 +121,7 @@ export default function TicketDropManagerPage() {
   }, []);
 
   const handleCopyClick = (link: string) => {
-    copy(link);
+    share(link);
     toast({ title: 'Copied!', status: 'success', duration: 1000, isClosable: true });
   };
 
