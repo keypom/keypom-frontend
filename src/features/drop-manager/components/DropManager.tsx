@@ -79,23 +79,27 @@ export const DropManager = ({
   const handleExportCSVClick = async () => {
     if (data.length > 0) {
       setExporting(true);
-      const drop = await getDropInformation({ dropId: data[0].dropId as string });
-      const { secretKeys } = await generateKeys({
-        numKeys: drop.next_key_id,
-        rootEntropy: `${get(MASTER_KEY) as string}-${data[0].dropId as string}`,
-        autoMetaNonceStart: 0,
-      });
 
-      const links = secretKeys.map(
-        (key, i) =>
-          `${window.location.origin}/claim/${getConfig().contractId}#${key.replace(
-            'ed25519:',
-            '',
-          )}`,
-      );
-
-      file(`Drop ID ${data[0].dropId as string}.csv`, links.join('\r\n'));
-      setExporting(false);
+      try {
+        const drop = await getDropInformation({ dropId: data[0].dropId as string });
+        const { secretKeys } = await generateKeys({
+          numKeys: drop.next_key_id,
+          rootEntropy: `${get(MASTER_KEY) as string}-${data[0].dropId as string}`,
+          autoMetaNonceStart: 0,
+        });
+        const links = secretKeys.map(
+          (key, i) =>
+            `${window.location.origin}/claim/${getConfig().contractId}#${key.replace(
+              'ed25519:',
+              '',
+            )}`,
+        );
+        file(`Drop ID ${data[0].dropId as string}.csv`, links.join('\r\n'));
+      } catch (e) {
+        console.error('error', e);
+      } finally {
+        setExporting(false);
+      }
     }
   };
 
