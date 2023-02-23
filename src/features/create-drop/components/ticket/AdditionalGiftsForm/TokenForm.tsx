@@ -53,6 +53,7 @@ export const TokenForm = () => {
             {...field}
             isInvalid={Boolean(error?.message)}
             onChange={(e) => {
+              if (e.target.value.length > 15) return;
               field.onChange(parseFloat(e.target.value));
               void trigger(); // errors not getting updated if its not manually validated
             }}

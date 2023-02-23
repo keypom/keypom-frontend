@@ -115,7 +115,7 @@ export const CreateTokenDropForm = () => {
                 type="number"
                 {...field}
                 onChange={(e) => {
-                  field.onChange(parseInt(e.target.value), 10);
+                  field.onChange(parseInt(e.target.value));
                 }}
               />
             </FormControl>
@@ -131,7 +131,8 @@ export const CreateTokenDropForm = () => {
                 {...field}
                 isInvalid={Boolean(error?.message)}
                 onChange={(e) => {
-                  field.onChange(parseFloat(e.target.value), 10);
+                  if (e.target.value.length > 15) return;
+                  field.onChange(parseFloat(e.target.value));
                 }}
               >
                 <WalletBalanceInput.TokenMenu
