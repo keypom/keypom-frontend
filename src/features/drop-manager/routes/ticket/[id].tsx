@@ -19,6 +19,7 @@ import { usePagination } from '@/hooks/usePagination';
 import { type DataItem } from '@/components/Table/types';
 import { useAppContext } from '@/contexts/AppContext';
 import getConfig from '@/config/config';
+import { useValidMasterKey } from '@/hooks/useValidMasterKey';
 
 import { getClaimStatus } from '../../utils/getClaimStatus';
 import { getBadgeType } from '../../utils/getBadgeType';
@@ -26,6 +27,7 @@ import { tableColumns } from '../../components/TableColumn';
 import { INITIAL_SAMPLE_DATA } from '../../constants/common';
 import { type TicketClaimStatus } from '../../types/types';
 import { setConfirmationModalHelper } from '../../components/ConfirmationModal';
+import { setMasterKeyValidityModal } from '../../components/MasterKeyValidityModal';
 
 export default function TicketDropManagerPage() {
   const { setAppModal } = useAppContext();
@@ -57,6 +59,13 @@ export default function TicketDropManagerPage() {
   useEffect(() => {
     getWallet();
   }, [selector]);
+
+  const { masterKeyValidity } = useValidMasterKey({ dropId });
+  useEffect(() => {
+    if (!masterKeyValidity) {
+      setMasterKeyValidityModal(setAppModal);
+    }
+  }, [masterKeyValidity]);
 
   const {
     hasPagination,

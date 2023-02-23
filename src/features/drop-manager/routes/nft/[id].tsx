@@ -19,10 +19,12 @@ import { usePagination } from '@/hooks/usePagination';
 import { type DataItem } from '@/components/Table/types';
 import { useAppContext } from '@/contexts/AppContext';
 import getConfig from '@/config/config';
+import { useValidMasterKey } from '@/hooks/useValidMasterKey';
 
 import { tableColumns } from '../../components/TableColumn';
 import { INITIAL_SAMPLE_DATA } from '../../constants/common';
 import { setConfirmationModalHelper } from '../../components/ConfirmationModal';
+import { setMasterKeyValidityModal } from '../../components/MasterKeyValidityModal';
 
 export default function NFTDropManagerPage() {
   const { setAppModal } = useAppContext();
@@ -47,6 +49,13 @@ export default function NFTDropManagerPage() {
     };
     getWallet();
   }, [selector]);
+
+  const { masterKeyValidity } = useValidMasterKey({ dropId });
+  useEffect(() => {
+    if (!masterKeyValidity) {
+      setMasterKeyValidityModal(setAppModal);
+    }
+  }, [masterKeyValidity]);
 
   const {
     hasPagination,
