@@ -1,18 +1,19 @@
 import { Box, Center, Spinner, Text } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 import keypomInstance from '@/lib/keypom';
 import { DROP_TYPE } from '@/constants/common';
 import { checkClaimedDrop } from '@/utils/claimedDrops';
 import { ErrorBox } from '@/components/ErrorBox';
+import { useClaimParams } from '@/hooks/useClaimParams';
 
 const ClaimPage = () => {
-  const { contractId = '', secretKey = '' } = useParams();
+  const navigate = useNavigate();
+  const { contractId, secretKey } = useClaimParams();
 
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
   const [isDropClaimed, setIsDropClaimed] = useState(false);
 
   const getClaimInfo = async () => {
@@ -20,16 +21,13 @@ const ClaimPage = () => {
       const type = await keypomInstance.getLinkdropType(contractId, secretKey);
       switch (type) {
         case DROP_TYPE.TOKEN:
-          navigate(`/claim/token/${secretKey}`);
+          navigate(`/claim/token/${contractId}#${secretKey}`);
           break;
         case DROP_TYPE.TICKET:
-          navigate(`/claim/ticket/${contractId}/${secretKey}`);
+          navigate(`/claim/ticket/${contractId}#${secretKey}`);
           break;
         case DROP_TYPE.NFT:
-          navigate(`/claim/nft/${contractId}/${secretKey}`);
-          break;
-        case DROP_TYPE.TRIAL:
-          navigate(`/claim/trial/${contractId}/${secretKey}`);
+          navigate(`/claim/nft/${contractId}#${secretKey}`);
           break;
         default:
           throw new Error('This linkdrop is unsupported.');

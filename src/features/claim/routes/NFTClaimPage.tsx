@@ -1,6 +1,6 @@
 import { Box, Center, Heading, useBoolean, VStack } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 import { IconBox } from '@/components/IconBox';
 import { BoxWithShape } from '@/components/BoxWithShape';
@@ -9,6 +9,7 @@ import keypomInstance from '@/lib/keypom';
 import { checkClaimedDrop, storeClaimDrop } from '@/utils/claimedDrops';
 import { useAppContext } from '@/contexts/AppContext';
 import { ErrorBox } from '@/components/ErrorBox';
+import { useClaimParams } from '@/hooks/useClaimParams';
 
 import { CreateWallet } from '../components/CreateWallet';
 import { ExistingWallet } from '../components/ExistingWallet';
@@ -16,7 +17,7 @@ import { NftReward } from '../components/nft/NftReward';
 
 const ClaimNftPage = () => {
   const navigate = useNavigate();
-  const { secretKey = '' } = useParams();
+  const { contractId, secretKey } = useClaimParams();
   const { setAppModal } = useAppContext();
   const [haveWallet, showInputWallet] = useBoolean(false);
   const [title, setTitle] = useState('');
@@ -26,17 +27,21 @@ const ClaimNftPage = () => {
   const [isClaimSuccessful, setIsClaimSuccessful] = useState(false);
   const [isClaimLoading, setIsClaimLoading] = useState(false);
   const [claimError, setClaimError] = useState('');
-  const [isDropClaimed, setIsDropClaimed] = useState(false);
+  const [dropError, setDropError] = useState('');
   const [openLoadingModal, setOpenLoadingModal] = useState(false);
   const [openResultModal, setOpenResultModal] = useState(false);
 
   const loadClaimInfo = async () => {
-    const nftData = await keypomInstance.getNFTClaimInformation(secretKey);
+    try {
+      const nftData = await keypomInstance.getNFTClaimInformation(contractId, secretKey);
 
-    setTitle(nftData.title);
-    setDescription(nftData.description);
-    setNftImage(nftData.media);
-    setWallets(nftData.wallets);
+      setTitle(nftData.title);
+      setDescription(nftData.description);
+      setNftImage(nftData.media);
+      setWallets(nftData.wallets);
+    } catch (err) {
+      setDropError(err.message);
+    }
   };
 
   useEffect(() => {
@@ -46,7 +51,7 @@ const ClaimNftPage = () => {
 
     const hasDropClaimedBefore = checkClaimedDrop(secretKey);
     if (hasDropClaimedBefore) {
-      setIsDropClaimed(hasDropClaimedBefore);
+      setDropError('This drop has been claimed.');
       return;
     }
 
@@ -97,8 +102,8 @@ const ClaimNftPage = () => {
     });
   };
 
-  if (isDropClaimed) {
-    return <ErrorBox message="This drop has been claimed." />;
+  if (dropError) {
+    return <ErrorBox message={dropError} />;
   }
 
   return (
@@ -125,7 +130,7 @@ const ClaimNftPage = () => {
               px={{ base: '6', md: '8' }}
               w="full "
             >
-              {/** div placeholder */}
+              {/** in future we may have tokens */}
               <NftReward artworkSrc={nftImage} description={description} nftName={title} />
             </BoxWithShape>
             <VStack
@@ -136,7 +141,12 @@ const ClaimNftPage = () => {
               w="full"
             >
               {!haveWallet ? (
-                <CreateWallet wallets={walletsOptions} onClick={showInputWallet.on} />
+                <CreateWallet
+                  contractId={contractId}
+                  secretKey={secretKey}
+                  wallets={walletsOptions}
+                  onClick={showInputWallet.on}
+                />
               ) : (
                 <>
                   <ExistingWallet

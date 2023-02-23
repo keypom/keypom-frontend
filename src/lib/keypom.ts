@@ -10,6 +10,10 @@ import {
   hashPassword,
   getPubFromSecret,
   formatNearAmount,
+<<<<<<< HEAD
+=======
+  formatLinkdropUrl,
+>>>>>>> testnet
 } from 'keypom-js';
 
 import { CLOUDFLARE_IPFS, DROP_TYPE } from '@/constants/common';
@@ -96,22 +100,32 @@ class KeypomJS {
   async getLinkdropType(contractId: string, secretKey: string) {
     await this.verifyDrop(contractId, secretKey);
     const drop = await getDropInformation({ secretKey });
+<<<<<<< HEAD
+=======
+    console.log({ drop });
+>>>>>>> testnet
 
     return this.getDropType(drop);
   }
 
   getDropType(drop: ProtocolReturnedDrop) {
+<<<<<<< HEAD
 
+=======
+>>>>>>> testnet
     if (drop.fc === undefined && drop.nft === undefined) {
       return DROP_TYPE.TOKEN;
     }
 
     if (drop.fc !== undefined) {
+<<<<<<< HEAD
       
       if (drop.fc.methods[0]?.length === 2) {
         return DROP_TYPE.TRIAL;
       }
 
+=======
+>>>>>>> testnet
       if (drop.fc.methods.length === 3) {
         return DROP_TYPE.TICKET;
       }
@@ -131,6 +145,10 @@ class KeypomJS {
   }
 
   getDropMetadata(metadata: string) {
+    if (metadata === null) {
+      return {};
+    }
+
     try {
       return JSON.parse(metadata);
     } catch (err) {
@@ -140,7 +158,35 @@ class KeypomJS {
     }
   }
 
-  async getTokenClaimInformation(secretKey: string) {
+  async generateExternalWalletLink(walletName: string, contractId: string, secretKey: string) {
+    // verify the drop first
+    console.log({ walletName, contractId, secretKey });
+    try {
+      await getDropInformation({ secretKey });
+    } catch (err) {
+      console.error(err);
+      throw new Error('This drop has been claimed.');
+    }
+
+    // generate the link to navigate to
+    const urls = formatLinkdropUrl({
+      claimPage: walletName,
+      contractId,
+      secretKeys: [secretKey],
+    });
+
+    return urls[0];
+  }
+
+  async getTokenClaimInformation(contractId: string, secretKey: string) {
+    // verify if secretKey is a token drop
+    const linkdropType = await this.getLinkdropType(contractId, secretKey);
+    if (linkdropType !== DROP_TYPE.SIMPLE && linkdropType !== DROP_TYPE.TOKEN) {
+      throw new Error(
+        'This drop is not a Simple drop or Token drop. Please contact your drop creator.',
+      );
+    }
+
     const drop = await getDropInformation({ secretKey });
     const dropMetadata = drop.metadata !== undefined ? this.getDropMetadata(drop.metadata) : {};
     let ftMetadata;
@@ -149,16 +195,20 @@ class KeypomJS {
     }
 
     return {
-      // TODO WHAT DEFAULTS?
-      dropName: dropMetadata?.dropName || '',
-      wallets: dropMetadata?.wallets || [],
+      dropName: dropMetadata.dropName,
+      wallets: dropMetadata.wallets,
       ftMetadata,
       amountTokens: drop.ft?.balance_per_use, // TODO: format correctly with FT metadata
       amountNEAR: formatNearAmount(drop.deposit_per_use, 4),
     };
   }
 
-  async getNFTClaimInformation(secretKey: string) {
+  async getNFTClaimInformation(contractId: string, secretKey: string) {
+    // verify if secretKey is a nft drop
+    const linkdropType = await this.getLinkdropType(contractId, secretKey);
+    if (linkdropType !== DROP_TYPE.NFT) {
+      throw new Error('This drop is not an NFT drop. Please contact your drop creator.');
+    }
     // given fc
     const drop = await getDropInformation({ secretKey });
     const dropMetadata = drop.metadata !== undefined ? this.getDropMetadata(drop.metadata) : {};
@@ -174,10 +224,10 @@ class KeypomJS {
     }
 
     const fcMethod = fcMethods[0][0];
-    const { receiver_id: contractId } = fcMethod;
+    const { receiver_id: receiverId } = fcMethod;
     const { viewCall } = getEnv();
     const nftData = await viewCall({
-      contractId,
+      contractId: receiverId,
       methodName: 'get_series_info',
       args: { mint_id: parseInt(drop.drop_id) },
     });
@@ -192,7 +242,18 @@ class KeypomJS {
   }
 
   async getTicketNftInformation(contractId: string, secretKey: string) {
-    const drop = await getDropInformation({ secretKey });
+    // verify if secretKey is a ticket drop
+    const linkdropType = await this.getLinkdropType(contractId, secretKey);
+    if (linkdropType !== DROP_TYPE.TICKET) {
+      throw new Error('This drop is not a Ticket drop. Please contact your drop creator.');
+    }
+
+    let drop;
+    try {
+      drop = await getDropInformation({ secretKey });
+    } catch (err) {
+      throw new Error('Unable to claim. This drop may have been claimed before.');
+    }
     const remainingUses = await this.checkTicketRemainingUses(contractId, secretKey);
 
     const dropMetadata = drop.metadata !== undefined ? this.getDropMetadata(drop.metadata) : {};

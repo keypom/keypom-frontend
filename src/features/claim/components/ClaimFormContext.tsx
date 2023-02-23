@@ -2,9 +2,10 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { createContext, type PropsWithChildren, useContext, useState, useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as z from 'zod';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 import keypomInstance from '@/lib/keypom';
+import { useClaimParams } from '@/hooks/useClaimParams';
 
 const schema = z.object({
   name: z.string().min(1, 'Ticket holder name required'),
@@ -25,9 +26,10 @@ interface ClaimFormContextType {
 
 const ClaimFormContext = createContext<ClaimFormContextType | null>(null);
 
+// TODO: refactor this context name
 export const ClaimFormContextProvider = ({ children }: PropsWithChildren) => {
   const navigate = useNavigate();
-  const { secretKey = '', contractId = '' } = useParams();
+  const { secretKey, contractId } = useClaimParams();
 
   const [title, setTitle] = useState('');
   const [nftImage, setNftImage] = useState('');
@@ -51,7 +53,7 @@ export const ClaimFormContextProvider = ({ children }: PropsWithChildren) => {
       const claimInfo = await keypomInstance.getTicketNftInformation(contractId, secretKey);
 
       if (claimInfo.remainingUses === 1) {
-        navigate(`/claim/gift/${contractId}/${secretKey}`);
+        navigate(`/claim/gift/${contractId}#${secretKey}`);
         return;
       }
 
@@ -60,7 +62,7 @@ export const ClaimFormContextProvider = ({ children }: PropsWithChildren) => {
       setQrValue(JSON.stringify({ contractId, secretKey }));
       setRemainingUses(claimInfo.remainingUses);
     } catch (err) {
-      setClaimError('Unable to claim. This drop may have been claimed before.');
+      setClaimError(err.message);
     }
     setIsLoading(false);
   };

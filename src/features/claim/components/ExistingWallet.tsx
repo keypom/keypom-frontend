@@ -10,9 +10,12 @@ interface ExistingWalletProps {
   isSuccess: boolean;
   isLoading: boolean;
   claimErrorText: string;
+<<<<<<< HEAD
   message?: string;
   label?: string;
   noBackIcon?: boolean;
+=======
+>>>>>>> testnet
 }
 
 export const ExistingWallet = ({
@@ -21,9 +24,12 @@ export const ExistingWallet = ({
   isSuccess,
   isLoading,
   claimErrorText,
+<<<<<<< HEAD
   message = 'Send to existing wallet',
   label = 'Your wallet address',
   noBackIcon = false,
+=======
+>>>>>>> testnet
 }: ExistingWalletProps) => {
   const [walletAddress, setWalletAddress] = useState('');
   return (
@@ -42,7 +48,7 @@ export const ExistingWallet = ({
         </Text>
       </Center>
       <TextInput
-        label={label}
+        label="Your wallet address"
         mb="5"
         placeholder="yourname.near"
         value={walletAddress}

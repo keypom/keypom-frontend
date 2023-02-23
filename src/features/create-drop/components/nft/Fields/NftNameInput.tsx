@@ -8,7 +8,7 @@ interface NftNameInputProps {
   control: Control<CreateNftDropFormFieldTypes, unknown>;
 }
 
-const FIELD_NAME = 'nftName';
+const FIELD_NAME = 'title';
 
 export const NftNameInput = ({ control }: NftNameInputProps) => {
   return (

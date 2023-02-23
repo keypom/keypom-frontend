@@ -1,5 +1,7 @@
+export const NFT_ATTEMPT_KEY = 'NFT_ATTEMPT';
+
 export interface SummaryItem {
-  type: 'text' | 'image';
+  type: 'text' | 'image' | 'number';
   name: string;
   value: string | number;
 }
@@ -10,6 +12,7 @@ export interface PaymentItem {
   isDiscount?: boolean;
   discountText?: string;
   helperText?: string;
+  doNotRender?: boolean;
 }
 
 export interface PaymentData {
@@ -19,7 +22,7 @@ export interface PaymentData {
 }
 
 export interface NFTType {
-  nftName: string;
+  title: string;
   description: string;
   artwork: string;
 }

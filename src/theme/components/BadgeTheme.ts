@@ -20,6 +20,16 @@ export const BadgeTheme = defineStyleConfig({
       bgColor: 'green.50',
       fontWeight: 'medium',
     },
+    blue: {
+      color: 'blue.600',
+      bgColor: 'blue.50',
+      fontWeight: 'medium',
+    },
+    pink: {
+      color: 'pink.600',
+      bgColor: 'pink.50',
+      fontWeight: 'medium',
+    },
     gray: {
       color: 'gray.600',
       bgColor: 'gray.50',

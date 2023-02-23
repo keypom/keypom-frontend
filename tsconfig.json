@@ -2,7 +2,11 @@
   "compilerOptions": {
     "module": "esnext",
     "target": "es5",
-    "lib": ["es6", "dom", "es2017"],
+    "lib": [
+      "es6",
+      "dom",
+      "es2017"
+    ],
     "sourceMap": true,
     "allowJs": true,
     "jsx": "react-jsx",
@@ -13,7 +17,6 @@
     "noImplicitThis": true,
     "noImplicitAny": false,
     "strictNullChecks": true,
-    "suppressImplicitAnyIndexErrors": true,
     "noUnusedLocals": true,
     "allowSyntheticDefaultImports": true,
     "experimentalDecorators": true,
@@ -21,10 +24,18 @@
     "baseUrl": "./",
     "outDir": "dist",
     "paths": {
-      "@/*": ["src/*"],
-      "~/*": ["public/*"]
+      "@/*": [
+        "src/*"
+      ],
+      "~/*": [
+        "public/*"
+      ]
     }
   },
-  "include": ["./src/**/*"],
-  "exclude": ["node_modules"]
+  "include": [
+    "./src/**/*"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
 }

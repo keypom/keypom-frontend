@@ -26,7 +26,9 @@ export const ClaimTicketDetails = ({ imageSrc, ticketName }: ClaimTicketDetailsP
       <Text
         color="gray.800"
         fontWeight="500"
+        maxH="300px"
         mb={{ base: '2', md: '3' }}
+        overflowY="scroll"
         size={{ base: 'xl', md: '2xl' }}
         textAlign="center"
       >
