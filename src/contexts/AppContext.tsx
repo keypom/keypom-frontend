@@ -1,4 +1,5 @@
 import { createContext, type PropsWithChildren, useContext, useState } from 'react';
+import { type ButtonProps } from '@chakra-ui/react';
 
 import { set } from '@/utils/localStorage';
 
@@ -9,7 +10,8 @@ interface AppModalInputs {
 
 interface AppModalOptions {
   label: string;
-  func: (values) => void;
+  func: (values) => Promise<void> | void;
+  buttonProps?: ButtonProps;
 }
 
 interface AppModalValues {

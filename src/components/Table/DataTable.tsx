@@ -14,6 +14,7 @@ import {
   Heading,
   VStack,
 } from '@chakra-ui/react';
+import { useNavigate } from 'react-router-dom';
 
 import { IconBox } from '../IconBox';
 
@@ -37,7 +38,6 @@ interface DataTableProps extends TableProps {
   columns: ColumnItem[];
   data: DataItem[];
   loading?: boolean;
-  onRowClick?: (id: string | number) => void;
 }
 
 export const DataTable = ({
@@ -46,9 +46,10 @@ export const DataTable = ({
   columns = [],
   data = [],
   loading = false,
-  onRowClick,
   ...props
 }: DataTableProps) => {
+  const navigate = useNavigate();
+
   const getDesktopTableBody = () => {
     if (loading) {
       return Array.from([1, 2, 3]).map((_, index) => (
@@ -66,14 +67,20 @@ export const DataTable = ({
       <Tr
         key={drop.id}
         _hover={
-          onRowClick && {
-            cursor: 'pointer',
-            background: 'gray.50',
-          }
+          (drop.href as string | undefined)
+            ? {
+                cursor: 'pointer',
+                background: 'gray.50',
+              }
+            : {}
         }
-        onClick={() => {
-          onRowClick?.(drop.id);
-        }}
+        onClick={
+          (drop.href as string | undefined)
+            ? () => {
+                navigate(drop.href as string);
+              }
+            : undefined
+        }
       >
         {columns.map((column) => (
           <Td key={`${column.title}-${drop.id}`} {...column.tdProps}>
@@ -110,7 +117,7 @@ export const DataTable = ({
 
           {/* Mobile table */}
           <Hide above="md">
-            <MobileDataTable columns={columns} data={data} {...props} />
+            <MobileDataTable columns={columns} data={data} loading={loading} {...props} />
           </Hide>
         </>
       ) : (
