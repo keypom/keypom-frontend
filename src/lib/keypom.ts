@@ -222,7 +222,13 @@ class KeypomJS {
       );
     }
 
-    const drop = await getDropInformation({ secretKey });
+    let drop;
+    try {
+      drop = await getDropInformation({ secretKey });
+    } catch (err) {
+      throw new Error('Unable to claim. This drop may have been claimed before.');
+    }
+
     const dropMetadata = drop.metadata !== undefined ? this.getDropMetadata(drop.metadata) : {};
     let ftMetadata;
     if (drop.ft !== undefined) {
@@ -245,7 +251,13 @@ class KeypomJS {
       throw new Error('This drop is not an NFT drop. Please contact your drop creator.');
     }
     // given fc
-    const drop = await getDropInformation({ secretKey });
+    let drop;
+    try {
+      drop = await getDropInformation({ secretKey });
+    } catch (err) {
+      throw new Error('Unable to claim. This drop may have been claimed before.');
+    }
+
     const dropMetadata = drop.metadata !== undefined ? this.getDropMetadata(drop.metadata) : {};
 
     const fcMethods = drop.fc?.methods;
