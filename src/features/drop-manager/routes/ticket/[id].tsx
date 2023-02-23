@@ -46,7 +46,6 @@ export default function TicketDropManagerPage() {
     if (selector === null) {
       return;
     }
-    console.log('hello', { selector });
     try {
       const selectorWallet = await selector?.wallet();
       setWallet(selectorWallet);
