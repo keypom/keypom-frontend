@@ -1,4 +1,4 @@
-import { Box, Center, Heading, useBoolean, VStack } from '@chakra-ui/react';
+import { Box, Button, Center, Heading, useBoolean, VStack } from '@chakra-ui/react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { claimTrialAccountDrop, accountExists } from 'keypom-js';
@@ -31,13 +31,17 @@ const TrialClaimPage = () => {
   const [claimError, setClaimError] = useState('');
   const [isDropClaimed] = useState(false);
   const [openLoadingModal, setOpenLoadingModal] = useState(false);
-  const [openResultModal] = useState(false);
+  const [openResultModal, setOpenResultModal] = useState(false);
   const [searchParams] = useSearchParams();
+  const appsStr = searchParams.get('apps');
+  let apps
+  try {
+    apps = JSON.parse(appsStr || '[]');
+  } catch(e) {}
 
   const loadClaimInfo = async () => {
     try {
       const drop = await keypomInstance.getTokenClaimInformation(contractId, secretKey);
-      console.log(drop);
     } catch (e) {
       console.log(e);
       // `no drop ID for PK` is error we should pass through to the redirect URL
@@ -86,19 +90,13 @@ const TrialClaimPage = () => {
         desiredAccountId,
       });
       setIsClaimSuccessful(true);
-
-      const appsStr = searchParams.get('apps');
-      if (appsStr) {
-        const apps = JSON.parse(appsStr);
-
-        // TODO MENU FOR MULTIPLE APPS
-
-        window.open(apps[0], '_blank');
-      }
     } catch (e) {
-      console.log(e);
+      console.warn(e);
+      // set claim error
     } finally {
+      setOpenResultModal(true);
       setIsClaimLoading(false);
+      setOpenLoadingModal(false);
     }
   };
 
@@ -115,7 +113,15 @@ const TrialClaimPage = () => {
       isLoading: false,
       isError: Boolean(claimError),
       isSuccess: isClaimSuccessful,
-      message: claimError || 'Token claimed!',
+      bodyComponent:<>
+        {
+        apps.length > 0
+        ?
+        <Button onClick={() => window.open(apps[0], '_blank')}>Go to App</Button>
+        :
+        <p>Account created successfully</p>
+      }
+      </>,
     });
   };
 
