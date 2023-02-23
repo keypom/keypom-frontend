@@ -97,7 +97,6 @@ class KeypomJS {
   async getLinkdropType(contractId: string, secretKey: string) {
     await this.verifyDrop(contractId, secretKey);
     const drop = await getDropInformation({ secretKey });
-    console.log({ drop });
 
     return this.getDropType(drop);
   }
@@ -108,6 +107,10 @@ class KeypomJS {
     }
 
     if (drop.fc !== undefined) {
+      if (drop.fc.methods[0]?.length === 2) {
+        return DROP_TYPE.TRIAL;
+      }
+
       if (drop.fc.methods.length === 3) {
         return DROP_TYPE.TICKET;
       }
@@ -163,13 +166,12 @@ class KeypomJS {
   async getTokenClaimInformation(contractId: string, secretKey: string) {
     // verify if secretKey is a token drop
     const linkdropType = await this.getLinkdropType(contractId, secretKey);
-    if (linkdropType !== DROP_TYPE.SIMPLE && linkdropType !== DROP_TYPE.TOKEN) {
-      throw new Error(
-        'This drop is not a Simple drop or Token drop. Please contact your drop creator.',
-      );
+    if (linkdropType && !DROP_TYPE[linkdropType]) {
+      throw new Error('This drop is not supported. Please contact the sender of this link.');
     }
 
     const drop = await getDropInformation({ secretKey });
+    console.log(drop);
     const dropMetadata = drop.metadata !== undefined ? this.getDropMetadata(drop.metadata) : {};
     let ftMetadata;
     if (drop.ft !== undefined) {
