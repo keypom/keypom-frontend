@@ -98,7 +98,7 @@ const ClaimTokenPage = () => {
       await keypomInstance.claim(secretKey, walletAddress);
       storeClaimDrop(secretKey);
     } catch (err) {
-      setClaimError(err);
+      setClaimError(err.message);
     }
     setOpenResultModal(true);
     setIsClaimLoading(false);

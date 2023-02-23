@@ -78,7 +78,7 @@ export const ClaimFormContextProvider = ({ children }: PropsWithChildren) => {
   const handleClaim = async () => {
     // Only allow claiming when there are 3 remaining uses
     if (remainingUses === 3) {
-      await keypomInstance.claim(secretKey, 'foo');
+      await keypomInstance.claim(secretKey, 'foo.near');
     }
   };
 
