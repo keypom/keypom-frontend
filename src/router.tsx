@@ -9,10 +9,15 @@ const AllDropsPage = React.lazy(
   async () => await import('./features/all-drops/routes/AllDropsPage'),
 );
 const LandingPage = React.lazy(async () => await import('@/features/landing/routes/LandingPage'));
-const ClaimTokenPage = React.lazy(async () => await import('@/features/claim/routes/token'));
-const ClaimNftPage = React.lazy(async () => await import('@/features/claim/routes/nft'));
-const ClaimGiftPage = React.lazy(async () => await import('@/features/claim/routes/gift'));
-const ClaimTicketPage = React.lazy(async () => await import('@/features/claim/routes/ticket/[id]'));
+const ClaimPage = React.lazy(async () => await import('@/features/claim/routes/ClaimPage'));
+const ClaimTokenPage = React.lazy(
+  async () => await import('@/features/claim/routes/TokenClaimPage'),
+);
+const ClaimNftPage = React.lazy(async () => await import('@/features/claim/routes/NFTClaimPage'));
+const ClaimGiftPage = React.lazy(async () => await import('@/features/claim/routes/GiftClaimPage'));
+const ClaimTicketPage = React.lazy(
+  async () => await import('@/features/claim/routes/ticket/TicketClaimPage'),
+);
 const CreateTokenDropPage = React.lazy(
   async () => await import('@/features/create-drop/routes/CreateTokenDropPage'),
 );
@@ -96,30 +101,29 @@ export const router = createBrowserRouter([
           },
         ],
       },
+      //  claim structure should be claim/:contractId#secretKey
       {
         path: 'claim',
-        element: <ProtectedRoute />,
         children: [
           {
-            path: 'token',
+            path: 'token/:contractId',
             element: <ClaimTokenPage />,
           },
           {
-            path: 'nft',
+            path: 'nft/:contractId',
             element: <ClaimNftPage />,
           },
           {
-            path: 'gift',
+            path: 'gift/:contractId',
             element: <ClaimGiftPage />,
           },
           {
-            path: 'ticket',
-            children: [
-              {
-                path: ':id',
-                element: <ClaimTicketPage />,
-              },
-            ],
+            path: 'ticket/:contractId',
+            element: <ClaimTicketPage />,
+          },
+          {
+            path: ':contractId',
+            element: <ClaimPage />,
           },
         ],
       },

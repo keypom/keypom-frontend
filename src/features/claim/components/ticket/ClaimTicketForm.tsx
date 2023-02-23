@@ -1,10 +1,8 @@
-import { Button, VStack } from '@chakra-ui/react';
-import { useFormContext } from 'react-hook-form';
+import { Box, Button, Center, Spinner } from '@chakra-ui/react';
+import { useState } from 'react';
 
 import { useClaimForm } from '../ClaimFormContext';
 
-import { NameField } from './fields/NameField';
-import { EmailField } from './fields/EmailField';
 import { useClaimTicketFlow } from './ClaimTicketFlowContext';
 
 export interface ClaimTicketFormFieldTypes {
@@ -14,26 +12,35 @@ export interface ClaimTicketFormFieldTypes {
 
 export const ClaimTicketForm = () => {
   const { onNext } = useClaimTicketFlow();
+  const [isLoading, setIsLoading] = useState(false);
+  const { handleClaim } = useClaimForm();
+  // const { handleSubmit, control } = useFormContext<ClaimTicketFormFieldTypes>();
 
-  const { getClaimFormData } = useClaimForm();
-  const { handleSubmit, control } = useFormContext<ClaimTicketFormFieldTypes>();
-
-  const handleSubmitClick = () => {
-    // TODO: handle name/email validation and send email
-    // eslint-disable-next-line no-console
-    console.log(getClaimFormData());
+  const handleSubmitClick = async () => {
+    setIsLoading(true);
+    await handleClaim();
+    setIsLoading(false);
     onNext();
   };
 
   return (
-    <form style={{ width: '100%' }} onSubmit={handleSubmit(handleSubmitClick)}>
-      <VStack mb="8" spacing="4" w="full">
-        <NameField control={control} />
+    <Box
+      style={{ width: '100%' }}
+      // onSubmit={handleSubmit(handleSubmitClick)}
+    >
+      {/* <VStack mb="8" spacing="4" w="full">
+        <NameField control={control} /> TODO: to be readded in future
         <EmailField control={control} />
-      </VStack>
-      <Button type="submit" w="full">
-        Next
-      </Button>
-    </form>
+      </VStack> */}
+      {isLoading ? (
+        <Center>
+          <Spinner size="lg" />
+        </Center>
+      ) : (
+        <Button type="submit" w="full" onClick={handleSubmitClick}>
+          Show me my ticket
+        </Button>
+      )}
+    </Box>
   );
 };

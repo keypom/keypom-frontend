@@ -9,9 +9,16 @@ import {
   ModalHeader,
   ModalOverlay,
   Input,
+  Box,
+  Center,
+  Spinner,
+  Text,
 } from '@chakra-ui/react';
+import { CheckIcon, CloseIcon } from '@chakra-ui/icons';
 
 import { useAppContext } from '@/contexts/AppContext';
+
+import { RoundIcon } from '../IconBox/RoundIcon';
 
 // TODO: enhance css after merging sushan's sign in modal branch
 export const AppModal = () => {
@@ -22,6 +29,7 @@ export const AppModal = () => {
 
   return (
     <Modal
+      closeOnOverlayClick
       isOpen={appModal.isOpen}
       onClose={() => {
         setAppModal({
@@ -41,7 +49,32 @@ export const AppModal = () => {
           {appModal.header && <h4>{appModal.header}</h4>}
         </ModalHeader>
         <ModalBody>
-          {appModal.message && <p>{appModal.message}</p>}
+          {appModal.isLoading && (
+            <Center>
+              <Spinner
+                color="blue.400"
+                h={{ base: '16', md: '20' }}
+                mb="6"
+                w={{ base: '16', md: '20' }}
+              />
+            </Center>
+          )}
+
+          {appModal.isSuccess && (
+            <Center>
+              <RoundIcon icon={<CheckIcon color="blue.400" />} mb="6" />
+            </Center>
+          )}
+
+          {appModal.isError && (
+            <Center>
+              <RoundIcon icon={<CloseIcon color="blue.400" />} mb="6" />
+            </Center>
+          )}
+
+          {appModal.message && <Text my={2}>{appModal.message}</Text>}
+
+          {appModal.bodyComponent !== undefined && <Box>{appModal.bodyComponent}</Box>}
 
           {appModal.inputs && appModal.inputs.length > 0 && (
             <>

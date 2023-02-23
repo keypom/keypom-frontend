@@ -167,7 +167,7 @@ export default function AllDrops() {
             metadata = JSON.stringify({ dropName: 'untitled' }),
             next_key_id,
           }) => {
-            const meta = JSON.parse(metadata);
+            const meta = JSON.parse(metadata) || {};
             if (!meta.dropName) {
               meta.dropName = 'Untitled Drop';
             }

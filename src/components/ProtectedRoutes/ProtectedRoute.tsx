@@ -17,6 +17,7 @@ export const ProtectedRoute = ({
 
   useEffect(() => {
     if (!isLoggedIn) {
+      console.error('Unauthenticated page access.');
       navigate(redirectPath);
     }
   }, [isLoggedIn]);
