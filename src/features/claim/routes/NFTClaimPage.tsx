@@ -85,17 +85,20 @@ const ClaimNftPage = () => {
 
   const handleClaim = async (walletAddress: string) => {
     setClaimError('');
+    setOpenResultModal(false);
     setIsClaimLoading(true);
     setOpenLoadingModal(true);
     try {
       await keypomInstance.claim(secretKey, walletAddress);
       storeClaimDrop(secretKey);
+      setOpenLoadingModal(false);
       setOpenResultModal(true);
       setIsClaimLoading(false);
       setIsClaimSuccessful(true);
     } catch (err) {
       setClaimError(err.message);
       setIsClaimLoading(false);
+      setOpenLoadingModal(false);
       setOpenResultModal(true);
     }
   };
