@@ -54,11 +54,7 @@ export const MobileMenu = () => {
             </VStack>
           </DrawerBody>
           <DrawerFooter flexDirection="row" justifyContent="center" pb="10">
-            {isLoggedIn ? (
-              <SignedInButton />
-            ) : (
-              <>{window.location.href.includes('?v=42') && <ConnectWalletButton w="50%" />}</>
-            )}
+            {isLoggedIn ? <SignedInButton /> : <ConnectWalletButton w="50%" />}
           </DrawerFooter>
         </DrawerContent>
       </Drawer>
