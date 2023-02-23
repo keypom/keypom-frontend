@@ -88,11 +88,13 @@ export default function NFTDropManagerPage() {
     setName(JSON.parse(drop.metadata as unknown as string).dropName);
 
     const { publicKeys, secretKeys } = await generateKeys({
-      numKeys: Math.min(drop.next_key_id, pageSize),
+      numKeys:
+        (pageIndex + 1) * pageSize > drop.next_key_id
+          ? drop.next_key_id - pageIndex * pageSize
+          : Math.min(drop.next_key_id, pageSize),
       rootEntropy: `${get(MASTER_KEY) as string}-${dropId}`,
       autoMetaNonceStart: pageIndex * pageSize,
     });
-
     const keyInfo = await getKeyInformationBatch({
       publicKeys,
       secretKeys,
