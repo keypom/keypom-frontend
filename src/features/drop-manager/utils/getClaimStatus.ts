@@ -6,12 +6,13 @@ export const getClaimStatus = (key: ProtocolReturnedKeyInfo | null): TicketClaim
   if (!key) return 'Claimed';
   const { cur_key_use } = key;
 
+  // cur_key_use is not zero indexed
   switch (cur_key_use) {
-    case 0:
-      return 'Unclaimed';
     case 1:
-      return 'Viewed';
+      return 'Unclaimed';
     case 2:
+      return 'Viewed';
+    case 3:
     default:
       return 'Attended';
   }
