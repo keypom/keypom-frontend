@@ -10,10 +10,7 @@ import {
   hashPassword,
   getPubFromSecret,
   formatNearAmount,
-<<<<<<< HEAD
-=======
   formatLinkdropUrl,
->>>>>>> testnet
 } from 'keypom-js';
 
 import { CLOUDFLARE_IPFS, DROP_TYPE } from '@/constants/common';
@@ -50,6 +47,8 @@ class KeypomJS {
     ) {
       throw new Error('Please supply supportedKeypomContracts, networkId and contractId');
     }
+
+    console.trace(supportedKeypomContracts[networkId][contractId])
 
     if (supportedKeypomContracts[networkId][contractId] === undefined) {
       throw new Error("Linkdrop is invalid and isn't officially supported by Keypom contract.");
@@ -100,32 +99,21 @@ class KeypomJS {
   async getLinkdropType(contractId: string, secretKey: string) {
     await this.verifyDrop(contractId, secretKey);
     const drop = await getDropInformation({ secretKey });
-<<<<<<< HEAD
-=======
-    console.log({ drop });
->>>>>>> testnet
 
     return this.getDropType(drop);
   }
 
   getDropType(drop: ProtocolReturnedDrop) {
-<<<<<<< HEAD
-
-=======
->>>>>>> testnet
     if (drop.fc === undefined && drop.nft === undefined) {
       return DROP_TYPE.TOKEN;
     }
 
     if (drop.fc !== undefined) {
-<<<<<<< HEAD
       
       if (drop.fc.methods[0]?.length === 2) {
         return DROP_TYPE.TRIAL;
       }
 
-=======
->>>>>>> testnet
       if (drop.fc.methods.length === 3) {
         return DROP_TYPE.TICKET;
       }
@@ -181,9 +169,9 @@ class KeypomJS {
   async getTokenClaimInformation(contractId: string, secretKey: string) {
     // verify if secretKey is a token drop
     const linkdropType = await this.getLinkdropType(contractId, secretKey);
-    if (linkdropType !== DROP_TYPE.SIMPLE && linkdropType !== DROP_TYPE.TOKEN) {
+    if (linkdropType && !DROP_TYPE[linkdropType]) {
       throw new Error(
-        'This drop is not a Simple drop or Token drop. Please contact your drop creator.',
+        'This drop is not supported. Please contact the sender of this link.',
       );
     }
 

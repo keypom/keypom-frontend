@@ -18,7 +18,9 @@ const ClaimPage = () => {
 
   const getClaimInfo = async () => {
     try {
+
       const type = await keypomInstance.getLinkdropType(contractId, secretKey);
+
       switch (type) {
         case DROP_TYPE.TOKEN:
           navigate(`/claim/token/${contractId}#${secretKey}`);
@@ -28,6 +30,9 @@ const ClaimPage = () => {
           break;
         case DROP_TYPE.NFT:
           navigate(`/claim/nft/${contractId}#${secretKey}`);
+          break;
+        case DROP_TYPE.TRIAL:
+          navigate(`/claim/trial/${contractId}#${secretKey}`);
           break;
         default:
           throw new Error('This linkdrop is unsupported.');

@@ -10,6 +10,7 @@ import keypomInstance from '@/lib/keypom';
 import { checkClaimedDrop, storeClaimDrop } from '@/utils/claimedDrops';
 import { useAppContext } from '@/contexts/AppContext';
 import { ErrorBox } from '@/components/ErrorBox';
+import { useClaimParams } from '@/hooks/useClaimParams';
 
 import { ExistingWallet } from '../components/ExistingWallet';
 import { CreateWallet } from '../components/CreateWallet';
@@ -24,7 +25,7 @@ interface TokenAsset {
 
 const TrialClaimPage = () => {
   const navigate = useNavigate();
-  const { secretKey = '' } = useParams();
+  const { contractId, secretKey } = useClaimParams();
   const { setAppModal } = useAppContext();
   const [haveWallet, showInputWallet] = useBoolean(false);
   const [tokens, setTokens] = useState<TokenAsset[]>([]);
@@ -38,7 +39,7 @@ const TrialClaimPage = () => {
 
   const loadClaimInfo = async () => {
     try {
-      const drop = await keypomInstance.getTokenClaimInformation(secretKey);
+      const drop = await keypomInstance.getTokenClaimInformation(contractId, secretKey);
       console.log(drop)
     } catch(e) {
       console.log(e)
