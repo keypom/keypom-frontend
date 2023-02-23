@@ -1,5 +1,4 @@
 import { Center, type CenterProps, Text } from '@chakra-ui/react';
-import { Link } from 'react-router-dom';
 
 import { CoinIcon } from '@/components/CoinIcon';
 

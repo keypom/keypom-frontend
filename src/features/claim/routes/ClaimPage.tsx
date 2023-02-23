@@ -12,7 +12,7 @@ const ClaimPage = () => {
   const navigate = useNavigate();
   const { contractId, secretKey } = useClaimParams();
   const [searchParams] = useSearchParams();
-  const searchParamsStr = searchParams.toString()
+  const searchParamsStr = searchParams.toString();
 
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -20,7 +20,6 @@ const ClaimPage = () => {
 
   const getClaimInfo = async () => {
     try {
-
       const type = await keypomInstance.getLinkdropType(contractId, secretKey);
 
       switch (type) {

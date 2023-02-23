@@ -47,7 +47,7 @@ class KeypomJS {
     ) {
       throw new Error('Please supply supportedKeypomContracts, networkId and contractId');
     }
-    
+
     if (supportedKeypomContracts[networkId][contractId] === undefined) {
       throw new Error("Linkdrop is invalid and isn't officially supported by Keypom contract.");
     }
@@ -107,7 +107,6 @@ class KeypomJS {
     }
 
     if (drop.fc !== undefined) {
-      
       if (drop.fc.methods[0]?.length === 2) {
         return DROP_TYPE.TRIAL;
       }
@@ -168,13 +167,11 @@ class KeypomJS {
     // verify if secretKey is a token drop
     const linkdropType = await this.getLinkdropType(contractId, secretKey);
     if (linkdropType && !DROP_TYPE[linkdropType]) {
-      throw new Error(
-        'This drop is not supported. Please contact the sender of this link.',
-      );
+      throw new Error('This drop is not supported. Please contact the sender of this link.');
     }
 
     const drop = await getDropInformation({ secretKey });
-    console.log(drop)
+    console.log(drop);
     const dropMetadata = drop.metadata !== undefined ? this.getDropMetadata(drop.metadata) : {};
     let ftMetadata;
     if (drop.ft !== undefined) {

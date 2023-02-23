@@ -1,21 +1,18 @@
 import { Box, Center, Heading, useBoolean, VStack } from '@chakra-ui/react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
+import { claimTrialAccountDrop, accountExists } from 'keypom-js';
 
 import { IconBox } from '@/components/IconBox';
 import { BoxWithShape } from '@/components/BoxWithShape';
 import { StarIcon } from '@/components/Icons';
 import { DropBox } from '@/components/DropBox/DropBox';
 import keypomInstance from '@/lib/keypom';
-import { checkClaimedDrop, storeClaimDrop } from '@/utils/claimedDrops';
 import { useAppContext } from '@/contexts/AppContext';
 import { ErrorBox } from '@/components/ErrorBox';
 import { useClaimParams } from '@/hooks/useClaimParams';
 
 import { ExistingWallet } from '../components/ExistingWallet';
-import { CreateWallet } from '../components/CreateWallet';
-
-import { claimTrialAccountDrop, accountExists, claim } from 'keypom-js';
 
 interface TokenAsset {
   icon: string;
@@ -27,25 +24,22 @@ const TrialClaimPage = () => {
   const navigate = useNavigate();
   const { contractId, secretKey } = useClaimParams();
   const { setAppModal } = useAppContext();
-  const [haveWallet, showInputWallet] = useBoolean(false);
-  const [tokens, setTokens] = useState<TokenAsset[]>([]);
-  const [walletsOptions, setWallets] = useState([]);
+  const [showInputWallet] = useBoolean(false);
+  const [tokens] = useState<TokenAsset[]>([]);
   const [isClaimSuccessful, setIsClaimSuccessful] = useState(false);
   const [isClaimLoading, setIsClaimLoading] = useState(false);
   const [claimError, setClaimError] = useState('');
-  const [isDropClaimed, setIsDropClaimed] = useState(false);
+  const [isDropClaimed] = useState(false);
   const [openLoadingModal, setOpenLoadingModal] = useState(false);
-  const [openResultModal, setOpenResultModal] = useState(false);
+  const [openResultModal] = useState(false);
   const [searchParams] = useSearchParams();
-
 
   const loadClaimInfo = async () => {
     try {
       const drop = await keypomInstance.getTokenClaimInformation(contractId, secretKey);
-      console.log(drop)
-
-    } catch(e) {
-      console.log(e)
+      console.log(drop);
+    } catch (e) {
+      console.log(e);
       // `no drop ID for PK` is error we should pass through to the redirect URL
       setClaimError('No drop for this link!');
     }
@@ -55,7 +49,7 @@ const TrialClaimPage = () => {
     if (secretKey === '') {
       navigate('/');
     }
-    
+
     loadClaimInfo();
   }, []);
 
@@ -72,16 +66,16 @@ const TrialClaimPage = () => {
   }, [openResultModal]);
 
   const handleClaim = async (walletAddress: string) => {
-
-    const root = '.linkdrop-beta.keypom.testnet'
-    const desiredAccountId = walletAddress + root
+    const root = '.linkdrop-beta.keypom.testnet';
+    const desiredAccountId = walletAddress + root;
 
     console.log('attempting ', desiredAccountId);
 
     const exists = await accountExists(desiredAccountId);
 
     if (exists) {
-      return console.warn('exists')
+      console.warn('exists');
+      return;
     }
 
     setIsClaimLoading(true);
@@ -90,19 +84,19 @@ const TrialClaimPage = () => {
       await claimTrialAccountDrop({
         secretKey,
         desiredAccountId,
-      })
+      });
       setIsClaimSuccessful(true);
 
-      const appsStr = searchParams.get('apps')
+      const appsStr = searchParams.get('apps');
       if (appsStr) {
-        const apps = JSON.parse(appsStr)
+        const apps = JSON.parse(appsStr);
 
-//TODO MENU FOR MULTIPLE APPS
+        // TODO MENU FOR MULTIPLE APPS
 
-        window.open(apps[0], '_blank')
+        window.open(apps[0], '_blank');
       }
-    } catch(e) {
-      console.log(e)
+    } catch (e) {
+      console.log(e);
     } finally {
       setIsClaimLoading(false);
     }
@@ -130,11 +124,11 @@ const TrialClaimPage = () => {
   }
 
   if (claimError.length > 0) {
-    return <Box mb={{ base: '5', md: '14' }} minH="100%" minW="100%" mt={{ base: '52px', md: '100px' }}>
-    <Center>
-      No drop for that link!
-      </Center>
+    return (
+      <Box mb={{ base: '5', md: '14' }} minH="100%" minW="100%" mt={{ base: '52px', md: '100px' }}>
+        <Center>No drop for that link!</Center>
       </Box>
+    );
   }
 
   return (
@@ -177,13 +171,13 @@ const TrialClaimPage = () => {
               w="full"
             >
               <ExistingWallet
-                noBackIcon={true}
-                message={`Create Your Account`}
-                label={`Your Account Name`}
                 claimErrorText={claimError}
                 handleSubmit={handleClaim}
                 isLoading={isClaimLoading}
                 isSuccess={isClaimSuccessful}
+                label={`Your Account Name`}
+                message={`Create Your Account`}
+                noBackIcon={true}
                 onBack={showInputWallet.off}
               />
             </VStack>
