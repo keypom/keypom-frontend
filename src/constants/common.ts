@@ -24,3 +24,7 @@ export const DROP_TYPE = {
   NFT: 'NFT',
   SIMPLE: 'SIMPLE',
 };
+
+export const MASTER_KEY = 'MASTER_KEY';
+
+export const PAGE_SIZE_LIMIT = 10;
