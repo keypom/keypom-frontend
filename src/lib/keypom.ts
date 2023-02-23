@@ -160,10 +160,14 @@ class KeypomJS {
     return urls[0];
   }
 
-  async getTokenClaimInformation(contractId: string, secretKey: string) {
+  async getTokenClaimInformation(contractId: string, secretKey: string, skipLinkdropCheck = false) {
     // verify if secretKey is a token drop
     const linkdropType = await this.getLinkdropType(contractId, secretKey);
-    if (linkdropType !== DROP_TYPE.SIMPLE && linkdropType !== DROP_TYPE.TOKEN) {
+    if (
+      !skipLinkdropCheck &&
+      linkdropType !== DROP_TYPE.SIMPLE &&
+      linkdropType !== DROP_TYPE.TOKEN
+    ) {
       throw new Error(
         'This drop is not a Simple drop or Token drop. Please contact your drop creator.',
       );
@@ -208,11 +212,18 @@ class KeypomJS {
     const fcMethod = fcMethods[0][0];
     const { receiver_id: receiverId } = fcMethod;
     const { viewCall } = getEnv();
-    const nftData = await viewCall({
-      contractId: receiverId,
-      methodName: 'get_series_info',
-      args: { mint_id: parseInt(drop.drop_id) },
-    });
+
+    let nftData;
+    try {
+      nftData = await viewCall({
+        contractId: receiverId,
+        methodName: 'get_series_info',
+        args: { mint_id: parseInt(drop.drop_id) },
+      });
+    } catch (err) {
+      console.error('NFT series not found');
+      throw new Error('NFT series not found');
+    }
 
     return {
       dropName: dropMetadata.dropName,
@@ -253,11 +264,18 @@ class KeypomJS {
     const fcMethod = fcMethods[2][0];
     const { receiver_id: receiverId } = fcMethod;
     const { viewCall } = getEnv();
-    const nftData = await viewCall({
-      contractId: receiverId,
-      methodName: 'get_series_info',
-      args: { mint_id: parseFloat(drop.drop_id) },
-    });
+
+    let nftData;
+    try {
+      nftData = await viewCall({
+        contractId: receiverId,
+        methodName: 'get_series_info',
+        args: { mint_id: parseFloat(drop.drop_id) },
+      });
+    } catch (err) {
+      console.error('NFT series not found');
+      throw new Error('NFT series not found');
+    }
 
     return {
       remainingUses,

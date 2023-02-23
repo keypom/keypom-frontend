@@ -1,4 +1,4 @@
-import { Box, Center, Heading, useBoolean, VStack } from '@chakra-ui/react';
+import { Box, Center, Heading, Spinner, useBoolean, VStack } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -10,10 +10,13 @@ import { checkClaimedDrop, storeClaimDrop } from '@/utils/claimedDrops';
 import { useAppContext } from '@/contexts/AppContext';
 import { ErrorBox } from '@/components/ErrorBox';
 import { useClaimParams } from '@/hooks/useClaimParams';
+import { DropBox } from '@/components/DropBox';
 
 import { CreateWallet } from '../components/CreateWallet';
 import { ExistingWallet } from '../components/ExistingWallet';
 import { NftReward } from '../components/nft/NftReward';
+
+import { type TokenAsset } from './TokenClaimPage';
 
 const ClaimNftPage = () => {
   const navigate = useNavigate();
@@ -30,8 +33,41 @@ const ClaimNftPage = () => {
   const [dropError, setDropError] = useState('');
   const [openLoadingModal, setOpenLoadingModal] = useState(false);
   const [openResultModal, setOpenResultModal] = useState(false);
+  const [isClaimInfoLoading, setClaimInfoLoading] = useState(true);
 
-  const loadClaimInfo = async () => {
+  const [showTokenDrop, setShowTokenDrop] = useState(false);
+  const [tokens, setTokens] = useState<TokenAsset[]>([]);
+
+  const loadTokenClaimInfo = async () => {
+    try {
+      const { ftMetadata, amountNEAR, amountTokens, wallets } =
+        await keypomInstance.getTokenClaimInformation(contractId, secretKey, true);
+      const tokens: TokenAsset[] = [
+        {
+          icon: 'https://cryptologos.cc/logos/near-protocol-near-logo.svg?v=024',
+          value: amountNEAR || '0',
+          symbol: 'NEAR',
+        },
+      ];
+      if (ftMetadata) {
+        setTokens([
+          ...tokens,
+          {
+            icon: ftMetadata.icon as string,
+            value: amountTokens ?? '0',
+            symbol: ftMetadata.symbol,
+          },
+        ]);
+      }
+
+      setTokens(tokens);
+      setWallets(wallets);
+    } catch (err) {
+      setDropError(err.message);
+    }
+  };
+
+  const loadNFTClaimInfo = async () => {
     try {
       const nftData = await keypomInstance.getNFTClaimInformation(contractId, secretKey);
 
@@ -40,8 +76,17 @@ const ClaimNftPage = () => {
       setNftImage(nftData.media);
       setWallets(nftData.wallets);
     } catch (err) {
+      if (err.message === 'NFT series not found') {
+        // show tokens instead
+        setShowTokenDrop(true);
+        await loadTokenClaimInfo();
+        setClaimInfoLoading(false);
+        return;
+      }
+
       setDropError(err.message);
     }
+    setClaimInfoLoading(false);
   };
 
   useEffect(() => {
@@ -56,7 +101,7 @@ const ClaimNftPage = () => {
     }
 
     // eslint-disable-next-line
-    loadClaimInfo();
+    loadNFTClaimInfo();
   }, []);
 
   useEffect(() => {
@@ -106,13 +151,24 @@ const ClaimNftPage = () => {
     return <ErrorBox message={dropError} />;
   }
 
+  if (isClaimInfoLoading) {
+    return (
+      <Center h={{ base: '300px', md: '500px' }}>
+        <Spinner size="xl" />
+      </Center>
+    );
+  }
+
+  // show token drop if NFT series does not exist
+  const headingTitle = showTokenDrop ? `You've received a Keypom Drop!` : `You've received an NFT`;
+
   return (
     <Box mb={{ base: '5', md: '14' }} minH="100%" minW="100%" mt={{ base: '52px', md: '100px' }}>
       <Center>
         {/** the additional gap is to accommodate for the absolute roundIcon size */}
         <VStack gap={{ base: 'calc(24px + 8px)', md: 'calc(32px + 10px)' }}>
           {/** Prompt text */}
-          <Heading textAlign="center">{`You've received an NFT`}</Heading>
+          <Heading textAlign="center">{headingTitle}</Heading>
 
           {/** Claim nft component */}
           <IconBox
@@ -130,8 +186,16 @@ const ClaimNftPage = () => {
               px={{ base: '6', md: '8' }}
               w="full "
             >
-              {/** in future we may have tokens */}
-              <NftReward artworkSrc={nftImage} description={description} nftName={title} />
+              {showTokenDrop ? (
+                <VStack>
+                  {/** div placeholder */}
+                  {tokens.map(({ icon, value, symbol }, index) => (
+                    <DropBox key={index} icon={icon} symbol={symbol} value={value} />
+                  ))}
+                </VStack>
+              ) : (
+                <NftReward artworkSrc={nftImage} description={description} nftName={title} />
+              )}
             </BoxWithShape>
             <VStack
               bg="gray.50"
@@ -148,15 +212,13 @@ const ClaimNftPage = () => {
                   onClick={showInputWallet.on}
                 />
               ) : (
-                <>
-                  <ExistingWallet
-                    claimErrorText={claimError}
-                    handleSubmit={handleClaim}
-                    isLoading={isClaimLoading}
-                    isSuccess={isClaimSuccessful}
-                    onBack={showInputWallet.off}
-                  />
-                </>
+                <ExistingWallet
+                  claimErrorText={claimError}
+                  handleSubmit={handleClaim}
+                  isLoading={isClaimLoading}
+                  isSuccess={isClaimSuccessful}
+                  onBack={showInputWallet.off}
+                />
               )}
             </VStack>
           </IconBox>

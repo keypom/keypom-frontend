@@ -15,7 +15,7 @@ import { useClaimParams } from '@/hooks/useClaimParams';
 import { ExistingWallet } from '../components/ExistingWallet';
 import { CreateWallet } from '../components/CreateWallet';
 
-interface TokenAsset {
+export interface TokenAsset {
   icon: string;
   value: string;
   symbol: string;
