@@ -47,7 +47,8 @@ const schema = z.object({
   totalLinks: z
     .number({ invalid_type_error: 'Number of links required' })
     .positive()
-    .min(1, 'Required'),
+    .min(1, 'Required')
+    .max(10000),
   amountPerLink: z.number({ invalid_type_error: 'Amount required' }).gt(0),
   redirectLink: z
     .union([z.string().regex(urlRegex, 'Please enter a valid url'), z.string().length(0)])
