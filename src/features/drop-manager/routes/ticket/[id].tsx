@@ -42,12 +42,22 @@ export default function TicketDropManagerPage() {
   const [wallet, setWallet] = useState({});
   const { selector, accountId } = useAuthWalletContext();
 
+  const getWallet = async () => {
+    if (selector === null) {
+      return;
+    }
+    console.log('hello', { selector });
+    try {
+      const selectorWallet = await selector?.wallet();
+      setWallet(selectorWallet);
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
   useEffect(() => {
-    const getWallet = async () => {
-      setWallet(await selector.wallet());
-    };
     getWallet();
-  }, []);
+  }, [selector]);
 
   const {
     hasPagination,
@@ -118,7 +128,7 @@ export default function TicketDropManagerPage() {
 
   useEffect(() => {
     handleGetDrops({});
-  }, []);
+  }, [accountId]);
 
   const handleCopyClick = (link: string) => {
     copy(link);
