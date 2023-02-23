@@ -138,8 +138,12 @@ class KeypomJS {
   */
   getLinkdropType = async (contractId: string, secretKey: string) => {
     await this.verifyDrop(contractId, secretKey);
-    const drop = await getDropInformation({ secretKey });
-    console.log({ drop });
+    let drop;
+    try {
+      drop = await getDropInformation({ secretKey });
+    } catch (err) {
+      throw new Error('Unable to claim. This drop may have been claimed before.');
+    }
 
     return this.getDropType(drop);
   };
@@ -252,6 +256,7 @@ class KeypomJS {
     }
     // given fc
     let drop;
+    console.log('hello');
     try {
       drop = await getDropInformation({ secretKey });
     } catch (err) {
