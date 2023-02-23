@@ -1,4 +1,5 @@
-import { Box, type BoxProps, Image } from '@chakra-ui/react';
+import { Box, type BoxProps, Skeleton, Image as ChakraImage } from '@chakra-ui/react';
+import { useState } from 'react';
 
 import { replaceSpace } from '@/utils/replaceSpace';
 
@@ -8,6 +9,8 @@ interface AvatarImageProps extends BoxProps {
 }
 
 export const AvatarImage = ({ altName, imageSrc, ...props }: AvatarImageProps) => {
+  const [src, setSrc] = useState(imageSrc);
+
   return (
     <Box
       borderRadius={{ base: '5xl', md: '6xl' }}
@@ -17,11 +20,19 @@ export const AvatarImage = ({ altName, imageSrc, ...props }: AvatarImageProps) =
       w={{ base: '7.5rem', md: '11.25rem' }}
       {...props}
     >
-      <Image
+      {/* {isImageLoading && <Skeleton borderRadius={{ base: '5xl', md: '6xl' }} height="100%" />} */}
+      <ChakraImage
         alt={replaceSpace(altName)}
         borderRadius={{ base: '5xl', md: '6xl' }}
+        // display={isImageLoading ? 'none' : 'block'}
+        fallback={<Skeleton borderRadius={{ base: '5xl', md: '6xl' }} height="100%" />}
         objectFit="cover"
-        src={imageSrc}
+        position="absolute"
+        src={src}
+        top={0}
+        onError={() => {
+          setSrc('/assets/image-not-found.png');
+        }}
       />
     </Box>
   );
