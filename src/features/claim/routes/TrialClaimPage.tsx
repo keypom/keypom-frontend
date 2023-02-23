@@ -34,14 +34,14 @@ const TrialClaimPage = () => {
   const [openResultModal, setOpenResultModal] = useState(false);
   const [searchParams] = useSearchParams();
   const appsStr = searchParams.get('apps');
-  let apps
+  let apps;
   try {
     apps = JSON.parse(appsStr || '[]');
-  } catch(e) {}
+  } catch (e) {}
 
   const loadClaimInfo = async () => {
     try {
-      const drop = await keypomInstance.getTokenClaimInformation(contractId, secretKey);
+      await keypomInstance.getTokenClaimInformation(contractId, secretKey);
     } catch (e) {
       console.log(e);
       // `no drop ID for PK` is error we should pass through to the redirect URL
@@ -113,15 +113,15 @@ const TrialClaimPage = () => {
       isLoading: false,
       isError: Boolean(claimError),
       isSuccess: isClaimSuccessful,
-      bodyComponent:<>
-        {
-        apps.length > 0
-        ?
-        <Button onClick={() => window.open(apps[0], '_blank')}>Go to App</Button>
-        :
-        <p>Account created successfully</p>
-      }
-      </>,
+      bodyComponent: (
+        <>
+          {apps.length > 0 ? (
+            <Button onClick={() => window.open(apps[0], '_blank')}>Go to App</Button>
+          ) : (
+            <p>Account created successfully</p>
+          )}
+        </>
+      ),
     });
   };
 

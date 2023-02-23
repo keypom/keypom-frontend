@@ -71,6 +71,7 @@ module.exports = {
     'unused-imports/no-unused-imports': 'error',
     '@typescript-eslint/no-explicit-any': 'warn',
     '@typescript-eslint/explicit-function-return-type': 'off',
+    '@typescript-eslint/prefer-nullish-coalescing': 'off',
     'import/order': [
       'warn',
       {
