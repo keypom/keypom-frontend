@@ -1,5 +1,5 @@
 import { Box, Center, Heading, useBoolean, VStack } from '@chakra-ui/react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 
 import { IconBox } from '@/components/IconBox';
@@ -36,11 +36,14 @@ const TrialClaimPage = () => {
   const [isDropClaimed, setIsDropClaimed] = useState(false);
   const [openLoadingModal, setOpenLoadingModal] = useState(false);
   const [openResultModal, setOpenResultModal] = useState(false);
+  const [searchParams] = useSearchParams();
+
 
   const loadClaimInfo = async () => {
     try {
       const drop = await keypomInstance.getTokenClaimInformation(contractId, secretKey);
       console.log(drop)
+
     } catch(e) {
       console.log(e)
       // `no drop ID for PK` is error we should pass through to the redirect URL
@@ -73,7 +76,7 @@ const TrialClaimPage = () => {
     const root = '.linkdrop-beta.keypom.testnet'
     const desiredAccountId = walletAddress + root
 
-    console.log('attempting ', walletAddress);
+    console.log('attempting ', desiredAccountId);
 
     const exists = await accountExists(desiredAccountId);
 
@@ -81,27 +84,28 @@ const TrialClaimPage = () => {
       return console.warn('exists')
     }
 
+    setIsClaimLoading(true);
+    setOpenLoadingModal(true);
     try {
       await claimTrialAccountDrop({
-        secretKey: '4MVfyqUDiWV66c3dMmqcU3rMsavNQqongEJCfd316eNToqi3rfR95Ehj7wm57rYmZrrM5FopxyUaeWuFepvzfbj4',
+        secretKey,
         desiredAccountId,
       })
+      setIsClaimSuccessful(true);
+
+      const appsStr = searchParams.get('apps')
+      if (appsStr) {
+        const apps = JSON.parse(appsStr)
+
+//TODO MENU FOR MULTIPLE APPS
+
+        window.open(apps[0], '_blank')
+      }
     } catch(e) {
       console.log(e)
+    } finally {
+      setIsClaimLoading(false);
     }
-    
-
-    // setIsClaimLoading(true);
-    // setOpenLoadingModal(true);
-    // try {
-    //   await keypomInstance.claim(secretKey, walletAddress);
-    //   storeClaimDrop(secretKey);
-    // } catch (err) {
-    //   setClaimError(err);
-    // }
-    // setOpenResultModal(true);
-    // setIsClaimLoading(false);
-    // setIsClaimSuccessful(true);
   };
 
   const openTransactionLoadingModal = () => {

@@ -47,9 +47,7 @@ class KeypomJS {
     ) {
       throw new Error('Please supply supportedKeypomContracts, networkId and contractId');
     }
-
-    console.trace(supportedKeypomContracts[networkId][contractId])
-
+    
     if (supportedKeypomContracts[networkId][contractId] === undefined) {
       throw new Error("Linkdrop is invalid and isn't officially supported by Keypom contract.");
     }
@@ -176,6 +174,7 @@ class KeypomJS {
     }
 
     const drop = await getDropInformation({ secretKey });
+    console.log(drop)
     const dropMetadata = drop.metadata !== undefined ? this.getDropMetadata(drop.metadata) : {};
     let ftMetadata;
     if (drop.ft !== undefined) {
