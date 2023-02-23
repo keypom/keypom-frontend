@@ -1,5 +1,5 @@
 import { type CheckboxItem } from '@/components/Checkboxes';
-import { MyNearLogoIcon } from '@/components/Icons';
+import { MyNearLogoIcon, NearLogoIcon } from '@/components/Icons';
 
 /**
  * Temporary data providers.
@@ -7,11 +7,11 @@ import { MyNearLogoIcon } from '@/components/Icons';
  */
 
 export const WALLET_OPTIONS: CheckboxItem[] = [
-  // {
-  //   name: 'NEAR Wallet',
-  //   value: 'near_wallet',
-  //   icon: <NearLogoIcon height="7" width="5" />,
-  // },
+  {
+    name: 'NEAR Wallet',
+    value: 'near_wallet',
+    icon: <NearLogoIcon height="7" width="5" />,
+  },
   {
     name: 'My NEAR Wallet',
     value: 'my_near_wallet',
@@ -25,15 +25,15 @@ export const WALLET_OPTIONS: CheckboxItem[] = [
 ];
 
 export const WALLET_TOKENS = [
-  // {
-  //   amount: '500',
-  //   symbol: 'NEAR',
-  //   wallet: 'near_wallet',
-  //   icon: <NearLogoIcon height="4" width="4" />,
-  // },
+  {
+    amount: '500',
+    symbol: 'NEAR',
+    wallet: 'near_wallet',
+    icon: <NearLogoIcon height="4" width="4" />,
+  },
   {
     amount: '1000',
-    symbol: 'USDC',
+    symbol: 'myNEAR',
     wallet: 'my_near_wallet',
     icon: <MyNearLogoIcon height="5" width="5" />,
   },

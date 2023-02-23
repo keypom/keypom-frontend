@@ -9,10 +9,10 @@ import { Checkboxes } from '@/components/Checkboxes';
 import { WalletBalanceInput } from '@/components/WalletBalanceInput';
 import { LinkIcon, NearLogoIcon } from '@/components/Icons';
 import { useDropFlowContext } from '@/features/create-drop/contexts';
-import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
 import { get } from '@/utils/localStorage';
 import { MASTER_KEY } from '@/constants/common';
 import { useAppContext, setAppModalHelper } from '@/contexts/AppContext';
+import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
 
 import { WALLET_OPTIONS } from '../WalletComponent';
 
@@ -130,8 +130,10 @@ export const CreateTokenDropForm = () => {
               <WalletBalanceInput
                 {...field}
                 isInvalid={Boolean(error?.message)}
+                maxLength={23}
                 onChange={(e) => {
-                  if (e.target.value.length > 15) return;
+                  if (e.target.value.length > e.target.maxLength)
+                    e.target.value = e.target.value.slice(0, e.target.maxLength);
                   field.onChange(parseFloat(e.target.value));
                 }}
               >
