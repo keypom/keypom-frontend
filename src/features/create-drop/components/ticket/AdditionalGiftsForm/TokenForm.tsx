@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { Controller, useFormContext } from 'react-hook-form';
+import { evaluate } from 'mathjs';
 
 import { FormControl } from '@/components/FormControl';
 import { WalletBalanceInput, type WalletToken } from '@/components/WalletBalanceInput';
@@ -25,7 +26,7 @@ export const TokenForm = () => {
   ]);
   const totalCost = useMemo(() => {
     if (totalTickets && amountPerLink !== undefined) {
-      return totalTickets * (amountPerLink as number);
+      return evaluate(`${totalTickets} * ${amountPerLink as number}`);
     }
     return 0;
   }, [amountPerLink, totalTickets]);
