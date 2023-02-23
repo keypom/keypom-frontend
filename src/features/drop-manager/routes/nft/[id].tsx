@@ -149,11 +149,12 @@ export default function NFTDropManagerPage() {
           </Text>
         </Text>
       ),
-      hasClaimed: item.hasClaimed ? (
-        <Badge variant="lightgreen">Claimed</Badge>
-      ) : (
-        <Badge variant="gray">Unclaimed</Badge>
-      ),
+      hasClaimed:
+        item.hasClaimed === true ? (
+          <Badge variant="lightgreen">Claimed</Badge>
+        ) : (
+          <Badge variant="gray">Unclaimed</Badge>
+        ),
       action: (
         <>
           <Button
@@ -166,15 +167,17 @@ export default function NFTDropManagerPage() {
           >
             <CopyIcon />
           </Button>
-          <Button
-            size="sm"
-            variant="icon"
-            onClick={async () => {
-              await handleDeleteClick(item.publicKey as string);
-            }}
-          >
-            <DeleteIcon color="red" />
-          </Button>
+          {item.hasClaimed !== true && (
+            <Button
+              size="sm"
+              variant="icon"
+              onClick={async () => {
+                await handleDeleteClick(item.publicKey as string);
+              }}
+            >
+              <DeleteIcon color="red" />
+            </Button>
+          )}
         </>
       ),
     }));

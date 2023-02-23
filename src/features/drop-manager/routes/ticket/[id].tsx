@@ -165,15 +165,17 @@ export default function TicketDropManagerPage() {
           >
             <CopyIcon />
           </Button>
-          <Button
-            size="sm"
-            variant="icon"
-            onClick={async () => {
-              await handleDeleteClick(item.publicKey as string);
-            }}
-          >
-            <DeleteIcon color="red" />
-          </Button>
+          {item.claimStatus !== 'Claimed' && (
+            <Button
+              size="sm"
+              variant="icon"
+              onClick={async () => {
+                await handleDeleteClick(item.publicKey as string);
+              }}
+            >
+              <DeleteIcon color="red" />
+            </Button>
+          )}
         </>
       ),
     }));
