@@ -6,6 +6,7 @@ import {
   generateKeys,
   getDropInformation,
   getKeyInformationBatch,
+  getKeysForDrop,
   getKeySupplyForDrop,
 } from 'keypom-js';
 
@@ -20,6 +21,7 @@ import { useAppContext } from '@/contexts/AppContext';
 import getConfig from '@/config/config';
 import { useValidMasterKey } from '@/hooks/useValidMasterKey';
 import { share } from '@/utils/share';
+import { asyncWithTimeout } from '@/utils/asyncWithTimeout';
 
 import { getClaimStatus } from '../../utils/getClaimStatus';
 import { getBadgeType } from '../../utils/getBadgeType';
@@ -36,6 +38,7 @@ export default function TicketDropManagerPage() {
 
   const { id: dropId } = useParams();
   const [loading, setLoading] = useState(true);
+  const [loadClaimNum, setLoadClaimNum] = useState(true);
 
   const [name, setName] = useState('Drop');
   const [dataSize, setDataSize] = useState<number>(0);
@@ -76,6 +79,42 @@ export default function TicketDropManagerPage() {
     }
   }, [masterKeyValidity]);
 
+  // set Scanned item
+  useEffect(() => {
+    const getScannedKeys = async () => {
+      const drop = await getDropInformation({ dropId });
+
+      let index = 0;
+      const size = 200; // max limit is 306
+      let numberOfScannedKey = 0;
+
+      while (index * size < drop.next_key_id) {
+        const keyInfos = await asyncWithTimeout(
+          getKeysForDrop({
+            dropId,
+            limit:
+              (index + 1) * size > drop.next_key_id
+                ? drop.next_key_id - index * size
+                : Math.min(drop.next_key_id, size),
+            start: index * size,
+          }),
+        ).catch((err) => {
+          console.log('Reach timeout or the following error:', err); // eslint-disable-line no-console
+        });
+
+        const numScannedKey = keyInfos.filter((key) => getClaimStatus(key) === 'Attended');
+        numberOfScannedKey = numberOfScannedKey + (numScannedKey.length as number);
+        index = index + 1;
+
+        console.log('scanned key:', numberOfScannedKey, 'loop index:', index); // eslint-disable-line no-console
+      }
+
+      setClaimed((await getKeySupplyForDrop({ dropId })) - numberOfScannedKey);
+      setLoadClaimNum(false);
+    };
+    getScannedKeys();
+  }, []);
+
   const {
     hasPagination,
     pagination,
@@ -111,7 +150,6 @@ export default function TicketDropManagerPage() {
       };
 
     setDataSize(drop.next_key_id);
-    setClaimed(await getKeySupplyForDrop({ dropId }));
 
     setName(JSON.parse(drop.metadata as unknown as string).dropName);
 
@@ -223,7 +261,7 @@ export default function TicketDropManagerPage() {
           claimedText={`${dataSize - claimed} / ${dataSize}`}
           data={getTableRows()}
           dropName={name}
-          loading={loading}
+          loading={loading || loadClaimNum}
           pagination={{
             hasPagination,
             id: 'token',
