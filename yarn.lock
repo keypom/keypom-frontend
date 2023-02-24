@@ -163,6 +163,13 @@
   dependencies:
     regenerator-runtime "^0.13.11"
 
+"@babel/runtime@^7.20.13":
+  version "7.21.0"
+  resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.21.0.tgz#5b55c9d394e5fcf304909a8b00c07dc217b56673"
+  integrity sha512-xwII0//EObnq89Ji5AKYQaRYiW/nZ3llSv29d49IuxPhKbtJoLP+9QUUZ4nVragQVtaVGeZrpB+ZtG/Pdy/POw==
+  dependencies:
+    regenerator-runtime "^0.13.11"
+
 "@babel/template@^7.18.10", "@babel/template@^7.20.7":
   version "7.20.7"
   resolved "https://registry.yarnpkg.com/@babel/template/-/template-7.20.7.tgz#a15090c2839a83b02aa996c0b4994005841fd5a8"
@@ -1436,6 +1443,13 @@
   dependencies:
     rxjs "^7.8.0"
 
+"@near-wallet-selector/core@7.8.2":
+  version "7.8.2"
+  resolved "https://registry.yarnpkg.com/@near-wallet-selector/core/-/core-7.8.2.tgz#4671660a5bdf3517133e4ea48729655ae643d4d8"
+  integrity sha512-jR4KDwrT3y0TiHoaVqGM5crd8M8UvSn+hp9xu8x6tKVeIe+s1hB7rFPAh3uJho/1BuyBIOVOzkcMBgrWMoFnVw==
+  dependencies:
+    rxjs "^7.8.0"
+
 "@near-wallet-selector/modal-ui@^7.6.1":
   version "7.8.0"
   resolved "https://registry.yarnpkg.com/@near-wallet-selector/modal-ui/-/modal-ui-7.8.0.tgz#43a71194f8a4ab4b7efc50768ad9c7e28d457e0b"
@@ -1455,6 +1469,14 @@
     "@near-wallet-selector/core" "7.8.0"
     "@near-wallet-selector/wallet-utils" "7.8.0"
 
+"@near-wallet-selector/my-near-wallet@^7.8.2":
+  version "7.8.2"
+  resolved "https://registry.yarnpkg.com/@near-wallet-selector/my-near-wallet/-/my-near-wallet-7.8.2.tgz#ea1c0c1216f028502d17413e40c6c5e9f998c09d"
+  integrity sha512-TOHNdR3Y0cT7aD8JKTp5tMyqA85niyOEFxy+pLKe3z/FGcdQX7Ui0DWdE9Qa14TwzbLHJtXmT0+/jg5p70oRag==
+  dependencies:
+    "@near-wallet-selector/core" "7.8.2"
+    "@near-wallet-selector/wallet-utils" "7.8.2"
+
 "@near-wallet-selector/near-wallet@^7.6.1":
   version "7.8.0"
   resolved "https://registry.yarnpkg.com/@near-wallet-selector/near-wallet/-/near-wallet-7.8.0.tgz#60bbf44962bc5356adfba40c3e18623057acd89d"
@@ -1469,6 +1491,14 @@
   integrity sha512-L14ykKZSGE7G5vu8GHxCQ6x0rDGd6AJDiHe8vLPbFz71DVQIo4VV2PRTz5DzKL29CfCU4Q2tWXlILPXtqvDKgw==
   dependencies:
     "@near-wallet-selector/core" "7.8.0"
+    bn.js "^5.2.0"
+
+"@near-wallet-selector/wallet-utils@7.8.2":
+  version "7.8.2"
+  resolved "https://registry.yarnpkg.com/@near-wallet-selector/wallet-utils/-/wallet-utils-7.8.2.tgz#38ceee02f5016633cd6713f886b1b796075101fe"
+  integrity sha512-PVbfM0+2eHhVpnj53SWlbqL8vEGM6K4uakxeVGu/tdQ8MZrd4Rmrw/q/YUX5DDRqdxdC2hZHicnWVY1ffYDTag==
+  dependencies:
+    "@near-wallet-selector/core" "7.8.2"
     bn.js "^5.2.0"
 
 "@nodelib/fs.scandir@2.1.5":
@@ -3042,6 +3072,11 @@ common-path-prefix@^3.0.0:
   resolved "https://registry.yarnpkg.com/common-path-prefix/-/common-path-prefix-3.0.0.tgz#7d007a7e07c58c4b4d5f433131a19141b29f11e0"
   integrity sha512-QE33hToZseCH3jS0qN96O/bSh3kaw/h+Tq7ngyY9eWDUnTlTNUyqfqvCXioLe5Na5jFsL78ra/wuBU4iuEgd4w==
 
+complex.js@^2.1.1:
+  version "2.1.1"
+  resolved "https://registry.yarnpkg.com/complex.js/-/complex.js-2.1.1.tgz#0675dac8e464ec431fb2ab7d30f41d889fb25c31"
+  integrity sha512-8njCHOTtFFLtegk6zQo0kkVX1rngygb/KQI6z1qZxlFI3scluC+LVTCFbrkWjBv4vvLlbQ9t88IPMC6k95VTTg==
+
 compute-scroll-into-view@1.0.20:
   version "1.0.20"
   resolved "https://registry.yarnpkg.com/compute-scroll-into-view/-/compute-scroll-into-view-1.0.20.tgz#1768b5522d1172754f5d0c9b02de3af6be506a43"
@@ -3226,6 +3261,11 @@ decamelize@^1.2.0:
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/decamelize/-/decamelize-1.2.0.tgz#f6534d15148269b20352e7bee26f501f9a191290"
   integrity sha512-z2S+W9X73hAUUki+N+9Za2lBlun89zigOyGrsax+KUQ6wKW4ZoWpEYBkGhQjwAjjDCkWxhY0VKEhk8wzY7F5cA==
+
+decimal.js@^10.4.3:
+  version "10.4.3"
+  resolved "https://registry.yarnpkg.com/decimal.js/-/decimal.js-10.4.3.tgz#1044092884d245d1b7f65725fa4ad4c6f781cc23"
+  integrity sha512-VBBaLc1MgL5XpzgIP7ny5Z6Nx3UrRkIViUkPUdtl9aya5amy3De1gsUUSB1g3+3sExYNjCAsAznmukyxCb1GRA==
 
 deep-is@^0.1.3:
   version "0.1.4"
@@ -3509,6 +3549,11 @@ escalade@^3.1.1:
   version "3.1.1"
   resolved "https://registry.yarnpkg.com/escalade/-/escalade-3.1.1.tgz#d8cfdc7000965c5a0174b4a82eaa5c0552742e40"
   integrity sha512-k0er2gUkLf8O0zKJiAhmkTnJlTvINGv7ygDNPbeIsX/TJjGJZHuh9B2UxbsaEkmlEo9MfhrSzmhIlhRlI2GXnw==
+
+escape-latex@^1.2.0:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/escape-latex/-/escape-latex-1.2.0.tgz#07c03818cf7dac250cce517f4fda1b001ef2bca1"
+  integrity sha512-nV5aVWW1K0wEiUIEdZ4erkGGH8mDxGyxSeqPzRNtWP7ataw+/olFObw7hujFWlVjNsaDFw5VZ5NzVSIqRgfTiw==
 
 escape-string-regexp@5.0.0, escape-string-regexp@^5.0.0:
   version "5.0.0"
@@ -3918,6 +3963,11 @@ for-each@^0.3.3:
   integrity sha512-jqYfLp7mo9vIyQf8ykW2v7A+2N4QjeCeI5+Dz9XraiO1ign81wjiH7Fb9vSOWvQfNtmSa4H2RoQTrrXivdUZmw==
   dependencies:
     is-callable "^1.1.3"
+
+fraction.js@^4.2.0:
+  version "4.2.0"
+  resolved "https://registry.yarnpkg.com/fraction.js/-/fraction.js-4.2.0.tgz#448e5109a313a3527f5a3ab2119ec4cf0e0e2950"
+  integrity sha512-MhLuK+2gUcnZe8ZHlaaINnQLl0xRIGRfcGk2yl8xoQAfHrSsL3rYu6FCmBdkdbhc9EPlwyGHewaRsvwRMJtAlA==
 
 framer-motion@^8.5.5:
   version "8.5.5"
@@ -4478,6 +4528,11 @@ isexe@^2.0.0:
   resolved "https://registry.yarnpkg.com/isexe/-/isexe-2.0.0.tgz#e8fbf374dc556ff8947a10dcb0572d633f2cfa10"
   integrity sha512-RHxMLp9lnKHGHRng9QFhRCMbYAcVpn69smSGcq3f36xjgVVWThj4qqLbTLlq7Ssj8B+fIQ1EuCEGI2lKsyQeIw==
 
+javascript-natural-sort@^0.7.1:
+  version "0.7.1"
+  resolved "https://registry.yarnpkg.com/javascript-natural-sort/-/javascript-natural-sort-0.7.1.tgz#f9e2303d4507f6d74355a73664d1440fb5a0ef59"
+  integrity sha512-nO6jcEfZWQXDhOiBtG2KvKyEptz7RVbpGP4vTD2hLBdmNQSsCiicO2Ioinv6UI4y9ukqnBpy+XZ9H6uLNgJTlw==
+
 js-sdsl@^4.1.4:
   version "4.3.0"
   resolved "https://registry.yarnpkg.com/js-sdsl/-/js-sdsl-4.3.0.tgz#aeefe32a451f7af88425b11fdb5f58c90ae1d711"
@@ -4736,6 +4791,21 @@ matcher@^5.0.0:
   integrity sha512-s2EMBOWtXFc8dgqvoAzKJXxNHibcdJMV0gwqKUaw9E2JBJuGUK7DrNKrA6g/i+v72TT16+6sVm5mS3thaMLQUw==
   dependencies:
     escape-string-regexp "^5.0.0"
+
+mathjs@^11.5.1:
+  version "11.5.1"
+  resolved "https://registry.yarnpkg.com/mathjs/-/mathjs-11.5.1.tgz#34198c17a9bc563bb83255cdbecb824a6b38e1a4"
+  integrity sha512-9r35KHkpywim2hfYhJS3QHnKS7u61CODQcYPbJZ6Rov2jXDOAun07mM+8a7SRsJKfiMxtWWMJeiHQXTEnnHyoQ==
+  dependencies:
+    "@babel/runtime" "^7.20.13"
+    complex.js "^2.1.1"
+    decimal.js "^10.4.3"
+    escape-latex "^1.2.0"
+    fraction.js "^4.2.0"
+    javascript-natural-sort "^0.7.1"
+    seedrandom "^3.0.5"
+    tiny-emitter "^2.1.0"
+    typed-function "^4.1.0"
 
 md5-hex@^3.0.1:
   version "3.0.1"
@@ -5679,6 +5749,11 @@ scheduler@^0.23.0:
   dependencies:
     loose-envify "^1.1.0"
 
+seedrandom@^3.0.5:
+  version "3.0.5"
+  resolved "https://registry.yarnpkg.com/seedrandom/-/seedrandom-3.0.5.tgz#54edc85c95222525b0c7a6f6b3543d8e0b3aa0a7"
+  integrity sha512-8OwmbklUNzwezjGInmZ+2clQmExQPvomqjL7LFqOYqtmuxRgQYqOD3mHaU+MvZn5FLUeVxVfQjwLZW/n/JFuqg==
+
 semver@^5.7.0, semver@^5.7.1:
   version "5.7.1"
   resolved "https://registry.yarnpkg.com/semver/-/semver-5.7.1.tgz#a954f931aeba508d307bbf069eff0c01c96116f7"
@@ -5998,6 +6073,11 @@ timsort@^0.3.0:
   resolved "https://registry.yarnpkg.com/timsort/-/timsort-0.3.0.tgz#405411a8e7e6339fe64db9a234de11dc31e02bd4"
   integrity sha512-qsdtZH+vMoCARQtyod4imc2nIJwg9Cc7lPRrw9CzF8ZKR0khdr8+2nX80PBhET3tcyTtJDxAffGh2rXH4tyU8A==
 
+tiny-emitter@^2.1.0:
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/tiny-emitter/-/tiny-emitter-2.1.0.tgz#1d1a56edfc51c43e863cbb5382a72330e3555423"
+  integrity sha512-NB6Dk1A9xgQPMoGqC5CVXn123gWyte215ONT5Pp5a0yt4nlEoO1ZWeCwpncaekPHXO60i47ihFnZPiRPjRMq4Q==
+
 tiny-invariant@^1.0.6:
   version "1.3.1"
   resolved "https://registry.yarnpkg.com/tiny-invariant/-/tiny-invariant-1.3.1.tgz#8560808c916ef02ecfd55e66090df23a4b7aa642"
@@ -6102,6 +6182,11 @@ typed-array-length@^1.0.4:
     call-bind "^1.0.2"
     for-each "^0.3.3"
     is-typed-array "^1.1.9"
+
+typed-function@^4.1.0:
+  version "4.1.0"
+  resolved "https://registry.yarnpkg.com/typed-function/-/typed-function-4.1.0.tgz#da4bdd8a6d19a89e22732f75e4a410860aaf9712"
+  integrity sha512-DGwUl6cioBW5gw2L+6SMupGwH/kZOqivy17E4nsh1JI9fKF87orMmlQx3KISQPmg3sfnOUGlwVkroosvgddrlg==
 
 typescript@^4.8.4, typescript@^4.9.5:
   version "4.9.5"

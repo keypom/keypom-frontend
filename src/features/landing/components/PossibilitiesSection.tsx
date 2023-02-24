@@ -25,7 +25,7 @@ export const PossibilitiesSection = () => {
       >
         <LandingCard
           buttonText="See the docs"
-          description="Our SDK lets your build custom solutions around link-based wallets."
+          description="Our SDK lets you build custom solutions around link-based wallets."
           header="Craft your own"
           onClick={() => {
             window.location.href = 'https://docs.keypom.xyz';
@@ -35,7 +35,9 @@ export const PossibilitiesSection = () => {
           buttonText="Contact us"
           description="Dont see the drop you need? Talk to us about custom built drops."
           header="Custom drops"
-          onClick={() => null}
+          onClick={() => {
+            window.location.href = 'https://twitter.com/keypomxyz';
+          }}
         />
       </SimpleGrid>
     </Center>

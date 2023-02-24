@@ -14,7 +14,7 @@ export const CostDisplay = ({ totalCost, balanceAmount, symbol }: CostDisplayPro
           Total cost: {totalCost} {symbol}
         </Text>
       )}
-      {balanceAmount >= 0 && symbol && (
+      {parseInt(balanceAmount as string) >= 0 && symbol && (
         <Text color="gray.400" fontSize="sm">
           Balance: {balanceAmount} {symbol}
         </Text>

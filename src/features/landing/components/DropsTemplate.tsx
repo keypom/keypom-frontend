@@ -11,8 +11,8 @@ interface DropsTemplateProps {
   ctaOnClick: () => void;
 }
 
-const IMAGES = ['/assets/nft_banner.png', '/assets/ticket_banner.png', '/assets/token_banner.png'];
-const IMAGES_TOP_DISTANCE = ['calc(50% - 208px)', 'calc(50% - 188px)', 'calc(50% - 183px)'];
+const IMAGES = ['/assets/token_banner.png', '/assets/ticket_banner.png', '/assets/nft_banner.png'];
+const IMAGES_TOP_DISTANCE = ['calc(50% - 208px)', 'calc(50% - 188px)', 'calc(50% - 240px)'];
 
 export const DropsTemplate = ({
   imageNumber,

@@ -1,4 +1,3 @@
-import copy from 'copy-to-clipboard';
 import { Box, Button, Text, useToast } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -20,6 +19,7 @@ import { type DataItem } from '@/components/Table/types';
 import { useAppContext } from '@/contexts/AppContext';
 import getConfig from '@/config/config';
 import { useValidMasterKey } from '@/hooks/useValidMasterKey';
+import { share } from '@/utils/share';
 
 import { getClaimStatus } from '../../utils/getClaimStatus';
 import { getBadgeType } from '../../utils/getBadgeType';
@@ -151,7 +151,7 @@ export default function TicketDropManagerPage() {
   }, [accountId]);
 
   const handleCopyClick = (link: string) => {
-    copy(link);
+    share(link);
     toast({ title: 'Copied!', status: 'success', duration: 1000, isClosable: true });
   };
 
@@ -199,15 +199,17 @@ export default function TicketDropManagerPage() {
           >
             <CopyIcon />
           </Button>
-          <Button
-            size="sm"
-            variant="icon"
-            onClick={async () => {
-              await handleDeleteClick(item.publicKey as string);
-            }}
-          >
-            <DeleteIcon color="red" />
-          </Button>
+          {item.claimStatus !== 'Claimed' && (
+            <Button
+              size="sm"
+              variant="icon"
+              onClick={async () => {
+                await handleDeleteClick(item.publicKey as string);
+              }}
+            >
+              <DeleteIcon color="red" />
+            </Button>
+          )}
         </>
       ),
     }));
