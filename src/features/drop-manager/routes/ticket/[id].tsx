@@ -1,11 +1,12 @@
 import { Box, Button, Text, useToast } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import {
   deleteKeys,
   generateKeys,
   getDropInformation,
   getKeyInformationBatch,
+  getKeysForDrop,
   getKeySupplyForDrop,
 } from 'keypom-js';
 
@@ -18,7 +19,9 @@ import { usePagination } from '@/hooks/usePagination';
 import { type DataItem } from '@/components/Table/types';
 import { useAppContext } from '@/contexts/AppContext';
 import getConfig from '@/config/config';
+import { useValidMasterKey } from '@/hooks/useValidMasterKey';
 import { share } from '@/utils/share';
+import { asyncWithTimeout } from '@/utils/asyncWithTimeout';
 
 import { getClaimStatus } from '../../utils/getClaimStatus';
 import { getBadgeType } from '../../utils/getBadgeType';
@@ -26,13 +29,16 @@ import { tableColumns } from '../../components/TableColumn';
 import { INITIAL_SAMPLE_DATA } from '../../constants/common';
 import { type TicketClaimStatus } from '../../types/types';
 import { setConfirmationModalHelper } from '../../components/ConfirmationModal';
+import { setMasterKeyValidityModal } from '../../components/MasterKeyValidityModal';
 
 export default function TicketDropManagerPage() {
+  const navigate = useNavigate();
   const { setAppModal } = useAppContext();
   const toast = useToast();
 
   const { id: dropId } = useParams();
   const [loading, setLoading] = useState(true);
+  const [loadClaimNum, setLoadClaimNum] = useState(true);
 
   const [name, setName] = useState('Drop');
   const [dataSize, setDataSize] = useState<number>(0);
@@ -57,6 +63,57 @@ export default function TicketDropManagerPage() {
   useEffect(() => {
     getWallet();
   }, [selector]);
+
+  const { masterKeyValidity } = useValidMasterKey({ dropId });
+  useEffect(() => {
+    if (!masterKeyValidity) {
+      setMasterKeyValidityModal(
+        setAppModal,
+        () => {
+          window.location.reload();
+        },
+        () => {
+          navigate('/drops');
+        },
+      );
+    }
+  }, [masterKeyValidity]);
+
+  // set Scanned item
+  useEffect(() => {
+    const getScannedKeys = async () => {
+      const drop = await getDropInformation({ dropId });
+
+      let index = 0;
+      const size = 200; // max limit is 306
+      let numberOfScannedKey = 0;
+
+      while (index * size < drop.next_key_id) {
+        const keyInfos = await asyncWithTimeout(
+          getKeysForDrop({
+            dropId,
+            limit:
+              (index + 1) * size > drop.next_key_id
+                ? drop.next_key_id - index * size
+                : Math.min(drop.next_key_id, size),
+            start: index * size,
+          }),
+        ).catch((err) => {
+          console.log('Reach timeout or the following error:', err); // eslint-disable-line no-console
+        });
+
+        const numScannedKey = keyInfos.filter((key) => getClaimStatus(key) === 'Attended');
+        numberOfScannedKey = numberOfScannedKey + (numScannedKey.length as number);
+        index = index + 1;
+
+        console.log('scanned key:', numberOfScannedKey, 'loop index:', index); // eslint-disable-line no-console
+      }
+
+      setClaimed((await getKeySupplyForDrop({ dropId })) - numberOfScannedKey);
+      setLoadClaimNum(false);
+    };
+    getScannedKeys();
+  }, []);
 
   const {
     hasPagination,
@@ -93,12 +150,14 @@ export default function TicketDropManagerPage() {
       };
 
     setDataSize(drop.next_key_id);
-    setClaimed(await getKeySupplyForDrop({ dropId }));
 
     setName(JSON.parse(drop.metadata as unknown as string).dropName);
 
     const { publicKeys, secretKeys } = await generateKeys({
-      numKeys: Math.min(drop.next_key_id, pageSize),
+      numKeys:
+        (pageIndex + 1) * pageSize > drop.next_key_id
+          ? drop.next_key_id - pageIndex * pageSize
+          : Math.min(drop.next_key_id, pageSize),
       rootEntropy: `${get(MASTER_KEY) as string}-${dropId}`,
       autoMetaNonceStart: pageIndex * pageSize,
     });
@@ -143,6 +202,7 @@ export default function TicketDropManagerPage() {
           dropId,
           publicKeys: pubKey,
         });
+        window.location.reload();
       },
       () => null,
       'key',
@@ -201,7 +261,7 @@ export default function TicketDropManagerPage() {
           claimedText={`${dataSize - claimed} / ${dataSize}`}
           data={getTableRows()}
           dropName={name}
-          loading={loading}
+          loading={loading || loadClaimNum}
           pagination={{
             hasPagination,
             id: 'token',

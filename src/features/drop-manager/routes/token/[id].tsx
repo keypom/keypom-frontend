@@ -1,6 +1,6 @@
 import { Badge, Box, Button, Text, useToast } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import {
   getDropInformation,
   generateKeys,
@@ -18,13 +18,16 @@ import { usePagination } from '@/hooks/usePagination';
 import { type DataItem } from '@/components/Table/types';
 import { useAppContext } from '@/contexts/AppContext';
 import getConfig from '@/config/config';
+import { useValidMasterKey } from '@/hooks/useValidMasterKey';
 import { share } from '@/utils/share';
 
 import { tableColumns } from '../../components/TableColumn';
 import { INITIAL_SAMPLE_DATA } from '../../constants/common';
 import { setConfirmationModalHelper } from '../../components/ConfirmationModal';
+import { setMasterKeyValidityModal } from '../../components/MasterKeyValidityModal';
 
 export default function TokenDropManagerPage() {
+  const navigate = useNavigate();
   const { setAppModal } = useAppContext();
   const toast = useToast();
 
@@ -46,6 +49,21 @@ export default function TokenDropManagerPage() {
     };
     getWallet();
   }, [selector]);
+
+  const { masterKeyValidity } = useValidMasterKey({ dropId });
+  useEffect(() => {
+    if (!masterKeyValidity) {
+      setMasterKeyValidityModal(
+        setAppModal,
+        () => {
+          window.location.reload();
+        },
+        () => {
+          navigate('/drops');
+        },
+      );
+    }
+  }, [masterKeyValidity]);
 
   const {
     hasPagination,
@@ -87,7 +105,10 @@ export default function TokenDropManagerPage() {
     setName(JSON.parse(drop.metadata as unknown as string).dropName);
 
     const { publicKeys, secretKeys } = await generateKeys({
-      numKeys: Math.min(drop.next_key_id, pageSize),
+      numKeys:
+        (pageIndex + 1) * pageSize > drop.next_key_id
+          ? drop.next_key_id - pageIndex * pageSize
+          : Math.min(drop.next_key_id, pageSize),
       rootEntropy: `${get(MASTER_KEY) as string}-${dropId}`,
       autoMetaNonceStart: pageIndex * pageSize,
     });
@@ -132,6 +153,7 @@ export default function TokenDropManagerPage() {
           dropId,
           publicKeys: pubKey,
         });
+        window.location.reload();
       },
       () => null,
       'key',

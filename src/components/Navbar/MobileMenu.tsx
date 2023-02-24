@@ -25,7 +25,7 @@ import { MENU_ITEMS } from './Navbar';
 export const MobileMenu = () => {
   const { isLoggedIn } = useAuthWalletContext();
   const { isOpen, onOpen, onClose } = useDisclosure();
-  // const { isLoggedIn } = useAuthWalletContext();
+
   const btnRef = useRef(null);
   return (
     <Box>

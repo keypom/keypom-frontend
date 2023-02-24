@@ -22,7 +22,7 @@ export class NearWalletSelector {
       debug: true,
       modules: [setupNearWallet(), setupMyNearWallet()],
     });
-    const _modal = setupModal(_selector, { contractId: CONTRACT_ID });
+    const _modal = setupModal(_selector, { contractId: CONTRACT_ID, theme: 'light' });
     const state = _selector.store.getState();
 
     this.accounts = state.accounts;
