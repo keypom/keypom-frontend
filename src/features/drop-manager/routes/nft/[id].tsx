@@ -53,7 +53,9 @@ export default function NFTDropManagerPage() {
   const { masterKeyValidity } = useValidMasterKey({ dropId });
   useEffect(() => {
     if (!masterKeyValidity) {
-      setMasterKeyValidityModal(setAppModal);
+      setMasterKeyValidityModal(setAppModal, () => {
+        window.location.reload();
+      });
     }
   }, [masterKeyValidity]);
 

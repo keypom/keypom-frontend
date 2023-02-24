@@ -52,7 +52,9 @@ export default function TokenDropManagerPage() {
   const { masterKeyValidity } = useValidMasterKey({ dropId });
   useEffect(() => {
     if (!masterKeyValidity) {
-      setMasterKeyValidityModal(setAppModal);
+      setMasterKeyValidityModal(setAppModal, () => {
+        window.location.reload();
+      });
     }
   }, [masterKeyValidity]);
 

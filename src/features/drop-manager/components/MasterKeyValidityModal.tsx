@@ -1,6 +1,6 @@
 import { set } from '@/utils/localStorage';
 
-export const setMasterKeyValidityModal = (setAppModal) => {
+export const setMasterKeyValidityModal = (setAppModal, confirm) => {
   setAppModal({
     isOpen: true,
     header: 'Incorrect Master Key for Current Drop',
@@ -24,7 +24,7 @@ export const setMasterKeyValidityModal = (setAppModal) => {
         label: 'Set Master Key',
         func: ({ masterKey }) => {
           set('MASTER_KEY', masterKey);
-          return null;
+          if (confirm) confirm();
         },
       },
     ],
