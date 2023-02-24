@@ -36,15 +36,14 @@ const ClaimGiftPage = () => {
   const [showTokenDrop, setShowTokenDrop] = useState(false);
 
   const loadClaimInfo = async () => {
-    const remainingUses = await keypomInstance.checkTicketRemainingUses(contractId, secretKey);
-
-    // should only show this page if claim remaining uses is 1
-    if (remainingUses > 1) {
-      navigate(`/claim/${contractId}#${secretKey}`);
-      return;
-    }
-
     try {
+      const remainingUses = await keypomInstance.checkTicketRemainingUses(contractId, secretKey);
+
+      // should only show this page if claim remaining uses is 1
+      if (remainingUses > 1) {
+        navigate(`/claim/${contractId}#${secretKey}`);
+        return;
+      }
       const nftData = await keypomInstance.getTicketNftInformation(contractId, secretKey);
 
       setTitle(nftData.title);

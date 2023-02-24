@@ -103,7 +103,7 @@ class KeypomJS {
     const keyInfo = await getKeyInformation({ secretKey });
 
     if (keyInfo === null || keyInfo === undefined) {
-      throw new Error('Ticket has been deleted or has already been claimed');
+      throw new Error('Drop has been deleted or has already been claimed');
     }
 
     console.log(keyInfo);
