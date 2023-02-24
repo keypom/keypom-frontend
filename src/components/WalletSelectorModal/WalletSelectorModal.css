@@ -1,48 +1,62 @@
-:root {
-  --wallet-selector-heading-color: var(--chakra-colors-gray-900);
-  --wallet-selector-text-color: var(--chakra-colors-gray-900);
-  --wallet-selector-close-button-bg-color: var(--chakra-colors-gray-100);
-  --wallet-selector-sidebar-border-color: var(--chakra-colors-gray-100);
-  --get-wallet-option-border-color: var(--chakra-colors-gray-100);
-}
-
 .nws-modal {
   z-index: 9999999 !important;
   border: 2px solid transparent;
   background: var(--chakra-colors-border-box) !important;
-  color: var(--chakra-colors-gray-600);
 }
 
 .nws-modal-wrapper {
-  font-family: var(--chakra-fonts-body);
+  width: 99%;
 }
 
-.nws-modal-wrapper .nws-modal .nws-modal-body button.middleButton {
-  background-color: var(--chakra-colors-gray-800);
-  color: var(--chakra-colors-white);
-  border-radius: var(--chakra-radii-6xl);
-}
+@media screen and (min-width: 576px) {
+  :root {
+    --wallet-selector-heading-color: var(--chakra-colors-gray-900);
+    --wallet-selector-text-color: var(--chakra-colors-gray-900);
+    --wallet-selector-close-button-bg-color: var(--chakra-colors-gray-100);
+    --wallet-selector-sidebar-border-color: var(--chakra-colors-gray-100);
+    --get-wallet-option-border-color: var(--chakra-colors-gray-100);
+  }
+  
+  .nws-modal {
+    z-index: 9999999 !important;
+    border: 2px solid transparent;
+    background: var(--chakra-colors-border-box) !important;
+    color: var(--chakra-colors-gray-600);
+  }
+  
+  .nws-modal-wrapper {
+    font-family: var(--chakra-fonts-body);
+  }
+  
+  .nws-modal-wrapper .nws-modal .nws-modal-body button.middleButton {
+    background-color: var(--chakra-colors-gray-800);
+    color: var(--chakra-colors-white);
+    border-radius: var(--chakra-radii-6xl);
+  }
+  
+  .nws-modal .options-list-section-header {
+    display: none;
+  }
+  
+  .nws-modal-wrapper .nws-modal .modal-right .wallet-what .icon-side {
+    background: var(--chakra-colors-gray-800);
+    color: var(--chakra-colors-white);
+  } 
+  
+  .single-wallet-get {
+    border: 1px solid var(--chakra-colors-gray-100);
+    border-radius: var(--chakra-radii-6xl);
+    background-color: var(--chakra-colors-white);
+    color: var(--chakra-colors-gray-900);
+  }
+  
+  .single-wallet-get .title {
+    color: var(--chakra-colors-gray-900);
+  }
+  
+  .single-wallet-get .type {
+    color: var(--chakra-colors-gray-600);
+  }
 
-.nws-modal .options-list-section-header {
-  display: none;
-}
+ }
 
-.nws-modal-wrapper .nws-modal .modal-right .wallet-what .icon-side {
-  background: var(--chakra-colors-gray-800);
-  color: var(--chakra-colors-white);
-}
-
-.single-wallet-get {
-  border: 1px solid var(--chakra-colors-gray-100);
-  border-radius: var(--chakra-radii-6xl);
-  background-color: var(--chakra-colors-white);
-  color: var(--chakra-colors-gray-900);
-}
-
-.single-wallet-get .title {
-  color: var(--chakra-colors-gray-900);
-}
-
-.single-wallet-get .type {
-  color: var(--chakra-colors-gray-600);
-}
