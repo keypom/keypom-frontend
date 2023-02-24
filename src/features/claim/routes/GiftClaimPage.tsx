@@ -60,6 +60,7 @@ const ClaimGiftPage = () => {
 
       setDropError(err.message);
     }
+    setClaimInfoLoading(false);
   };
 
   useEffect(() => {
