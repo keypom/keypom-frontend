@@ -40,11 +40,12 @@ export default function TokenDropManagerPage() {
   const { selector, accountId } = useAuthWalletContext();
 
   useEffect(() => {
+    if (selector === null) return;
     const getWallet = async () => {
       setWallet(await selector.wallet());
     };
     getWallet();
-  }, []);
+  }, [selector]);
 
   const {
     hasPagination,

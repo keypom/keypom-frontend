@@ -18,6 +18,9 @@ const ClaimGiftPage = React.lazy(async () => await import('@/features/claim/rout
 const ClaimTicketPage = React.lazy(
   async () => await import('@/features/claim/routes/ticket/TicketClaimPage'),
 );
+const ClaimTrialPage = React.lazy(
+  async () => await import('@/features/claim/routes/TrialClaimPage'),
+);
 const CreateTokenDropPage = React.lazy(
   async () => await import('@/features/create-drop/routes/CreateTokenDropPage'),
 );
@@ -120,6 +123,10 @@ export const router = createBrowserRouter([
           {
             path: 'ticket/:contractId',
             element: <ClaimTicketPage />,
+          },
+          {
+            path: 'trial/:contractId',
+            element: <ClaimTrialPage />,
           },
           {
             path: ':contractId',
