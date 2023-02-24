@@ -116,14 +116,13 @@ export const DropManager = ({
             wallet,
             dropIds: [dropId as string],
           });
+          window.location.reload();
         },
         () => null,
         'drop',
       );
       console.log('deleting drop', dropId);
       setDeleting(false);
-
-      window.location.reload();
     }
   };
 
