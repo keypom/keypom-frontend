@@ -1,6 +1,7 @@
 import { Box, Button, Heading, HStack, Stack, type TableProps, Text } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
 import { deleteDrops, generateKeys, getDropInformation } from 'keypom-js';
+import { useNavigate } from 'react-router-dom';
 
 import { type ColumnItem, type DataItem } from '@/components/Table/types';
 import { DataTable } from '@/components/Table';
@@ -49,6 +50,7 @@ export const DropManager = ({
   pagination,
   loading = false,
 }: DropManagerProps) => {
+  const navigate = useNavigate();
   const { setAppModal } = useAppContext();
   const [wallet, setWallet] = useState({});
   const { selector } = useAuthWalletContext();
@@ -116,7 +118,7 @@ export const DropManager = ({
             wallet,
             dropIds: [dropId as string],
           });
-          window.location.reload();
+          navigate('/drops');
         },
         () => null,
         'drop',
