@@ -1,6 +1,6 @@
 import { set } from '@/utils/localStorage';
 
-export const setMasterKeyValidityModal = (setAppModal, confirm) => {
+export const setMasterKeyValidityModal = (setAppModal, confirm, cancel) => {
   setAppModal({
     isOpen: true,
     header: 'Incorrect Master Key for Current Drop',
@@ -17,7 +17,7 @@ export const setMasterKeyValidityModal = (setAppModal, confirm) => {
         func: () => {
           // eslint-disable-next-line no-console
           console.log('user cancelled');
-          return null;
+          if (cancel) cancel();
         },
       },
       {

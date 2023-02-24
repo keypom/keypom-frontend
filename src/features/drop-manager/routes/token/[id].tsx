@@ -1,7 +1,7 @@
 import copy from 'copy-to-clipboard';
 import { Badge, Box, Button, Text, useToast } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import {
   getDropInformation,
   generateKeys,
@@ -27,6 +27,7 @@ import { setConfirmationModalHelper } from '../../components/ConfirmationModal';
 import { setMasterKeyValidityModal } from '../../components/MasterKeyValidityModal';
 
 export default function TokenDropManagerPage() {
+  const navigate = useNavigate();
   const { setAppModal } = useAppContext();
   const toast = useToast();
 
@@ -52,9 +53,15 @@ export default function TokenDropManagerPage() {
   const { masterKeyValidity } = useValidMasterKey({ dropId });
   useEffect(() => {
     if (!masterKeyValidity) {
-      setMasterKeyValidityModal(setAppModal, () => {
-        window.location.reload();
-      });
+      setMasterKeyValidityModal(
+        setAppModal,
+        () => {
+          window.location.reload();
+        },
+        () => {
+          navigate('/drops');
+        },
+      );
     }
   }, [masterKeyValidity]);
 
