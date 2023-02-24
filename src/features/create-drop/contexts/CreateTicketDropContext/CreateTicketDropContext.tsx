@@ -12,10 +12,9 @@ import {
   type SummaryItem,
 } from '@/features/create-drop/types/types';
 import { EventInfoForm } from '@/features/create-drop/components/ticket/EventInfoForm';
-import { SignUpInfoForm } from '@/features/create-drop/components/ticket/SignUpInfoForm';
 import { AdditionalGiftsForm } from '@/features/create-drop/components/ticket/AdditionalGiftsForm/AdditionalGiftsForm';
 
-import { AdditionalGiftSchema, EventInfoSchema, SignUpInfoSchema } from './FormValidations';
+import { AdditionalGiftSchema, EventInfoSchema, type SignUpInfoSchema } from './FormValidations';
 
 interface FormStep extends StepItem {
   isSkipable: boolean;
