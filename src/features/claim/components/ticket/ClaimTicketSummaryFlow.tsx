@@ -3,6 +3,7 @@ import { Center, Flex, Heading, Text, VStack } from '@chakra-ui/react';
 import { IconBox } from '@/components/IconBox';
 import { TicketIcon } from '@/components/Icons';
 import { BoxWithShape } from '@/components/BoxWithShape';
+import { DROP_TYPE } from '@/constants/common';
 
 import { useClaimForm } from '../ClaimFormContext';
 
@@ -11,9 +12,7 @@ import { NftGift } from './[id]/NftGift';
 import { TokenGift } from './[id]/TokenGift';
 
 export const ClaimTicketSummaryFlow = () => {
-  const { nftImage, title, qrValue } = useClaimForm();
-
-  const isNftGif = nftImage !== '' && title !== '';
+  const { nftImage, title, qrValue, giftType, tokens } = useClaimForm();
 
   return (
     <Center>
@@ -40,16 +39,10 @@ export const ClaimTicketSummaryFlow = () => {
               Attendance gifts
             </Text>
 
-            {isNftGif ? (
+            {giftType === DROP_TYPE.NFT ? (
               <NftGift giftName={title} imageSrc={nftImage} />
             ) : (
-              <TokenGift
-                tokenList={[
-                  { coin: 'ETH', value: 1.2 },
-                  { coin: 'HERE', value: 13.8 },
-                  { coin: 'NEAR', value: 923.7 },
-                ]}
-              />
+              <TokenGift tokenList={tokens} />
             )}
 
             <Text color="gray.600" mb="6" size={{ base: 'sm', md: 'base' }} textAlign="center">

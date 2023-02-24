@@ -1,4 +1,4 @@
-import { Box, Center, Heading, useBoolean, VStack } from '@chakra-ui/react';
+import { Box, Center, Heading, Spinner, useBoolean, VStack } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -15,6 +15,8 @@ import { CreateWallet } from '../components/CreateWallet';
 import { ExistingWallet } from '../components/ExistingWallet';
 import { NftReward } from '../components/nft/NftReward';
 
+import ClaimTokenPage from './TokenClaimPage';
+
 const ClaimNftPage = () => {
   const navigate = useNavigate();
   const { contractId, secretKey } = useClaimParams();
@@ -30,8 +32,10 @@ const ClaimNftPage = () => {
   const [dropError, setDropError] = useState('');
   const [openLoadingModal, setOpenLoadingModal] = useState(false);
   const [openResultModal, setOpenResultModal] = useState(false);
+  const [isClaimInfoLoading, setClaimInfoLoading] = useState(true);
+  const [showTokenDrop, setShowTokenDrop] = useState(false);
 
-  const loadClaimInfo = async () => {
+  const loadNFTClaimInfo = async () => {
     try {
       const nftData = await keypomInstance.getNFTClaimInformation(contractId, secretKey);
 
@@ -40,8 +44,16 @@ const ClaimNftPage = () => {
       setNftImage(nftData.media);
       setWallets(nftData.wallets);
     } catch (err) {
+      if (err.message === 'NFT series not found') {
+        // show tokens instead
+        setShowTokenDrop(true);
+        setClaimInfoLoading(false);
+        return;
+      }
+
       setDropError(err.message);
     }
+    setClaimInfoLoading(false);
   };
 
   useEffect(() => {
@@ -56,7 +68,7 @@ const ClaimNftPage = () => {
     }
 
     // eslint-disable-next-line
-    loadClaimInfo();
+    loadNFTClaimInfo();
   }, []);
 
   useEffect(() => {
@@ -69,20 +81,26 @@ const ClaimNftPage = () => {
     if (openResultModal) {
       openTransactionResultModal();
     }
-  }, [openResultModal]);
+  }, [openResultModal, isClaimLoading]);
 
   const handleClaim = async (walletAddress: string) => {
+    setClaimError('');
+    setOpenResultModal(false);
     setIsClaimLoading(true);
     setOpenLoadingModal(true);
     try {
       await keypomInstance.claim(secretKey, walletAddress);
       storeClaimDrop(secretKey);
+      setOpenLoadingModal(false);
+      setOpenResultModal(true);
+      setIsClaimLoading(false);
+      setIsClaimSuccessful(true);
     } catch (err) {
-      setClaimError(err);
+      setClaimError(err.message);
+      setIsClaimLoading(false);
+      setOpenLoadingModal(false);
+      setOpenResultModal(true);
     }
-    setOpenResultModal(true);
-    setIsClaimLoading(false);
-    setIsClaimSuccessful(true);
   };
 
   const openTransactionLoadingModal = () => {
@@ -106,6 +124,18 @@ const ClaimNftPage = () => {
     return <ErrorBox message={dropError} />;
   }
 
+  if (isClaimInfoLoading) {
+    return (
+      <Center h={{ base: '300px', md: '500px' }}>
+        <Spinner size="xl" />
+      </Center>
+    );
+  }
+
+  // default to token drop if NFT series is not found
+  if (showTokenDrop) {
+    return <ClaimTokenPage skipLinkDropCheck />;
+  }
   return (
     <Box mb={{ base: '5', md: '14' }} minH="100%" minW="100%" mt={{ base: '52px', md: '100px' }}>
       <Center>
@@ -130,7 +160,6 @@ const ClaimNftPage = () => {
               px={{ base: '6', md: '8' }}
               w="full "
             >
-              {/** in future we may have tokens */}
               <NftReward artworkSrc={nftImage} description={description} nftName={title} />
             </BoxWithShape>
             <VStack
@@ -148,15 +177,13 @@ const ClaimNftPage = () => {
                   onClick={showInputWallet.on}
                 />
               ) : (
-                <>
-                  <ExistingWallet
-                    claimErrorText={claimError}
-                    handleSubmit={handleClaim}
-                    isLoading={isClaimLoading}
-                    isSuccess={isClaimSuccessful}
-                    onBack={showInputWallet.off}
-                  />
-                </>
+                <ExistingWallet
+                  claimErrorText={claimError}
+                  handleSubmit={handleClaim}
+                  isLoading={isClaimLoading}
+                  isSuccess={isClaimSuccessful}
+                  onBack={showInputWallet.off}
+                />
               )}
             </VStack>
           </IconBox>
