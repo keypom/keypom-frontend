@@ -15,13 +15,17 @@ import { useClaimParams } from '@/hooks/useClaimParams';
 import { ExistingWallet } from '../components/ExistingWallet';
 import { CreateWallet } from '../components/CreateWallet';
 
-interface TokenAsset {
+export interface TokenAsset {
   icon: string;
   value: string;
   symbol: string;
 }
 
-const ClaimTokenPage = () => {
+interface ClaimTokenPageProps {
+  skipLinkDropCheck?: boolean;
+}
+
+const ClaimTokenPage = ({ skipLinkDropCheck = false }: ClaimTokenPageProps) => {
   const navigate = useNavigate();
   const { contractId, secretKey } = useClaimParams();
   const { setAppModal } = useAppContext();
@@ -38,7 +42,7 @@ const ClaimTokenPage = () => {
   const loadClaimInfo = async () => {
     try {
       const { ftMetadata, amountNEAR, amountTokens, wallets } =
-        await keypomInstance.getTokenClaimInformation(contractId, secretKey);
+        await keypomInstance.getTokenClaimInformation(contractId, secretKey, skipLinkDropCheck);
       const tokens: TokenAsset[] = [
         {
           icon: 'https://cryptologos.cc/logos/near-protocol-near-logo.svg?v=024',
@@ -89,20 +93,26 @@ const ClaimTokenPage = () => {
     if (openResultModal) {
       openTransactionResultModal();
     }
-  }, [openResultModal]);
+  }, [openResultModal, isClaimLoading]);
 
   const handleClaim = async (walletAddress: string) => {
+    setClaimError('');
+    setOpenResultModal(false);
     setIsClaimLoading(true);
     setOpenLoadingModal(true);
     try {
       await keypomInstance.claim(secretKey, walletAddress);
       storeClaimDrop(secretKey);
+      setOpenLoadingModal(false);
+      setOpenResultModal(true);
+      setIsClaimLoading(false);
+      setIsClaimSuccessful(true);
     } catch (err) {
-      setClaimError(err);
+      setClaimError(err.message);
+      setIsClaimLoading(false);
+      setOpenLoadingModal(false);
+      setOpenResultModal(true);
     }
-    setOpenResultModal(true);
-    setIsClaimLoading(false);
-    setIsClaimSuccessful(true);
   };
 
   const openTransactionLoadingModal = () => {

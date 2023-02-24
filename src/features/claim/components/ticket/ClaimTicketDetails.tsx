@@ -1,27 +1,31 @@
-import { Box, Image, Text } from '@chakra-ui/react';
+import { Box, Text, VStack } from '@chakra-ui/react';
 
-interface ClaimTicketDetailsProps {
-  imageSrc: string;
-  ticketName: string;
-}
+import { AvatarImage } from '@/components/AvatarImage';
+import { DROP_TYPE } from '@/constants/common';
+import { DropBox } from '@/components/DropBox';
 
-export const ClaimTicketDetails = ({ imageSrc, ticketName }: ClaimTicketDetailsProps) => {
+import { useClaimForm } from '../ClaimFormContext';
+
+export const ClaimTicketDetails = () => {
+  const { nftImage, title, giftType, tokens } = useClaimForm();
   return (
     <>
       <Box
         borderRadius={{ base: '5xl', md: '6xl' }}
-        h={{ base: '7.5rem', md: '11.25rem' }}
+        h={giftType === DROP_TYPE.NFT ? { base: '7.5rem', md: '11.25rem' } : {}}
         mb={{ base: '6', md: '8' }}
         position="relative"
         w={{ base: '7.5rem', md: '11.25rem' }}
       >
-        {/** temporary image */}
-        <Image
-          alt="NFT image"
-          borderRadius={{ base: '5xl', md: '6xl' }}
-          objectFit="cover"
-          src={imageSrc}
-        />
+        {giftType === DROP_TYPE.NFT ? (
+          <AvatarImage altName="NFT image" imageSrc={nftImage} />
+        ) : (
+          <VStack>
+            {tokens?.map(({ icon, value, symbol }, index) => (
+              <DropBox key={index} icon={icon} symbol={symbol} value={value} />
+            ))}
+          </VStack>
+        )}
       </Box>
       <Text
         color="gray.800"
@@ -32,7 +36,7 @@ export const ClaimTicketDetails = ({ imageSrc, ticketName }: ClaimTicketDetailsP
         size={{ base: 'xl', md: '2xl' }}
         textAlign="center"
       >
-        {ticketName}
+        {title}
       </Text>
     </>
   );

@@ -10,10 +10,10 @@ import { ClaimTicketDetails } from './ClaimTicketDetails';
 import { ClaimTicketForm } from './ClaimTicketForm';
 
 export const ClaimTicketFormFlow = () => {
-  const { nftImage, title, claimError, isClaimInfoLoading } = useClaimForm();
+  const { claimInfoError, isClaimInfoLoading } = useClaimForm();
 
-  if (claimError) {
-    return <ErrorBox message={claimError} />;
+  if (claimInfoError) {
+    return <ErrorBox message={claimInfoError} />;
   }
 
   if (isClaimInfoLoading) {
@@ -47,7 +47,7 @@ export const ClaimTicketFormFlow = () => {
             p={{ base: '6', md: '8' }}
             pt={{ base: '12', md: '16' }}
           >
-            <ClaimTicketDetails imageSrc={nftImage} ticketName={title} />
+            <ClaimTicketDetails />
             <ClaimTicketForm />
           </Flex>
         </IconBox>
