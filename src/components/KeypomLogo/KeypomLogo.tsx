@@ -1,14 +1,9 @@
-import { HStack, Box, Text, Link } from '@chakra-ui/react';
+import { Link, Image } from '@chakra-ui/react';
 
 export const KeypomLogo = () => {
   return (
     <Link href="/">
-      <HStack spacing={{ base: 2, md: '2.5' }}>
-        <Box bgColor="gray.800" h={{ base: 5, md: '7' }} rounded="full" w={{ base: 5, md: '7' }} />
-        <Text color="gray.800" fontSize={{ base: 'xl', md: '2xl' }} fontWeight="extrabold">
-          Keypom
-        </Text>
-      </HStack>
+      <Image alt="keypom-logo" src="/assets/logo_white.png" w={{ base: '102px', md: '156px' }} />
     </Link>
   );
 };

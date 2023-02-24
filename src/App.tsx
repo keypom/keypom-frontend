@@ -21,6 +21,13 @@ initKeypom({
   keypomContractId: contractId,
 });
 
+const { networkId, contractId } = nearConfig;
+// @eslint-disable-next-line typescript-eslint/no-floating-promises
+initKeypom({
+  network: networkId,
+  keypomContractId: contractId,
+});
+
 const ChakraProvider = React.lazy(
   async () =>
     await import('@chakra-ui/react').then((mod) => {

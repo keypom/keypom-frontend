@@ -4,7 +4,7 @@ import { TwitterLogoIcon, LogoNear } from '@/components/Icons';
 
 type FooterProps = ChakraProps;
 
-const TWITTER_LINK = 'https://www.twitter.com';
+const TWITTER_LINK = 'https://twitter.com/keypomxyz';
 const NEAR_LINK = 'https://near.org/';
 
 export const Footer = (props: FooterProps) => {

@@ -17,7 +17,7 @@ export const MENU_ITEMS = [
   },
   {
     name: 'Get in touch',
-    href: '#',
+    href: 'https://twitter.com/keypomxyz',
   },
 ];
 

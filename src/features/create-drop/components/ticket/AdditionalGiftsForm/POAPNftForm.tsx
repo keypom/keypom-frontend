@@ -19,7 +19,7 @@ export const POAPNftForm = () => {
             errorMessage={error?.message}
             isInvalid={!!error?.message}
             label="Name"
-            placeholder="Danny Daze"
+            placeholder="Art Vandelay Official"
             {...field}
           />
         )}
@@ -32,7 +32,7 @@ export const POAPNftForm = () => {
             errorMessage={error?.message}
             isInvalid={!!error?.message}
             label="POAP Description"
-            placeholder="A commemorative NFT for the event"
+            placeholder="A commemorative NFT for attending the Vandelay Industries networking event."
             {...field}
           />
         )}

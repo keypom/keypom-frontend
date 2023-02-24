@@ -3,10 +3,9 @@ import { useFormContext } from 'react-hook-form';
 import { useEffect } from 'react';
 
 import { RoundedTabs, type TabListItem } from '@/components/RoundedTabs';
-import { LinkIcon, POAPNftIcon } from '@/components/Icons';
+import { POAPNftIcon } from '@/components/Icons';
 import { type CreateTicketFieldsSchema } from '@/features/create-drop/contexts/CreateTicketDropContext/CreateTicketDropContext';
 
-import { TokenForm } from './TokenForm';
 import { POAPNftForm } from './POAPNftForm';
 
 interface AdditionalGiftTabItem extends TabListItem {
@@ -14,11 +13,12 @@ interface AdditionalGiftTabItem extends TabListItem {
 }
 
 const TAB_LIST: AdditionalGiftTabItem[] = [
-  {
-    name: 'token',
-    label: 'Token',
-    icon: <LinkIcon h={{ base: '4', md: '5' }} w={{ base: '4', md: '5' }} />,
-  },
+  /** token is commented in case there's a need for it in the future */
+  // {
+  //   name: 'token',
+  //   label: 'Token',
+  //   icon: <LinkIcon h={{ base: '4', md: '5' }} w={{ base: '4', md: '5' }} />,
+  // },
   {
     name: 'poapNft',
     label: 'POAP NFT',
@@ -48,9 +48,9 @@ export const AdditionalGiftsForm = () => {
     <Box mt={{ base: '6', md: '8' }}>
       <RoundedTabs tablist={TAB_LIST} onChange={handleChange}>
         <TabPanels mt={{ base: '5', md: '7' }}>
-          <TabPanel px="0">
+          {/* <TabPanel px="0">
             <TokenForm />
-          </TabPanel>
+          </TabPanel> */}
           <TabPanel>
             <POAPNftForm />
           </TabPanel>

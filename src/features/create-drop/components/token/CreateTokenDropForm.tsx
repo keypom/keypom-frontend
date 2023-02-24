@@ -2,6 +2,7 @@ import { Button, Flex, Input } from '@chakra-ui/react';
 import { useCallback, useMemo } from 'react';
 import { Controller, useFormContext } from 'react-hook-form';
 import { formatNearAmount } from 'keypom-js';
+import { evaluate, format } from 'mathjs';
 
 import { IconBox } from '@/components/IconBox';
 import { FormControl } from '@/components/FormControl';
@@ -9,12 +10,12 @@ import { Checkboxes } from '@/components/Checkboxes';
 import { WalletBalanceInput } from '@/components/WalletBalanceInput';
 import { LinkIcon, NearLogoIcon } from '@/components/Icons';
 import { useDropFlowContext } from '@/features/create-drop/contexts';
-import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
 import { get } from '@/utils/localStorage';
 import { MASTER_KEY } from '@/constants/common';
 import { useAppContext, setAppModalHelper } from '@/contexts/AppContext';
+import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
 
-import { WALLET_OPTIONS } from './data';
+import { WALLET_OPTIONS } from '../WalletComponent';
 
 export const CreateTokenDropForm = () => {
   const { setAppModal } = useAppContext();
@@ -47,7 +48,9 @@ export const CreateTokenDropForm = () => {
 
   const totalCost = useMemo(() => {
     if (totalLinks && amountPerLink) {
-      return totalLinks * amountPerLink;
+      return format(evaluate(`${totalLinks as number} * ${amountPerLink as number}`), {
+        precision: 14,
+      });
     }
     return 0;
   }, [amountPerLink, totalLinks]);
@@ -95,7 +98,7 @@ export const CreateTokenDropForm = () => {
               >
                 <Input
                   isInvalid={Boolean(error?.message)}
-                  placeholder="Star Invasion Beta Invites"
+                  placeholder="NEARCon Token Giveaway"
                   type="text"
                   {...field}
                 />
@@ -115,7 +118,7 @@ export const CreateTokenDropForm = () => {
                 type="number"
                 {...field}
                 onChange={(e) => {
-                  field.onChange(parseInt(e.target.value), 10);
+                  field.onChange(parseInt(e.target.value));
                 }}
               />
             </FormControl>
@@ -130,8 +133,11 @@ export const CreateTokenDropForm = () => {
               <WalletBalanceInput
                 {...field}
                 isInvalid={Boolean(error?.message)}
+                maxLength={14}
                 onChange={(e) => {
-                  field.onChange(parseFloat(e.target.value), 10);
+                  if (e.target.value.length > e.target.maxLength)
+                    e.target.value = e.target.value.slice(0, e.target.maxLength);
+                  field.onChange(parseFloat(e.target.value));
                 }}
               >
                 <WalletBalanceInput.TokenMenu
@@ -167,7 +173,7 @@ export const CreateTokenDropForm = () => {
           )}
         />
 
-        <Controller
+        {/* <Controller
           control={control}
           name="redirectLink"
           render={({ field, fieldState: { error } }) => (
@@ -184,7 +190,7 @@ export const CreateTokenDropForm = () => {
               />
             </FormControl>
           )}
-        />
+        /> */}
         <Flex justifyContent="flex-end">
           <Button disabled={!isDirty || !isValid} mt="10" type="submit">
             Continue to summary

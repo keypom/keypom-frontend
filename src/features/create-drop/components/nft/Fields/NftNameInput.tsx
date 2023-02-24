@@ -20,7 +20,7 @@ export const NftNameInput = ({ control }: NftNameInputProps) => {
           errorMessage={error?.message}
           isInvalid={!!error?.message}
           label="Name"
-          placeholder="Danny Daze"
+          placeholder="Art Vandelay Official"
           {...field}
         />
       )}

@@ -2,7 +2,6 @@ import { useCallback } from 'react';
 import { Controller, useFormContext } from 'react-hook-form';
 import { Button, Flex, VStack } from '@chakra-ui/react';
 
-import { RedirectInput } from '@/features/create-drop/components/Fields/RedirectInput';
 import { Checkboxes } from '@/components/Checkboxes';
 import { FormControl } from '@/components/FormControl';
 import { LinkIcon } from '@/components/Icons';
@@ -10,8 +9,8 @@ import { IconBox } from '@/components/IconBox';
 import { useDropFlowContext } from '@/features/create-drop/contexts/DropFlowContext';
 
 import { ArtworkInput } from '../Fields/ArtworkInput';
+import { WALLET_OPTIONS } from '../WalletComponent';
 
-import { WALLET_OPTIONS } from './data';
 import { NftNameInput } from './Fields/NftNameInput';
 import { NumberInput } from './Fields/NumberInput';
 import { DescriptionInput } from './Fields/DescriptionInput';
@@ -77,7 +76,7 @@ export const CreateNftDropForm = () => {
             )}
           />
 
-          <RedirectInput control={control} />
+          {/* <RedirectInput control={control} /> commented in case of use in the future */}
 
           <Flex justifyContent="flex-end" w="full">
             <Button disabled={!isDirty || !isValid} mt="10" type="submit">

@@ -19,7 +19,7 @@ export const DescriptionInput = ({ control }: DescriptionProps) => {
           errorMessage={error?.message}
           isInvalid={!!error?.message}
           label="Description"
-          placeholder="A commemorative NFT for the event"
+          placeholder="A commemorative NFT for attending the Vandelay Industries networking event."
           {...field}
         />
       )}

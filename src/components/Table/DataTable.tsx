@@ -9,9 +9,16 @@ import {
   Td,
   Thead,
   Th,
+  Center,
+  Text,
+  Heading,
+  VStack,
 } from '@chakra-ui/react';
 import { useNavigate } from 'react-router-dom';
 
+import { IconBox } from '../IconBox';
+
+import { EMPTY_TABLE_TEXT_MAP } from './constants';
 import { MobileDataTable } from './MobileDataTable';
 import { type ColumnItem, type DataItem } from './types';
 
@@ -26,6 +33,7 @@ import { type ColumnItem, type DataItem } from './types';
  */
 
 interface DataTableProps extends TableProps {
+  type?: 'all-drops' | 'drop-manager';
   showColumns?: boolean;
   columns: ColumnItem[];
   data: DataItem[];
@@ -33,6 +41,7 @@ interface DataTableProps extends TableProps {
 }
 
 export const DataTable = ({
+  type = 'drop-manager',
   showColumns = true,
   columns = [],
   data = [],
@@ -84,30 +93,45 @@ export const DataTable = ({
 
   return (
     <>
-      {/* Desktop Table */}
-      <Show above="md">
-        <TableContainer>
-          <Table {...props}>
-            {showColumns && (
-              <Thead>
-                <Tr>
-                  {columns.map((col) => (
-                    <Th key={col.title} fontFamily="body" {...col.thProps}>
-                      {col.title}
-                    </Th>
-                  ))}
-                </Tr>
-              </Thead>
-            )}
-            <Tbody>{getDesktopTableBody()}</Tbody>
-          </Table>
-        </TableContainer>
-      </Show>
+      {loading || data.length > 0 ? (
+        <>
+          {/* Desktop Table */}
+          <Show above="md">
+            <TableContainer>
+              <Table {...props}>
+                {showColumns && (
+                  <Thead>
+                    <Tr>
+                      {columns.map((col) => (
+                        <Th key={col.title} fontFamily="body" {...col.thProps}>
+                          {col.title}
+                        </Th>
+                      ))}
+                    </Tr>
+                  </Thead>
+                )}
+                <Tbody>{getDesktopTableBody()}</Tbody>
+              </Table>
+            </TableContainer>
+          </Show>
 
-      {/* Mobile table */}
-      <Hide above="md">
-        <MobileDataTable columns={columns} data={data} loading={loading} {...props} />
-      </Hide>
+          {/* Mobile table */}
+          <Hide above="md">
+            <MobileDataTable columns={columns} data={data} loading={loading} {...props} />
+          </Hide>
+        </>
+      ) : (
+        <IconBox h="full" mt={{ base: '6', md: '7' }} pb={{ base: '6', md: '16' }} w="full">
+          <Center>
+            <VStack>
+              <Heading fontSize={{ base: 'xl', md: '2xl' }} fontWeight="600">
+                {EMPTY_TABLE_TEXT_MAP[type].heading}
+              </Heading>
+              <Text>{EMPTY_TABLE_TEXT_MAP[type].text}</Text>
+            </VStack>
+          </Center>
+        </IconBox>
+      )}
     </>
   );
 };
