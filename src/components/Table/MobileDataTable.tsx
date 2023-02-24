@@ -75,7 +75,7 @@ export const MobileDataTable = ({
   };
 
   return (
-    <TableContainer>
+    <TableContainer whiteSpace="normal">
       <Table {...props}>
         <Tbody>{getMobileTableBody()}</Tbody>
       </Table>

@@ -1,4 +1,3 @@
-import copy from 'copy-to-clipboard';
 import { Badge, Box, Button, Text, useToast } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
@@ -19,6 +18,7 @@ import { usePagination } from '@/hooks/usePagination';
 import { type DataItem } from '@/components/Table/types';
 import { useAppContext } from '@/contexts/AppContext';
 import getConfig from '@/config/config';
+import { share } from '@/utils/share';
 
 import { tableColumns } from '../../components/TableColumn';
 import { INITIAL_SAMPLE_DATA } from '../../constants/common';
@@ -40,11 +40,13 @@ export default function NFTDropManagerPage() {
   const { selector, accountId } = useAuthWalletContext();
 
   useEffect(() => {
+    if (selector === null) return;
+
     const getWallet = async () => {
       setWallet(await selector.wallet());
     };
     getWallet();
-  }, []);
+  }, [selector]);
 
   const {
     hasPagination,
@@ -118,7 +120,7 @@ export default function NFTDropManagerPage() {
   }, [accountId]);
 
   const handleCopyClick = (link: string) => {
-    copy(link);
+    share(link);
     toast({ title: 'Copied!', status: 'success', duration: 1000, isClosable: true });
   };
 
@@ -152,11 +154,12 @@ export default function NFTDropManagerPage() {
           </Text>
         </Text>
       ),
-      hasClaimed: item.hasClaimed ? (
-        <Badge variant="lightgreen">Claimed</Badge>
-      ) : (
-        <Badge variant="gray">Unclaimed</Badge>
-      ),
+      hasClaimed:
+        item.hasClaimed === true ? (
+          <Badge variant="lightgreen">Claimed</Badge>
+        ) : (
+          <Badge variant="gray">Unclaimed</Badge>
+        ),
       action: (
         <>
           <Button
@@ -169,15 +172,17 @@ export default function NFTDropManagerPage() {
           >
             <CopyIcon />
           </Button>
-          <Button
-            size="sm"
-            variant="icon"
-            onClick={async () => {
-              await handleDeleteClick(item.publicKey as string);
-            }}
-          >
-            <DeleteIcon color="red" />
-          </Button>
+          {item.hasClaimed !== true && (
+            <Button
+              size="sm"
+              variant="icon"
+              onClick={async () => {
+                await handleDeleteClick(item.publicKey as string);
+              }}
+            >
+              <DeleteIcon color="red" />
+            </Button>
+          )}
         </>
       ),
     }));

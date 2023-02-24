@@ -10,16 +10,20 @@ import {
   MenuList,
   Spinner,
   Text,
+  useBoolean,
 } from '@chakra-ui/react';
 
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
 import { useAppContext, setAppModalHelper } from '@/contexts/AppContext';
 import { toYocto } from '@/utils/toYocto';
 import { truncateAddress } from '@/utils/truncateAddress';
+import { formatAmount } from '@/utils/formatAmount';
 
 import { DropIcon, NearLogoIcon, SignOutIcon } from '../Icons';
 
 export const SignedInButton = () => {
+  const [showAll, setShowAll] = useBoolean(false);
+  const [showNear, setShowNear] = useBoolean(false);
   const { setAppModal } = useAppContext();
 
   const { account, selector } = useAuthWalletContext();
@@ -47,7 +51,15 @@ export const SignedInButton = () => {
   };
 
   return (
-    <Menu>
+    <Menu
+      placement="bottom-end"
+      onClose={() => {
+        setShowAll.off();
+      }}
+      onOpen={() => {
+        setShowAll.on();
+      }}
+    >
       {({ isOpen }) => (
         <Box>
           <MenuButton
@@ -72,7 +84,7 @@ export const SignedInButton = () => {
               {account === null || account === undefined ? (
                 <Spinner />
               ) : (
-                <Text>{truncateAddress(account.account_id)}</Text>
+                <Text>{showAll ? account.account_id : truncateAddress(account.account_id)}</Text>
               )}
             </Center>
           </MenuButton>
@@ -80,20 +92,23 @@ export const SignedInButton = () => {
             <MenuItem
               borderBottom="1px solid"
               borderBottomColor="gray.100"
-              icon={<NearLogoIcon height="3.5" width="3.5" />}
+              closeOnSelect={false}
+              icon={<NearLogoIcon height="3.5" mt="-0.5" width="3.5" />}
+              onClick={setShowNear.toggle}
             >
               <Flex>
                 <Text
                   fontWeight="medium"
-                  maxW="80px"
                   mr="1"
                   overflow="hidden"
                   textOverflow="ellipsis"
                   whiteSpace="nowrap"
                 >
-                  {amountInYocto}
+                  {showNear
+                    ? formatAmount(amountInYocto, { style: undefined, maximumFractionDigits: 3 })
+                    : formatAmount(amountInYocto, { style: undefined, maximumFractionDigits: 0 }) +
+                      '...'}
                 </Text>
-                NEAR
               </Flex>
             </MenuItem>
 

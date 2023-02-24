@@ -333,6 +333,7 @@ export default function AllDrops() {
         data={getTableRows()}
         loading={isLoading}
         mt={{ base: '6', md: '7' }}
+        type="all-drops"
       />
 
       {/* Mobile Menu For Creating Drop */}

@@ -84,13 +84,14 @@ const formSteps: FormStep[] = [
     isSkipable: false,
     schema: EventInfoSchema,
   },
-  {
-    name: 'signUpInfo',
-    title: 'Sign-up info',
-    component: <SignUpInfoForm />,
-    isSkipable: true,
-    schema: SignUpInfoSchema,
-  },
+  /** commented in case there's a need for sign-up info in the future */
+  // {
+  //   name: 'signUpInfo',
+  //   title: 'Sign-up info',
+  //   component: <SignUpInfoForm />,
+  //   isSkipable: true,
+  //   schema: SignUpInfoSchema,
+  // },
   {
     name: 'additionalGifts',
     title: 'Additional gifts',

@@ -1,4 +1,4 @@
-import { createContext, type PropsWithChildren, useContext } from 'react';
+import { createContext, type PropsWithChildren, useContext, useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import useSWRMutation from 'swr/mutation';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -8,9 +8,10 @@ import { type NavigateFunction } from 'react-router-dom';
 
 import { get } from '@/utils/localStorage';
 import { MASTER_KEY, urlRegex } from '@/constants/common';
+import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
 
 import { type PaymentData, type PaymentItem, type SummaryItem } from '../types/types';
-import { WALLET_TOKENS } from '../components/token/data';
+import { WALLET_TOKENS } from '../components/WalletComponent';
 
 interface CreateTokenDropContextProps {
   getSummaryData: () => SummaryItem[];
@@ -47,7 +48,8 @@ const schema = z.object({
   totalLinks: z
     .number({ invalid_type_error: 'Number of links required' })
     .positive()
-    .min(1, 'Required'),
+    .min(1, 'Required')
+    .max(10000),
   amountPerLink: z.number({ invalid_type_error: 'Amount required' }).gt(0),
   redirectLink: z
     .union([z.string().regex(urlRegex, 'Please enter a valid url'), z.string().length(0)])
@@ -69,6 +71,8 @@ const createLinks = async () => {
  * Context for managing form state
  */
 export const CreateTokenDropProvider = ({ children }: PropsWithChildren) => {
+  const { account } = useAuthWalletContext();
+
   const { data } = useSWRMutation('/api/drops/tokens', createLinks);
   const methods = useForm<Schema>({
     mode: 'onChange',
@@ -82,6 +86,15 @@ export const CreateTokenDropProvider = ({ children }: PropsWithChildren) => {
     },
     resolver: zodResolver(schema),
   });
+
+  useEffect(() => {
+    if (account) {
+      methods.setValue('selectedFromWallet', {
+        symbol: WALLET_TOKENS[0].symbol,
+        amount: formatNearAmount(account.amount, 4),
+      });
+    }
+  }, [account]);
 
   const getSummaryData = (): SummaryItem[] => {
     const { getValues } = methods;

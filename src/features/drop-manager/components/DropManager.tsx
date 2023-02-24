@@ -53,11 +53,13 @@ export const DropManager = ({
   const [deleting, setDeleting] = useState<boolean>(false);
 
   useEffect(() => {
+    if (selector === null) return;
+
     const getWallet = async () => {
       setWallet(await selector.wallet());
     };
     getWallet();
-  }, []);
+  }, [selector]);
 
   const breadcrumbItems = [
     {

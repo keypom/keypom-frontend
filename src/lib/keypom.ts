@@ -154,6 +154,10 @@ class KeypomJS {
     }
 
     if (drop.fc !== undefined) {
+      if (drop.fc.methods[0]?.length === 2) {
+        return DROP_TYPE.TRIAL;
+      }
+
       if (drop.fc.methods.length === 3) {
         return DROP_TYPE.TICKET;
       }
@@ -216,14 +220,8 @@ class KeypomJS {
   ) => {
     // verify if secretKey is a token drop
     const linkdropType = await this.getLinkdropType(contractId, secretKey);
-    if (
-      !skipLinkdropCheck &&
-      linkdropType !== DROP_TYPE.SIMPLE &&
-      linkdropType !== DROP_TYPE.TOKEN
-    ) {
-      throw new Error(
-        'This drop is not a Simple drop or Token drop. Please contact your drop creator.',
-      );
+    if (linkdropType && !DROP_TYPE[linkdropType]) {
+      throw new Error('This drop is not supported. Please contact the sender of this link.');
     }
 
     let drop;
@@ -232,7 +230,7 @@ class KeypomJS {
     } catch (err) {
       throw new Error('Unable to claim. This drop may have been claimed before.');
     }
-
+    console.log(drop);
     const dropMetadata = drop.metadata !== undefined ? this.getDropMetadata(drop.metadata) : {};
     let ftMetadata;
     if (drop.ft !== undefined) {

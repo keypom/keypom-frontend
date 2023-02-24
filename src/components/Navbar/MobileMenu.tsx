@@ -15,10 +15,15 @@ import { useRef } from 'react';
 
 import { MenuIcon } from '@/components/Icons';
 import { KeypomLogo } from '@/components/KeypomLogo';
+import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
+
+import { SignedInButton } from '../SignedInButton';
+import { ConnectWalletButton } from '../ConnectWalletButton';
 
 import { MENU_ITEMS } from './Navbar';
 
 export const MobileMenu = () => {
+  const { isLoggedIn } = useAuthWalletContext();
   const { isOpen, onOpen, onClose } = useDisclosure();
   // const { isLoggedIn } = useAuthWalletContext();
   const btnRef = useRef(null);
@@ -49,7 +54,7 @@ export const MobileMenu = () => {
             </VStack>
           </DrawerBody>
           <DrawerFooter flexDirection="row" justifyContent="center" pb="10">
-            {/* {isLoggedIn ? <SignedInButton /> : <ConnectWalletButton w="50%" />} */}
+            {isLoggedIn ? <SignedInButton /> : <ConnectWalletButton w="50%" />}
           </DrawerFooter>
         </DrawerContent>
       </Drawer>
