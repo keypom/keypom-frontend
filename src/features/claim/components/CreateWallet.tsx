@@ -18,7 +18,7 @@ export const CreateWallet = ({
   contractId,
   secretKey,
   onClick,
-  wallets = ['mynearwallet', 'herewallet'],
+  wallets = ['mynearwallet'],
 }: CreateWalletProps) => {
   const handleWalletClick = async (walletName: string) => {
     const url = await keypomInstance.generateExternalWalletLink(walletName, contractId, secretKey);
