@@ -21,9 +21,9 @@ export const useValidMasterKey = ({ dropId }: useValidMasterKeyProps) => {
       const { publicKeys: publicKey } = await generateKeys({
         numKeys: 1,
         rootEntropy: `${get(MASTER_KEY) as string}-${dropId}`,
-        metaEntropy: '0',
+        metaEntropy: keyToCompare[0].key_id.toString(),
       });
-      setValid(keyToCompare[0].pk === publicKey[0]);
+      setValid(keyToCompare[0].key_id.toString() === publicKey[0]);
     };
     validateMasterKey();
   }, []);
