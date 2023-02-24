@@ -1,4 +1,5 @@
 import { createContext, type PropsWithChildren, useContext, useEffect } from 'react';
+import { evaluate, format } from 'mathjs';
 import { FormProvider, useForm } from 'react-hook-form';
 import useSWRMutation from 'swr/mutation';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -142,13 +143,15 @@ export const CreateTokenDropProvider = ({ children }: PropsWithChildren) => {
       returnTransactions: true,
     });
 
-    const totalLinkCost = totalLinks * amountPerLink;
+    const totalLinkCost = format(evaluate(`${totalLinks} * ${amountPerLink}`), {
+      precision: 14,
+    });
     const totalCost = parseFloat(formatNearAmount(requiredDeposit!, 4));
     const costsData: PaymentItem[] = [
       {
         name: 'Link cost',
         total: totalLinkCost,
-        helperText: `${totalLinks} x ${amountPerLink}`,
+        helperText: `${totalLinks} x ${amountPerLink} =`,
       },
       {
         name: 'NEAR network fees',
