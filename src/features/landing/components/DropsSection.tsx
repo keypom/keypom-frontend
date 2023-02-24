@@ -46,9 +46,10 @@ export const DropsSection = () => {
       content: (
         <DropsTemplate
           ctaOnClick={() => {
-            dropCta('ticket');
+            // dropCta('ticket');
           }}
-          ctaText="Create an Ticket Drop"
+          ctaText="Coming soon"
+          // ctaText="Create an Ticket Drop"
           description="Generate QRs for each guest, set them up with a wallet and optionally drop attendance proof NFTs."
           headingText="Ticket your next event."
           imageNumber={1}
@@ -63,9 +64,10 @@ export const DropsSection = () => {
       content: (
         <DropsTemplate
           ctaOnClick={() => {
-            dropCta('nft');
+            // dropCta('nft');
           }}
-          ctaText="Create a NFT Drop"
+          ctaText="Coming soon"
+          // ctaText="Create a NFT Drop"
           description="Easily drop NFTs to a large audience, without needing their wallets."
           headingText="NFTs in a link."
           imageNumber={2}
