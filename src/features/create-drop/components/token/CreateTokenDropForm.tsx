@@ -2,6 +2,7 @@ import { Button, Flex, Input } from '@chakra-ui/react';
 import { useCallback, useMemo } from 'react';
 import { Controller, useFormContext } from 'react-hook-form';
 import { formatNearAmount } from 'keypom-js';
+import { evaluate, format } from 'mathjs';
 
 import { IconBox } from '@/components/IconBox';
 import { FormControl } from '@/components/FormControl';
@@ -47,7 +48,9 @@ export const CreateTokenDropForm = () => {
 
   const totalCost = useMemo(() => {
     if (totalLinks && amountPerLink) {
-      return totalLinks * amountPerLink;
+      return format(evaluate(`${totalLinks as number} * ${amountPerLink as number}`), {
+        precision: 14,
+      });
     }
     return 0;
   }, [amountPerLink, totalLinks]);
@@ -130,7 +133,7 @@ export const CreateTokenDropForm = () => {
               <WalletBalanceInput
                 {...field}
                 isInvalid={Boolean(error?.message)}
-                maxLength={23}
+                maxLength={14}
                 onChange={(e) => {
                   if (e.target.value.length > e.target.maxLength)
                     e.target.value = e.target.value.slice(0, e.target.maxLength);
@@ -170,7 +173,7 @@ export const CreateTokenDropForm = () => {
           )}
         />
 
-        <Controller
+        {/* <Controller
           control={control}
           name="redirectLink"
           render={({ field, fieldState: { error } }) => (
@@ -187,7 +190,7 @@ export const CreateTokenDropForm = () => {
               />
             </FormControl>
           )}
-        />
+        /> */}
         <Flex justifyContent="flex-end">
           <Button disabled={!isDirty || !isValid} mt="10" type="submit">
             Continue to summary
