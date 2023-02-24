@@ -122,6 +122,8 @@ export const DropManager = ({
       );
       console.log('deleting drop', dropId);
       setDeleting(false);
+
+      window.location.reload();
     }
   };
 

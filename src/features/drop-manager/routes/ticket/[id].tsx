@@ -164,6 +164,7 @@ export default function TicketDropManagerPage() {
           dropId,
           publicKeys: pubKey,
         });
+        window.location.reload();
       },
       () => null,
       'key',

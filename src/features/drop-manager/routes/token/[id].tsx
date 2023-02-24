@@ -153,6 +153,7 @@ export default function TokenDropManagerPage() {
           dropId,
           publicKeys: pubKey,
         });
+        window.location.reload();
       },
       () => null,
       'key',

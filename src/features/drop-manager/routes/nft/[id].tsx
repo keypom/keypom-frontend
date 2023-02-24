@@ -153,6 +153,7 @@ export default function NFTDropManagerPage() {
           dropId,
           publicKeys: pubKey,
         });
+        window.location.reload();
       },
       () => null,
       'key',
