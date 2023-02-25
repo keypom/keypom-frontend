@@ -1,8 +1,7 @@
 import { Button, Flex, Input } from '@chakra-ui/react';
-import { useCallback, useMemo } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import { Controller, useFormContext } from 'react-hook-form';
-import { formatNearAmount } from 'keypom-js';
-import { evaluate, format } from 'mathjs';
+import { formatNearAmount, createDrop } from 'keypom-js';
 
 import { IconBox } from '@/components/IconBox';
 import { FormControl } from '@/components/FormControl';
@@ -20,6 +19,7 @@ import { WALLET_OPTIONS } from '../WalletComponent';
 export const CreateTokenDropForm = () => {
   const { setAppModal } = useAppContext();
   const { account } = useAuthWalletContext();
+
   const WALLET_TOKENS = account
     ? [
         {
@@ -40,19 +40,29 @@ export const CreateTokenDropForm = () => {
     formState: { isDirty, isValid },
   } = useFormContext();
 
+  const [totalCost, setTotalCost] = useState(0);
+
   const [selectedFromWallet, amountPerLink, totalLinks] = watch([
     'selectedFromWallet',
     'amountPerLink',
     'totalLinks',
   ]);
 
-  const totalCost = useMemo(() => {
+  const calcTotalCost = async () => {
+    console.log(totalLinks, amountPerLink, totalCost);
     if (totalLinks && amountPerLink) {
-      return format(evaluate(`${totalLinks as number} * ${amountPerLink as number}`), {
-        precision: 14,
+      const { requiredDeposit } = await createDrop({
+        wallet: await window.selector.wallet(),
+        depositPerUseNEAR: amountPerLink,
+        numKeys: totalLinks,
+        returnTransactions: true,
       });
+      setTotalCost(parseFloat(formatNearAmount(requiredDeposit!, 4)));
     }
-    return 0;
+  };
+
+  useEffect(() => {
+    calcTotalCost();
   }, [amountPerLink, totalLinks]);
 
   const handleWalletChange = (walletSymbol: string) => {
@@ -114,7 +124,7 @@ export const CreateTokenDropForm = () => {
             <FormControl errorText={error?.message} label="Number of links">
               <Input
                 isInvalid={Boolean(error?.message)}
-                placeholder="1 - 10,000"
+                placeholder="1 - 50"
                 type="number"
                 {...field}
                 onChange={(e) => {

@@ -77,7 +77,7 @@ export const DropsTemplate = ({
             <Text color="gray.400" mb={{ base: '6', md: '28px' }} size={{ base: 'md', md: '2xl' }}>
               {description}
             </Text>
-            <Button variant="landing" w="fit-content" onClick={ctaOnClick} isDisabled={ctaDisabled}>
+            <Button isDisabled={ctaDisabled} variant="landing" w="fit-content" onClick={ctaOnClick}>
               {ctaText}
             </Button>
           </Flex>

@@ -45,12 +45,11 @@ export const DropsSection = () => {
       icon: <TicketIcon height={{ base: '6', md: '7' }} width={{ base: '6', md: '7' }} />,
       content: (
         <DropsTemplate
+          ctaDisabled={true}
           ctaOnClick={() => {
             // dropCta('ticket');
           }}
           ctaText="Coming soon"
-          ctaDisabled={true}
-          // ctaText="Create an Ticket Drop"
           description="Generate QRs for each guest, set them up with a wallet and optionally drop attendance proof NFTs."
           headingText="Ticket your next event."
           imageNumber={1}
@@ -64,12 +63,11 @@ export const DropsSection = () => {
       icon: <ImageIcon height={{ base: '6', md: '7' }} width={{ base: '6', md: '7' }} />,
       content: (
         <DropsTemplate
+          ctaDisabled={true}
           ctaOnClick={() => {
             // dropCta('nft');
           }}
           ctaText="Coming soon"
-          ctaDisabled={true}
-          // ctaText="Create a NFT Drop"
           description="Easily drop NFTs to a large audience, without needing their wallets."
           headingText="NFTs in a link."
           imageNumber={2}

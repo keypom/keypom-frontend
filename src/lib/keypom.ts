@@ -72,7 +72,7 @@ class KeypomJS {
 
     try {
       const account = await this.nearConnection.account(accountId);
-      const state = await account.state();
+      await account.state();
     } catch (err) {
       throw new Error('Account Id does not exist');
     }

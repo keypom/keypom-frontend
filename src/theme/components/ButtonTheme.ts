@@ -50,8 +50,8 @@ export const ButtonTheme = defineStyleConfig({
         borderColor: 'blue.400',
       },
       _disabled: {
-        pointerEvents: "none",
-      }
+        pointerEvents: 'none',
+      },
     },
     secondary: {
       border: '2px solid',
