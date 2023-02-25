@@ -99,11 +99,10 @@ export const CreateTokenDropProvider = ({ children }: PropsWithChildren) => {
 
   const getSummaryData = (): SummaryItem[] => {
     const { getValues } = methods;
-    const [dropName, totalLinks, amountPerLink, redirectLink, selectedFromWallet] = getValues([
+    const [dropName, totalLinks, amountPerLink, selectedFromWallet] = getValues([
       'dropName',
       'totalLinks',
       'amountPerLink',
-      'redirectLink',
       'selectedFromWallet',
     ]);
 
@@ -198,7 +197,9 @@ export const CreateTokenDropProvider = ({ children }: PropsWithChildren) => {
       }
     }
 
-    setTimeout(() => navigate('/drops'), 1000);
+    setTimeout(() => {
+      navigate('/drops');
+    }, 1000);
   };
 
   const createLinksSWR = {
