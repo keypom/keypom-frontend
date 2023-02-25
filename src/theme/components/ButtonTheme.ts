@@ -49,6 +49,9 @@ export const ButtonTheme = defineStyleConfig({
         border: '2px solid',
         borderColor: 'blue.400',
       },
+      _disabled: {
+        pointerEvents: "none",
+      }
     },
     secondary: {
       border: '2px solid',

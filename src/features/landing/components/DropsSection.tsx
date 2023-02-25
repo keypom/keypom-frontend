@@ -49,6 +49,7 @@ export const DropsSection = () => {
             // dropCta('ticket');
           }}
           ctaText="Coming soon"
+          ctaDisabled={true}
           // ctaText="Create an Ticket Drop"
           description="Generate QRs for each guest, set them up with a wallet and optionally drop attendance proof NFTs."
           headingText="Ticket your next event."
@@ -67,6 +68,7 @@ export const DropsSection = () => {
             // dropCta('nft');
           }}
           ctaText="Coming soon"
+          ctaDisabled={true}
           // ctaText="Create a NFT Drop"
           description="Easily drop NFTs to a large audience, without needing their wallets."
           headingText="NFTs in a link."
