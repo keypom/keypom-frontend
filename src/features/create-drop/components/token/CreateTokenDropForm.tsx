@@ -175,7 +175,7 @@ export const CreateTokenDropForm = () => {
               label="Wallets"
             >
               <Checkboxes
-                defaultValues={['near_wallet']}
+                defaultValues={['my_near_wallet']}
                 items={WALLET_OPTIONS}
                 onChange={handleCheckboxChange}
               />

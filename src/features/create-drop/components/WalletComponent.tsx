@@ -8,15 +8,15 @@ import { MyNearLogoIcon, NearLogoIcon } from '@/components/Icons';
 
 export const WALLET_OPTIONS: CheckboxItem[] = [
   {
-    name: 'NEAR Wallet',
-    value: 'near_wallet',
-    icon: <NearLogoIcon height="7" width="5" />,
-  },
-  {
     name: 'My NEAR Wallet',
     value: 'my_near_wallet',
     icon: <MyNearLogoIcon height="6" width="5" />,
   },
+  // {
+  //   name: 'NEAR Wallet',
+  //   value: 'near_wallet',
+  //   icon: <NearLogoIcon height="7" width="5" />,
+  // },
   // {
   //   name: 'HERE Wallet',
   //   value: 'here_wallet',
