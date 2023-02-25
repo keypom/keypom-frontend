@@ -123,11 +123,11 @@ export const CreateTokenDropProvider = ({ children }: PropsWithChildren) => {
         name: 'Number of links',
         value: totalLinks,
       },
-      {
-        type: 'text',
-        name: 'Redirect link',
-        value: redirectLink ?? '',
-      },
+      // {
+      //   type: 'text',
+      //   name: 'Redirect link',
+      //   value: redirectLink ?? '',
+      // },
     ];
   };
 
