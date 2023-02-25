@@ -188,7 +188,7 @@ export const CreateTokenDropProvider = ({ children }: PropsWithChildren) => {
         numKeys: totalLinks,
         metadata: JSON.stringify({ dropName }),
         // redirects to drops (so user can see new drop)
-        successUrl: window.location.origin + '/drops',
+        successUrl: `${window.location.origin}/drop/token/${dropId}`,
       });
     } catch (e) {
       console.warn(e);
