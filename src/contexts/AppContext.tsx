@@ -74,14 +74,18 @@ export const setAppModalHelper = (setAppModal, confirm, cancel) => {
       {
         label: 'Cancel',
         func: () => {
-          // eslint-disable-next-line no-console
-          console.log('user cancelled');
           if (cancel) cancel();
         },
       },
       {
         label: 'Set Master Key',
         func: ({ masterKey }) => {
+          console.log(masterKey)
+          if (!masterKey || masterKey.length === 0) {
+            alert('Master Key must be specified. Please try again.')
+            if (cancel) cancel();
+            return
+          }
           set('MASTER_KEY', masterKey);
           if (confirm) confirm();
         },

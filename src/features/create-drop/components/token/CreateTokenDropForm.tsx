@@ -83,6 +83,7 @@ export const CreateTokenDropForm = () => {
       setAppModalHelper(setAppModal, onNext?.(), () => {
         // eslint-disable-next-line no-console
         console.log('user cancelled');
+        window.location.reload();
       });
       return;
     }
