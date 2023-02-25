@@ -90,19 +90,25 @@ export default function TokenDropManagerPage() {
   });
 
   const handleGetDrops = async ({ pageIndex = 0, pageSize = PAGE_SIZE_LIMIT }) => {
+
     if (!accountId) return null;
     let drop = await getDropInformation({
       dropId,
     });
-    if (!drop)
+    if (!drop) {
+
+      // TODO Show error
       drop = {
         metadata: '{}',
       };
+    }
 
     setDataSize(drop.next_key_id);
     setClaimed(await getKeySupplyForDrop({ dropId }));
 
-    setName(JSON.parse(drop.metadata as unknown as string).dropName);
+    const metadata = JSON.parse(drop.metadata as unknown as string)
+
+    setName(metadata.dropName);
 
     const { publicKeys, secretKeys } = await generateKeys({
       numKeys:
@@ -115,7 +121,6 @@ export default function TokenDropManagerPage() {
 
     const keyInfo = await getKeyInformationBatch({
       publicKeys,
-      secretKeys,
     });
 
     setData(
