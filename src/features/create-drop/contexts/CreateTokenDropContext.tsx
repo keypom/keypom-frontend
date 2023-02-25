@@ -198,7 +198,7 @@ export const CreateTokenDropProvider = ({ children }: PropsWithChildren) => {
       }
     }
 
-    navigate('/drops');
+    setTimeout(() => navigate('/drops'), 1000);
   };
 
   const createLinksSWR = {
