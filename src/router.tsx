@@ -4,6 +4,7 @@ import { createBrowserRouter } from 'react-router-dom';
 import { CoreLayout } from '@/components/CoreLayout';
 
 import { ProtectedRoute } from './components/ProtectedRoutes';
+import { NotFound404 } from './components/NotFound404';
 
 const AllDropsPage = React.lazy(
   async () => await import('./features/all-drops/routes/AllDropsPage'),
@@ -137,6 +138,10 @@ export const router = createBrowserRouter([
       {
         path: 'scanner',
         element: <ScannerPage />,
+      },
+      {
+        path: '*',
+        element: <NotFound404 />,
       },
     ],
   },
