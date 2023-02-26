@@ -29,7 +29,8 @@ export const AppModal = () => {
 
   return (
     <Modal
-      closeOnOverlayClick
+      isCentered
+      closeOnOverlayClick={appModal.closeOnOverlayClick || false}
       isOpen={appModal.isOpen}
       onClose={() => {
         setAppModal({
@@ -38,7 +39,7 @@ export const AppModal = () => {
       }}
     >
       <ModalOverlay />
-      <ModalContent p={{ base: '8', md: '16' }} textAlign="center">
+      <ModalContent p={{ base: '8', md: '16' }} textAlign="center" top={'-10rem'}>
         <ModalHeader
           alignItems="center"
           display="flex"
@@ -98,13 +99,22 @@ export const AppModal = () => {
         {appModal.options && appModal.options.length > 0 && (
           <ModalFooter>
             <ButtonGroup>
-              {appModal.options.map(({ label, func, buttonProps }, i) => (
+              {appModal.options.map(({ label, func, buttonProps, lazy }, i) => (
                 <Button
                   key={i}
                   isLoading={loading}
                   onClick={async () => {
+                    if (lazy) {
+                      setAppModal({ isOpen: false });
+                      if (func) {
+                        await func(values);
+                      }
+                      return;
+                    }
                     setLoading(true);
-                    await func(values);
+                    if (func) {
+                      await func(values);
+                    }
                     setLoading(false);
                     setAppModal({ isOpen: false });
                   }}

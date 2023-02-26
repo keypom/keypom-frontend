@@ -106,8 +106,6 @@ class KeypomJS {
       throw new Error('Drop has been deleted or has already been claimed');
     }
 
-    console.log(keyInfo);
-
     return keyInfo.remaining_uses;
   };
 

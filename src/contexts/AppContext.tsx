@@ -10,12 +10,14 @@ export interface AppModalInputs {
 
 export interface AppModalOptions {
   label: string;
-  func: (values) => Promise<void> | void;
+  func?: (values) => Promise<void> | void;
+  lazy?: boolean;
   buttonProps?: ButtonProps;
 }
 
 interface AppModalValues {
   isOpen: boolean;
+  closeOnOverlayClick?: boolean;
   message?: string;
   header?: string;
   options?: AppModalOptions[];
@@ -80,11 +82,11 @@ export const setAppModalHelper = (setAppModal, confirm, cancel) => {
       {
         label: 'Set Master Key',
         func: ({ masterKey }) => {
-          console.log(masterKey)
+          console.log(masterKey);
           if (!masterKey || masterKey.length === 0) {
-            alert('Master Key must be specified. Please try again.')
+            alert('Master Key must be specified. Please try again.');
             if (cancel) cancel();
-            return
+            return;
           }
           set('MASTER_KEY', masterKey);
           if (confirm) confirm();

@@ -65,6 +65,7 @@ module.exports = {
     '@typescript-eslint/no-empty-interface': 'off',
     'prettier/prettier': 'error',
     'simple-import-sort/exports': 'error',
+    'react/no-unescaped-entities': 'off',
     'import/first': 'error',
     'import/newline-after-import': 'error',
     'import/no-duplicates': 'error',

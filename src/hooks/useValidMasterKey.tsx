@@ -23,7 +23,7 @@ export const useValidMasterKey = ({ dropId }: useValidMasterKeyProps) => {
         rootEntropy: `${get(MASTER_KEY) as string}-${dropId}`,
         metaEntropy: keys[0].key_id.toString(),
       });
-      
+
       setValid(keys[0].pk === publicKeys[0]);
     };
     validateMasterKey();

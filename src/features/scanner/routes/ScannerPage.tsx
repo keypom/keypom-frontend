@@ -50,12 +50,8 @@ const Scanner = () => {
 
   const handleTicketClaim = async (secretKey: string, password: string) => {
     try {
-      console.log('claiming ticket');
       await keypomInstance.claimTicket(secretKey, password);
-      console.log('claim is valid');
-      setIsTxSuccess(true);
-      setIsTxLoading(false);
-      onResultModalOpen();
+      // we already closed the modal
     } catch (err) {
       if (
         err.message === 'Ticket has already been claimed' ||
@@ -63,18 +59,14 @@ const Scanner = () => {
       ) {
         setTxError(err.message);
         setIsTxLoading(false);
-        scanningResultInProgress = false;
         return;
       }
-
-      console.error(err);
       setIsClaimRetry(true);
       setIsTxLoading(false);
       onResultModalClose();
       setPasswordErrorText(err.message);
       onPasswordModalOpen();
     }
-    scanningResultInProgress = false;
   };
 
   const handleScanResult = async (result, error) => {
@@ -136,12 +128,33 @@ const Scanner = () => {
       console.error(err);
       setTxError(err.message);
       setIsTxLoading(false);
-      scanningResultInProgress = false;
       return;
     }
 
     const password = get(SCANNER_PASSWORD_KEY);
-    await handleTicketClaim(secretKey, password);
+
+    setIsTxSuccess(true);
+    setIsTxLoading(false);
+    onResultModalOpen();
+
+    // we don't await it, because it takes to long...
+    handleTicketClaim(secretKey, password)
+      .then((res) => {
+        console.log(res);
+      })
+      .catch((e) => {
+        setAppModal({
+          isOpen: true,
+          header: 'ERROR Scanning Previous Ticket!',
+          message: `Please try scanning the ticket again, otherwise the person will not be able to claim their gift until they are scanned successfully!`,
+          options: [
+            {
+              label: 'Ok',
+            },
+          ],
+        });
+      });
+    // yaaaa we can scan more tickets and everything looks super fast!
   };
 
   const openResultModal = () => {
@@ -152,6 +165,7 @@ const Scanner = () => {
       options.push({
         label: 'Ok',
         func: () => {
+          scanningResultInProgress = false;
           console.log('tx acknowledged');
         },
       });
@@ -161,6 +175,7 @@ const Scanner = () => {
       options.push({
         label: 'Ok',
         func: () => {
+          scanningResultInProgress = false;
           console.log('error acknowledged');
         },
       });
@@ -185,6 +200,21 @@ const Scanner = () => {
     }
   };
 
+  const openPasswordWarning = () => {
+    setAppModal({
+      isOpen: true,
+      header: 'No password has been set!',
+      message: `You won't be able to scan tickets without setting a password. Click ok to continue.`,
+      options: [
+        {
+          lazy: true,
+          label: 'Ok',
+          func: openPasswordModal,
+        },
+      ],
+    });
+  };
+
   const openPasswordModal = () => {
     setAppModal({
       isOpen: true,
@@ -198,22 +228,23 @@ const Scanner = () => {
       ],
       options: [
         {
+          lazy: true,
           label: 'Cancel',
           func: () => {
-            // eslint-disable-next-line no-console
-            console.log('Using password from local storage.');
-
             const cachedPassword = get(SCANNER_PASSWORD_KEY);
-
-            if (cachedPassword === undefined) {
-              set(SCANNER_PASSWORD_KEY, '');
-            }
+            if (!!cachedPassword && cachedPassword.length > 0) return;
+            openPasswordWarning();
           },
         },
         {
+          lazy: true,
           label: 'Ok',
           func: ({ password }) => {
-            handlePasswordSaveClick(password);
+            if (password?.length > 0) {
+              handlePasswordSaveClick(password.trim());
+              return;
+            }
+            openPasswordWarning();
           },
         },
       ],
@@ -252,6 +283,25 @@ const Scanner = () => {
             />
           </Center>
           {/* )} */}
+
+          <Button
+            mt={4}
+            onClick={() => {
+              setAppModal({
+                isOpen: true,
+                header: 'Your scanner password is:',
+                message: get(SCANNER_PASSWORD_KEY),
+                options: [
+                  {
+                    label: 'Ok',
+                  },
+                ],
+              });
+            }}
+          >
+            What's my password?
+          </Button>
+
           <Button
             mt={4}
             onClick={() => {
@@ -260,6 +310,15 @@ const Scanner = () => {
           >
             Enter password
           </Button>
+
+          {/* <Button
+            mt={4}
+            onClick={() => {
+              set(SCANNER_PASSWORD_KEY, '')
+            }}
+          >
+            Clear password
+          </Button> */}
         </VStack>
       </Center>
     </Box>
