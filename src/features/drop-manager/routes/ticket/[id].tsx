@@ -21,7 +21,6 @@ import { useAppContext } from '@/contexts/AppContext';
 import getConfig from '@/config/config';
 import { useValidMasterKey } from '@/hooks/useValidMasterKey';
 import { share } from '@/utils/share';
-import { asyncWithTimeout } from '@/utils/asyncWithTimeout';
 
 import { getClaimStatus } from '../../utils/getClaimStatus';
 import { getBadgeType } from '../../utils/getBadgeType';
@@ -79,14 +78,14 @@ export default function TicketDropManagerPage() {
   }, [masterKeyValidity]);
 
   const getScannedKeys = async () => {
-    const keySupply = await getKeySupplyForDrop({ dropId: dropId! })
+    const keySupply = await getKeySupplyForDrop({ dropId: dropId! });
 
     const getScannedInner = async (scanned = 0, index = 0) => {
       const drop = await getDropInformation({ dropId });
 
       const size = 200; // max limit is 306
 
-      if (index * size >= drop.next_key_id) return
+      if (index * size >= drop.next_key_id) return;
 
       const keyInfos = await getKeysForDrop({
         dropId: dropId!,
@@ -100,14 +99,14 @@ export default function TicketDropManagerPage() {
 
       setClaimed(keySupply - scanned);
 
-      getScannedInner(scanned, index)
+      getScannedInner(scanned, index);
     };
     getScannedInner();
-  }
+  };
 
   // set Scanned item
   useEffect(() => {
-    getScannedKeys()
+    getScannedKeys();
   }, []);
 
   const {

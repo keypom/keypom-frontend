@@ -119,7 +119,7 @@ class KeypomJS {
     try {
       await claim({ secretKey, password: passwordForClaim, accountId: 'foo' });
     } catch (e) {
-      console.warn(e)
+      console.warn(e);
     }
 
     keyInfo = await getKeyInformation({ secretKey });

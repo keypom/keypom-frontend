@@ -153,7 +153,8 @@ const Scanner = () => {
             },
           ],
         });
-      }).finally(() => {
+      })
+      .finally(() => {
         scanningResultInProgress = false;
       });
     // yaaaa we can scan more tickets and everything looks super fast!
