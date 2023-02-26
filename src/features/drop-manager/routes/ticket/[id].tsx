@@ -95,12 +95,9 @@ export default function TicketDropManagerPage() {
       });
 
       const scannedKeys = keyInfos.filter((key) => getClaimStatus(key) === 'Attended');
-      console.log(scannedKeys.length)
       scanned += scannedKeys.length;
       index = index + 1;
 
-      console.log('scanned key:', scanned, 'loop index:', index); // eslint-disable-line no-console
-      
       setClaimed(keySupply - scanned);
 
       getScannedInner(scanned, index)
