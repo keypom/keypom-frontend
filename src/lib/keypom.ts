@@ -115,7 +115,12 @@ class KeypomJS {
     const passwordForClaim = await hashPassword(
       password + publicKey + keyInfo.cur_key_use.toString(),
     );
-    await claim({ secretKey, password: passwordForClaim, accountId: 'foo' });
+
+    try {
+      await claim({ secretKey, password: passwordForClaim, accountId: 'foo' });
+    } catch (e) {
+      console.warn(e)
+    }
 
     keyInfo = await getKeyInformation({ secretKey });
     if (keyInfo.remaining_uses === 2) {
