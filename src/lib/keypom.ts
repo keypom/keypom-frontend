@@ -11,11 +11,17 @@ import {
   getPubFromSecret,
   formatNearAmount,
   formatLinkdropUrl,
+  generateKeys,
+  getKeyInformationBatch,
+  getKeySupplyForDrop,
+  deleteKeys,
+  getKeysForDrop,
 } from 'keypom-js';
 import * as nearAPI from 'near-api-js';
 
-import { CLOUDFLARE_IPFS, DROP_TYPE } from '@/constants/common';
+import { CLOUDFLARE_IPFS, DROP_TYPE, MASTER_KEY } from '@/constants/common';
 import getConfig from '@/config/config';
+import { get } from '@/utils/localStorage';
 
 let instance: KeypomJS;
 const ACCOUNT_ID_REGEX = /^(([a-z\d]+[-_])*[a-z\d]+\.)*([a-z\d]+[-_])*[a-z\d]+$/;
@@ -191,6 +197,57 @@ class KeypomJS {
         title: metadata,
       };
     }
+  };
+
+  deleteKeys = async ({ wallet, dropId, publicKeys }) =>
+    await deleteKeys({ wallet, dropId, publicKeys });
+
+  getDropInfo = async (dropId?: string): Promise<ProtocolReturnedDrop> => {
+    if (!dropId) throw new Error('Missing dropId');
+    // TODO: add basic catch
+    return await getDropInformation({ dropId });
+  };
+
+  getClaimedDropInfo = async (dropId: string) => await getKeySupplyForDrop({ dropId });
+
+  getKeysForDrop = async ({ dropId, limit, start }) =>
+    await getKeysForDrop({ dropId, limit, start });
+
+  getKeysInfo = async (
+    dropId: string,
+    pageIndex: number,
+    pageSize: number,
+    getDropCatch?: () => void,
+  ) => {
+    const drop = await this.getDropInfo(dropId).catch(() => {
+      if (getDropCatch) getDropCatch();
+    });
+
+    const dropSize = (drop as ProtocolReturnedDrop).next_key_id;
+    // TODO: update getDropMetadata utility with PR150
+    const { dropName } = this.getDropMetadata((drop as ProtocolReturnedDrop).metadata as string);
+
+    const { publicKeys, secretKeys } = await generateKeys({
+      numKeys:
+        (pageIndex + 1) * pageSize > dropSize
+          ? dropSize - pageIndex * pageSize
+          : Math.min(dropSize, pageSize),
+      rootEntropy: `${get(MASTER_KEY) as string}-${dropId}`,
+      autoMetaNonceStart: pageIndex * pageSize,
+    });
+
+    const keyInfo = await getKeyInformationBatch({
+      publicKeys,
+      secretKeys,
+    });
+
+    return {
+      dropSize,
+      dropName,
+      publicKeys,
+      secretKeys,
+      keyInfo,
+    };
   };
 
   generateExternalWalletLink = async (
