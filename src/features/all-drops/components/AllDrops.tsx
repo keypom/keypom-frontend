@@ -19,12 +19,10 @@ import {
   getDrops,
   getKeySupplyForDrop,
   getDropSupplyForOwner,
-  type ProtocolReturnedSimpleData,
-  type ProtocolReturnedFTData,
-  type ProtocolReturnedNFTData,
   type ProtocolReturnedFCData,
   type ProtocolReturnedMethod,
   getEnv,
+  type ProtocolReturnedDrop,
 } from 'keypom-js';
 import { ChevronDownIcon } from '@chakra-ui/icons';
 
@@ -47,28 +45,6 @@ import { MobileDrawerMenu } from './MobileDrawerMenu';
 import { setConfirmationModalHelper } from './ConfirmationModal';
 
 const FETCH_NFT_METHOD_NAME = 'get_series_info';
-
-const getDropTypeLabel = ({
-  simple,
-  ft,
-  nft,
-  fc,
-}: {
-  simple?: ProtocolReturnedSimpleData;
-  ft?: ProtocolReturnedFTData;
-  nft?: ProtocolReturnedNFTData;
-  fc?: ProtocolReturnedFCData;
-}) => {
-  if (fc) {
-    const { methods } = fc;
-    if (methods.length === 1) {
-      return 'NFT';
-    }
-    return 'Ticket';
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-  } else if (simple || ft) return 'Token';
-  else return 'Token';
-};
 
 const COLUMNS: ColumnItem[] = [
   {
@@ -113,7 +89,7 @@ export default function AllDrops() {
   const [isLoading, setIsLoading] = useState(true);
 
   const [dataSize, setDataSize] = useState<number>(0);
-  const [data, setData] = useState<DataItem[]>([]);
+  const [data, setData] = useState<Array<DataItem | null>>([]);
   const [wallet, setWallet] = useState({});
 
   const {
@@ -150,6 +126,48 @@ export default function AllDrops() {
     setDataSize(numDrops);
   };
 
+  const setAllDropsData = async (drop: ProtocolReturnedDrop) => {
+    const { drop_id: id, fc, metadata, next_key_id } = drop;
+    const { dropName } = keypomInstance.getDropMetadata(metadata as string);
+
+    let type: string | null = '';
+    try {
+      type = keypomInstance.getDropType(drop);
+    } catch (_) {
+      return null;
+    }
+
+    let nftHref = '';
+    if (type === DROP_TYPE.NFT) {
+      const fcMethod = (fc as ProtocolReturnedFCData).methods[0]?.[0];
+      const { receiver_id } = fcMethod as ProtocolReturnedMethod;
+
+      const nftData = await asyncWithTimeout(
+        viewCall({
+          contractId: receiver_id,
+          methodName: FETCH_NFT_METHOD_NAME,
+          args: {
+            mint_id: parseInt(id),
+          },
+        }),
+      ).catch((_) => {
+        console.error(); // eslint-disable-line no-console
+      });
+
+      nftHref =
+        `${CLOUDFLARE_IPFS}/${nftData?.metadata?.media as string}` ??
+        'https://placekitten.com/200/300';
+    }
+
+    return {
+      id,
+      name: truncateAddress(dropName, 'end', 48),
+      type: type?.toLowerCase(),
+      media: type === DROP_TYPE.NFT ? nftHref : undefined,
+      claimed: `${next_key_id - (await getKeySupplyForDrop({ dropId: id }))} / ${next_key_id}`,
+    };
+  };
+
   const handleGetDrops = async ({ start = 0, limit = pagination.pageSize }) => {
     const drops = await getDrops({ accountId, start, limit });
 
@@ -157,42 +175,8 @@ export default function AllDrops() {
 
     setData(
       await Promise.all(
-        drops.map(async ({ drop_id: id, simple, ft, nft, fc, metadata, next_key_id }) => {
-          const { dropName } = keypomInstance.getDropMetadata(metadata as string);
-
-          const type = getDropTypeLabel({ simple, ft, nft, fc });
-
-          let nftHref = '';
-          if (type === DROP_TYPE.NFT) {
-            const fcMethod = (fc as ProtocolReturnedFCData).methods[0]?.[0];
-            const { receiver_id } = fcMethod as ProtocolReturnedMethod;
-
-            const nftData = await asyncWithTimeout(
-              viewCall({
-                contractId: receiver_id,
-                methodName: FETCH_NFT_METHOD_NAME,
-                args: {
-                  mint_id: parseInt(id),
-                },
-              }),
-            ).catch((_) => {
-              console.error(); // eslint-disable-line no-console
-            });
-
-            nftHref =
-              `${CLOUDFLARE_IPFS}/${nftData?.metadata?.media as string}` ??
-              'https://placekitten.com/200/300';
-          }
-
-          return {
-            id,
-            name: truncateAddress(dropName, 'end', 48),
-            type,
-            media: type === DROP_TYPE.NFT ? nftHref : undefined,
-            claimed: `${
-              next_key_id - (await getKeySupplyForDrop({ dropId: id }))
-            } / ${next_key_id}`,
-          };
+        drops.map(async (drop) => {
+          return await setAllDropsData(drop);
         }),
       ),
     );
@@ -224,32 +208,38 @@ export default function AllDrops() {
   };
 
   const getTableRows = (): DataItem[] => {
-    if (data === undefined || data?.length === 0) return [];
+    if (data === undefined || data.length === 0) return [];
 
-    return data.map((drop) => ({
-      ...drop,
-      name: <Text color="gray.800">{drop.name}</Text>,
-      type: (
-        <Text fontWeight="normal" mt="0.5">
-          {drop.type}
-        </Text>
-      ),
-      media: drop.media !== undefined && <Avatar src={drop.media as string} />,
-      claimed: <Badge variant="lightgreen">{drop.claimed} Claimed</Badge>,
-      action: (
-        <Button
-          size="sm"
-          variant="icon"
-          onClick={async (e) => {
-            e.stopPropagation();
-            handleDeleteClick(drop.id);
-          }}
-        >
-          <DeleteIcon color="red" />
-        </Button>
-      ),
-      href: `/drop/${(drop.type as string).toLowerCase()}/${drop.id}`,
-    }));
+    return data.reduce((result: DataItem[], drop) => {
+      if (drop !== null) {
+        const dataItem = {
+          ...drop,
+          name: <Text color="gray.800">{drop.name}</Text>,
+          type: (
+            <Text fontWeight="normal" mt="0.5" textTransform="capitalize">
+              {drop.type}
+            </Text>
+          ),
+          media: drop.media !== undefined && <Avatar src={drop.media as string} />,
+          claimed: <Badge variant="lightgreen">{drop.claimed} Claimed</Badge>,
+          action: (
+            <Button
+              size="sm"
+              variant="icon"
+              onClick={async (e) => {
+                e.stopPropagation();
+                handleDeleteClick(drop.id);
+              }}
+            >
+              <DeleteIcon color="red" />
+            </Button>
+          ),
+          href: `/drop/${(drop.type as string).toLowerCase()}/${drop.id}`,
+        };
+        result.push(dataItem);
+      }
+      return result;
+    }, []);
   };
 
   return (
