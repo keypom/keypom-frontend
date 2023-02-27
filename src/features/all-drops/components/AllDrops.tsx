@@ -37,15 +37,14 @@ import { handleFinishNFTDrop } from '@/features/create-drop/contexts/CreateNftDr
 import { truncateAddress } from '@/utils/truncateAddress';
 import { NextButton, PrevButton } from '@/components/Pagination';
 import { usePagination } from '@/hooks/usePagination';
-import getConfig from '@/config/config';
 import { asyncWithTimeout } from '@/utils/asyncWithTimeout';
 import { useAppContext } from '@/contexts/AppContext';
+import { CLOUDFLARE_IPFS, DROP_TYPE } from '@/constants/common';
 
 import { MENU_ITEMS } from '../config/menuItems';
 
 import { MobileDrawerMenu } from './MobileDrawerMenu';
 import { setConfirmationModalHelper } from './ConfirmationModal';
-import { CLOUDFLARE_IPFS } from '@/constants/common';
 
 const FETCH_NFT_METHOD_NAME = 'get_series_info';
 
@@ -167,7 +166,7 @@ export default function AllDrops() {
           const type = getDropTypeLabel({ simple, ft, nft, fc });
 
           let nftHref = '';
-          if (type === 'NFT') {
+          if (type === DROP_TYPE.NFT) {
             const fcMethod = (fc as ProtocolReturnedFCData).methods[0]?.[0];
             const { receiver_id } = fcMethod as ProtocolReturnedMethod;
 
@@ -192,7 +191,7 @@ export default function AllDrops() {
             id,
             name: truncateAddress(meta.dropName, 'end', 48),
             type,
-            media: type === 'NFT' ? nftHref : undefined,
+            media: type === DROP_TYPE.NFT ? nftHref : undefined,
             claimed: `${
               next_key_id - (await getKeySupplyForDrop({ dropId: id }))
             } / ${next_key_id}`,
