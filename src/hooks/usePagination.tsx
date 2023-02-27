@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { type Pagination } from '@/components/Table/types';
 import { PAGE_SIZE_LIMIT } from '@/constants/common';
@@ -33,7 +33,7 @@ export const usePagination = ({
 
   const hasPagination = pagination?.pageSize < dataSize;
   const firstPage = pageIndex === 0;
-  const lastPage = pagination?.pageSize * (pageIndex + 1) > dataSize;
+  const lastPage = pagination?.pageSize * (pageIndex + 1) >= dataSize;
 
   const handleNextPage = async () => {
     if (lastPage) return;
