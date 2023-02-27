@@ -179,19 +179,7 @@ class KeypomJS {
     return null;
   };
 
-  getDropMetadata = (metadata: string) => {
-    if (metadata === null) {
-      return {};
-    }
-
-    try {
-      return JSON.parse(metadata);
-    } catch (err) {
-      return {
-        title: metadata,
-      };
-    }
-  };
+  getDropMetadata = (metadata: string) => JSON.parse(metadata || '{}');
 
   generateExternalWalletLink = async (
     walletName: string,
