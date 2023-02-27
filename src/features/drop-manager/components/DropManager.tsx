@@ -1,4 +1,13 @@
-import { Box, Button, Heading, HStack, Stack, type TableProps, Text } from '@chakra-ui/react';
+import {
+  Box,
+  Button,
+  Heading,
+  HStack,
+  Stack,
+  type TableProps,
+  Text,
+  Skeleton,
+} from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -128,13 +137,17 @@ export const DropManager = ({
             {/* Drop name */}
             <Stack maxW={{ base: 'full', md: '22.5rem' }}>
               <Text color="gray.800">Drop name</Text>
-              <Heading>{dropName}</Heading>
+              <Skeleton isLoaded={!loading}>
+                <Heading>{dropName}</Heading>
+              </Skeleton>
             </Stack>
 
             {/* Drops claimed */}
             <Stack maxW={{ base: 'full', md: '22.5rem' }}>
               <Text color="gray.800">{claimedHeaderText}</Text>
-              <Heading>{claimedText}</Heading>
+              <Skeleton isLoaded={!loading}>
+                <Heading>{claimedText}</Heading>
+              </Skeleton>
             </Stack>
           </Stack>
           <Text>Track link status and export them to CSV for use in email campaigns here.</Text>
