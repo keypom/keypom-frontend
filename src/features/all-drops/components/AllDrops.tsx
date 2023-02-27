@@ -19,7 +19,6 @@ import {
   getDrops,
   getKeySupplyForDrop,
   getDropSupplyForOwner,
-  deleteDrops,
   type ProtocolReturnedSimpleData,
   type ProtocolReturnedFTData,
   type ProtocolReturnedNFTData,
@@ -216,7 +215,7 @@ export default function AllDrops() {
 
   const handleDeleteClick = (dropId) => {
     setConfirmationModalHelper(setAppModal, async () => {
-      await deleteDrops({
+      await keypomInstance.deleteDrops({
         wallet,
         dropIds: [dropId],
       });
