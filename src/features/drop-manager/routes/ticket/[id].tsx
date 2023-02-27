@@ -181,7 +181,6 @@ export default function TicketDropManagerPage() {
         });
         window.location.reload();
       },
-      () => null,
       'key',
     );
   };

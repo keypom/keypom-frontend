@@ -19,7 +19,6 @@ import {
   getDrops,
   getKeySupplyForDrop,
   getDropSupplyForOwner,
-  deleteDrops,
   type ProtocolReturnedSimpleData,
   type ProtocolReturnedFTData,
   type ProtocolReturnedNFTData,
@@ -215,18 +214,13 @@ export default function AllDrops() {
   ));
 
   const handleDeleteClick = (dropId) => {
-    setConfirmationModalHelper(
-      setAppModal,
-      async () => {
-        await deleteDrops({
-          wallet,
-          dropIds: [dropId],
-        });
-        handleGetDrops({});
-      },
-      () => null,
-      'key',
-    );
+    setConfirmationModalHelper(setAppModal, async () => {
+      await keypomInstance.deleteDrops({
+        wallet,
+        dropIds: [dropId],
+      });
+      handleGetDrops({});
+    });
   };
 
   const getTableRows = (): DataItem[] => {
