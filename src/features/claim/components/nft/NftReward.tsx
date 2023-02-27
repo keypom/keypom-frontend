@@ -17,12 +17,12 @@ export const NftReward = ({ artworkSrc, nftName, description }: NftRewardProps) 
           color="gray.800"
           fontWeight="500"
           maxH="300px"
-          overflowY="scroll"
+          overflowY="auto"
           size={{ base: 'xl', md: '2xl' }}
         >
           {nftName}
         </Text>
-        <Text color="gray.600" maxH="300px" overflowY="scroll" size={{ base: 'sm', md: 'base' }}>
+        <Text color="gray.600" maxH="300px" overflowY="auto" size={{ base: 'sm', md: 'base' }}>
           {description}
         </Text>
       </VStack>
