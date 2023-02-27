@@ -179,7 +179,8 @@ class KeypomJS {
     return null;
   };
 
-  getDropMetadata = (metadata: string) => JSON.parse(metadata || '{}');
+  getDropMetadata = (metadata: string) =>
+    JSON.parse(metadata || JSON.stringify({ dropName: 'Untitled' }));
 
   generateExternalWalletLink = async (
     walletName: string,

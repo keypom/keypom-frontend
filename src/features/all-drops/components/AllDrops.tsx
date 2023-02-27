@@ -40,6 +40,7 @@ import { usePagination } from '@/hooks/usePagination';
 import { asyncWithTimeout } from '@/utils/asyncWithTimeout';
 import { useAppContext } from '@/contexts/AppContext';
 import { CLOUDFLARE_IPFS, DROP_TYPE } from '@/constants/common';
+import keypomInstance from '@/lib/keypom';
 
 import { MENU_ITEMS } from '../config/menuItems';
 
@@ -158,10 +159,7 @@ export default function AllDrops() {
     setData(
       await Promise.all(
         drops.map(async ({ drop_id: id, simple, ft, nft, fc, metadata, next_key_id }) => {
-          const meta = JSON.parse(metadata || '{}');
-          if (!meta.dropName) {
-            meta.dropName = 'Untitled';
-          }
+          const { dropName } = keypomInstance.getDropMetadata(metadata as string);
 
           const type = getDropTypeLabel({ simple, ft, nft, fc });
 
@@ -189,7 +187,7 @@ export default function AllDrops() {
 
           return {
             id,
-            name: truncateAddress(meta.dropName, 'end', 48),
+            name: truncateAddress(dropName, 'end', 48),
             type,
             media: type === DROP_TYPE.NFT ? nftHref : undefined,
             claimed: `${

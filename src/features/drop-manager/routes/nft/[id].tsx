@@ -109,10 +109,10 @@ export default function NFTDropManagerPage() {
     setDataSize(drop.next_key_id);
     setClaimed(await getKeySupplyForDrop({ dropId }));
 
-    const metadata = await keypomInstance.getDropMetadata(
+    const { dropName } = await keypomInstance.getDropMetadata(
       (drop as ProtocolReturnedDrop).metadata as string,
     );
-    if (metadata.dropName) setName(metadata.dropName);
+    setName(dropName);
 
     const { publicKeys, secretKeys } = await generateKeys({
       numKeys:
