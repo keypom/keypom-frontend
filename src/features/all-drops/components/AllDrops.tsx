@@ -120,8 +120,8 @@ export default function AllDrops() {
   const {
     hasPagination,
     pagination,
-    firstPage,
-    lastPage,
+    isFirstPage,
+    isLastPage,
     loading,
     handleNextPage,
     handlePrevPage,
@@ -268,7 +268,7 @@ export default function AllDrops() {
           {hasPagination && (
             <PrevButton
               id="all-drops"
-              isDisabled={!!firstPage}
+              isDisabled={!!isFirstPage}
               isLoading={loading.previous}
               onClick={handlePrevPage}
             />
@@ -308,7 +308,7 @@ export default function AllDrops() {
           {hasPagination && (
             <NextButton
               id="all-drops"
-              isDisabled={!!lastPage}
+              isDisabled={!!isLastPage}
               isLoading={loading.next}
               onClick={handleNextPage}
             />
