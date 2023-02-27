@@ -157,56 +157,46 @@ export default function AllDrops() {
 
     setData(
       await Promise.all(
-        drops.map(
-          async ({
-            drop_id: id,
-            simple,
-            ft,
-            nft,
-            fc,
-            metadata = JSON.stringify({ dropName: 'Untitled' }),
-            next_key_id,
-          }) => {
-            const meta = JSON.parse(metadata) || {};
-            if (!meta.dropName) {
-              meta.dropName = 'Untitled Drop';
-            }
+        drops.map(async ({ drop_id: id, simple, ft, nft, fc, metadata, next_key_id }) => {
+          const meta = JSON.parse(metadata || '{}');
+          if (!meta.dropName) {
+            meta.dropName = 'Untitled';
+          }
 
-            const type = getDropTypeLabel({ simple, ft, nft, fc });
+          const type = getDropTypeLabel({ simple, ft, nft, fc });
 
-            let nftHref = '';
-            if (type === 'NFT') {
-              const fcMethod = (fc as ProtocolReturnedFCData).methods[0]?.[0];
-              const { receiver_id } = fcMethod as ProtocolReturnedMethod;
+          let nftHref = '';
+          if (type === 'NFT') {
+            const fcMethod = (fc as ProtocolReturnedFCData).methods[0]?.[0];
+            const { receiver_id } = fcMethod as ProtocolReturnedMethod;
 
-              const nftData = await asyncWithTimeout(
-                viewCall({
-                  contractId: receiver_id,
-                  methodName: FETCH_NFT_METHOD_NAME,
-                  args: {
-                    mint_id: parseInt(id),
-                  },
-                }),
-              ).catch((_) => {
-                console.error(); // eslint-disable-line no-console
-              });
+            const nftData = await asyncWithTimeout(
+              viewCall({
+                contractId: receiver_id,
+                methodName: FETCH_NFT_METHOD_NAME,
+                args: {
+                  mint_id: parseInt(id),
+                },
+              }),
+            ).catch((_) => {
+              console.error(); // eslint-disable-line no-console
+            });
 
-              nftHref =
-                `${getConfig().cloudflareIfps}/${nftData?.metadata?.media as string}` ??
-                'https://placekitten.com/200/300';
-            }
+            nftHref =
+              `${getConfig().cloudflareIfps as string}/${nftData?.metadata?.media as string}` ??
+              'https://placekitten.com/200/300';
+          }
 
-            return {
-              id,
-              name: truncateAddress(meta.dropName, 'end', 48),
-              type,
-              media: type === 'NFT' ? nftHref : undefined,
-              claimed: `${
-                next_key_id - (await getKeySupplyForDrop({ dropId: id }))
-              } / ${next_key_id}`,
-            };
-          },
-        ),
+          return {
+            id,
+            name: truncateAddress(meta.dropName, 'end', 48),
+            type,
+            media: type === 'NFT' ? nftHref : undefined,
+            claimed: `${
+              next_key_id - (await getKeySupplyForDrop({ dropId: id }))
+            } / ${next_key_id}`,
+          };
+        }),
       ),
     );
 
