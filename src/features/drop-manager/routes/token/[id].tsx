@@ -28,7 +28,7 @@ export default function TokenDropManagerPage() {
   const { id: dropId } = useParams();
   const [loading, setLoading] = useState(true);
 
-  const [name, setName] = useState('Drop');
+  const [name, setName] = useState('Untitled');
   const [dataSize, setDataSize] = useState<number>(0);
   const [claimed, setClaimed] = useState<number>(0);
   const [data, setData] = useState<DataItem[]>([INITIAL_SAMPLE_DATA[0]]);
@@ -44,7 +44,7 @@ export default function TokenDropManagerPage() {
     getWallet();
   }, [selector]);
 
-  const { masterKeyValidity } = useValidMasterKey({ dropId });
+  const { masterKeyValidity } = useValidMasterKey({ dropId: dropId as string });
   useEffect(() => {
     if (!masterKeyValidity) {
       setMasterKeyValidityModal(

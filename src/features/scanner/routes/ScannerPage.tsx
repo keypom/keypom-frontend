@@ -119,7 +119,10 @@ const Scanner = () => {
       switch (remainingUses) {
         case 0:
         case 1:
-          throw new Error('Ticket has already been claimed');
+          setIsTxSuccess(true);
+          setIsTxLoading(false);
+          onResultModalOpen();
+          return;
         case 3:
           throw new Error('RVSP first to enter');
         default:
