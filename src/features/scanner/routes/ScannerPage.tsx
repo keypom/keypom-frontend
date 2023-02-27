@@ -18,6 +18,7 @@ interface TicketResult {
 
 // To stop concurrent scan result handling
 let scanningResultInProgress = false;
+let secretKeyInCurrentTransaction = '';
 
 const Scanner = () => {
   const {
@@ -106,10 +107,24 @@ const Scanner = () => {
       console.error('Error parsing QR code');
       setIsTxLoading(false);
       scanningResultInProgress = false;
+
       return;
     }
 
     const { contractId, secretKey } = ticketRes;
+
+    if (secretKeyInCurrentTransaction === '') {
+      secretKeyInCurrentTransaction = secretKey;
+    } else {
+      // to ensure the QR code isn't repeated scanned
+      if (secretKeyInCurrentTransaction === secretKey) {
+        setIsTxLoading(false);
+        scanningResultInProgress = false;
+        onResultModalClose();
+        return;
+      }
+    }
+
     setTicketRes(ticketRes);
 
     try {
@@ -128,6 +143,8 @@ const Scanner = () => {
       console.error(err);
       setTxError(err.message);
       setIsTxLoading(false);
+      scanningResultInProgress = false;
+      secretKeyInCurrentTransaction = '';
       return;
     }
 
@@ -156,6 +173,7 @@ const Scanner = () => {
       })
       .finally(() => {
         scanningResultInProgress = false;
+        secretKeyInCurrentTransaction = '';
       });
     // yaaaa we can scan more tickets and everything looks super fast!
   };
