@@ -25,6 +25,7 @@ import { tableColumns } from '../../components/TableColumn';
 import { INITIAL_SAMPLE_DATA } from '../../constants/common';
 import { setConfirmationModalHelper } from '../../components/ConfirmationModal';
 import { setMasterKeyValidityModal } from '../../components/MasterKeyValidityModal';
+import { setMissingDropModal } from '../../components/MissingDropModal';
 
 export default function TokenDropManagerPage() {
   const navigate = useNavigate();
@@ -93,6 +94,9 @@ export default function TokenDropManagerPage() {
     if (!accountId) return null;
     let drop = await getDropInformation({
       dropId,
+    }).catch((_) => {
+      setMissingDropModal(setAppModal);
+      navigate('/drops');
     });
     if (!drop) {
       // TODO Show error

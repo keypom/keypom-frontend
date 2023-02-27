@@ -29,6 +29,7 @@ import { INITIAL_SAMPLE_DATA } from '../../constants/common';
 import { type TicketClaimStatus } from '../../types/types';
 import { setConfirmationModalHelper } from '../../components/ConfirmationModal';
 import { setMasterKeyValidityModal } from '../../components/MasterKeyValidityModal';
+import { setMissingDropModal } from '../../components/MissingDropModal';
 
 export default function TicketDropManagerPage() {
   const navigate = useNavigate();
@@ -137,6 +138,9 @@ export default function TicketDropManagerPage() {
     if (!accountId) return;
     let drop = await getDropInformation({
       dropId,
+    }).catch((_) => {
+      setMissingDropModal(setAppModal);
+      navigate('/drops');
     });
     if (!drop)
       drop = {
