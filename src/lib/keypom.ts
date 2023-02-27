@@ -16,6 +16,7 @@ import {
   getKeySupplyForDrop,
   deleteKeys,
   getKeysForDrop,
+  deleteDrops,
 } from 'keypom-js';
 import * as nearAPI from 'near-api-js';
 
@@ -197,6 +198,8 @@ class KeypomJS {
   getDropMetadata = (metadata: string) =>
     JSON.parse(metadata || JSON.stringify({ dropName: 'Untitled' }));
 
+  deleteDrops = async ({ wallet, dropIds }) => await deleteDrops({ wallet, dropIds });
+
   deleteKeys = async ({ wallet, dropId, publicKeys }) =>
     await deleteKeys({ wallet, dropId, publicKeys });
 
@@ -210,6 +213,22 @@ class KeypomJS {
 
   getKeysForDrop = async ({ dropId, limit, start }) =>
     await getKeysForDrop({ dropId, limit, start });
+
+  getLinksToExport = async (dropId) => {
+    const drop = await this.getDropInfo(dropId);
+    const { secretKeys } = await generateKeys({
+      numKeys: drop.next_key_id,
+      rootEntropy: `${get(MASTER_KEY) as string}-${dropId as string}`,
+      autoMetaNonceStart: 0,
+    });
+
+    const links = secretKeys.map(
+      (key, i) =>
+        `${window.location.origin}/claim/${getConfig().contractId}#${key.replace('ed25519:', '')}`,
+    );
+
+    return links;
+  };
 
   getKeysInfo = async (
     dropId: string,
