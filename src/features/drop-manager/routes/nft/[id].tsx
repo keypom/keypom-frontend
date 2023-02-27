@@ -25,6 +25,7 @@ import { tableColumns } from '../../components/TableColumn';
 import { INITIAL_SAMPLE_DATA } from '../../constants/common';
 import { setConfirmationModalHelper } from '../../components/ConfirmationModal';
 import { setMasterKeyValidityModal } from '../../components/MasterKeyValidityModal';
+import { setMissingDropModal } from '../../components/MissingDropModal';
 
 export default function NFTDropManagerPage() {
   const navigate = useNavigate();
@@ -94,6 +95,9 @@ export default function NFTDropManagerPage() {
     if (!accountId) return;
     let drop = await getDropInformation({
       dropId,
+    }).catch((_) => {
+      setMissingDropModal(setAppModal);
+      navigate('/drops');
     });
     if (!drop)
       drop = {
