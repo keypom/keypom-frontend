@@ -109,6 +109,15 @@ class KeypomJS {
     return keyInfo.remaining_uses;
   };
 
+  checkIfDropExists = async (secretKey: string) => {
+    try {
+      await getDropInformation({ secretKey });
+      return true;
+    } catch (err) {
+      return false;
+    }
+  };
+
   claimTicket = async (secretKey: string, password: string) => {
     let keyInfo = await getKeyInformation({ secretKey });
     const publicKey: string = await getPubFromSecret(secretKey);
@@ -246,7 +255,6 @@ class KeypomJS {
     }
     // given fc
     let drop;
-    console.log('hello');
     try {
       drop = await getDropInformation({ secretKey });
     } catch (err) {
