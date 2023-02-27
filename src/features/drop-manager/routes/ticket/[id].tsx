@@ -105,8 +105,8 @@ export default function TicketDropManagerPage() {
   const {
     hasPagination,
     pagination,
-    firstPage,
-    lastPage,
+    isFirstPage,
+    isLastPage,
     loading: paginationLoading,
     handleNextPage,
     handlePrevPage,
@@ -236,8 +236,8 @@ export default function TicketDropManagerPage() {
             hasPagination,
             id: 'token',
             paginationLoading,
-            firstPage,
-            lastPage,
+            isFirstPage,
+            isLastPage,
             handleNextPage,
             handlePrevPage,
           }}

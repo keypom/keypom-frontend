@@ -27,8 +27,8 @@ interface DropManagerProps {
       previous: boolean;
       next: boolean;
     };
-    firstPage: boolean;
-    lastPage: boolean;
+    isFirstPage: boolean;
+    isLastPage: boolean;
     handlePrevPage: () => void;
     handleNextPage: () => void;
   };
@@ -145,7 +145,7 @@ export const DropManager = ({
           {pagination?.hasPagination && (
             <PrevButton
               id={pagination.id}
-              isDisabled={!!pagination.firstPage}
+              isDisabled={!!pagination.isFirstPage}
               isLoading={pagination.paginationLoading.previous}
               onClick={pagination.handlePrevPage}
             />
@@ -169,7 +169,7 @@ export const DropManager = ({
           {pagination?.hasPagination && (
             <NextButton
               id={pagination.id}
-              isDisabled={!!pagination.lastPage}
+              isDisabled={!!pagination.isLastPage}
               isLoading={pagination.paginationLoading.next}
               onClick={pagination.handleNextPage}
             />

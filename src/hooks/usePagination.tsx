@@ -32,11 +32,11 @@ export const usePagination = ({
   );
 
   const hasPagination = pagination?.pageSize < dataSize;
-  const firstPage = pageIndex === 0;
-  const lastPage = pagination?.pageSize * (pageIndex + 1) > dataSize;
+  const isFirstPage = pageIndex === 0;
+  const isLastPage = pagination?.pageSize * (pageIndex + 1) >= dataSize;
 
   const handleNextPage = async () => {
-    if (lastPage) return;
+    if (isLastPage) return;
     setIsLoading((prev) => ({ ...prev, next: true }));
     if (handleNextApiCall) {
       await handleNextApiCall();
@@ -49,7 +49,7 @@ export const usePagination = ({
   };
 
   const handlePrevPage = async () => {
-    if (firstPage) return;
+    if (isFirstPage) return;
     setIsLoading((prev) => ({ ...prev, previous: true }));
     if (handlePrevApiCall) {
       await handlePrevApiCall();
@@ -64,8 +64,8 @@ export const usePagination = ({
   return {
     hasPagination,
     pagination: { pageIndex, pageSize },
-    firstPage,
-    lastPage,
+    isFirstPage,
+    isLastPage,
     loading: { previous, next },
     handleNextPage,
     handlePrevPage,
