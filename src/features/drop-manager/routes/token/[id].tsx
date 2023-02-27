@@ -21,6 +21,7 @@ import { useAppContext } from '@/contexts/AppContext';
 import getConfig from '@/config/config';
 import { useValidMasterKey } from '@/hooks/useValidMasterKey';
 import { share } from '@/utils/share';
+import keypomInstance from '@/lib/keypom';
 
 import { tableColumns } from '../../components/TableColumn';
 import { INITIAL_SAMPLE_DATA } from '../../constants/common';
@@ -109,7 +110,9 @@ export default function TokenDropManagerPage() {
     setDataSize(drop.next_key_id);
     setClaimed(await getKeySupplyForDrop({ dropId }));
 
-    const metadata = JSON.parse(((drop as ProtocolReturnedDrop).metadata as string) || '{}');
+    const metadata = await keypomInstance.getDropMetadata(
+      (drop as ProtocolReturnedDrop).metadata as string,
+    );
     if (metadata.dropName) setName(metadata.dropName);
 
     const { publicKeys, secretKeys } = await generateKeys({
