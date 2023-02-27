@@ -119,10 +119,7 @@ const Scanner = () => {
       switch (remainingUses) {
         case 0:
         case 1:
-          setIsTxSuccess(true);
-          setIsTxLoading(false);
-          onResultModalOpen();
-          return;
+          throw new Error('This ticket has been claimed');
         case 3:
           throw new Error('RVSP first to enter');
         default:

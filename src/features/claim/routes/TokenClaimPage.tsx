@@ -129,6 +129,15 @@ const ClaimTokenPage = ({ skipLinkDropCheck = false }: ClaimTokenPageProps) => {
       isError: Boolean(claimError),
       isSuccess: isClaimSuccessful,
       message: claimError || 'Token claimed!',
+      options: [
+        {
+          label: 'Ok',
+          func: () => {
+            setAppModal({ isOpen: false });
+            console.log('tx acknowledged');
+          },
+        },
+      ],
     });
   };
 
