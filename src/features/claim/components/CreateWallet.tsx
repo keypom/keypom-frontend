@@ -1,7 +1,9 @@
 import { Text, VStack } from '@chakra-ui/react';
+import { useState } from 'react';
 
 import { WALLET_OPTIONS } from '@/constants/common';
 import keypomInstance from '@/lib/keypom';
+import { storeClaimDrop } from '@/utils/claimedDrops';
 
 import { WalletOption } from './WalletOption';
 
@@ -20,9 +22,32 @@ export const CreateWallet = ({
   onClick,
   wallets = ['mynearwallet'],
 }: CreateWalletProps) => {
+  const [isClaimSuccessful, setSuccess] = useState(false);
+
   const handleWalletClick = async (walletName: string) => {
-    const url = await keypomInstance.generateExternalWalletLink(walletName, contractId, secretKey);
-    window.location.href = url;
+    try {
+      const url = await keypomInstance.generateExternalWalletLink(
+        walletName,
+        contractId,
+        secretKey,
+      );
+
+      window.setTimeout(async () => {
+        // check if the drop still exists after X seconds, if its claimed, then we should show a message
+        const isDropExist = await keypomInstance.checkIfDropExists(secretKey);
+
+        if (!isDropExist) {
+          setSuccess(!isDropExist);
+          storeClaimDrop(secretKey);
+        }
+      }, 20000);
+
+      window.open(url, '_blank');
+    } catch (err) {
+      // drop has been claimed
+      // refresh to show error
+      window.location.reload();
+    }
   };
 
   const walletOptions = WALLET_OPTIONS.filter((wallet) => wallets.includes(wallet.id)).map(
@@ -36,6 +61,10 @@ export const CreateWallet = ({
       />
     ),
   );
+
+  if (isClaimSuccessful) {
+    return <Text color="green.600">✅ Claim successful</Text>;
+  }
 
   return (
     <>

@@ -14,8 +14,8 @@ export const AvatarImage = ({ altName, imageSrc, ...props }: AvatarImageProps) =
   return (
     <Box
       borderRadius={{ base: '5xl', md: '6xl' }}
-      h={{ base: '7.5rem', md: '11.25rem' }}
       mb={{ base: '6', md: '10' }}
+      minH={{ base: '7.5rem', md: '11.25rem' }}
       position="relative"
       w={{ base: '7.5rem', md: '11.25rem' }}
       {...props}
@@ -25,7 +25,6 @@ export const AvatarImage = ({ altName, imageSrc, ...props }: AvatarImageProps) =
         borderRadius={{ base: '5xl', md: '6xl' }}
         fallback={<Skeleton borderRadius={{ base: '5xl', md: '6xl' }} height="100%" />}
         objectFit="cover"
-        position="absolute"
         src={src}
         top={0}
         onError={() => {

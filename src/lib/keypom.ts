@@ -72,7 +72,7 @@ class KeypomJS {
 
     try {
       const account = await this.nearConnection.account(accountId);
-      const state = await account.state();
+      await account.state();
     } catch (err) {
       throw new Error('Account Id does not exist');
     }
@@ -109,6 +109,15 @@ class KeypomJS {
     console.log(keyInfo);
 
     return keyInfo.remaining_uses;
+  };
+
+  checkIfDropExists = async (secretKey: string) => {
+    try {
+      await getDropInformation({ secretKey });
+      return true;
+    } catch (err) {
+      return false;
+    }
   };
 
   claimTicket = async (secretKey: string, password: string) => {
@@ -254,7 +263,6 @@ class KeypomJS {
     }
     // given fc
     let drop;
-    console.log('hello');
     try {
       drop = await getDropInformation({ secretKey });
     } catch (err) {
