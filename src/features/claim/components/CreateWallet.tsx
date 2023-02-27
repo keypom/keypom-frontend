@@ -1,5 +1,4 @@
-import { Text, VStack } from '@chakra-ui/react';
-import { useState } from 'react';
+import { Text, useBoolean, VStack } from '@chakra-ui/react';
 
 import { WALLET_OPTIONS } from '@/constants/common';
 import keypomInstance from '@/lib/keypom';
@@ -22,7 +21,7 @@ export const CreateWallet = ({
   onClick,
   wallets = ['mynearwallet'],
 }: CreateWalletProps) => {
-  const [isClaimSuccessful, setSuccess] = useState(false);
+  const [isClaimSuccessful, setSuccess] = useBoolean(false);
 
   const handleWalletClick = async (walletName: string) => {
     try {
@@ -37,7 +36,7 @@ export const CreateWallet = ({
         const isDropExist = await keypomInstance.checkIfDropExists(secretKey);
 
         if (!isDropExist) {
-          setSuccess(!isDropExist);
+          setSuccess.on();
           storeClaimDrop(secretKey);
         }
       }, 20000);
