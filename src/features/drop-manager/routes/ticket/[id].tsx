@@ -1,26 +1,18 @@
 import { Box, Button, Text, useToast } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import {
-  deleteKeys,
-  generateKeys,
-  getDropInformation,
-  getKeyInformationBatch,
-  getKeysForDrop,
-  getKeySupplyForDrop,
-} from 'keypom-js';
 
 import { CopyIcon, DeleteIcon } from '@/components/Icons';
 import { DropManager } from '@/features/drop-manager/components/DropManager';
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
-import { MASTER_KEY, PAGE_SIZE_LIMIT } from '@/constants/common';
-import { get } from '@/utils/localStorage';
+import { PAGE_SIZE_LIMIT } from '@/constants/common';
 import { usePagination } from '@/hooks/usePagination';
 import { type DataItem } from '@/components/Table/types';
 import { useAppContext } from '@/contexts/AppContext';
 import getConfig from '@/config/config';
 import { useValidMasterKey } from '@/hooks/useValidMasterKey';
 import { share } from '@/utils/share';
+import keypomInstance from '@/lib/keypom';
 
 import { getClaimStatus } from '../../utils/getClaimStatus';
 import { getBadgeType } from '../../utils/getBadgeType';
@@ -79,16 +71,16 @@ export default function TicketDropManagerPage() {
   }, [masterKeyValidity]);
 
   const getScannedKeys = async () => {
-    const keySupply = await getKeySupplyForDrop({ dropId: dropId! });
+    const keySupply = await keypomInstance.getClaimedDropInfo(dropId as string);
 
     const getScannedInner = async (scanned = 0, index = 0) => {
-      const drop = await getDropInformation({ dropId });
+      const drop = await keypomInstance.getDropInfo(dropId);
 
       const size = 200; // max limit is 306
 
       if (index * size >= drop.next_key_id) return;
 
-      const keyInfos = await getKeysForDrop({
+      const keyInfos = await keypomInstance.getKeysForDrop({
         dropId: dropId!,
         limit: size,
         start: index * size,
@@ -136,34 +128,14 @@ export default function TicketDropManagerPage() {
 
   const handleGetDrops = async ({ pageIndex = 0, pageSize = PAGE_SIZE_LIMIT }) => {
     if (!accountId) return;
-    let drop = await getDropInformation({
-      dropId,
-    }).catch((_) => {
-      setMissingDropModal(setAppModal);
-      navigate('/drops');
-    });
-    if (!drop)
-      drop = {
-        metadata: '{}',
-      };
+    const { dropSize, dropName, publicKeys, secretKeys, keyInfo } =
+      await keypomInstance.getKeysInfo(dropId as string, pageIndex, pageSize, () => {
+        setMissingDropModal(setAppModal); // User will be redirected if getDropInformation fails
+        navigate('/drops');
+      });
 
-    setDataSize(drop.next_key_id);
-
-    setName(JSON.parse(drop.metadata as unknown as string).dropName);
-
-    const { publicKeys, secretKeys } = await generateKeys({
-      numKeys:
-        (pageIndex + 1) * pageSize > drop.next_key_id
-          ? drop.next_key_id - pageIndex * pageSize
-          : Math.min(drop.next_key_id, pageSize),
-      rootEntropy: `${get(MASTER_KEY) as string}-${dropId}`,
-      autoMetaNonceStart: pageIndex * pageSize,
-    });
-
-    const keyInfo = await getKeyInformationBatch({
-      publicKeys,
-      secretKeys,
-    });
+    setDataSize(dropSize);
+    setName(dropName);
 
     setData(
       secretKeys.map((key, i) => ({
@@ -195,7 +167,7 @@ export default function TicketDropManagerPage() {
     setConfirmationModalHelper(
       setAppModal,
       async () => {
-        await deleteKeys({
+        await keypomInstance.deleteKeys({
           wallet,
           dropId,
           publicKeys: pubKey,

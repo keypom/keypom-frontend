@@ -1,25 +1,18 @@
 import { Badge, Box, Button, Text, useToast } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import {
-  getDropInformation,
-  generateKeys,
-  getKeyInformationBatch,
-  deleteKeys,
-  getKeySupplyForDrop,
-} from 'keypom-js';
 
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
 import { CopyIcon, DeleteIcon } from '@/components/Icons';
 import { DropManager } from '@/features/drop-manager/components/DropManager';
-import { get } from '@/utils/localStorage';
-import { MASTER_KEY, PAGE_SIZE_LIMIT } from '@/constants/common';
+import { PAGE_SIZE_LIMIT } from '@/constants/common';
 import { usePagination } from '@/hooks/usePagination';
 import { type DataItem } from '@/components/Table/types';
 import { useAppContext } from '@/contexts/AppContext';
 import getConfig from '@/config/config';
 import { useValidMasterKey } from '@/hooks/useValidMasterKey';
 import { share } from '@/utils/share';
+import keypomInstance from '@/lib/keypom';
 
 import { tableColumns } from '../../components/TableColumn';
 import { INITIAL_SAMPLE_DATA } from '../../constants/common';
@@ -92,38 +85,15 @@ export default function TokenDropManagerPage() {
 
   const handleGetDrops = async ({ pageIndex = 0, pageSize = PAGE_SIZE_LIMIT }) => {
     if (!accountId) return null;
-    let drop = await getDropInformation({
-      dropId,
-    }).catch((_) => {
-      setMissingDropModal(setAppModal);
-      navigate('/drops');
-    });
-    if (!drop) {
-      // TODO Show error
-      drop = {
-        metadata: '{}',
-      };
-    }
+    const { dropSize, dropName, publicKeys, secretKeys, keyInfo } =
+      await keypomInstance.getKeysInfo(dropId as string, pageIndex, pageSize, () => {
+        setMissingDropModal(setAppModal); // User will be redirected if getDropInformation fails
+        navigate('/drops');
+      });
 
-    setDataSize(drop.next_key_id);
-    setClaimed(await getKeySupplyForDrop({ dropId }));
-
-    const metadata = JSON.parse(drop.metadata as unknown as string);
-
-    setName(metadata.dropName);
-
-    const { publicKeys, secretKeys } = await generateKeys({
-      numKeys:
-        (pageIndex + 1) * pageSize > drop.next_key_id
-          ? drop.next_key_id - pageIndex * pageSize
-          : Math.min(drop.next_key_id, pageSize),
-      rootEntropy: `${get(MASTER_KEY) as string}-${dropId}`,
-      autoMetaNonceStart: pageIndex * pageSize,
-    });
-
-    const keyInfo = await getKeyInformationBatch({
-      publicKeys,
-    });
+    setDataSize(dropSize);
+    setClaimed(await keypomInstance.getClaimedDropInfo(dropId as string));
+    setName(dropName);
 
     setData(
       secretKeys.map((key, i) => ({
@@ -155,7 +125,7 @@ export default function TokenDropManagerPage() {
     setConfirmationModalHelper(
       setAppModal,
       async () => {
-        await deleteKeys({
+        await keypomInstance.deleteKeys({
           wallet,
           dropId,
           publicKeys: pubKey,
