@@ -8,6 +8,7 @@ import {
   getKeyInformationBatch,
   getKeysForDrop,
   getKeySupplyForDrop,
+  type ProtocolReturnedDrop,
 } from 'keypom-js';
 
 import { CopyIcon, DeleteIcon } from '@/components/Icons';
@@ -39,7 +40,7 @@ export default function TicketDropManagerPage() {
   const { id: dropId } = useParams();
   const [loading, setLoading] = useState(true);
 
-  const [name, setName] = useState('Drop');
+  const [name, setName] = useState('Untitled');
   const [dataSize, setDataSize] = useState<number>(0);
   const [claimed, setClaimed] = useState<number>(0);
   const [data, setData] = useState<DataItem[]>([INITIAL_SAMPLE_DATA[1]]);
@@ -149,7 +150,8 @@ export default function TicketDropManagerPage() {
 
     setDataSize(drop.next_key_id);
 
-    setName(JSON.parse(drop.metadata as unknown as string).dropName);
+    const metadata = JSON.parse(((drop as ProtocolReturnedDrop).metadata as string) || '{}');
+    if (metadata.dropName) setName(metadata.dropName);
 
     const { publicKeys, secretKeys } = await generateKeys({
       numKeys:
