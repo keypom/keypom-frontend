@@ -48,7 +48,7 @@ export const QrDetails = ({ qrValue, ticketName }: QrDetailsProps) => {
         mb={{ base: '6', md: '10' }}
         p="5"
       >
-        <QRCode id="QRCode" size={180} value={qrValue} />
+        <QRCode id="QRCode" size={240} value={qrValue} />
       </Box>
       <Text
         color="gray.800"

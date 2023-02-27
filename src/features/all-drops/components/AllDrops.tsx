@@ -226,15 +226,15 @@ export default function AllDrops() {
     </MenuItem>
   ));
 
-  const handleDeleteClick = async (dropId) => {
+  const handleDeleteClick = (dropId) => {
     setConfirmationModalHelper(
       setAppModal,
       async () => {
-        console.log('deleting drop', dropId);
         await deleteDrops({
           wallet,
           dropIds: [dropId],
         });
+        handleGetDrops({});
       },
       () => null,
       'key',
@@ -260,7 +260,7 @@ export default function AllDrops() {
           variant="icon"
           onClick={async (e) => {
             e.stopPropagation();
-            await handleDeleteClick(drop.id);
+            handleDeleteClick(drop.id);
           }}
         >
           <DeleteIcon color="red" />

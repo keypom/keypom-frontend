@@ -82,8 +82,8 @@ export const DataTable = ({
             : undefined
         }
       >
-        {columns.map((column) => (
-          <Td key={`${column.title}-${drop.id}`} {...column.tdProps}>
+        {columns.map((column, i) => (
+          <Td key={`${column.title}-${drop.id}-${i}`} {...column.tdProps}>
             {column.selector(drop)}
           </Td>
         ))}

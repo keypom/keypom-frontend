@@ -50,7 +50,7 @@ const schema = z.object({
     .number({ invalid_type_error: 'Number of links required' })
     .positive()
     .min(1, 'Required')
-    .max(10000),
+    .max(50, 'Currently drops are limited to 50 links. This will be increased very soon!'),
   amountPerLink: z.number({ invalid_type_error: 'Amount required' }).gt(0),
   redirectLink: z
     .union([z.string().regex(urlRegex, 'Please enter a valid url'), z.string().length(0)])
@@ -99,11 +99,10 @@ export const CreateTokenDropProvider = ({ children }: PropsWithChildren) => {
 
   const getSummaryData = (): SummaryItem[] => {
     const { getValues } = methods;
-    const [dropName, totalLinks, amountPerLink, redirectLink, selectedFromWallet] = getValues([
+    const [dropName, totalLinks, amountPerLink, selectedFromWallet] = getValues([
       'dropName',
       'totalLinks',
       'amountPerLink',
-      'redirectLink',
       'selectedFromWallet',
     ]);
 
@@ -123,11 +122,11 @@ export const CreateTokenDropProvider = ({ children }: PropsWithChildren) => {
         name: 'Number of links',
         value: totalLinks,
       },
-      {
-        type: 'text',
-        name: 'Redirect link',
-        value: redirectLink ?? '',
-      },
+      // {
+      //   type: 'text',
+      //   name: 'Redirect link',
+      //   value: redirectLink ?? '',
+      // },
     ];
   };
 
@@ -188,8 +187,7 @@ export const CreateTokenDropProvider = ({ children }: PropsWithChildren) => {
         publicKeys: publicKeys || [],
         numKeys: totalLinks,
         metadata: JSON.stringify({ dropName }),
-        // redirects to drops (so user can see new drop)
-        successUrl: window.location.origin + '/drops',
+        successUrl: `${window.location.origin}/drop/token/${dropId}`,
       });
     } catch (e) {
       console.warn(e);
@@ -198,7 +196,9 @@ export const CreateTokenDropProvider = ({ children }: PropsWithChildren) => {
       }
     }
 
-    navigate('/drops');
+    setTimeout(() => {
+      navigate('/drops');
+    }, 1000);
   };
 
   const createLinksSWR = {

@@ -32,6 +32,7 @@ const TrialClaimPage = () => {
   const [isDropClaimed] = useState(false);
   const [openLoadingModal, setOpenLoadingModal] = useState(false);
   const [openResultModal, setOpenResultModal] = useState(false);
+  const [desiredAccountId, setDesiredAccountId] = useState('');
   const [searchParams] = useSearchParams();
   const appsStr = searchParams.get('apps');
   let apps;
@@ -71,11 +72,11 @@ const TrialClaimPage = () => {
 
   const handleClaim = async (walletAddress: string) => {
     const root = '.linkdrop-beta.keypom.testnet';
-    const desiredAccountId = walletAddress + root;
+    const accountId = walletAddress + root;
+    setDesiredAccountId(accountId);
+    console.log('attempting ', accountId);
 
-    console.log('attempting ', desiredAccountId);
-
-    const exists = await accountExists(desiredAccountId);
+    const exists = await accountExists(accountId);
 
     if (exists) {
       console.warn('exists');
@@ -87,7 +88,7 @@ const TrialClaimPage = () => {
     try {
       await claimTrialAccountDrop({
         secretKey,
-        desiredAccountId,
+        desiredAccountId: accountId,
       });
       setIsClaimSuccessful(true);
     } catch (e) {
@@ -115,10 +116,42 @@ const TrialClaimPage = () => {
       isSuccess: isClaimSuccessful,
       bodyComponent: (
         <>
+          <p>Account created successfully</p>
           {apps.length > 0 ? (
-            <Button onClick={() => window.open(apps[0], '_blank')}>Go to App</Button>
+            apps.map(({ title = 'Go to App', url }) => {
+              if (!url) return null;
+              if (url.slice(-1) === '/') {
+                url = url.substring(0, url.length - 1);
+              }
+              return (
+                <div key={url} style={{ marginTop: 16 }}>
+                  <Button
+                    onClick={() =>
+                      window.open(
+                        `${url as string}/keypom-url/${desiredAccountId}#${secretKey}`,
+                        '_blank',
+                      )
+                    }
+                  >
+                    {title}
+                  </Button>
+                </div>
+              );
+            })
           ) : (
-            <p>Account created successfully</p>
+            <Button
+              onClick={() =>
+                window.open(
+                  `https://testnet.mynearwallet.com/auto-import-secret-key#${desiredAccountId}/ed25519:${secretKey.replace(
+                    'ed25519:',
+                    '',
+                  )}`,
+                  '_blank',
+                )
+              }
+            >
+              Go to MyNearWallet
+            </Button>
           )}
         </>
       ),

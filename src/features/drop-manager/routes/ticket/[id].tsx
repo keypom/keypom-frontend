@@ -21,7 +21,6 @@ import { useAppContext } from '@/contexts/AppContext';
 import getConfig from '@/config/config';
 import { useValidMasterKey } from '@/hooks/useValidMasterKey';
 import { share } from '@/utils/share';
-import { asyncWithTimeout } from '@/utils/asyncWithTimeout';
 
 import { getClaimStatus } from '../../utils/getClaimStatus';
 import { getBadgeType } from '../../utils/getBadgeType';
@@ -30,6 +29,7 @@ import { INITIAL_SAMPLE_DATA } from '../../constants/common';
 import { type TicketClaimStatus } from '../../types/types';
 import { setConfirmationModalHelper } from '../../components/ConfirmationModal';
 import { setMasterKeyValidityModal } from '../../components/MasterKeyValidityModal';
+import { setMissingDropModal } from '../../components/MissingDropModal';
 
 export default function TicketDropManagerPage() {
   const navigate = useNavigate();
@@ -38,7 +38,6 @@ export default function TicketDropManagerPage() {
 
   const { id: dropId } = useParams();
   const [loading, setLoading] = useState(true);
-  const [loadClaimNum, setLoadClaimNum] = useState(true);
 
   const [name, setName] = useState('Drop');
   const [dataSize, setDataSize] = useState<number>(0);
@@ -79,39 +78,35 @@ export default function TicketDropManagerPage() {
     }
   }, [masterKeyValidity]);
 
-  // set Scanned item
-  useEffect(() => {
-    const getScannedKeys = async () => {
+  const getScannedKeys = async () => {
+    const keySupply = await getKeySupplyForDrop({ dropId: dropId! });
+
+    const getScannedInner = async (scanned = 0, index = 0) => {
       const drop = await getDropInformation({ dropId });
 
-      let index = 0;
       const size = 200; // max limit is 306
-      let numberOfScannedKey = 0;
 
-      while (index * size < drop.next_key_id) {
-        const keyInfos = await asyncWithTimeout(
-          getKeysForDrop({
-            dropId,
-            limit:
-              (index + 1) * size > drop.next_key_id
-                ? drop.next_key_id - index * size
-                : Math.min(drop.next_key_id, size),
-            start: index * size,
-          }),
-        ).catch((err) => {
-          console.log('Reach timeout or the following error:', err); // eslint-disable-line no-console
-        });
+      if (index * size >= drop.next_key_id) return;
 
-        const numScannedKey = keyInfos.filter((key) => getClaimStatus(key) === 'Attended');
-        numberOfScannedKey = numberOfScannedKey + (numScannedKey.length as number);
-        index = index + 1;
+      const keyInfos = await getKeysForDrop({
+        dropId: dropId!,
+        limit: size,
+        start: index * size,
+      });
 
-        console.log('scanned key:', numberOfScannedKey, 'loop index:', index); // eslint-disable-line no-console
-      }
+      const scannedKeys = keyInfos.filter((key) => getClaimStatus(key) === 'Attended');
+      scanned += scannedKeys.length;
+      index = index + 1;
 
-      setClaimed((await getKeySupplyForDrop({ dropId })) - numberOfScannedKey);
-      setLoadClaimNum(false);
+      setClaimed(keySupply - scanned);
+
+      getScannedInner(scanned, index);
     };
+    getScannedInner();
+  };
+
+  // set Scanned item
+  useEffect(() => {
     getScannedKeys();
   }, []);
 
@@ -143,6 +138,9 @@ export default function TicketDropManagerPage() {
     if (!accountId) return;
     let drop = await getDropInformation({
       dropId,
+    }).catch((_) => {
+      setMissingDropModal(setAppModal);
+      navigate('/drops');
     });
     if (!drop)
       drop = {
@@ -261,7 +259,7 @@ export default function TicketDropManagerPage() {
           claimedText={`${dataSize - claimed} / ${dataSize}`}
           data={getTableRows()}
           dropName={name}
-          loading={loading || loadClaimNum}
+          loading={loading}
           pagination={{
             hasPagination,
             id: 'token',
