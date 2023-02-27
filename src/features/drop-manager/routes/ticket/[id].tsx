@@ -28,7 +28,7 @@ export default function TicketDropManagerPage() {
   const { setAppModal } = useAppContext();
   const toast = useToast();
 
-  const { id: dropId } = useParams();
+  const { id: dropId = '' } = useParams();
   const [loading, setLoading] = useState(true);
 
   const [name, setName] = useState('Untitled');
@@ -38,6 +38,10 @@ export default function TicketDropManagerPage() {
 
   const [wallet, setWallet] = useState({});
   const { selector, accountId } = useAuthWalletContext();
+
+  useEffect(() => {
+    if (dropId === '') navigate('/drops');
+  }, [dropId]);
 
   const getWallet = async () => {
     if (selector === null) {
@@ -55,7 +59,7 @@ export default function TicketDropManagerPage() {
     getWallet();
   }, [selector]);
 
-  const { masterKeyValidity } = useValidMasterKey({ dropId: dropId as string });
+  const { masterKeyValidity } = useValidMasterKey({ dropId });
   useEffect(() => {
     if (!masterKeyValidity) {
       setMasterKeyValidityModal(
@@ -71,7 +75,7 @@ export default function TicketDropManagerPage() {
   }, [masterKeyValidity]);
 
   const getScannedKeys = async () => {
-    const keySupply = await keypomInstance.getClaimedDropInfo(dropId as string);
+    const keySupply = await keypomInstance.getClaimedDropInfo(dropId);
 
     const getScannedInner = async (scanned = 0, index = 0) => {
       const drop = await keypomInstance.getDropInfo(dropId);
@@ -81,7 +85,7 @@ export default function TicketDropManagerPage() {
       if (index * size >= drop.next_key_id) return;
 
       const keyInfos = await keypomInstance.getKeysForDrop({
-        dropId: dropId!,
+        dropId,
         limit: size,
         start: index * size,
       });
@@ -128,17 +132,20 @@ export default function TicketDropManagerPage() {
 
   const handleGetDrops = async ({ pageIndex = 0, pageSize = PAGE_SIZE_LIMIT }) => {
     if (!accountId) return;
-    const { dropSize, dropName, publicKeys, secretKeys, keyInfo } =
-      await keypomInstance.getKeysInfo(dropId as string, pageIndex, pageSize, () => {
-        setMissingDropModal(setAppModal); // User will be redirected if getDropInformation fails
-        navigate('/drops');
-      });
-
+    const keyInfoReturn = await keypomInstance.getKeysInfo(dropId, pageIndex, pageSize, () => {
+      setMissingDropModal(setAppModal); // User will be redirected if getDropInformation fails
+      navigate('/drops');
+    });
+    if (keyInfoReturn === undefined) {
+      navigate('/drops');
+      return;
+    }
+    const { dropSize, dropName, publicKeys, secretKeys, keyInfo } = keyInfoReturn;
     setDataSize(dropSize);
     setName(dropName);
 
     setData(
-      secretKeys.map((key, i) => ({
+      secretKeys.map((key: string, i) => ({
         id: i,
         publicKey: publicKeys[i],
         link: `${window.location.origin}/claim/${getConfig().contractId}#${key.replace(

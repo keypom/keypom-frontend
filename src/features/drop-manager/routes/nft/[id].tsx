@@ -25,7 +25,7 @@ export default function NFTDropManagerPage() {
   const { setAppModal } = useAppContext();
   const toast = useToast();
 
-  const { id: dropId } = useParams();
+  const { id: dropId = '' } = useParams();
   const [loading, setLoading] = useState(true);
 
   const [name, setName] = useState('Untitled');
@@ -37,15 +37,26 @@ export default function NFTDropManagerPage() {
   const { selector, accountId } = useAuthWalletContext();
 
   useEffect(() => {
-    if (selector === null) return;
+    if (dropId === '') navigate('/drops');
+  }, [dropId]);
 
-    const getWallet = async () => {
-      setWallet(await selector.wallet());
-    };
+  const getWallet = async () => {
+    if (selector === null) {
+      return;
+    }
+    try {
+      const selectorWallet = await selector?.wallet();
+      setWallet(selectorWallet);
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  useEffect(() => {
     getWallet();
   }, [selector]);
 
-  const { masterKeyValidity } = useValidMasterKey({ dropId: dropId as string });
+  const { masterKeyValidity } = useValidMasterKey({ dropId });
   useEffect(() => {
     if (!masterKeyValidity) {
       setMasterKeyValidityModal(
@@ -86,18 +97,21 @@ export default function NFTDropManagerPage() {
 
   const handleGetDrops = async ({ pageIndex = 0, pageSize = PAGE_SIZE_LIMIT }) => {
     if (!accountId) return;
-    const { dropSize, dropName, publicKeys, secretKeys, keyInfo } =
-      await keypomInstance.getKeysInfo(dropId as string, pageIndex, pageSize, () => {
-        setMissingDropModal(setAppModal); // User will be redirected if getDropInformation fails
-        navigate('/drops');
-      });
-
+    const keyInfoReturn = await keypomInstance.getKeysInfo(dropId, pageIndex, pageSize, () => {
+      setMissingDropModal(setAppModal); // User will be redirected if getDropInformation fails
+      navigate('/drops');
+    });
+    if (keyInfoReturn === undefined) {
+      navigate('/drops');
+      return;
+    }
+    const { dropSize, dropName, publicKeys, secretKeys, keyInfo } = keyInfoReturn;
     setDataSize(dropSize);
-    setClaimed(await keypomInstance.getClaimedDropInfo(dropId as string));
+    setClaimed(await keypomInstance.getClaimedDropInfo(dropId));
     setName(dropName);
 
     setData(
-      secretKeys.map((key, i) => ({
+      secretKeys.map((key: string, i) => ({
         id: i,
         publicKey: publicKeys[i],
         link: `${window.location.origin}/claim/${getConfig().contractId}#${key.replace(

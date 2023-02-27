@@ -234,37 +234,40 @@ class KeypomJS {
     dropId: string,
     pageIndex: number,
     pageSize: number,
-    getDropCatch?: () => void,
+    getDropErrorCallback?: () => void,
   ) => {
-    const drop = await this.getDropInfo(dropId).catch(() => {
-      if (getDropCatch) getDropCatch();
-    });
+    let drop: ProtocolReturnedDrop;
+    try {
+      drop = await this.getDropInfo(dropId);
 
-    const dropSize = (drop as ProtocolReturnedDrop).next_key_id;
-    // TODO: update getDropMetadata utility with PR150
-    const { dropName } = this.getDropMetadata((drop as ProtocolReturnedDrop).metadata as string);
+      const dropSize = drop.next_key_id;
+      const { dropName } = this.getDropMetadata(drop.metadata as string);
 
-    const { publicKeys, secretKeys } = await generateKeys({
-      numKeys:
-        (pageIndex + 1) * pageSize > dropSize
-          ? dropSize - pageIndex * pageSize
-          : Math.min(dropSize, pageSize),
-      rootEntropy: `${get(MASTER_KEY) as string}-${dropId}`,
-      autoMetaNonceStart: pageIndex * pageSize,
-    });
+      const { publicKeys, secretKeys } = await generateKeys({
+        numKeys:
+          (pageIndex + 1) * pageSize > dropSize
+            ? dropSize - pageIndex * pageSize
+            : Math.min(dropSize, pageSize),
+        rootEntropy: `${get(MASTER_KEY) as string}-${dropId}`,
+        autoMetaNonceStart: pageIndex * pageSize,
+      });
 
-    const keyInfo = await getKeyInformationBatch({
-      publicKeys,
-      secretKeys,
-    });
+      const keyInfo = await getKeyInformationBatch({
+        publicKeys,
+        secretKeys,
+      });
 
-    return {
-      dropSize,
-      dropName,
-      publicKeys,
-      secretKeys,
-      keyInfo,
-    };
+      return {
+        dropSize,
+        dropName,
+        publicKeys,
+        secretKeys,
+        keyInfo,
+      };
+    } catch (e) {
+      if (getDropErrorCallback) getDropErrorCallback();
+      return; // eslint-disable-line no-useless-return
+    }
   };
 
   generateExternalWalletLink = async (
