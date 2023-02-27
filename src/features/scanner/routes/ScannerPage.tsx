@@ -107,7 +107,6 @@ const Scanner = () => {
       console.error('Error parsing QR code');
       setIsTxLoading(false);
       scanningResultInProgress = false;
-
       return;
     }
 
