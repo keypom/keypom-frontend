@@ -70,6 +70,7 @@ module.exports = {
     'import/newline-after-import': 'error',
     'import/no-duplicates': 'error',
     'unused-imports/no-unused-imports': 'error',
+    '@typescript-eslint/restrict-template-expressions': 'off',
     '@typescript-eslint/no-explicit-any': 'warn',
     '@typescript-eslint/explicit-function-return-type': 'off',
     '@typescript-eslint/prefer-nullish-coalescing': 'off',
