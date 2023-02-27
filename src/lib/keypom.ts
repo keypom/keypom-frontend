@@ -179,19 +179,8 @@ class KeypomJS {
     return null;
   };
 
-  getDropMetadata = (metadata: string) => {
-    if (metadata === null) {
-      return {};
-    }
-
-    try {
-      return JSON.parse(metadata);
-    } catch (err) {
-      return {
-        title: metadata,
-      };
-    }
-  };
+  getDropMetadata = (metadata: string) =>
+    JSON.parse(metadata || JSON.stringify({ dropName: 'Untitled' }));
 
   generateExternalWalletLink = async (
     walletName: string,
@@ -234,7 +223,7 @@ class KeypomJS {
       throw new Error('Unable to claim. This drop may have been claimed before.');
     }
     console.log(drop);
-    const dropMetadata = drop.metadata !== undefined ? this.getDropMetadata(drop.metadata) : {};
+    const dropMetadata = this.getDropMetadata(drop.metadata);
     let ftMetadata;
     if (drop.ft !== undefined) {
       ftMetadata = await getFTMetadata({ contractId: drop.ft.contract_id });
@@ -264,7 +253,7 @@ class KeypomJS {
       throw new Error('Unable to claim. This drop may have been claimed before.');
     }
 
-    const dropMetadata = drop.metadata !== undefined ? this.getDropMetadata(drop.metadata) : {};
+    const dropMetadata = this.getDropMetadata(drop.metadata);
 
     const fcMethods = drop.fc?.methods;
     if (
@@ -316,7 +305,7 @@ class KeypomJS {
     }
     const remainingUses = await this.checkTicketRemainingUses(contractId, secretKey);
 
-    const dropMetadata = drop.metadata !== undefined ? this.getDropMetadata(drop.metadata) : {};
+    const dropMetadata = this.getDropMetadata(drop.metadata);
 
     const fcMethods = drop.fc?.methods;
     if (

@@ -7,6 +7,7 @@ import {
   getDropInformation,
   getKeyInformationBatch,
   getKeySupplyForDrop,
+  type ProtocolReturnedDrop,
 } from 'keypom-js';
 
 import { CopyIcon, DeleteIcon } from '@/components/Icons';
@@ -20,6 +21,7 @@ import { useAppContext } from '@/contexts/AppContext';
 import getConfig from '@/config/config';
 import { useValidMasterKey } from '@/hooks/useValidMasterKey';
 import { share } from '@/utils/share';
+import keypomInstance from '@/lib/keypom';
 
 import { tableColumns } from '../../components/TableColumn';
 import { INITIAL_SAMPLE_DATA } from '../../constants/common';
@@ -35,7 +37,7 @@ export default function NFTDropManagerPage() {
   const { id: dropId } = useParams();
   const [loading, setLoading] = useState(true);
 
-  const [name, setName] = useState('Drop');
+  const [name, setName] = useState('Untitled');
   const [dataSize, setDataSize] = useState<number>(0);
   const [claimed, setClaimed] = useState<number>(0);
   const [data, setData] = useState<DataItem[]>([INITIAL_SAMPLE_DATA[0]]);
@@ -107,7 +109,10 @@ export default function NFTDropManagerPage() {
     setDataSize(drop.next_key_id);
     setClaimed(await getKeySupplyForDrop({ dropId }));
 
-    setName(JSON.parse(drop.metadata as unknown as string).dropName);
+    const { dropName } = await keypomInstance.getDropMetadata(
+      (drop as ProtocolReturnedDrop).metadata as string,
+    );
+    setName(dropName);
 
     const { publicKeys, secretKeys } = await generateKeys({
       numKeys:
