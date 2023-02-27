@@ -13,6 +13,7 @@ import {
   Center,
   Spinner,
   Text,
+  ModalCloseButton,
 } from '@chakra-ui/react';
 import { CheckIcon, CloseIcon } from '@chakra-ui/icons';
 
@@ -49,6 +50,7 @@ export const AppModal = () => {
         >
           {appModal.header && <h4>{appModal.header}</h4>}
         </ModalHeader>
+        {appModal.closeButtonVisible && <ModalCloseButton />}
         <ModalBody>
           {appModal.isLoading && (
             <Center>
@@ -98,7 +100,7 @@ export const AppModal = () => {
 
         {appModal.options && appModal.options.length > 0 && (
           <ModalFooter>
-            <ButtonGroup>
+            <ButtonGroup justifyContent="center" w="full">
               {appModal.options.map(({ label, func, buttonProps, lazy }, i) => (
                 <Button
                   key={i}

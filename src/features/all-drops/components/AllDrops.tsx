@@ -215,18 +215,13 @@ export default function AllDrops() {
   ));
 
   const handleDeleteClick = (dropId) => {
-    setConfirmationModalHelper(
-      setAppModal,
-      async () => {
-        await deleteDrops({
-          wallet,
-          dropIds: [dropId],
-        });
-        handleGetDrops({});
-      },
-      () => null,
-      'key',
-    );
+    setConfirmationModalHelper(setAppModal, async () => {
+      await deleteDrops({
+        wallet,
+        dropIds: [dropId],
+      });
+      handleGetDrops({});
+    });
   };
 
   const getTableRows = (): DataItem[] => {

@@ -120,7 +120,6 @@ export const DropManager = ({
           });
           navigate('/drops');
         },
-        () => null,
         'drop',
       );
       console.log('deleting drop', dropId);

@@ -165,7 +165,6 @@ export default function TokenDropManagerPage() {
         });
         window.location.reload();
       },
-      () => null,
       'key',
     );
   };

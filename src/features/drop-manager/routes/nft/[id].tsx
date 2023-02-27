@@ -164,7 +164,6 @@ export default function NFTDropManagerPage() {
         });
         window.location.reload();
       },
-      () => null,
       'key',
     );
   };
