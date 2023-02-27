@@ -223,7 +223,7 @@ class KeypomJS {
       throw new Error('Unable to claim. This drop may have been claimed before.');
     }
     console.log(drop);
-    const dropMetadata = drop.metadata !== undefined ? this.getDropMetadata(drop.metadata) : {};
+    const dropMetadata = this.getDropMetadata(drop.metadata);
     let ftMetadata;
     if (drop.ft !== undefined) {
       ftMetadata = await getFTMetadata({ contractId: drop.ft.contract_id });
@@ -253,7 +253,7 @@ class KeypomJS {
       throw new Error('Unable to claim. This drop may have been claimed before.');
     }
 
-    const dropMetadata = drop.metadata !== undefined ? this.getDropMetadata(drop.metadata) : {};
+    const dropMetadata = this.getDropMetadata(drop.metadata);
 
     const fcMethods = drop.fc?.methods;
     if (
@@ -305,7 +305,7 @@ class KeypomJS {
     }
     const remainingUses = await this.checkTicketRemainingUses(contractId, secretKey);
 
-    const dropMetadata = drop.metadata !== undefined ? this.getDropMetadata(drop.metadata) : {};
+    const dropMetadata = this.getDropMetadata(drop.metadata);
 
     const fcMethods = drop.fc?.methods;
     if (
