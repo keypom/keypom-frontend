@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import { type Pagination } from '@/components/Table/types';
 import { PAGE_SIZE_LIMIT } from '@/constants/common';
