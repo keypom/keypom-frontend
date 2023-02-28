@@ -30,9 +30,9 @@ export const ClaimTicketDetails = () => {
       <Text
         color="gray.800"
         fontWeight="500"
-        maxH="300px"
+        maxH="100px"
         mb={{ base: '2', md: '3' }}
-        overflowY="scroll"
+        overflowY="auto"
         size={{ base: 'xl', md: '2xl' }}
         textAlign="center"
       >

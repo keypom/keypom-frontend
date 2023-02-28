@@ -32,7 +32,7 @@ export const QrDetails = ({ qrValue, ticketName }: QrDetailsProps) => {
       ctx.drawImage(img, 0, 0);
       const pngFile = canvas.toDataURL('image/png');
       const downloadLink = document.createElement('a');
-      downloadLink.download = 'QRCode';
+      downloadLink.download = `${ticketName}_Keypom_Ticket_QR_CODE`;
       downloadLink.href = `${pngFile}`;
       downloadLink.click();
     };
