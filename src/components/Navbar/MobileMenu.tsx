@@ -25,7 +25,7 @@ interface MobileMenuProps {
     name: string;
     href: string;
     isExternal?: boolean;
-    isHidden?: boolean;
+    isProtected?: boolean;
   }>;
 }
 export const MobileMenu = ({ menuItems }: MobileMenuProps) => {
@@ -48,9 +48,9 @@ export const MobileMenu = ({ menuItems }: MobileMenuProps) => {
           </DrawerHeader>
           <DrawerBody>
             <VStack mt="10" spacing="4">
-              {menuItems.map(({ name, href, isHidden }) => {
+              {menuItems.map(({ name, href, isProtected }) => {
                 return (
-                  <Link key={name} hidden={isHidden} href={href}>
+                  <Link key={name} hidden={isProtected} href={href}>
                     <Box fontSize={{ base: 'sm', md: 'md' }} fontWeight="medium">
                       {name}
                     </Box>

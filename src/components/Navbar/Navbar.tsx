@@ -40,12 +40,12 @@ export const Navbar = (props: NavbarProps) => {
     {
       name: 'My Drops',
       href: '/drops',
-      isHidden: !isLoggedIn,
+      isProtected: !isLoggedIn,
     },
   ];
 
   const menuItems = MENU_ITEMS.map((item) => (
-    <Link key={item.name} hidden={item.isHidden} href={item.href} isExternal={item.isExternal}>
+    <Link key={item.name} hidden={item.isProtected} href={item.href} isExternal={item.isExternal}>
       <Box fontSize={{ base: 'sm', md: 'md' }}>{item.name}</Box>
     </Link>
   ));
