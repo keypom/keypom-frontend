@@ -54,8 +54,13 @@ export const CreateWallet = ({
     }
   };
 
-  const walletOptions = WALLET_OPTIONS.filter((wallet) => wallets.includes(wallet.id)).map(
-    (options, index) => (
+  const walletOptions = WALLET_OPTIONS
+
+    // TODO replace with filter this is temporary
+    // .filter((wallet) => wallets.includes(wallet.id))
+    .filter((wallet) => wallet.id === 'mynearwallet')
+
+    .map((options, index) => (
       <WalletOption
         key={index}
         handleWalletClick={async () => {
@@ -63,8 +68,7 @@ export const CreateWallet = ({
         }}
         {...options}
       />
-    ),
-  );
+    ));
 
   if (isClaimSuccessful) {
     return <Text color="green.600">✅ Claim successful</Text>;

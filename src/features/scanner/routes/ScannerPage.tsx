@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-misused-promises */
 import { Box, Button, Center, Heading, useDisclosure, VStack } from '@chakra-ui/react';
-import { useEffect, useState } from 'react';
+import { useEffect, useLayoutEffect, useState } from 'react';
 import { QrReader } from 'react-qr-reader';
 
 import { ViewFinder } from '@/components/ViewFinder';
@@ -18,6 +18,8 @@ interface TicketResult {
 
 // To stop concurrent scan result handling
 let scanningResultInProgress = false;
+let secretKeyInCurrentTransaction = '';
+let isModalOpen = false;
 
 const Scanner = () => {
   const {
@@ -25,7 +27,10 @@ const Scanner = () => {
     onOpen: onPasswordModalOpen,
     onClose: onPasswordModalClose,
   } = useDisclosure();
-  const { setAppModal } = useAppContext();
+  const {
+    setAppModal,
+    appModal: { isOpen: isAppModalOpen },
+  } = useAppContext();
   const {
     isOpen: isResultModalOpen,
     onOpen: onResultModalOpen,
@@ -70,7 +75,7 @@ const Scanner = () => {
   };
 
   const handleScanResult = async (result, error) => {
-    if (scanningResultInProgress) {
+    if (scanningResultInProgress || isModalOpen) {
       return;
     }
 
@@ -110,6 +115,19 @@ const Scanner = () => {
     }
 
     const { contractId, secretKey } = ticketRes;
+
+    if (secretKeyInCurrentTransaction === '') {
+      secretKeyInCurrentTransaction = secretKey;
+    } else {
+      // to ensure the QR code isn't repeated scanned
+      if (secretKeyInCurrentTransaction === secretKey) {
+        setIsTxLoading(false);
+        scanningResultInProgress = false;
+        onResultModalClose();
+        return;
+      }
+    }
+
     setTicketRes(ticketRes);
 
     try {
@@ -119,10 +137,7 @@ const Scanner = () => {
       switch (remainingUses) {
         case 0:
         case 1:
-          setIsTxSuccess(true);
-          setIsTxLoading(false);
-          onResultModalOpen();
-          return;
+          throw new Error('This ticket has been claimed');
         case 3:
           throw new Error('RVSP first to enter');
         default:
@@ -131,6 +146,8 @@ const Scanner = () => {
       console.error(err);
       setTxError(err.message);
       setIsTxLoading(false);
+      scanningResultInProgress = false;
+      secretKeyInCurrentTransaction = '';
       return;
     }
 
@@ -159,6 +176,7 @@ const Scanner = () => {
       })
       .finally(() => {
         scanningResultInProgress = false;
+        secretKeyInCurrentTransaction = '';
       });
     // yaaaa we can scan more tickets and everything looks super fast!
   };
@@ -272,6 +290,10 @@ const Scanner = () => {
   useEffect(() => {
     onPasswordModalOpen();
   }, []);
+
+  useLayoutEffect(() => {
+    isModalOpen = isAppModalOpen;
+  }, [isAppModalOpen]);
 
   return (
     <Box mb={{ base: '5', md: '14' }} minH="100%" minW="100%" mt={{ base: '52px', md: '100px' }}>

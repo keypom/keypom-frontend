@@ -121,6 +121,15 @@ const ClaimGiftPage = () => {
       isError: Boolean(claimError),
       isSuccess: isClaimSuccessful,
       message: claimError || 'NFT claimed!',
+      options: [
+        {
+          label: 'Ok',
+          func: () => {
+            setAppModal({ isOpen: false });
+            console.log('tx acknowledged');
+          },
+        },
+      ],
     });
   };
 
