@@ -10,13 +10,7 @@ export const ClaimTicketDetails = () => {
   const { nftImage, title, giftType, tokens } = useClaimForm();
   return (
     <>
-      <Box
-        borderRadius={{ base: '5xl', md: '6xl' }}
-        h={giftType === DROP_TYPE.NFT ? { base: '7.5rem', md: '11.25rem' } : {}}
-        mb={{ base: '6', md: '8' }}
-        position="relative"
-        w={{ base: '7.5rem', md: '11.25rem' }}
-      >
+      <Box>
         {giftType === DROP_TYPE.NFT ? (
           <AvatarImage altName="NFT image" imageSrc={nftImage} />
         ) : (
