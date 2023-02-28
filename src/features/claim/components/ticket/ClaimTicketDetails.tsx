@@ -7,7 +7,7 @@ import { DropBox } from '@/components/DropBox';
 import { useClaimForm } from '../ClaimFormContext';
 
 export const ClaimTicketDetails = () => {
-  const { nftImage, title, giftType, tokens } = useClaimForm();
+  const { nftImage, title, description, giftType, tokens } = useClaimForm();
   return (
     <>
       <Box
@@ -38,6 +38,11 @@ export const ClaimTicketDetails = () => {
       >
         {title}
       </Text>
+      {
+        description?.length > 0 && <Text color="gray.600" maxH="200px" overflowY="auto" size={{ base: 'sm', md: 'base' }} style={{ marginBottom: 16}}>
+        {description}
+      </Text>
+      }
     </>
   );
 };
