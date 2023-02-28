@@ -1,3 +1,5 @@
+import { useEffect } from 'react';
+
 import { Center, Flex, Heading, Text, VStack } from '@chakra-ui/react';
 
 import { IconBox } from '@/components/IconBox';
@@ -12,6 +14,11 @@ import { NftGift } from './[id]/NftGift';
 import { TokenGift } from './[id]/TokenGift';
 
 export const ClaimTicketSummaryFlow = () => {
+
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [])
+
   const { nftImage, title, qrValue, giftType, tokens } = useClaimForm();
 
   return (
