@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-misused-promises */
 import { Box, Button, Center, Heading, useDisclosure, VStack } from '@chakra-ui/react';
-import { useEffect, useState } from 'react';
+import { useEffect, useLayoutEffect, useState } from 'react';
 import { QrReader } from 'react-qr-reader';
 
 import { ViewFinder } from '@/components/ViewFinder';
@@ -19,6 +19,7 @@ interface TicketResult {
 // To stop concurrent scan result handling
 let scanningResultInProgress = false;
 let secretKeyInCurrentTransaction = '';
+let isModalOpen = false;
 
 const Scanner = () => {
   const {
@@ -26,7 +27,10 @@ const Scanner = () => {
     onOpen: onPasswordModalOpen,
     onClose: onPasswordModalClose,
   } = useDisclosure();
-  const { setAppModal } = useAppContext();
+  const {
+    setAppModal,
+    appModal: { isOpen: isAppModalOpen },
+  } = useAppContext();
   const {
     isOpen: isResultModalOpen,
     onOpen: onResultModalOpen,
@@ -71,7 +75,7 @@ const Scanner = () => {
   };
 
   const handleScanResult = async (result, error) => {
-    if (scanningResultInProgress) {
+    if (scanningResultInProgress || isModalOpen) {
       return;
     }
 
@@ -286,6 +290,10 @@ const Scanner = () => {
   useEffect(() => {
     onPasswordModalOpen();
   }, []);
+
+  useLayoutEffect(() => {
+    isModalOpen = isAppModalOpen;
+  }, [isAppModalOpen]);
 
   return (
     <Box mb={{ base: '5', md: '14' }} minH="100%" minW="100%" mt={{ base: '52px', md: '100px' }}>
