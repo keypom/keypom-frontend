@@ -9,7 +9,7 @@ import { IconBox } from '@/components/IconBox';
 import { useDropFlowContext } from '@/features/create-drop/contexts/DropFlowContext';
 
 import { ArtworkInput } from '../Fields/ArtworkInput';
-import { WALLET_OPTIONS } from '../WalletComponent';
+import { WALLET_CHECKBOXES } from '../WalletComponent';
 
 import { NftNameInput } from './Fields/NftNameInput';
 import { NumberInput } from './Fields/NumberInput';
@@ -68,8 +68,8 @@ export const CreateNftDropForm = () => {
                 label="Wallets"
               >
                 <Checkboxes
-                  defaultValues={['near_wallet']}
-                  items={WALLET_OPTIONS}
+                  defaultValues={['mynearwallet']}
+                  items={WALLET_CHECKBOXES}
                   onChange={handleCheckboxChange}
                 />
               </FormControl>

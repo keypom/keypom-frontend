@@ -1,29 +1,24 @@
 import { type CheckboxItem } from '@/components/Checkboxes';
+import { CoinIcon } from '@/components/CoinIcon';
 import { MyNearLogoIcon, NearLogoIcon } from '@/components/Icons';
+import getConfig from '@/config/config';
 
 /**
- * Temporary data providers.
- * Some wallets are commented due to deprecation and in case of usage in the future.
+ * Wallet form providers.
  */
 
-export const WALLET_OPTIONS: CheckboxItem[] = [
-  {
-    name: 'My NEAR Wallet',
-    value: 'my_near_wallet',
-    icon: <MyNearLogoIcon height="6" width="5" />,
-  },
-  // {
-  //   name: 'NEAR Wallet',
-  //   value: 'near_wallet',
-  //   icon: <NearLogoIcon height="7" width="5" />,
-  // },
-  // {
-  //   name: 'HERE Wallet',
-  //   value: 'here_wallet',
-  //   icon: <HereLogoIcon height="7" width="5" />,
-  // },
-];
+const { supportedWallets } = getConfig();
 
+// checkboxes for create token/nft drop form
+export const WALLET_CHECKBOXES: CheckboxItem[] = supportedWallets.map(
+  ({ symbol, walletName, id }) => ({
+    name: walletName,
+    value: id,
+    icon: <CoinIcon symbol={symbol.toLowerCase()} />,
+  }),
+);
+
+// TODO: refactor wallet tokens or check if this is still needed
 export const WALLET_TOKENS = [
   {
     amount: '500',

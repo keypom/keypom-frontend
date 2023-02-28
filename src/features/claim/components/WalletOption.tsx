@@ -3,13 +3,13 @@ import { Center, type CenterProps, Text } from '@chakra-ui/react';
 import { CoinIcon } from '@/components/CoinIcon';
 
 export interface WalletOptionProps extends CenterProps {
-  coin: string;
+  symbol: string;
   walletName: string;
-  handleWalletClick: () => Promise<void>;
+  handleWalletClick: () => void;
 }
 
 export const WalletOption = ({
-  coin,
+  symbol,
   walletName,
   handleWalletClick,
   ...props
@@ -29,13 +29,11 @@ export const WalletOption = ({
       px="4"
       py="2"
       w="full"
-      onClick={async () => {
-        await handleWalletClick();
-      }}
+      onClick={handleWalletClick}
       {...props}
     >
       {/** wallet logo */}
-      <CoinIcon h="6" left="4" position="absolute" symbol={coin} w="6" />
+      <CoinIcon h="6" left="4" position="absolute" symbol={symbol} w="6" />
       <Text size={{ base: 'sm', md: 'md' }}>{walletName} Wallet</Text>
     </Center>
   );

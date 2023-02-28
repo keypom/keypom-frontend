@@ -3,6 +3,19 @@ const cloudflareIfps = process.env.REACT_APP_CLOUDFLARE_IFPS ?? 'https://cloudfl
 // eslint-disable-next-line no-console
 console.log(process.env.REACT_APP_NETWORK_ID, process.env.REACT_APP_CONTRACT_ID);
 
+const SUPPORTED_WALLET_OPTIONS = [
+  {
+    symbol: 'MYNEAR',
+    walletName: 'My Near',
+    id: 'mynearwallet',
+  },
+  {
+    symbol: 'HERE',
+    walletName: 'My HERE',
+    id: 'herewallet',
+  },
+];
+
 export interface Config {
   networkId: string;
   nodeUrl: string;
@@ -18,6 +31,7 @@ export interface Config {
   contractId: string;
   isBrowser: boolean;
   cloudflareIfps: string;
+  supportedWallets: Array<{ symbol: string; walletName: string; id: string }>;
 }
 
 function getConfig(network = process.env.REACT_APP_NETWORK_ID ?? 'testnet'): Config {
@@ -38,6 +52,7 @@ function getConfig(network = process.env.REACT_APP_NETWORK_ID ?? 'testnet'): Con
         contractId: contractName,
         isBrowser: typeof window !== 'undefined',
         cloudflareIfps,
+        supportedWallets: SUPPORTED_WALLET_OPTIONS,
       };
 
     case 'mainnet':
@@ -56,6 +71,7 @@ function getConfig(network = process.env.REACT_APP_NETWORK_ID ?? 'testnet'): Con
         contractId: contractName,
         isBrowser: typeof window !== 'undefined',
         cloudflareIfps,
+        supportedWallets: SUPPORTED_WALLET_OPTIONS,
       };
     default:
       throw Error(`Unconfigured environment '${network}'. Can be configured in src/config.ts.`);

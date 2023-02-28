@@ -14,7 +14,7 @@ import { MASTER_KEY } from '@/constants/common';
 import { useAppContext, setAppModalHelper } from '@/contexts/AppContext';
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
 
-import { WALLET_OPTIONS } from '../WalletComponent';
+import { WALLET_CHECKBOXES } from '../WalletComponent';
 
 export const CreateTokenDropForm = () => {
   const { setAppModal } = useAppContext();
@@ -176,8 +176,8 @@ export const CreateTokenDropForm = () => {
               label="Wallets"
             >
               <Checkboxes
-                defaultValues={['my_near_wallet']}
-                items={WALLET_OPTIONS}
+                defaultValues={['mynearwallet']}
+                items={WALLET_CHECKBOXES}
                 onChange={handleCheckboxChange}
               />
             </FormControl>
