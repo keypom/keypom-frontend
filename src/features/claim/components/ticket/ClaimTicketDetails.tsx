@@ -7,7 +7,6 @@ import { DropBox } from '@/components/DropBox';
 import { useClaimForm } from '../ClaimFormContext';
 
 export const ClaimTicketDetails = () => {
-
   const { nftImage, title, description, giftType, tokens } = useClaimForm();
   return (
     <>
