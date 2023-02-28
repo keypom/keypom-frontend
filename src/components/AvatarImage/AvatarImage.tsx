@@ -14,10 +14,8 @@ export const AvatarImage = ({ altName, imageSrc, ...props }: AvatarImageProps) =
   return (
     <Box
       borderRadius={{ base: '5xl', md: '6xl' }}
-      mb={{ base: '6', md: '10' }}
-      minH={{ base: '7.5rem', md: '11.25rem' }}
+      mb={{ base: '2', md: '4' }}
       position="relative"
-      w={{ base: '7.5rem', md: '11.25rem' }}
       {...props}
     >
       <ChakraImage

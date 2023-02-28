@@ -11,11 +11,18 @@ import {
   getPubFromSecret,
   formatNearAmount,
   formatLinkdropUrl,
+  generateKeys,
+  getKeyInformationBatch,
+  getKeySupplyForDrop,
+  deleteKeys,
+  getKeysForDrop,
+  deleteDrops,
 } from 'keypom-js';
 import * as nearAPI from 'near-api-js';
 
-import { CLOUDFLARE_IPFS, DROP_TYPE } from '@/constants/common';
+import { CLOUDFLARE_IPFS, DROP_TYPE, MASTER_KEY } from '@/constants/common';
 import getConfig from '@/config/config';
+import { get } from '@/utils/localStorage';
 
 let instance: KeypomJS;
 const ACCOUNT_ID_REGEX = /^(([a-z\d]+[-_])*[a-z\d]+\.)*([a-z\d]+[-_])*[a-z\d]+$/;
@@ -190,6 +197,78 @@ class KeypomJS {
 
   getDropMetadata = (metadata: string) =>
     JSON.parse(metadata || JSON.stringify({ dropName: 'Untitled' }));
+
+  deleteDrops = async ({ wallet, dropIds }) => await deleteDrops({ wallet, dropIds });
+
+  deleteKeys = async ({ wallet, dropId, publicKeys }) =>
+    await deleteKeys({ wallet, dropId, publicKeys });
+
+  getDropInfo = async (dropId?: string): Promise<ProtocolReturnedDrop> => {
+    if (!dropId) throw new Error('Missing dropId');
+    // TODO: add basic catch
+    return await getDropInformation({ dropId });
+  };
+
+  getClaimedDropInfo = async (dropId: string) => await getKeySupplyForDrop({ dropId });
+
+  getKeysForDrop = async ({ dropId, limit, start }) =>
+    await getKeysForDrop({ dropId, limit, start });
+
+  getLinksToExport = async (dropId) => {
+    const drop = await this.getDropInfo(dropId);
+    const { secretKeys } = await generateKeys({
+      numKeys: drop.next_key_id,
+      rootEntropy: `${get(MASTER_KEY) as string}-${dropId as string}`,
+      autoMetaNonceStart: 0,
+    });
+
+    const links = secretKeys.map(
+      (key, i) =>
+        `${window.location.origin}/claim/${getConfig().contractId}#${key.replace('ed25519:', '')}`,
+    );
+
+    return links;
+  };
+
+  getKeysInfo = async (
+    dropId: string,
+    pageIndex: number,
+    pageSize: number,
+    getDropErrorCallback?: () => void,
+  ) => {
+    let drop: ProtocolReturnedDrop;
+    try {
+      drop = await this.getDropInfo(dropId);
+
+      const dropSize = drop.next_key_id;
+      const { dropName } = this.getDropMetadata(drop.metadata as string);
+
+      const { publicKeys, secretKeys } = await generateKeys({
+        numKeys:
+          (pageIndex + 1) * pageSize > dropSize
+            ? dropSize - pageIndex * pageSize
+            : Math.min(dropSize, pageSize),
+        rootEntropy: `${get(MASTER_KEY) as string}-${dropId}`,
+        autoMetaNonceStart: pageIndex * pageSize,
+      });
+
+      const keyInfo = await getKeyInformationBatch({
+        publicKeys,
+        secretKeys,
+      });
+
+      return {
+        dropSize,
+        dropName,
+        publicKeys,
+        secretKeys,
+        keyInfo,
+      };
+    } catch (e) {
+      if (getDropErrorCallback) getDropErrorCallback();
+      return; // eslint-disable-line no-useless-return
+    }
+  };
 
   generateExternalWalletLink = async (
     walletName: string,

@@ -41,6 +41,7 @@ const NFTDropManagerPage = React.lazy(
 const TicketDropManagerPage = React.lazy(
   async () => await import('@/features/drop-manager/routes/ticket/[id]'),
 );
+const EthDenverLandingPage = React.lazy(async () => await import('@/pages/EthDenver'));
 
 const ScannerPage = React.lazy(async () => await import('@/features/scanner/routes/ScannerPage'));
 
@@ -51,6 +52,10 @@ export const router = createBrowserRouter([
       {
         index: true,
         element: <LandingPage />,
+      },
+      {
+        path: 'ethdenver',
+        element: <EthDenverLandingPage />,
       },
       {
         path: 'drops',

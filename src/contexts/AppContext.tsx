@@ -18,6 +18,7 @@ export interface AppModalOptions {
 interface AppModalValues {
   isOpen: boolean;
   closeOnOverlayClick?: boolean;
+  closeButtonVisible?: boolean;
   message?: string;
   header?: string;
   options?: AppModalOptions[];

@@ -1,20 +1,11 @@
 import { Badge, Box, Button, Text, useToast } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import {
-  getDropInformation,
-  generateKeys,
-  getKeyInformationBatch,
-  deleteKeys,
-  getKeySupplyForDrop,
-  type ProtocolReturnedDrop,
-} from 'keypom-js';
 
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
 import { CopyIcon, DeleteIcon } from '@/components/Icons';
 import { DropManager } from '@/features/drop-manager/components/DropManager';
-import { get } from '@/utils/localStorage';
-import { MASTER_KEY, PAGE_SIZE_LIMIT } from '@/constants/common';
+import { PAGE_SIZE_LIMIT } from '@/constants/common';
 import { usePagination } from '@/hooks/usePagination';
 import { type DataItem } from '@/components/Table/types';
 import { useAppContext } from '@/contexts/AppContext';
@@ -34,7 +25,7 @@ export default function TokenDropManagerPage() {
   const { setAppModal } = useAppContext();
   const toast = useToast();
 
-  const { id: dropId } = useParams();
+  const { id: dropId = '' } = useParams();
   const [loading, setLoading] = useState(true);
 
   const [name, setName] = useState('Untitled');
@@ -46,10 +37,22 @@ export default function TokenDropManagerPage() {
   const { selector, accountId } = useAuthWalletContext();
 
   useEffect(() => {
-    if (selector === null) return;
-    const getWallet = async () => {
-      setWallet(await selector.wallet());
-    };
+    if (dropId === '') navigate('/drops');
+  }, [dropId]);
+
+  const getWallet = async () => {
+    if (selector === null) {
+      return;
+    }
+    try {
+      const selectorWallet = await selector?.wallet();
+      setWallet(selectorWallet);
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  useEffect(() => {
     getWallet();
   }, [selector]);
 
@@ -93,43 +96,22 @@ export default function TokenDropManagerPage() {
   });
 
   const handleGetDrops = async ({ pageIndex = 0, pageSize = PAGE_SIZE_LIMIT }) => {
-    if (!accountId) return null;
-    let drop = await getDropInformation({
-      dropId,
-    }).catch((_) => {
-      setMissingDropModal(setAppModal);
+    if (!accountId) return;
+    const keyInfoReturn = await keypomInstance.getKeysInfo(dropId, pageIndex, pageSize, () => {
+      setMissingDropModal(setAppModal); // User will be redirected if getDropInformation fails
       navigate('/drops');
     });
-    if (!drop) {
-      // TODO Show error
-      drop = {
-        metadata: '{}',
-      };
+    if (keyInfoReturn === undefined) {
+      navigate('/drops');
+      return;
     }
-
-    setDataSize(drop.next_key_id);
-    setClaimed(await getKeySupplyForDrop({ dropId }));
-
-    const { dropName } = await keypomInstance.getDropMetadata(
-      (drop as ProtocolReturnedDrop).metadata as string,
-    );
+    const { dropSize, dropName, publicKeys, secretKeys, keyInfo } = keyInfoReturn;
+    setDataSize(dropSize);
+    setClaimed(await keypomInstance.getClaimedDropInfo(dropId));
     setName(dropName);
 
-    const { publicKeys, secretKeys } = await generateKeys({
-      numKeys:
-        (pageIndex + 1) * pageSize > drop.next_key_id
-          ? drop.next_key_id - pageIndex * pageSize
-          : Math.min(drop.next_key_id, pageSize),
-      rootEntropy: `${get(MASTER_KEY) as string}-${dropId}`,
-      autoMetaNonceStart: pageIndex * pageSize,
-    });
-
-    const keyInfo = await getKeyInformationBatch({
-      publicKeys,
-    });
-
     setData(
-      secretKeys.map((key, i) => ({
+      secretKeys.map((key: string, i) => ({
         id: i,
         publicKey: publicKeys[i],
         link: `${window.location.origin}/claim/${getConfig().contractId}#${key.replace(
@@ -158,14 +140,13 @@ export default function TokenDropManagerPage() {
     setConfirmationModalHelper(
       setAppModal,
       async () => {
-        await deleteKeys({
+        await keypomInstance.deleteKeys({
           wallet,
           dropId,
           publicKeys: pubKey,
         });
         window.location.reload();
       },
-      () => null,
       'key',
     );
   };

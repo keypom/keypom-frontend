@@ -1,6 +1,14 @@
-import { Box, Button, Heading, HStack, Stack, type TableProps, Text } from '@chakra-ui/react';
+import {
+  Box,
+  Button,
+  Heading,
+  HStack,
+  Stack,
+  type TableProps,
+  Text,
+  Skeleton,
+} from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
-import { deleteDrops, generateKeys, getDropInformation } from 'keypom-js';
 import { useNavigate } from 'react-router-dom';
 
 import { type ColumnItem, type DataItem } from '@/components/Table/types';
@@ -10,9 +18,7 @@ import { NextButton, PrevButton } from '@/components/Pagination';
 import { file } from '@/utils/file';
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
 import { useAppContext } from '@/contexts/AppContext';
-import { get } from '@/utils/localStorage';
-import { MASTER_KEY } from '@/constants/common';
-import getConfig from '@/config/config';
+import keypomInstance from '@/lib/keypom';
 
 import { setConfirmationModalHelper } from './ConfirmationModal';
 
@@ -83,19 +89,7 @@ export const DropManager = ({
       setExporting(true);
 
       try {
-        const drop = await getDropInformation({ dropId: data[0].dropId as string });
-        const { secretKeys } = await generateKeys({
-          numKeys: drop.next_key_id,
-          rootEntropy: `${get(MASTER_KEY) as string}-${data[0].dropId as string}`,
-          autoMetaNonceStart: 0,
-        });
-        const links = secretKeys.map(
-          (key, i) =>
-            `${window.location.origin}/claim/${getConfig().contractId}#${key.replace(
-              'ed25519:',
-              '',
-            )}`,
-        );
+        const links = await keypomInstance.getLinksToExport(data[0].dropId as string);
         file(`Drop ID ${data[0].dropId as string}.csv`, links.join('\r\n'));
       } catch (e) {
         console.error('error', e);
@@ -114,13 +108,12 @@ export const DropManager = ({
       setConfirmationModalHelper(
         setAppModal,
         async () => {
-          await deleteDrops({
+          await keypomInstance.deleteDrops({
             wallet,
             dropIds: [dropId as string],
           });
           navigate('/drops');
         },
-        () => null,
         'drop',
       );
       console.log('deleting drop', dropId);
@@ -143,13 +136,17 @@ export const DropManager = ({
             {/* Drop name */}
             <Stack maxW={{ base: 'full', md: '22.5rem' }}>
               <Text color="gray.800">Drop name</Text>
-              <Heading>{dropName}</Heading>
+              <Skeleton isLoaded={!loading}>
+                <Heading>{dropName}</Heading>
+              </Skeleton>
             </Stack>
 
             {/* Drops claimed */}
             <Stack maxW={{ base: 'full', md: '22.5rem' }}>
               <Text color="gray.800">{claimedHeaderText}</Text>
-              <Heading>{claimedText}</Heading>
+              <Skeleton isLoaded={!loading}>
+                <Heading>{claimedText}</Heading>
+              </Skeleton>
             </Stack>
           </Stack>
           <Text>Track link status and export them to CSV for use in email campaigns here.</Text>
