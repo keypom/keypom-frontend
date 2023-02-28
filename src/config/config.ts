@@ -9,11 +9,13 @@ const SUPPORTED_WALLET_OPTIONS = [
     walletName: 'My Near',
     id: 'mynearwallet',
   },
-  {
-    symbol: 'HERE',
-    walletName: 'My HERE',
-    id: 'herewallet',
-  },
+  // support only mynearwallet for now
+  // https://docs.keypom.xyz/docs/next/keypom-sdk/modules#supportedlinkdropclaimpages
+  // {
+  //   symbol: 'HERE',
+  //   walletName: 'My HERE',
+  //   id: 'herewallet',
+  // },
 ];
 
 export interface Config {
