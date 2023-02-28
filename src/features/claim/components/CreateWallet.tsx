@@ -11,6 +11,7 @@ interface CreateWalletProps {
   wallets: string[];
   contractId: string;
   secretKey: string;
+  redirectUrl?: string;
 }
 
 const defaultWallet = WALLET_OPTIONS[0];
@@ -20,6 +21,7 @@ export const CreateWallet = ({
   secretKey,
   onClick,
   wallets = ['mynearwallet'],
+  redirectUrl,
 }: CreateWalletProps) => {
   const [isClaimSuccessful, setSuccess] = useBoolean(false);
 
@@ -41,6 +43,9 @@ export const CreateWallet = ({
         }
       }, 20000);
 
+      if (redirectUrl) {
+        return window.open(url + '?redirectUrl=' + redirectUrl, '_blank');
+      }
       window.open(url, '_blank');
     } catch (err) {
       // drop has been claimed

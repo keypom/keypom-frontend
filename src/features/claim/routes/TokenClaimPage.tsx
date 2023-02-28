@@ -15,6 +15,9 @@ import { useClaimParams } from '@/hooks/useClaimParams';
 import { ExistingWallet } from '../components/ExistingWallet';
 import { CreateWallet } from '../components/CreateWallet';
 
+// TODO remove this after ETH Denver ethdenver
+const redirectUrl = window.location.origin + '/ethdenver';
+
 export interface TokenAsset {
   icon: string;
   value: string;
@@ -178,6 +181,7 @@ const ClaimTokenPage = ({ skipLinkDropCheck = false }: ClaimTokenPageProps) => {
               {!haveWallet ? (
                 <CreateWallet
                   contractId={contractId}
+                  redirectUrl={redirectUrl}
                   secretKey={secretKey}
                   wallets={walletsOptions}
                   onClick={showInputWallet.on}
