@@ -22,7 +22,7 @@ const flowPages: IFlowPage[] = [
 
 const breadcrumbs: IBreadcrumbItem[] = [
   {
-    name: 'All drops',
+    name: 'My drops',
     href: '/drops',
   },
   {

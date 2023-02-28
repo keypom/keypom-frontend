@@ -75,7 +75,7 @@ export const DropManager = ({
 
   const breadcrumbItems = [
     {
-      name: 'All drops',
+      name: 'My drops',
       href: '/drops',
     },
     {

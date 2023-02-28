@@ -246,12 +246,12 @@ export default function AllDrops() {
     <Box minH="100%" minW="100%">
       {/* Header Bar */}
       <HStack alignItems="center" display="flex" spacing="auto">
-        <Heading>All drops</Heading>
+        <Heading>My drops</Heading>
         {/* Desktop Dropdown Menu */}
         <HStack>
           {hasPagination && (
             <PrevButton
-              id="all-drops"
+              id="my-drops"
               isDisabled={!!isFirstPage}
               isLoading={loading.previous}
               onClick={handlePrevPage}
