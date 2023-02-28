@@ -38,6 +38,7 @@ export const ClaimFormContextProvider = ({ children }: PropsWithChildren) => {
   const { secretKey, contractId } = useClaimParams();
 
   const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
   const [nftImage, setNftImage] = useState('');
   const [qrValue, setQrValue] = useState('');
   const [isClaimInfoLoading, setIsLoading] = useState(true);
@@ -95,6 +96,7 @@ export const ClaimFormContextProvider = ({ children }: PropsWithChildren) => {
       }
 
       setTitle(claimInfo.title);
+      setDescription(claimInfo.description);
       setNftImage(claimInfo.media);
       setQrValue(JSON.stringify({ contractId, secretKey }));
       setRemainingUses(claimInfo.remainingUses);
@@ -141,6 +143,7 @@ export const ClaimFormContextProvider = ({ children }: PropsWithChildren) => {
         showTokenDrop,
         getClaimFormData,
         title,
+        description,
         nftImage,
         qrValue,
         handleClaim,
