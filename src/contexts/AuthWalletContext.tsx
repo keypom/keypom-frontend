@@ -10,7 +10,6 @@ import {
   useEffect,
   useState,
 } from 'react';
-// import { map, distinctUntilChanged } from 'rxjs';
 
 import { NearWalletSelector } from '@/lib/walletSelector';
 

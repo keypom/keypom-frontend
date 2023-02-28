@@ -19,6 +19,9 @@ export const setMasterKeyValidityModal = (setAppModal, confirm, cancel) => {
           console.log('user cancelled');
           if (cancel) cancel();
         },
+        buttonProps: {
+          variant: 'outline',
+        },
       },
       {
         label: 'Set Master Key',

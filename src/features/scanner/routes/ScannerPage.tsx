@@ -259,6 +259,9 @@ const Scanner = () => {
             if (!!cachedPassword && cachedPassword.length > 0) return;
             openPasswordWarning();
           },
+          buttonProps: {
+            variant: 'outline',
+          },
         },
         {
           lazy: true,
