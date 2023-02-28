@@ -23,7 +23,7 @@ const flowPages: IFlowPage[] = [
 
 const YourTicketPage = () => {
   return (
-    <Box mb={{ base: '5', md: '14' }} minH="100%" minW="100%" mt={{ base: '52px', md: '100px' }}>
+    <Box mb={{ base: '5', md: '14' }} minH="100%" minW="100%" mt={{ base: '8px', md: '32px' }}>
       <ClaimFormContextProvider>
         <ClaimTicketFlowProvider flowPages={flowPages}>
           <ClaimTicketFlow />
