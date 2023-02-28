@@ -32,11 +32,17 @@ export const ClaimTicketDetails = () => {
       >
         {title}
       </Text>
-      {
-        description?.length > 0 && <Text color="gray.600" maxH="200px" overflowY="auto" size={{ base: 'sm', md: 'base' }} style={{ marginBottom: 16}}>
-        {description}
-      </Text>
-      }
+      {description?.length > 0 && (
+        <Text
+          color="gray.600"
+          maxH="200px"
+          overflowY="auto"
+          size={{ base: 'sm', md: 'base' }}
+          style={{ marginBottom: 16 }}
+        >
+          {description}
+        </Text>
+      )}
     </>
   );
 };
