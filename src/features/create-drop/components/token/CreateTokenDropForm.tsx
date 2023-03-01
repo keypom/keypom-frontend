@@ -121,19 +121,22 @@ export const CreateTokenDropForm = () => {
         <Controller
           control={control}
           name="totalLinks"
-          render={({ field, fieldState: { error } }) => (
-            <FormControl errorText={error?.message} label="Number of links">
-              <Input
-                isInvalid={Boolean(error?.message)}
-                placeholder="1 - 50"
-                type="number"
-                {...field}
-                onChange={(e) => {
-                  field.onChange(parseInt(e.target.value));
-                }}
-              />
-            </FormControl>
-          )}
+          render={({ field: { value, onChange, ...fieldProps }, fieldState: { error } }) => {
+            return (
+              <FormControl errorText={error?.message} label="Number of links">
+                <Input
+                  isInvalid={Boolean(error?.message)}
+                  placeholder="1 - 50"
+                  type="number"
+                  value={value || ''}
+                  onChange={(e) => {
+                    onChange(parseInt(e.target.value));
+                  }}
+                  {...fieldProps}
+                />
+              </FormControl>
+            );
+          }}
         />
 
         <Controller
