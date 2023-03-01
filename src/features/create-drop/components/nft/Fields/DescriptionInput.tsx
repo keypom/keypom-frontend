@@ -14,13 +14,13 @@ export const DescriptionInput = ({ control }: DescriptionProps) => {
     <Controller
       control={control}
       name={FIELD_NAME}
-      render={({ field, fieldState: { error } }) => (
+      render={({ field: { ref, ...fieldProps }, fieldState: { error } }) => (
         <TextAreaInput
           errorMessage={error?.message}
           isInvalid={!!error?.message}
           label="Description"
           placeholder="A commemorative NFT for attending the Vandelay Industries networking event."
-          {...field}
+          {...fieldProps}
         />
       )}
     />
