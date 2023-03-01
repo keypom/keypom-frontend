@@ -39,7 +39,6 @@ export const Checkboxes = ({ items = [], defaultValues = [], onChange }: Checkbo
         }
         iconColor="blue.400"
         iconSize="1.375rem"
-        isIndeterminate={true}
         p={{ base: '2', md: '4' }}
         pl={{ base: '3' }}
         value={item.value}
