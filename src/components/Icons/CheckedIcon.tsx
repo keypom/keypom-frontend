@@ -1,6 +1,10 @@
 import { Icon, type IconProps } from '@chakra-ui/react';
 
-export const CheckedIcon = (props: IconProps) => {
+interface CheckedIconProps extends IconProps {
+  isDeterminate?: boolean;
+}
+
+export const CheckedIcon = (props: CheckedIconProps) => {
   return (
     <Icon
       fill="none"
