@@ -32,8 +32,8 @@ export const MobileDataTable = ({
     if (loading) {
       return Array.from([1, 2, 3]).map((_, index) => (
         <Tr key={index}>
-          {columns.map((column) => (
-            <Td key={`${column.title}-${index}`} {...column.tdProps}>
+          {columns.map((column, colIndex) => (
+            <Td key={`${column.id}-${index}-${colIndex}`} {...column.tdProps}>
               {column.loadingElement}
             </Td>
           ))}
@@ -65,7 +65,7 @@ export const MobileDataTable = ({
             {columns
               .filter((column) => actionColumn.title !== column.title) // exclude action column
               .map((column) => (
-                <Box key={`${drop.id}-${column.title}`}>{column.selector(drop)}</Box>
+                <Box key={`${drop.id}-${column.id}`}>{column.selector(drop)}</Box>
               ))}
           </VStack>
         </Td>
