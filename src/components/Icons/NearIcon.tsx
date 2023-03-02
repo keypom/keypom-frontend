@@ -1,6 +1,6 @@
 import { Icon, type IconProps } from '@chakra-ui/react';
 
-export const NearLogoIcon = ({ ...props }: IconProps) => {
+export const NearIcon = ({ ...props }: IconProps) => {
   return (
     <Icon
       fill="none"

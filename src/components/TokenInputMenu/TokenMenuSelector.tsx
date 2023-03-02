@@ -25,21 +25,21 @@ export const TokenSelectorMenu = ({
   onChange,
   selectedWalletToken,
 }: TokenSelectorMenuProps) => {
-  const balancesMenuList = tokens.map((wallet) => (
+  const balancesMenuList = tokens.map((token) => (
     <MenuItem
-      key={wallet.symbol}
+      key={token.symbol}
       onClick={() => {
-        onChange(wallet.symbol);
+        onChange(token.symbol);
       }}
     >
       <HStack>
         <Box mr="3">
-          <TokenIcon symbol={wallet.symbol} />
+          <TokenIcon symbol={token.symbol} />
         </Box>
         <VStack align="flex-start">
-          <Text>{wallet.symbol}</Text>
+          <Text>{token.symbol}</Text>
           <Text color="gray.400" size="sm">
-            Balance: {wallet?.amount} {wallet?.symbol}
+            Balance: {token?.amount} {token?.symbol}
           </Text>
         </VStack>
       </HStack>

@@ -4,10 +4,11 @@ import { evaluate, format } from 'mathjs';
 import { formatNearAmount } from 'keypom-js';
 
 import { FormControl } from '@/components/FormControl';
-import { WalletBalanceInput, type WalletToken } from '@/components/TokenInputMenu';
+import { TokenInput } from '@/components/TokenInputMenu';
 import { type CreateTicketFieldsSchema } from '@/features/create-drop/contexts/CreateTicketDropContext/CreateTicketDropContext';
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
-import { NearLogoIcon } from '@/components/Icons';
+import { NearIcon } from '@/components/Icons';
+import { type IToken } from '@/types/common';
 
 export const TokenForm = () => {
   const {
@@ -27,7 +28,7 @@ export const TokenForm = () => {
           amount: formatNearAmount(account.amount, 4),
           symbol: 'NEAR',
           wallet: 'near_wallet',
-          icon: <NearLogoIcon height="4" width="4" />,
+          icon: <NearIcon height="4" width="4" />,
         },
       ]
     : [];
@@ -70,7 +71,7 @@ export const TokenForm = () => {
           label="Add tokens"
           my="0"
         >
-          <WalletBalanceInput
+          <TokenInput
             {...field}
             isInvalid={Boolean(error?.message)}
             maxLength={14}
@@ -81,17 +82,17 @@ export const TokenForm = () => {
               void trigger(); // errors not getting updated if its not manually validated
             }}
           >
-            <WalletBalanceInput.TokenMenu
-              selectedWalletToken={selectedFromWallet as Partial<WalletToken>}
+            <TokenInput.TokenMenu
+              selectedWalletToken={selectedFromWallet as Pick<IToken, 'symbol' | 'amount'>}
               tokens={WALLET_TOKENS}
               onChange={handleTokenChange}
             />
-            <WalletBalanceInput.CostDisplay
+            <TokenInput.CostDisplay
               balanceAmount={selectedFromWallet?.amount ?? ''}
               symbol={selectedFromWallet?.symbol ?? ''}
               totalCost={totalCost}
             />
-          </WalletBalanceInput>
+          </TokenInput>
         </FormControl>
       )}
     />

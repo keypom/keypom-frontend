@@ -1,6 +1,6 @@
 import { type IconProps } from '@chakra-ui/react';
 
-import { MyNearLogoIcon, HereWalletIcon, TokenNearIcon } from '../Icons';
+import { MyNearLogoIcon, HereWalletIcon, NearIcon } from '../Icons';
 
 interface WalletIconProps extends IconProps {
   name: string;
@@ -9,7 +9,7 @@ interface WalletIconProps extends IconProps {
 export const WalletIcon = ({ name, ...iconProps }: WalletIconProps) => {
   switch (name.toLowerCase()) {
     case 'near':
-      return <TokenNearIcon {...iconProps} />;
+      return <NearIcon {...iconProps} />;
     case 'here':
       return <HereWalletIcon {...iconProps} />;
     case 'mynearwallet':

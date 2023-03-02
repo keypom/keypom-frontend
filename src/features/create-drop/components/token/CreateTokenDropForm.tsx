@@ -6,7 +6,7 @@ import { formatNearAmount, createDrop } from 'keypom-js';
 import { IconBox } from '@/components/IconBox';
 import { FormControl } from '@/components/FormControl';
 import { Checkboxes } from '@/components/Checkboxes';
-import { WalletBalanceInput } from '@/components/TokenInputMenu';
+import { TokenInput } from '@/components/TokenInputMenu';
 import { LinkIcon } from '@/components/Icons';
 import { useDropFlowContext } from '@/features/create-drop/contexts';
 import { get } from '@/utils/localStorage';
@@ -147,7 +147,7 @@ export const CreateTokenDropForm = () => {
           name="amountPerLink"
           render={({ field: { value, onChange, name }, fieldState: { error } }) => (
             <FormControl errorText={error?.message} label="Amount per link">
-              <WalletBalanceInput
+              <TokenInput
                 isInvalid={Boolean(error?.message)}
                 maxLength={14}
                 name={name}
@@ -158,17 +158,17 @@ export const CreateTokenDropForm = () => {
                   onChange(parseFloat(e.target.value));
                 }}
               >
-                <WalletBalanceInput.TokenMenu
+                <TokenInput.TokenMenu
                   selectedWalletToken={selectedFromWallet}
                   tokens={WALLET_TOKENS}
                   onChange={handleWalletChange}
                 />
-                <WalletBalanceInput.CostDisplay
+                <TokenInput.CostDisplay
                   balanceAmount={selectedFromWallet.amount}
                   symbol={selectedFromWallet.symbol}
                   totalCost={totalCost}
                 />
-              </WalletBalanceInput>
+              </TokenInput>
             </FormControl>
           )}
         />
