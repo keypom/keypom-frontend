@@ -15,16 +15,12 @@ import { type IToken } from '@/types/common';
 import { TokenIcon } from '@/components/TokenIcon';
 
 interface TokenSelectorMenuProps {
-  selectedWalletToken: IToken;
+  selectedToken: IToken;
   tokens: IToken[];
   onChange: (symbol: string) => void;
 }
 
-export const TokenSelectorMenu = ({
-  tokens,
-  onChange,
-  selectedWalletToken,
-}: TokenSelectorMenuProps) => {
+export const TokenSelectorMenu = ({ tokens, onChange, selectedToken }: TokenSelectorMenuProps) => {
   const balancesMenuList = tokens.map((token) => (
     <MenuItem
       key={token.symbol}
@@ -64,9 +60,9 @@ export const TokenSelectorMenu = ({
             zIndex="2"
           >
             <HStack justifyContent="space-around" px="3">
-              <TokenIcon symbol={selectedWalletToken.symbol} />
+              <TokenIcon symbol={selectedToken.symbol} />
               <Text fontWeight="medium" lineHeight="2">
-                {selectedWalletToken.symbol ?? 'Select'}
+                {selectedToken.symbol ?? 'Select'}
               </Text>
               <ChevronDownIcon />
             </HStack>

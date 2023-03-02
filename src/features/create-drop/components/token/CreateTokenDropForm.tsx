@@ -44,8 +44,8 @@ export const CreateTokenDropForm = () => {
 
   const [totalCost, setTotalCost] = useState(0);
 
-  const [selectedFromWallet, amountPerLink, totalLinks] = watch([
-    'selectedFromWallet',
+  const [selectedToken, amountPerLink, totalLinks] = watch([
+    'selectedToken',
     'amountPerLink',
     'totalLinks',
   ]);
@@ -69,7 +69,7 @@ export const CreateTokenDropForm = () => {
 
   const handleWalletChange = (walletSymbol: string) => {
     const foundWallet = WALLET_TOKENS.find((wallet) => wallet.symbol === walletSymbol);
-    setValue('selectedFromWallet', { symbol: foundWallet?.symbol, amount: foundWallet?.amount });
+    setValue('selectedToken', { symbol: foundWallet?.symbol, amount: foundWallet?.amount });
   };
 
   const handleCheckboxChange = useCallback(
@@ -158,13 +158,13 @@ export const CreateTokenDropForm = () => {
                 }}
               >
                 <TokenInput.TokenMenu
-                  selectedWalletToken={selectedFromWallet}
+                  selectedToken={selectedToken}
                   tokens={WALLET_TOKENS}
                   onChange={handleWalletChange}
                 />
                 <TokenInput.CostDisplay
-                  balanceAmount={selectedFromWallet.amount}
-                  symbol={selectedFromWallet.symbol}
+                  balanceAmount={selectedToken.amount}
+                  symbol={selectedToken.symbol}
                   totalCost={totalCost}
                 />
               </TokenInput>

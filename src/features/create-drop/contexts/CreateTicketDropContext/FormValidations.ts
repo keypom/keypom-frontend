@@ -18,7 +18,7 @@ export const SignUpInfoSchema = z.object({
 });
 
 const additionalGiftTokenSchema = z.object({
-  selectedFromWallet: z
+  selectedToken: z
     .object({
       symbol: z.string(),
       amount: z.string(),
@@ -54,9 +54,9 @@ export const AdditionalGiftSchema = z
         return z.NEVER;
       }
 
-      if (token.selectedFromWallet === null) {
+      if (token.selectedToken === null) {
         ctx.addIssue({
-          path: ['additionalGift.token.selectedFromWallet'],
+          path: ['additionalGift.token.selectedToken'],
           code: z.ZodIssueCode.custom,
           message: `Wallet tokens is required.`,
         });

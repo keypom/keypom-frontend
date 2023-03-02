@@ -41,7 +41,7 @@ const CreateTokenDropContext = createContext<CreateTokenDropContextProps>({
 
 const schema = z.object({
   dropName: z.string().min(1, 'Drop name required'),
-  selectedFromWallet: z.object({
+  selectedToken: z.object({
     symbol: z.string(),
     amount: z.string(),
   }),
@@ -81,7 +81,7 @@ export const CreateTokenDropProvider = ({ children }: PropsWithChildren) => {
     mode: 'onChange',
     defaultValues: {
       dropName: '',
-      selectedFromWallet: { symbol: defaultToken.symbol, amount: defaultToken.amount },
+      selectedToken: { symbol: defaultToken.symbol, amount: defaultToken.amount },
       selectedToWallets: [],
       totalLinks: undefined,
       amountPerLink: undefined,
@@ -92,7 +92,7 @@ export const CreateTokenDropProvider = ({ children }: PropsWithChildren) => {
 
   useEffect(() => {
     if (account) {
-      methods.setValue('selectedFromWallet', {
+      methods.setValue('selectedToken', {
         symbol: defaultToken.symbol, // NEAR
         amount: formatNearAmount(account.amount, 4),
       });
@@ -101,11 +101,11 @@ export const CreateTokenDropProvider = ({ children }: PropsWithChildren) => {
 
   const getSummaryData = (): SummaryItem[] => {
     const { getValues } = methods;
-    const [dropName, totalLinks, amountPerLink, selectedFromWallet] = getValues([
+    const [dropName, totalLinks, amountPerLink, selectedToken] = getValues([
       'dropName',
       'totalLinks',
       'amountPerLink',
-      'selectedFromWallet',
+      'selectedToken',
     ]);
 
     return [
@@ -117,7 +117,7 @@ export const CreateTokenDropProvider = ({ children }: PropsWithChildren) => {
       {
         type: 'text',
         name: 'Amount per link',
-        value: `${amountPerLink} ${selectedFromWallet.symbol}`,
+        value: `${amountPerLink} ${selectedToken.symbol}`,
       },
       {
         type: 'text',

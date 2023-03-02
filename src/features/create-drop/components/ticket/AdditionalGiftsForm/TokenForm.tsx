@@ -19,7 +19,7 @@ export const TokenForm = () => {
   } = useFormContext<CreateTicketFieldsSchema>();
   const { account } = useAuthWalletContext();
 
-  const selectedFromWalletError = errors?.additionalGift?.token?.selectedFromWallet;
+  const selectedTokenError = errors?.additionalGift?.token?.selectedToken;
 
   const WALLET_TOKENS: IToken[] = account
     ? [
@@ -30,8 +30,8 @@ export const TokenForm = () => {
       ]
     : [];
 
-  const [selectedFromWallet, amountPerLink, totalTickets] = watch([
-    'additionalGift.token.selectedFromWallet',
+  const [selectedToken, amountPerLink, totalTickets] = watch([
+    'additionalGift.token.selectedToken',
     'additionalGift.token.amountPerLink',
     'totalTickets',
   ]);
@@ -52,7 +52,7 @@ export const TokenForm = () => {
     }
 
     setValue(
-      'additionalGift.token.selectedFromWallet',
+      'additionalGift.token.selectedToken',
       { symbol: foundWallet.symbol, amount: foundWallet.amount },
       { shouldDirty: true, shouldValidate: true },
     );
@@ -64,7 +64,7 @@ export const TokenForm = () => {
       name="additionalGift.token.amountPerLink"
       render={({ field, fieldState: { error } }) => (
         <FormControl
-          errorText={error?.message ?? selectedFromWalletError?.message}
+          errorText={error?.message ?? selectedTokenError?.message}
           label="Add tokens"
           my="0"
         >
@@ -80,13 +80,13 @@ export const TokenForm = () => {
             }}
           >
             <TokenInput.TokenMenu
-              selectedWalletToken={selectedFromWallet as IToken}
+              selectedToken={selectedToken as IToken}
               tokens={WALLET_TOKENS}
               onChange={handleTokenChange}
             />
             <TokenInput.CostDisplay
-              balanceAmount={selectedFromWallet?.amount ?? ''}
-              symbol={selectedFromWallet?.symbol ?? ''}
+              balanceAmount={selectedToken?.amount ?? ''}
+              symbol={selectedToken?.symbol ?? ''}
               totalCost={totalCost}
             />
           </TokenInput>
