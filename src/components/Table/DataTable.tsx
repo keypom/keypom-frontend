@@ -54,8 +54,8 @@ export const DataTable = ({
     if (loading) {
       return Array.from([1, 2, 3]).map((_, index) => (
         <Tr key={index}>
-          {columns.map((column) => (
-            <Td key={`${column.title}-${index}`} {...column.tdProps}>
+          {columns.map((column, colIndex) => (
+            <Td key={`${column.title}-${index}-${colIndex}`} {...column.tdProps}>
               {column.loadingElement}
             </Td>
           ))}
@@ -83,7 +83,7 @@ export const DataTable = ({
         }
       >
         {columns.map((column, i) => (
-          <Td key={`${column.title}-${drop.id}-${i}`} {...column.tdProps}>
+          <Td key={`${column.id}-${drop.id}-${i}`} {...column.tdProps}>
             {column.selector(drop)}
           </Td>
         ))}
@@ -103,7 +103,7 @@ export const DataTable = ({
                   <Thead>
                     <Tr>
                       {columns.map((col) => (
-                        <Th key={col.title} fontFamily="body" {...col.thProps}>
+                        <Th key={col.id} fontFamily="body" {...col.thProps}>
                           {col.title}
                         </Th>
                       ))}

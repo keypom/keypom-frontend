@@ -49,6 +49,7 @@ const FETCH_NFT_METHOD_NAME = 'get_series_info';
 
 const COLUMNS: ColumnItem[] = [
   {
+    id: 'dropName',
     title: 'Drop name',
     selector: (drop) => drop.name,
     thProps: {
@@ -57,21 +58,25 @@ const COLUMNS: ColumnItem[] = [
     loadingElement: <Skeleton height="30px" />,
   },
   {
+    id: 'media',
     title: '',
     selector: (drop) => drop.media,
     loadingElement: <Skeleton height="30px" />,
   },
   {
+    id: 'dropType',
     title: 'Drop type',
     selector: (drop) => drop.type,
     loadingElement: <Skeleton height="30px" />,
   },
   {
+    id: 'claimStatus',
     title: 'Claimed',
     selector: (drop) => drop.claimed,
     loadingElement: <Skeleton height="30px" />,
   },
   {
+    id: 'action',
     title: '',
     selector: (drop) => drop.action,
     tdProps: {
