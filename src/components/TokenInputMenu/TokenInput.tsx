@@ -2,7 +2,7 @@ import { Box, Input, type InputProps } from '@chakra-ui/react';
 import { type PropsWithChildren } from 'react';
 
 import { CostDisplay } from './CostDisplay';
-import { WalletSelectorMenu } from './WalletSelectorMenu';
+import { WalletSelectorMenu } from './TokenMenuSelector';
 
 export const WalletBalanceInput = ({ children, ...props }: PropsWithChildren<InputProps>) => {
   return (

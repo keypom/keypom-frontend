@@ -4,7 +4,7 @@ import { evaluate, format } from 'mathjs';
 import { formatNearAmount } from 'keypom-js';
 
 import { FormControl } from '@/components/FormControl';
-import { WalletBalanceInput, type WalletToken } from '@/components/WalletBalanceInput';
+import { WalletBalanceInput, type WalletToken } from '@/components/TokenInputMenu';
 import { type CreateTicketFieldsSchema } from '@/features/create-drop/contexts/CreateTicketDropContext/CreateTicketDropContext';
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
 import { NearLogoIcon } from '@/components/Icons';

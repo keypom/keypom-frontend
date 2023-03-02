@@ -1,3 +1,5 @@
+import type React from 'react';
+
 export interface IFlowPage {
   name: string;
   description: string;
@@ -12,4 +14,10 @@ export interface ApiResponse<T> {
 export interface IWalletOption {
   name: string;
   title: string;
+}
+
+export interface IToken {
+  amount: string;
+  symbol: string;
+  wallet: string;
 }

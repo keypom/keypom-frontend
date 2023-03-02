@@ -14,10 +14,7 @@ interface CreateWalletProps {
   redirectUrl?: string;
 }
 
-const { supportedWallets } = getConfig();
-
-const defaultWallet =
-  supportedWallets.find((wallet) => wallet.id === 'mynearwallet') || supportedWallets[0];
+const { supportedWallets, defaultWallet } = getConfig();
 
 export const CreateWallet = ({
   contractId,
@@ -61,13 +58,13 @@ export const CreateWallet = ({
 
     // TODO replace with filter this is temporary
     // .filter((wallet) => wallets.includes(wallet.id))
-    .filter((wallet) => wallet.id === 'mynearwallet')
+    .filter((wallet) => wallet.name === 'mynearwallet')
 
     .map((options, index) => (
       <WalletOption
         key={index}
         handleWalletClick={async () => {
-          await handleWalletClick(options.id);
+          await handleWalletClick(options.name);
         }}
         {...options}
       />
@@ -88,7 +85,7 @@ export const CreateWallet = ({
         ) : (
           <WalletOption
             handleWalletClick={async () => {
-              await handleWalletClick(defaultWallet?.id);
+              await handleWalletClick(defaultWallet.name);
             }}
             {...defaultWallet}
           />

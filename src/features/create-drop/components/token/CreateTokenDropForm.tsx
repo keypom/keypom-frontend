@@ -6,27 +6,30 @@ import { formatNearAmount, createDrop } from 'keypom-js';
 import { IconBox } from '@/components/IconBox';
 import { FormControl } from '@/components/FormControl';
 import { Checkboxes } from '@/components/Checkboxes';
-import { WalletBalanceInput } from '@/components/WalletBalanceInput';
-import { LinkIcon, NearLogoIcon } from '@/components/Icons';
+import { WalletBalanceInput } from '@/components/TokenInputMenu';
+import { LinkIcon } from '@/components/Icons';
 import { useDropFlowContext } from '@/features/create-drop/contexts';
 import { get } from '@/utils/localStorage';
 import { MASTER_KEY } from '@/constants/common';
 import { useAppContext, setAppModalHelper } from '@/contexts/AppContext';
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
+import getConfig from '@/config/config';
+import { type IToken } from '@/types/common';
 
 import { WALLET_CHECKBOXES } from '../WalletComponent';
+
+const { defaultWallet } = getConfig();
 
 export const CreateTokenDropForm = () => {
   const { setAppModal } = useAppContext();
   const { account } = useAuthWalletContext();
 
-  const WALLET_TOKENS = account
+  const WALLET_TOKENS: IToken[] = account
     ? [
         {
           amount: formatNearAmount(account.amount, 4),
           symbol: 'NEAR',
           wallet: 'near_wallet',
-          icon: <NearLogoIcon height="4" width="4" />,
         },
       ]
     : [];
@@ -176,7 +179,7 @@ export const CreateTokenDropForm = () => {
               label="Wallets"
             >
               <Checkboxes
-                defaultValues={['mynearwallet']}
+                defaultValues={[defaultWallet.name]}
                 items={WALLET_CHECKBOXES}
                 onChange={handleCheckboxChange}
               />

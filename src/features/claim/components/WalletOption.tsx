@@ -1,19 +1,14 @@
 import { Center, type CenterProps, Text } from '@chakra-ui/react';
 
-import { CoinIcon } from '@/components/WalletIcon';
+import { WalletIcon } from '@/components/WalletIcon';
 
 export interface WalletOptionProps extends CenterProps {
-  symbol: string;
-  walletName: string;
+  name: string;
+  title: string;
   handleWalletClick: () => void;
 }
 
-export const WalletOption = ({
-  symbol,
-  walletName,
-  handleWalletClick,
-  ...props
-}: WalletOptionProps) => {
+export const WalletOption = ({ name, title, handleWalletClick, ...props }: WalletOptionProps) => {
   return (
     <Center
       _hover={{
@@ -33,8 +28,8 @@ export const WalletOption = ({
       {...props}
     >
       {/** wallet logo */}
-      <CoinIcon h="6" left="4" position="absolute" symbol={symbol} w="6" />
-      <Text size={{ base: 'sm', md: 'md' }}>{walletName} Wallet</Text>
+      <WalletIcon h="6" left="4" name={name} position="absolute" w="6" />
+      <Text size={{ base: 'sm', md: 'md' }}>{title}</Text>
     </Center>
   );
 };

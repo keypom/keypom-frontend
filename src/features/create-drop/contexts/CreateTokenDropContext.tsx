@@ -10,9 +10,9 @@ import { type NavigateFunction } from 'react-router-dom';
 import { get } from '@/utils/localStorage';
 import { MASTER_KEY, urlRegex } from '@/constants/common';
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
+import getConfig from '@/config/config';
 
 import { type PaymentData, type PaymentItem, type SummaryItem } from '../types/types';
-import { WALLET_TOKENS } from '../components/WalletComponent';
 
 interface CreateTokenDropContextProps {
   getSummaryData: () => SummaryItem[];
@@ -67,6 +67,8 @@ const createLinks = async () => {
   };
 };
 
+const { defaultToken } = getConfig();
+
 /**
  *
  * Context for managing form state
@@ -79,7 +81,7 @@ export const CreateTokenDropProvider = ({ children }: PropsWithChildren) => {
     mode: 'onChange',
     defaultValues: {
       dropName: '',
-      selectedFromWallet: { symbol: WALLET_TOKENS[0].symbol, amount: WALLET_TOKENS[0].amount },
+      selectedFromWallet: { symbol: defaultToken.symbol, amount: defaultToken.amount },
       selectedToWallets: [],
       totalLinks: undefined,
       amountPerLink: undefined,
@@ -91,7 +93,7 @@ export const CreateTokenDropProvider = ({ children }: PropsWithChildren) => {
   useEffect(() => {
     if (account) {
       methods.setValue('selectedFromWallet', {
-        symbol: WALLET_TOKENS[0].symbol,
+        symbol: defaultToken.symbol, // NEAR
         amount: formatNearAmount(account.amount, 4),
       });
     }

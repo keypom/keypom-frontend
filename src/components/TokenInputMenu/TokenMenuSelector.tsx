@@ -10,18 +10,13 @@ import {
   Text,
   VStack,
 } from '@chakra-ui/react';
-import type React from 'react';
 
-export interface WalletToken {
-  symbol: string;
-  amount: string;
-  wallet: string;
-  icon: React.ReactNode;
-}
+import { type IToken } from '@/types/common';
+import { TokenIcon } from '@/components/TokenIcon';
 
 interface WalletBalanceInputProps {
-  selectedWalletToken: Partial<WalletToken> | null;
-  tokens: WalletToken[];
+  selectedWalletToken: Pick<IToken, 'amount' | 'symbol'>;
+  tokens: IToken[];
   onChange: (symbol: string) => void;
 }
 
@@ -30,9 +25,6 @@ export const WalletSelectorMenu = ({
   onChange,
   selectedWalletToken,
 }: WalletBalanceInputProps) => {
-  const selectedWalletTokenIcon = tokens.find(
-    (w) => w.symbol === selectedWalletToken?.symbol,
-  )?.icon;
   const balancesMenuList = tokens.map((wallet) => (
     <MenuItem
       key={wallet.symbol}
@@ -41,7 +33,9 @@ export const WalletSelectorMenu = ({
       }}
     >
       <HStack>
-        <Box mr="3">{wallet.icon}</Box>
+        <Box mr="3">
+          <TokenIcon symbol={wallet.symbol} />
+        </Box>
         <VStack align="flex-start">
           <Text>{wallet.symbol}</Text>
           <Text color="gray.400" size="sm">
@@ -70,9 +64,9 @@ export const WalletSelectorMenu = ({
             zIndex="2"
           >
             <HStack justifyContent="space-around" px="3">
-              {selectedWalletTokenIcon}
+              <TokenIcon symbol={selectedWalletToken.symbol} />
               <Text fontWeight="medium" lineHeight="2">
-                {selectedWalletToken?.symbol ?? 'Select'}
+                {selectedWalletToken.symbol ?? 'Select'}
               </Text>
               <ChevronDownIcon />
             </HStack>
