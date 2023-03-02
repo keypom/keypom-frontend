@@ -14,17 +14,17 @@ import {
 import { type IToken } from '@/types/common';
 import { TokenIcon } from '@/components/TokenIcon';
 
-interface WalletBalanceInputProps {
+interface TokenSelectorMenuProps {
   selectedWalletToken: Pick<IToken, 'amount' | 'symbol'>;
   tokens: IToken[];
   onChange: (symbol: string) => void;
 }
 
-export const WalletSelectorMenu = ({
+export const TokenSelectorMenu = ({
   tokens,
   onChange,
   selectedWalletToken,
-}: WalletBalanceInputProps) => {
+}: TokenSelectorMenuProps) => {
   const balancesMenuList = tokens.map((wallet) => (
     <MenuItem
       key={wallet.symbol}
