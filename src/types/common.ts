@@ -19,5 +19,4 @@ export interface IWalletOption {
 export interface IToken {
   amount: string;
   symbol: string;
-  wallet: string;
 }

@@ -29,7 +29,6 @@ export const CreateTokenDropForm = () => {
         {
           amount: formatNearAmount(account.amount, 4),
           symbol: 'NEAR',
-          wallet: 'near_wallet',
         },
       ]
     : [];

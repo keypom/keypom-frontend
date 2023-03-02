@@ -15,7 +15,7 @@ import { type IToken } from '@/types/common';
 import { TokenIcon } from '@/components/TokenIcon';
 
 interface TokenSelectorMenuProps {
-  selectedWalletToken: Pick<IToken, 'amount' | 'symbol'>;
+  selectedWalletToken: IToken;
   tokens: IToken[];
   onChange: (symbol: string) => void;
 }

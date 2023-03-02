@@ -25,7 +25,6 @@ const DEFAULT_WALLET = SUPPORTED_WALLET_OPTIONS[0];
 const DEFAULT_TOKEN: IToken = {
   amount: '',
   symbol: 'NEAR',
-  wallet: 'near_wallet',
 };
 
 export interface Config {

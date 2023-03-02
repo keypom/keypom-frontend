@@ -7,7 +7,6 @@ import { FormControl } from '@/components/FormControl';
 import { TokenInput } from '@/components/TokenInputMenu';
 import { type CreateTicketFieldsSchema } from '@/features/create-drop/contexts/CreateTicketDropContext/CreateTicketDropContext';
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
-import { NearIcon } from '@/components/Icons';
 import { type IToken } from '@/types/common';
 
 export const TokenForm = () => {
@@ -22,13 +21,11 @@ export const TokenForm = () => {
 
   const selectedFromWalletError = errors?.additionalGift?.token?.selectedFromWallet;
 
-  const WALLET_TOKENS = account
+  const WALLET_TOKENS: IToken[] = account
     ? [
         {
           amount: formatNearAmount(account.amount, 4),
           symbol: 'NEAR',
-          wallet: 'near_wallet',
-          icon: <NearIcon height="4" width="4" />,
         },
       ]
     : [];
@@ -83,7 +80,7 @@ export const TokenForm = () => {
             }}
           >
             <TokenInput.TokenMenu
-              selectedWalletToken={selectedFromWallet as Pick<IToken, 'symbol' | 'amount'>}
+              selectedWalletToken={selectedFromWallet as IToken}
               tokens={WALLET_TOKENS}
               onChange={handleTokenChange}
             />
