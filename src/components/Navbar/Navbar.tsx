@@ -1,10 +1,7 @@
 import { Box, Flex, HStack, Link, type BoxProps } from '@chakra-ui/react';
-import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 
 import { KeypomLogo } from '@/components/KeypomLogo';
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
-import { get, set } from '@/utils/localStorage';
 
 import { SignedInButton } from '../SignedInButton';
 import { ConnectWalletButton } from '../ConnectWalletButton';
@@ -13,18 +10,8 @@ import { MobileMenu } from './MobileMenu';
 
 type NavbarProps = BoxProps;
 
-export const FIRST_LOGGED_IN_KEY = 'just_logged_in';
-
 export const Navbar = (props: NavbarProps) => {
-  const navigate = useNavigate();
   const { isLoggedIn } = useAuthWalletContext();
-
-  useEffect(() => {
-    if (isLoggedIn && !(get(FIRST_LOGGED_IN_KEY) === 'true')) {
-      set(FIRST_LOGGED_IN_KEY, 'true');
-      navigate('/drops');
-    }
-  }, [isLoggedIn]);
 
   const MENU_ITEMS = [
     {

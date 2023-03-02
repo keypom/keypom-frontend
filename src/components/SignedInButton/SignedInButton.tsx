@@ -19,7 +19,6 @@ import { truncateAddress } from '@/utils/truncateAddress';
 import { formatAmount } from '@/utils/formatAmount';
 
 import { KeyIcon, NearLogoIcon, SignOutIcon } from '../Icons';
-import { FIRST_LOGGED_IN_KEY } from '../Navbar';
 
 export const SignedInButton = () => {
   const [showAll, setShowAll] = useBoolean(false);
@@ -35,7 +34,6 @@ export const SignedInButton = () => {
     wallet
       .signOut()
       .then((_) => {
-        localStorage.removeItem(FIRST_LOGGED_IN_KEY);
         sessionStorage.removeItem('account');
         window.location.href = '';
       })
