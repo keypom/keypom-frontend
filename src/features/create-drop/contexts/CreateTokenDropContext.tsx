@@ -81,7 +81,7 @@ export const CreateTokenDropProvider = ({ children }: PropsWithChildren) => {
     mode: 'onChange',
     defaultValues: {
       dropName: '',
-      selectedToken: { symbol: defaultToken.symbol, amount: defaultToken.amount },
+      selectedToken: defaultToken,
       selectedToWallets: [],
       totalLinks: undefined,
       amountPerLink: undefined,
