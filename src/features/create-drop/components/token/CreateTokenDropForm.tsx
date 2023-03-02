@@ -124,34 +124,38 @@ export const CreateTokenDropForm = () => {
         <Controller
           control={control}
           name="totalLinks"
-          render={({ field, fieldState: { error } }) => (
-            <FormControl errorText={error?.message} label="Number of links">
-              <Input
-                isInvalid={Boolean(error?.message)}
-                placeholder="1 - 50"
-                type="number"
-                {...field}
-                onChange={(e) => {
-                  field.onChange(parseInt(e.target.value));
-                }}
-              />
-            </FormControl>
-          )}
+          render={({ field: { value, onChange, ...fieldProps }, fieldState: { error } }) => {
+            return (
+              <FormControl errorText={error?.message} label="Number of links">
+                <Input
+                  isInvalid={Boolean(error?.message)}
+                  placeholder="1 - 50"
+                  type="number"
+                  value={value || ''}
+                  onChange={(e) => {
+                    onChange(parseInt(e.target.value));
+                  }}
+                  {...fieldProps}
+                />
+              </FormControl>
+            );
+          }}
         />
 
         <Controller
           control={control}
           name="amountPerLink"
-          render={({ field, fieldState: { error } }) => (
+          render={({ field: { value, onChange, name }, fieldState: { error } }) => (
             <FormControl errorText={error?.message} label="Amount per link">
               <WalletBalanceInput
-                {...field}
                 isInvalid={Boolean(error?.message)}
                 maxLength={14}
+                name={name}
+                value={value}
                 onChange={(e) => {
                   if (e.target.value.length > e.target.maxLength)
                     e.target.value = e.target.value.slice(0, e.target.maxLength);
-                  field.onChange(parseFloat(e.target.value));
+                  onChange(parseFloat(e.target.value));
                 }}
               >
                 <WalletBalanceInput.TokenMenu

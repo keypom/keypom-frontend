@@ -15,14 +15,14 @@ export const NumberInput = ({ control }: NumberInputProps) => {
     <Controller
       control={control}
       name={FIELD_NAME}
-      render={({ field, fieldState: { error } }) => (
+      render={({ field: { ref, value, ...fieldProps }, fieldState: { error } }) => (
         <TextInput
-          defaultValue={1}
           errorMessage={error?.message}
           isInvalid={!!error?.message}
           label="Number"
           type="number"
-          {...field}
+          value={value || ''}
+          {...fieldProps}
         />
       )}
     />

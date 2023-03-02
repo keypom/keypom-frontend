@@ -8,6 +8,7 @@ export interface DataItem {
 }
 
 export interface ColumnItem {
+  id: string; // unique key
   title: string;
   selector: (arg: DataItem) => React.ReactNode | Primitive;
   loadingElement?: React.ReactNode;

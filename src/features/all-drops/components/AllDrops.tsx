@@ -13,6 +13,7 @@ import {
   Heading,
   Avatar,
   Skeleton,
+  VStack,
 } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
 import {
@@ -48,6 +49,7 @@ const FETCH_NFT_METHOD_NAME = 'get_series_info';
 
 const COLUMNS: ColumnItem[] = [
   {
+    id: 'dropName',
     title: 'Drop name',
     selector: (drop) => drop.name,
     thProps: {
@@ -56,21 +58,25 @@ const COLUMNS: ColumnItem[] = [
     loadingElement: <Skeleton height="30px" />,
   },
   {
+    id: 'media',
     title: '',
     selector: (drop) => drop.media,
     loadingElement: <Skeleton height="30px" />,
   },
   {
+    id: 'dropType',
     title: 'Drop type',
     selector: (drop) => drop.type,
     loadingElement: <Skeleton height="30px" />,
   },
   {
+    id: 'claimStatus',
     title: 'Claimed',
     selector: (drop) => drop.claimed,
     loadingElement: <Skeleton height="30px" />,
   },
   {
+    id: 'action',
     title: '',
     selector: (drop) => drop.action,
     tdProps: {
@@ -245,19 +251,19 @@ export default function AllDrops() {
   return (
     <Box minH="100%" minW="100%">
       {/* Header Bar */}
-      <HStack alignItems="center" display="flex" spacing="auto">
-        <Heading>All drops</Heading>
-        {/* Desktop Dropdown Menu */}
-        <HStack>
-          {hasPagination && (
-            <PrevButton
-              id="all-drops"
-              isDisabled={!!isFirstPage}
-              isLoading={loading.previous}
-              onClick={handlePrevPage}
-            />
-          )}
-          <Show above="sm">
+      {/* Desktop Dropdown Menu */}
+      <Show above="sm">
+        <HStack alignItems="center" display="flex" spacing="auto">
+          <Heading>All drops</Heading>
+          <HStack>
+            {hasPagination && (
+              <PrevButton
+                id="all-drops"
+                isDisabled={!!isFirstPage}
+                isLoading={loading.previous}
+                onClick={handlePrevPage}
+              />
+            )}
             <Menu>
               {({ isOpen }) => (
                 <Box>
@@ -267,7 +273,7 @@ export default function AllDrops() {
                     px="6"
                     py="3"
                     rightIcon={<ChevronDownIcon />}
-                    variant="secondary"
+                    variant="secondary-content-box"
                   >
                     Create a drop
                   </MenuButton>
@@ -275,30 +281,55 @@ export default function AllDrops() {
                 </Box>
               )}
             </Menu>
-          </Show>
 
-          {/* Mobile Menu Button */}
-          <Show below="sm">
+            {hasPagination && (
+              <NextButton
+                id="all-drops"
+                isDisabled={!!isLastPage}
+                isLoading={loading.next}
+                onClick={handleNextPage}
+              />
+            )}
+          </HStack>
+        </HStack>
+      </Show>
+
+      {/* Mobile Menu Button */}
+      <Show below="sm">
+        <VStack spacing="20px">
+          <Heading size="2xl" textAlign="left" w="full">
+            All drops
+          </Heading>
+
+          <HStack justify="space-between" w="full">
             <Button
               px="6"
               py="3"
               rightIcon={<ChevronDownIcon />}
-              variant="secondary"
+              variant="secondary-content-box"
               onClick={onOpen}
             >
               Create a drop
             </Button>
-          </Show>
-          {hasPagination && (
-            <NextButton
-              id="all-drops"
-              isDisabled={!!isLastPage}
-              isLoading={loading.next}
-              onClick={handleNextPage}
-            />
-          )}
-        </HStack>
-      </HStack>
+            {hasPagination && (
+              <HStack>
+                <PrevButton
+                  id="all-drops"
+                  isDisabled={!!isFirstPage}
+                  isLoading={loading.previous}
+                  onClick={handlePrevPage}
+                />
+                <NextButton
+                  id="all-drops"
+                  isDisabled={!!isLastPage}
+                  isLoading={loading.next}
+                  onClick={handleNextPage}
+                />
+              </HStack>
+            )}
+          </HStack>
+        </VStack>
+      </Show>
 
       <DataTable
         columns={COLUMNS}
