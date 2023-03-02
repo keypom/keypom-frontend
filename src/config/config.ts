@@ -1,22 +1,25 @@
+import { type IWalletOption } from '@/types/common';
+
 const contractName = process.env.REACT_APP_CONTRACT_ID ?? 'v2.keypom.testnet';
 const cloudflareIfps = process.env.REACT_APP_CLOUDFLARE_IFPS ?? 'https://cloudflare-ipfs.com/ipfs';
 // eslint-disable-next-line no-console
 console.log(process.env.REACT_APP_NETWORK_ID, process.env.REACT_APP_CONTRACT_ID);
 
-const SUPPORTED_WALLET_OPTIONS = [
+const SUPPORTED_WALLET_OPTIONS: IWalletOption[] = [
   {
-    symbol: 'MYNEAR',
-    walletName: 'My Near',
-    id: 'mynearwallet',
+    name: 'mynearwallet',
+    title: 'My Near',
   },
   // support only mynearwallet for now
   // https://docs.keypom.xyz/docs/next/keypom-sdk/modules#supportedlinkdropclaimpages
   // {
-  //   symbol: 'HERE',
+  //   title: 'HERE',
   //   walletName: 'My HERE',
   //   id: 'herewallet',
   // },
 ];
+
+const DEFAULT_WALLET = SUPPORTED_WALLET_OPTIONS[0];
 
 export interface Config {
   networkId: string;
@@ -33,7 +36,8 @@ export interface Config {
   contractId: string;
   isBrowser: boolean;
   cloudflareIfps: string;
-  supportedWallets: Array<{ symbol: string; walletName: string; id: string }>;
+  supportedWallets: IWalletOption[];
+  defaultWallet: IWalletOption;
 }
 
 function getConfig(network = process.env.REACT_APP_NETWORK_ID ?? 'testnet'): Config {
@@ -55,6 +59,7 @@ function getConfig(network = process.env.REACT_APP_NETWORK_ID ?? 'testnet'): Con
         isBrowser: typeof window !== 'undefined',
         cloudflareIfps,
         supportedWallets: SUPPORTED_WALLET_OPTIONS,
+        defaultWallet: DEFAULT_WALLET,
       };
 
     case 'mainnet':
@@ -74,6 +79,7 @@ function getConfig(network = process.env.REACT_APP_NETWORK_ID ?? 'testnet'): Con
         isBrowser: typeof window !== 'undefined',
         cloudflareIfps,
         supportedWallets: SUPPORTED_WALLET_OPTIONS,
+        defaultWallet: DEFAULT_WALLET,
       };
     default:
       throw Error(`Unconfigured environment '${network}'. Can be configured in src/config.ts.`);

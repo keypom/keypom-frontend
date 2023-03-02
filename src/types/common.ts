@@ -8,3 +8,8 @@ export interface ApiResponse<T> {
   data?: T;
   error?: string;
 }
+
+export interface IWalletOption {
+  name: string;
+  title: string;
+}

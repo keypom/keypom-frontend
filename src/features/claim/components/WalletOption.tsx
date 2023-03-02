@@ -1,6 +1,6 @@
 import { Center, type CenterProps, Text } from '@chakra-ui/react';
 
-import { CoinIcon } from '@/components/CoinIcon';
+import { CoinIcon } from '@/components/WalletIcon';
 
 export interface WalletOptionProps extends CenterProps {
   symbol: string;
