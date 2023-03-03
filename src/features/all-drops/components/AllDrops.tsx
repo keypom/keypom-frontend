@@ -122,7 +122,10 @@ export default function AllDrops() {
   };
 
   const setAllDropsData = async (drop: ProtocolReturnedDrop) => {
-    const { drop_id: id, metadata, next_key_id } = drop;
+    const { drop_id: id, metadata, next_key_id: totalKeys } = drop;
+    const claimedKeys = await keypomInstance.getClaimedDropInfo(id);
+    const claimedText = `${totalKeys - claimedKeys} / ${totalKeys}`;
+
     const { dropName } = keypomInstance.getDropMetadata(metadata as string);
 
     let type: string | null = '';
@@ -132,7 +135,7 @@ export default function AllDrops() {
       return null;
     }
 
-    let nftHref = '';
+    let nftHref: string | undefined;
     if (type === DROP_TYPE.NFT) {
       let nftMetadata = {
         media: '',
@@ -144,15 +147,15 @@ export default function AllDrops() {
       } catch (e) {
         console.error('failed to get nft metadata', e); // eslint-disable-line no-console
       }
-      nftHref = nftMetadata?.media ?? 'https://placekitten.com/200/300';
+      nftHref = nftMetadata?.media || 'assets/image-not-found.png';
     }
 
     return {
       id,
       name: truncateAddress(dropName, 'end', 48),
       type: type?.toLowerCase(),
-      media: type === DROP_TYPE.NFT ? nftHref : undefined,
-      claimed: `${next_key_id - (await keypomInstance.getClaimedDropInfo(id))} / ${next_key_id}`,
+      media: nftHref,
+      claimed: claimedText,
     };
   };
 
