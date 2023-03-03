@@ -6,6 +6,7 @@ export * from './DropIcon';
 export * from './HereLogoIcon';
 export * from './HereWalletIcon';
 export * from './ImageIcon';
+export * from './KeyIcon';
 export * from './LinkIcon';
 export * from './LogoNear';
 export * from './MenuIcon';

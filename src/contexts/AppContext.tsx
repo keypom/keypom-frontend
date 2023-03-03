@@ -79,6 +79,9 @@ export const setAppModalHelper = (setAppModal, confirm, cancel) => {
         func: () => {
           if (cancel) cancel();
         },
+        buttonProps: {
+          variant: 'outline',
+        },
       },
       {
         label: 'Set Master Key',
