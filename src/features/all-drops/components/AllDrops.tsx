@@ -245,7 +245,7 @@ export default function AllDrops() {
   };
 
   const createADropPopover = (menuIsOpen: boolean) => ({
-    header: 'Click here to start creating a drop!',
+    header: 'Click here to create a drop!',
     shouldOpen: data.length === 0 && !menuIsOpen,
   });
 
