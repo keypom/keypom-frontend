@@ -39,6 +39,7 @@ import { asyncWithTimeout } from '@/utils/asyncWithTimeout';
 import { useAppContext } from '@/contexts/AppContext';
 import { CLOUDFLARE_IPFS, DROP_TYPE } from '@/constants/common';
 import keypomInstance from '@/lib/keypom';
+import { PopoverTemplate } from '@/components/PopoverTemplate';
 
 import { MENU_ITEMS } from '../config/menuItems';
 
@@ -248,6 +249,11 @@ export default function AllDrops() {
     }, []);
   };
 
+  const createADropPopover = (menuIsOpen: boolean) => ({
+    header: 'Click here to create a drop!',
+    shouldOpen: data.length === 0 && !menuIsOpen,
+  });
+
   return (
     <Box minH="100%" minW="100%">
       {/* Header Bar */}
@@ -267,16 +273,18 @@ export default function AllDrops() {
             <Menu>
               {({ isOpen }) => (
                 <Box>
-                  <MenuButton
-                    as={Button}
-                    isActive={isOpen}
-                    px="6"
-                    py="3"
-                    rightIcon={<ChevronDownIcon />}
-                    variant="secondary-content-box"
-                  >
-                    Create a drop
-                  </MenuButton>
+                  <PopoverTemplate {...createADropPopover(isOpen)}>
+                    <MenuButton
+                      as={Button}
+                      isActive={isOpen}
+                      px="6"
+                      py="3"
+                      rightIcon={<ChevronDownIcon />}
+                      variant="secondary-content-box"
+                    >
+                      Create a drop
+                    </MenuButton>
+                  </PopoverTemplate>
                   <MenuList>{dropMenuItems}</MenuList>
                 </Box>
               )}
@@ -302,15 +310,17 @@ export default function AllDrops() {
           </Heading>
 
           <HStack justify="space-between" w="full">
-            <Button
-              px="6"
-              py="3"
-              rightIcon={<ChevronDownIcon />}
-              variant="secondary-content-box"
-              onClick={onOpen}
-            >
-              Create a drop
-            </Button>
+            <PopoverTemplate placement="bottom" {...createADropPopover(false)}>
+              <Button
+                px="6"
+                py="3"
+                rightIcon={<ChevronDownIcon />}
+                variant="secondary-content-box"
+                onClick={onOpen}
+              >
+                Create a drop
+              </Button>
+            </PopoverTemplate>
             {hasPagination && (
               <HStack>
                 <PrevButton
