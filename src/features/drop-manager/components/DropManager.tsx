@@ -64,6 +64,8 @@ export const DropManager = ({
   const [deleting, setDeleting] = useState<boolean>(false);
   const [exporting, setExporting] = useState<boolean>(false);
 
+  const allowAction = data.length > 0;
+
   useEffect(() => {
     if (selector === null) return;
 
@@ -75,7 +77,7 @@ export const DropManager = ({
 
   const breadcrumbItems = [
     {
-      name: 'All drops',
+      name: 'My drops',
       href: '/drops',
     },
     {
@@ -163,6 +165,7 @@ export const DropManager = ({
             />
           )}
           <Button
+            isDisabled={!allowAction}
             isLoading={deleting}
             variant="secondary"
             w={{ base: '100%', sm: 'initial' }}
@@ -171,6 +174,7 @@ export const DropManager = ({
             Cancel all
           </Button>
           <Button
+            isDisabled={!allowAction}
             isLoading={exporting}
             variant="secondary"
             w={{ base: '100%', sm: 'initial' }}

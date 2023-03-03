@@ -254,6 +254,30 @@ export default function AllDrops() {
     shouldOpen: data.length === 0 && !menuIsOpen,
   });
 
+  const CreateADropButton = ({ isOpen }: { isOpen: boolean }) => (
+    <MenuButton
+      as={Button}
+      isActive={isOpen}
+      px="6"
+      py="3"
+      rightIcon={<ChevronDownIcon />}
+      variant="secondary-content-box"
+    >
+      Create a drop
+    </MenuButton>
+  );
+  const CreateADropMobileButton = () => (
+    <Button
+      px="6"
+      py="3"
+      rightIcon={<ChevronDownIcon />}
+      variant="secondary-content-box"
+      onClick={onOpen}
+    >
+      Create a drop
+    </Button>
+  );
+
   return (
     <Box minH="100%" minW="100%">
       {/* Header Bar */}
@@ -273,18 +297,13 @@ export default function AllDrops() {
             <Menu>
               {({ isOpen }) => (
                 <Box>
-                  <PopoverTemplate {...createADropPopover(isOpen)}>
-                    <MenuButton
-                      as={Button}
-                      isActive={isOpen}
-                      px="6"
-                      py="3"
-                      rightIcon={<ChevronDownIcon />}
-                      variant="secondary-content-box"
-                    >
-                      Create a drop
-                    </MenuButton>
-                  </PopoverTemplate>
+                  {!isLoading ? (
+                    <PopoverTemplate {...createADropPopover(isOpen)}>
+                      <CreateADropButton isOpen={isOpen} />
+                    </PopoverTemplate>
+                  ) : (
+                    <CreateADropButton isOpen={isOpen} />
+                  )}
                   <MenuList>{dropMenuItems}</MenuList>
                 </Box>
               )}
@@ -310,17 +329,13 @@ export default function AllDrops() {
           </Heading>
 
           <HStack justify="space-between" w="full">
-            <PopoverTemplate placement="bottom" {...createADropPopover(false)}>
-              <Button
-                px="6"
-                py="3"
-                rightIcon={<ChevronDownIcon />}
-                variant="secondary-content-box"
-                onClick={onOpen}
-              >
-                Create a drop
-              </Button>
-            </PopoverTemplate>
+            {!isLoading ? (
+              <PopoverTemplate placement="bottom" {...createADropPopover(false)}>
+                <CreateADropMobileButton />
+              </PopoverTemplate>
+            ) : (
+              <CreateADropMobileButton />
+            )}
             {hasPagination && (
               <HStack>
                 <PrevButton
