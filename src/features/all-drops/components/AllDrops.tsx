@@ -13,6 +13,7 @@ import {
   Heading,
   Avatar,
   Skeleton,
+  VStack,
 } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
 import {
@@ -38,6 +39,7 @@ import { asyncWithTimeout } from '@/utils/asyncWithTimeout';
 import { useAppContext } from '@/contexts/AppContext';
 import { CLOUDFLARE_IPFS, DROP_TYPE } from '@/constants/common';
 import keypomInstance from '@/lib/keypom';
+import { PopoverTemplate } from '@/components/PopoverTemplate';
 
 import { MENU_ITEMS } from '../config/menuItems';
 
@@ -48,6 +50,7 @@ const FETCH_NFT_METHOD_NAME = 'get_series_info';
 
 const COLUMNS: ColumnItem[] = [
   {
+    id: 'dropName',
     title: 'Drop name',
     selector: (drop) => drop.name,
     thProps: {
@@ -56,21 +59,25 @@ const COLUMNS: ColumnItem[] = [
     loadingElement: <Skeleton height="30px" />,
   },
   {
+    id: 'media',
     title: '',
     selector: (drop) => drop.media,
     loadingElement: <Skeleton height="30px" />,
   },
   {
+    id: 'dropType',
     title: 'Drop type',
     selector: (drop) => drop.type,
     loadingElement: <Skeleton height="30px" />,
   },
   {
+    id: 'claimStatus',
     title: 'Claimed',
     selector: (drop) => drop.claimed,
     loadingElement: <Skeleton height="30px" />,
   },
   {
+    id: 'action',
     title: '',
     selector: (drop) => drop.action,
     tdProps: {
@@ -242,63 +249,112 @@ export default function AllDrops() {
     }, []);
   };
 
+  const createADropPopover = (menuIsOpen: boolean) => ({
+    header: 'Click here to create a drop!',
+    shouldOpen: data.length === 0 && !menuIsOpen,
+  });
+
+  const CreateADropButton = ({ isOpen }: { isOpen: boolean }) => (
+    <MenuButton
+      as={Button}
+      isActive={isOpen}
+      px="6"
+      py="3"
+      rightIcon={<ChevronDownIcon />}
+      variant="secondary-content-box"
+    >
+      Create a drop
+    </MenuButton>
+  );
+  const CreateADropMobileButton = () => (
+    <Button
+      px="6"
+      py="3"
+      rightIcon={<ChevronDownIcon />}
+      variant="secondary-content-box"
+      onClick={onOpen}
+    >
+      Create a drop
+    </Button>
+  );
+
   return (
     <Box minH="100%" minW="100%">
       {/* Header Bar */}
-      <HStack alignItems="center" display="flex" spacing="auto">
-        <Heading>My drops</Heading>
-        {/* Desktop Dropdown Menu */}
-        <HStack>
-          {hasPagination && (
-            <PrevButton
-              id="my-drops"
-              isDisabled={!!isFirstPage}
-              isLoading={loading.previous}
-              onClick={handlePrevPage}
-            />
-          )}
-          <Show above="sm">
+      {/* Desktop Dropdown Menu */}
+      <Show above="sm">
+        <HStack alignItems="center" display="flex" spacing="auto">
+          <Heading>All drops</Heading>
+          <HStack>
+            {hasPagination && (
+              <PrevButton
+                id="all-drops"
+                isDisabled={!!isFirstPage}
+                isLoading={loading.previous}
+                onClick={handlePrevPage}
+              />
+            )}
             <Menu>
               {({ isOpen }) => (
                 <Box>
-                  <MenuButton
-                    as={Button}
-                    isActive={isOpen}
-                    px="6"
-                    py="3"
-                    rightIcon={<ChevronDownIcon />}
-                    variant="secondary"
-                  >
-                    Create a drop
-                  </MenuButton>
+                  {!isLoading ? (
+                    <PopoverTemplate {...createADropPopover(isOpen)}>
+                      <CreateADropButton isOpen={isOpen} />
+                    </PopoverTemplate>
+                  ) : (
+                    <CreateADropButton isOpen={isOpen} />
+                  )}
                   <MenuList>{dropMenuItems}</MenuList>
                 </Box>
               )}
             </Menu>
-          </Show>
 
-          {/* Mobile Menu Button */}
-          <Show below="sm">
-            <Button
-              px="6"
-              py="3"
-              rightIcon={<ChevronDownIcon />}
-              variant="secondary"
-              onClick={onOpen}
-            >
-              Create a drop
-            </Button>
-          </Show>
-          {hasPagination && (
-            <NextButton
-              id="all-drops"
-              isDisabled={!!isLastPage}
-              isLoading={loading.next}
-              onClick={handleNextPage}
-            />
-          )}
+            {hasPagination && (
+              <NextButton
+                id="all-drops"
+                isDisabled={!!isLastPage}
+                isLoading={loading.next}
+                onClick={handleNextPage}
+              />
+            )}
+          </HStack>
         </HStack>
-      </HStack>
+      </Show>
+
+      {/* Mobile Menu Button */}
+      <Show below="sm">
+        <VStack spacing="20px">
+          <Heading size="2xl" textAlign="left" w="full">
+            All drops
+          </Heading>
+
+          <HStack justify="space-between" w="full">
+            {!isLoading ? (
+              <PopoverTemplate placement="bottom" {...createADropPopover(false)}>
+                <CreateADropMobileButton />
+              </PopoverTemplate>
+            ) : (
+              <CreateADropMobileButton />
+            )}
+            {hasPagination && (
+              <HStack>
+                <PrevButton
+                  id="all-drops"
+                  isDisabled={!!isFirstPage}
+                  isLoading={loading.previous}
+                  onClick={handlePrevPage}
+                />
+                <NextButton
+                  id="all-drops"
+                  isDisabled={!!isLastPage}
+                  isLoading={loading.next}
+                  onClick={handleNextPage}
+                />
+              </HStack>
+            )}
+          </HStack>
+        </VStack>
+      </Show>
 
       <DataTable
         columns={COLUMNS}

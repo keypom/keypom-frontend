@@ -15,13 +15,13 @@ export const NftNameInput = ({ control }: NftNameInputProps) => {
     <Controller
       control={control}
       name={FIELD_NAME}
-      render={({ field, fieldState: { error } }) => (
+      render={({ field: { ref, ...fieldProps }, fieldState: { error } }) => (
         <TextInput
           errorMessage={error?.message}
           isInvalid={!!error?.message}
           label="Name"
           placeholder="Art Vandelay Official"
-          {...field}
+          {...fieldProps}
         />
       )}
     />
