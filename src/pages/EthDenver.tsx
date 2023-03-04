@@ -1,4 +1,5 @@
 import { Box, Button, Flex, Show, Text } from '@chakra-ui/react';
+import { Image } from '@chakra-ui/react';
 
 import { IconBox } from '@/components/IconBox';
 
@@ -43,6 +44,21 @@ const LandingPage = () => {
             py={{ base: '8', md: 'auto' }}
             textAlign="left"
           >
+
+<Text color="gray.900" fontWeight="500" mb="4" size={{ base: 'xl', md: '3xl' }}>
+              PLUSHIE GIVEAWAY
+            </Text>
+            <Text color="gray.400" mb={{ base: '6', md: '28px' }} size={{ base: 'md', md: '2xl' }}>
+              Come to the NEAR booth saturday or sunday and ask for the Keypom founders.
+              <br/>
+              <br/>
+              Prove you have created 10 Keypom links and shared with your friends to get their NEAR wallet and we will award you with 1/5 limited edition plushies.
+
+            </Text>
+
+      <Image alt="keypom-logo" src="/assets/plushie.jpg" w={{ base: '200px', md: '300px' }} />
+      <br/>
+              <br/>
             <Text color="blue.400" fontWeight="500" mb="1" size={{ base: 'md', md: 'lg' }}>
               {subHeadingText}
             </Text>
