@@ -48,12 +48,9 @@ const LandingPage = () => {
 <Text color="gray.900" fontWeight="500" mb="4" size={{ base: 'xl', md: '3xl' }}>
               PLUSHIE GIVEAWAY
             </Text>
-            <Text color="gray.400" mb={{ base: '6', md: '28px' }} size={{ base: 'md', md: '2xl' }}>
-              Come to the NEAR booth saturday or sunday and ask for the Keypom founders.
-              <br/>
-              <br/>
-              Prove you have created 10 Keypom links and shared with your friends to get their NEAR wallet and we will award you with 1/5 limited edition plushies.
 
+<Text color="blue" fontWeight="500" mb="4" size={{ base: 'xl', md: '3xl' }}>
+              <a href="https://twitter.com/keypomxyz/status/1632452700230279168?s=20" target="_blank">Instructions on how to win Sunday, March 5th</a>
             </Text>
 
       <Image alt="keypom-logo" src="/assets/plushie.jpg" w={{ base: '200px', md: '300px' }} />
