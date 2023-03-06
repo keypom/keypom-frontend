@@ -6,8 +6,6 @@ import { theme } from '@/theme';
 import { router } from '@/router';
 import { Loading } from '@/components/Loading';
 
-// import keypomInstance from './lib/keypom';
-
 const Fonts = React.lazy(
   async () =>
     await import('@/components/Fonts').then((mod) => {
@@ -29,14 +27,9 @@ const AppContextProvider = React.lazy(
     }),
 );
 
-// const ChakraProvider = React.lazy(
-//   async () =>
-//     await import('@chakra-ui/react').then((mod) => {
-//       return { default: mod.ChakraProvider };
-//     }),
-// );
-
-// keypomInstance.init();
+import('@/lib/keypom').then(async (keypomLib) => {
+  await keypomLib.default.init();
+});
 
 export const App = () => {
   return (
