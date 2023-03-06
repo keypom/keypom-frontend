@@ -1,9 +1,13 @@
+import React from 'react';
 import { Box, Flex } from '@chakra-ui/react';
 import { Outlet } from 'react-router-dom';
 
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
-import { AppModal } from '@/components/AppModal';
+
+const AppModal = React.lazy(
+  async () => await import('@/components/AppModal').then((mod) => ({ default: mod.AppModal })),
+);
 
 export const CoreLayout = () => {
   const layoutBg =

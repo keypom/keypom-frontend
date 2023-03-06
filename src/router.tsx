@@ -1,10 +1,15 @@
 import React from 'react';
 import { createBrowserRouter } from 'react-router-dom';
 
-import { CoreLayout } from '@/components/CoreLayout';
+const NotFound404 = React.lazy(async () => await import('./components/NotFound404'));
 
-import { ProtectedRoute } from './components/ProtectedRoutes';
-import { NotFound404 } from './components/NotFound404';
+const CoreLayout = React.lazy(async () => await import('@/components/CoreLayout'));
+
+// import { ProtectedRoute } from React.lazy('./components/ProtectedRoutes';
+const ProtectedRoute = React.lazy(
+  async () =>
+    await import('./components/ProtectedRoutes').then((mod) => ({ default: mod.ProtectedRoute })),
+);
 
 const AllDropsPage = React.lazy(
   async () => await import('./features/all-drops/routes/AllDropsPage'),
