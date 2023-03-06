@@ -18,7 +18,7 @@ import { toYocto } from '@/utils/toYocto';
 import { truncateAddress } from '@/utils/truncateAddress';
 import { formatAmount } from '@/utils/formatAmount';
 
-import { KeyIcon, NearLogoIcon, SignOutIcon } from '../Icons';
+import { KeyIcon, NearIcon, SignOutIcon } from '../Icons';
 
 export const SignedInButton = () => {
   const [showAll, setShowAll] = useBoolean(false);
@@ -92,7 +92,7 @@ export const SignedInButton = () => {
               borderBottom="1px solid"
               borderBottomColor="gray.100"
               closeOnSelect={false}
-              icon={<NearLogoIcon height="3.5" mt="-0.5" width="3.5" />}
+              icon={<NearIcon height="3.5" mt="-0.5" width="3.5" />}
               onClick={setShowNear.toggle}
             >
               <Flex>

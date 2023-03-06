@@ -1,8 +1,8 @@
 import { Text, useBoolean, VStack } from '@chakra-ui/react';
 
-import { WALLET_OPTIONS } from '@/constants/common';
 import keypomInstance from '@/lib/keypom';
 import { storeClaimDrop } from '@/utils/claimedDrops';
+import getConfig from '@/config/config';
 
 import { WalletOption } from './WalletOption';
 
@@ -14,7 +14,7 @@ interface CreateWalletProps {
   redirectUrl?: string;
 }
 
-const defaultWallet = WALLET_OPTIONS[0];
+const { supportedWallets, defaultWallet } = getConfig();
 
 export const CreateWallet = ({
   contractId,
@@ -54,17 +54,17 @@ export const CreateWallet = ({
     }
   };
 
-  const walletOptions = WALLET_OPTIONS
+  const walletOptions = supportedWallets
 
     // TODO replace with filter this is temporary
     // .filter((wallet) => wallets.includes(wallet.id))
-    .filter((wallet) => wallet.id === 'mynearwallet')
+    .filter((wallet) => wallet.name === 'mynearwallet')
 
     .map((options, index) => (
       <WalletOption
         key={index}
         handleWalletClick={async () => {
-          await handleWalletClick(options.id);
+          await handleWalletClick(options.name);
         }}
         {...options}
       />
@@ -85,7 +85,7 @@ export const CreateWallet = ({
         ) : (
           <WalletOption
             handleWalletClick={async () => {
-              await handleWalletClick(defaultWallet?.id);
+              await handleWalletClick(defaultWallet.name);
             }}
             {...defaultWallet}
           />

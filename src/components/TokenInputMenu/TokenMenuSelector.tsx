@@ -10,42 +10,32 @@ import {
   Text,
   VStack,
 } from '@chakra-ui/react';
-import type React from 'react';
 
-export interface WalletToken {
-  symbol: string;
-  amount: string;
-  wallet: string;
-  icon: React.ReactNode;
-}
+import { type IToken } from '@/types/common';
+import { TokenIcon } from '@/components/TokenIcon';
 
-interface WalletBalanceInputProps {
-  selectedWalletToken: Partial<WalletToken> | null;
-  tokens: WalletToken[];
+interface TokenSelectorMenuProps {
+  selectedToken: IToken;
+  tokens: IToken[];
   onChange: (symbol: string) => void;
 }
 
-export const WalletSelectorMenu = ({
-  tokens,
-  onChange,
-  selectedWalletToken,
-}: WalletBalanceInputProps) => {
-  const selectedWalletTokenIcon = tokens.find(
-    (w) => w.symbol === selectedWalletToken?.symbol,
-  )?.icon;
-  const balancesMenuList = tokens.map((wallet) => (
+export const TokenSelectorMenu = ({ tokens, onChange, selectedToken }: TokenSelectorMenuProps) => {
+  const balancesMenuList = tokens.map((token) => (
     <MenuItem
-      key={wallet.symbol}
+      key={token.symbol}
       onClick={() => {
-        onChange(wallet.symbol);
+        onChange(token.symbol);
       }}
     >
       <HStack>
-        <Box mr="3">{wallet.icon}</Box>
+        <Box mr="3">
+          <TokenIcon symbol={token.symbol} />
+        </Box>
         <VStack align="flex-start">
-          <Text>{wallet.symbol}</Text>
+          <Text>{token.symbol}</Text>
           <Text color="gray.400" size="sm">
-            Balance: {wallet?.amount} {wallet?.symbol}
+            Balance: {token?.amount} {token?.symbol}
           </Text>
         </VStack>
       </HStack>
@@ -70,9 +60,9 @@ export const WalletSelectorMenu = ({
             zIndex="2"
           >
             <HStack justifyContent="space-around" px="3">
-              {selectedWalletTokenIcon}
+              <TokenIcon symbol={selectedToken.symbol} />
               <Text fontWeight="medium" lineHeight="2">
-                {selectedWalletToken?.symbol ?? 'Select'}
+                {selectedToken.symbol ?? 'Select'}
               </Text>
               <ChevronDownIcon />
             </HStack>

@@ -10,9 +10,9 @@ import { type NavigateFunction } from 'react-router-dom';
 import { get } from '@/utils/localStorage';
 import { MASTER_KEY, urlRegex } from '@/constants/common';
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
+import getConfig from '@/config/config';
 
 import { type PaymentData, type PaymentItem, type SummaryItem } from '../types/types';
-import { WALLET_TOKENS } from '../components/WalletComponent';
 
 interface CreateTokenDropContextProps {
   getSummaryData: () => SummaryItem[];
@@ -41,7 +41,7 @@ const CreateTokenDropContext = createContext<CreateTokenDropContextProps>({
 
 const schema = z.object({
   dropName: z.string().min(1, 'Drop name required'),
-  selectedFromWallet: z.object({
+  selectedToken: z.object({
     symbol: z.string(),
     amount: z.string(),
   }),
@@ -67,6 +67,8 @@ const createLinks = async () => {
   };
 };
 
+const { defaultToken } = getConfig();
+
 /**
  *
  * Context for managing form state
@@ -79,7 +81,7 @@ export const CreateTokenDropProvider = ({ children }: PropsWithChildren) => {
     mode: 'onChange',
     defaultValues: {
       dropName: '',
-      selectedFromWallet: { symbol: WALLET_TOKENS[0].symbol, amount: WALLET_TOKENS[0].amount },
+      selectedToken: defaultToken,
       selectedToWallets: [],
       totalLinks: undefined,
       amountPerLink: undefined,
@@ -90,8 +92,8 @@ export const CreateTokenDropProvider = ({ children }: PropsWithChildren) => {
 
   useEffect(() => {
     if (account) {
-      methods.setValue('selectedFromWallet', {
-        symbol: WALLET_TOKENS[0].symbol,
+      methods.setValue('selectedToken', {
+        symbol: defaultToken.symbol, // NEAR
         amount: formatNearAmount(account.amount, 4),
       });
     }
@@ -99,11 +101,11 @@ export const CreateTokenDropProvider = ({ children }: PropsWithChildren) => {
 
   const getSummaryData = (): SummaryItem[] => {
     const { getValues } = methods;
-    const [dropName, totalLinks, amountPerLink, selectedFromWallet] = getValues([
+    const [dropName, totalLinks, amountPerLink, selectedToken] = getValues([
       'dropName',
       'totalLinks',
       'amountPerLink',
-      'selectedFromWallet',
+      'selectedToken',
     ]);
 
     return [
@@ -115,7 +117,7 @@ export const CreateTokenDropProvider = ({ children }: PropsWithChildren) => {
       {
         type: 'text',
         name: 'Amount per link',
-        value: `${amountPerLink} ${selectedFromWallet.symbol}`,
+        value: `${amountPerLink} ${selectedToken.symbol}`,
       },
       {
         type: 'text',
