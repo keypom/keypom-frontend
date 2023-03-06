@@ -134,6 +134,7 @@ export default function AllDrops() {
     } catch (_) {
       return null;
     }
+    if (type === undefined || type === null || type === '') return null; // don't show the drop if the type return is unexpected
 
     let nftHref: string | undefined;
     if (type === DROP_TYPE.NFT) {
