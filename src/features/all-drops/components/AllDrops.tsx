@@ -132,7 +132,7 @@ export default function AllDrops() {
 
     let type: string | null = '';
     try {
-      type = keypomInstance.getDropType(drop);
+      type = keypomInstance.getDropType(drop) || '';
     } catch (_) {
       return null;
     }
