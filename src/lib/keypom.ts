@@ -17,6 +17,8 @@ import {
   deleteKeys,
   getKeysForDrop,
   deleteDrops,
+  getDropSupplyForOwner,
+  getDrops,
 } from 'keypom-js';
 import * as nearAPI from 'near-api-js';
 
@@ -195,6 +197,10 @@ class KeypomJS {
     return null;
   };
 
+  getDrops = async ({ accountId, start, limit }) => await getDrops({ accountId, start, limit });
+
+  getDropSupplyForOwner = async ({ accountId }) => await getDropSupplyForOwner({ accountId });
+
   getDropMetadata = (metadata: string) =>
     JSON.parse(metadata || JSON.stringify({ dropName: 'Untitled' }));
 
@@ -326,22 +332,7 @@ class KeypomJS {
     };
   };
 
-  getNFTClaimInformation = async (contractId: string, secretKey: string) => {
-    // verify if secretKey is a nft drop
-    const linkdropType = await this.getLinkdropType(contractId, secretKey);
-    if (linkdropType !== DROP_TYPE.NFT) {
-      throw new Error('This drop is not an NFT drop. Please contact your drop creator.');
-    }
-    // given fc
-    let drop;
-    try {
-      drop = await getDropInformation({ secretKey });
-    } catch (err) {
-      throw new Error('Unable to claim. This drop may have been claimed before.');
-    }
-
-    const dropMetadata = this.getDropMetadata(drop.metadata);
-
+  getNftMetadata = async (drop: ProtocolReturnedDrop) => {
     const fcMethods = drop.fc?.methods;
     if (
       fcMethods === undefined ||
@@ -369,11 +360,34 @@ class KeypomJS {
     }
 
     return {
-      dropName: dropMetadata.dropName,
-      wallets: dropMetadata.wallets,
       media: `${CLOUDFLARE_IPFS}/${nftData.metadata.media}`, // eslint-disable-line
       title: nftData.metadata.title,
       description: nftData.metadata.description,
+    };
+  };
+
+  getNFTClaimInformation = async (contractId: string, secretKey: string) => {
+    // verify if secretKey is a nft drop
+    const linkdropType = await this.getLinkdropType(contractId, secretKey);
+    if (linkdropType !== DROP_TYPE.NFT) {
+      throw new Error('This drop is not an NFT drop. Please contact your drop creator.');
+    }
+    // given fc
+    let drop;
+    try {
+      drop = await getDropInformation({ secretKey });
+    } catch (err) {
+      throw new Error('Unable to claim. This drop may have been claimed before.');
+    }
+
+    const dropMetadata = this.getDropMetadata(drop.metadata);
+
+    const nftMetadata = await this.getNftMetadata(drop); // will still throw relevant error
+
+    return {
+      dropName: dropMetadata.dropName,
+      wallets: dropMetadata.wallets,
+      ...nftMetadata,
     };
   };
 
