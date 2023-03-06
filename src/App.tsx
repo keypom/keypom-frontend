@@ -32,15 +32,15 @@ keypomInstance.init();
 
 export const App = () => {
   return (
-    <React.Suspense fallback={<Loading />}>
-      <ChakraProvider theme={theme}>
-        <Fonts />
-        <AppContextProvider>
-          <AuthWalletContextProvider>
+    <ChakraProvider theme={theme}>
+      <Fonts />
+      <AppContextProvider>
+        <AuthWalletContextProvider>
+          <React.Suspense fallback={<Loading />}>
             <RouterProvider router={router} />
-          </AuthWalletContextProvider>
-        </AppContextProvider>
-      </ChakraProvider>
-    </React.Suspense>
+          </React.Suspense>
+        </AuthWalletContextProvider>
+      </AppContextProvider>
+    </ChakraProvider>
   );
 };

@@ -21,3 +21,4 @@ yarn-debug.log*
 yarn-error.log*
 .next
 .vercel
+src/features/landing/components/DropsTemplate.tsx
