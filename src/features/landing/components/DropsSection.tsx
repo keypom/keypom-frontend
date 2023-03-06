@@ -79,6 +79,7 @@ export const DropsSection = () => {
   return (
     <Center maxW="995px" mb={{ base: '14', md: '120px' }} mx="auto">
       <RoundedTabs
+        isLazy
         align="center"
         size="lg"
         tablist={TAB_LIST}

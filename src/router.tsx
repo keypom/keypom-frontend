@@ -1,9 +1,14 @@
 import React from 'react';
 import { createBrowserRouter } from 'react-router-dom';
 
-const NotFound404 = React.lazy(async () => await import('./components/NotFound404'));
+const NotFound404 = React.lazy(
+  async () =>
+    await import('./components/NotFound404').then((mod) => ({ default: mod.NotFound404 })),
+);
 
-const CoreLayout = React.lazy(async () => await import('@/components/CoreLayout'));
+const CoreLayout = React.lazy(
+  async () => await import('@/components/CoreLayout').then((mod) => ({ default: mod.CoreLayout })),
+);
 
 // import { ProtectedRoute } from React.lazy('./components/ProtectedRoutes';
 const ProtectedRoute = React.lazy(

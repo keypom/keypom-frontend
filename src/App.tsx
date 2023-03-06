@@ -1,5 +1,6 @@
 import React from 'react';
 import { RouterProvider } from 'react-router-dom';
+import { ChakraProvider } from '@chakra-ui/react';
 
 import { theme } from '@/theme';
 import { router } from '@/router';
@@ -28,19 +29,18 @@ const AppContextProvider = React.lazy(
     }),
 );
 
-const ChakraProvider = React.lazy(
-  async () =>
-    await import('@chakra-ui/react').then((mod) => {
-      return { default: mod.ChakraProvider };
-    }),
-);
+// const ChakraProvider = React.lazy(
+//   async () =>
+//     await import('@chakra-ui/react').then((mod) => {
+//       return { default: mod.ChakraProvider };
+//     }),
+// );
 
 // keypomInstance.init();
 
 export const App = () => {
   return (
     <React.Suspense fallback={<Loading />}>
-      {/* <ChakraProvider> */}
       <ChakraProvider theme={theme}>
         <Fonts />
         <AppContextProvider>
