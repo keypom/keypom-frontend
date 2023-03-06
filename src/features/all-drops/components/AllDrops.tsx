@@ -132,10 +132,11 @@ export default function AllDrops() {
 
     let type: string | null = '';
     try {
-      type = keypomInstance.getDropType(drop) || '';
+      type = keypomInstance.getDropType(drop);
     } catch (_) {
       return null;
     }
+    if (type === undefined || type === null || type === '') return null; // don't show the drop if the type return is unexpected
 
     let nftHref = '';
     if (type === DROP_TYPE.NFT) {
