@@ -216,19 +216,20 @@ class KeypomJS {
     dropId?: string;
     secretKey?: string;
   }): Promise<ProtocolReturnedDrop> => {
-    let drop;
-
-    if (!dropId && !secretKey) {
-      throw new Error('dropId / secretKey is not provided.');
-    }
+    let drop: ProtocolReturnedDrop;
 
     try {
       if (dropId) {
         drop = await getDropInformation({ dropId });
       } else if (secretKey) {
         drop = await getDropInformation({ secretKey });
+      } else {
+        throw new Error('dropId / secretKey is not provided.');
       }
     } catch (err) {
+      if (err.message === 'dropId / secretKey is not provided.') {
+        throw err;
+      }
       throw new Error('Unable to claim. This drop may have been claimed before.');
     }
 
