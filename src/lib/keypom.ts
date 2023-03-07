@@ -157,15 +157,8 @@ class KeypomJS {
     fc -> NFT (1 method call)
     simple -> simple drop?
   */
-  getLinkdropType = async (contractId: string, secretKey: string) => {
+  getLinkdropType = async (drop: ProtocolReturnedDrop, contractId: string, secretKey: string) => {
     await this.verifyDrop(contractId, secretKey);
-    let drop;
-    try {
-      drop = await getDropInformation({ secretKey });
-    } catch (err) {
-      throw new Error('Unable to claim. This drop may have been claimed before.');
-    }
-
     return this.getDropType(drop);
   };
 
@@ -325,19 +318,14 @@ class KeypomJS {
     secretKey: string,
     skipLinkdropCheck = false,
   ) => {
+    const drop = await this.getDropInfo({ secretKey });
+
     // verify if secretKey is a token drop
-    const linkdropType = await this.getLinkdropType(contractId, secretKey);
+    const linkdropType = await this.getLinkdropType(drop, contractId, secretKey);
     if (linkdropType && !DROP_TYPE[linkdropType]) {
       throw new Error('This drop is not supported. Please contact the sender of this link.');
     }
 
-    let drop;
-    try {
-      drop = await this.getDropInfo({ secretKey });
-    } catch (err) {
-      throw new Error('Unable to claim. This drop may have been claimed before.');
-    }
-    console.log(drop);
     const dropMetadata = this.getDropMetadata(drop.metadata);
     let ftMetadata;
     if (drop.ft !== undefined) {
@@ -388,17 +376,13 @@ class KeypomJS {
   };
 
   getNFTClaimInformation = async (contractId: string, secretKey: string) => {
+    // given fc
+    const drop = await this.getDropInfo({ secretKey });
+
     // verify if secretKey is a nft drop
-    const linkdropType = await this.getLinkdropType(contractId, secretKey);
+    const linkdropType = await this.getLinkdropType(drop, contractId, secretKey);
     if (linkdropType !== DROP_TYPE.NFT) {
       throw new Error('This drop is not an NFT drop. Please contact your drop creator.');
-    }
-    // given fc
-    let drop;
-    try {
-      drop = await this.getDropInfo({ secretKey });
-    } catch (err) {
-      throw new Error('Unable to claim. This drop may have been claimed before.');
     }
 
     const dropMetadata = this.getDropMetadata(drop.metadata);
@@ -413,17 +397,12 @@ class KeypomJS {
   };
 
   getTicketNftInformation = async (contractId: string, secretKey: string) => {
+    const drop = await this.getDropInfo({ secretKey });
+
     // verify if secretKey is a ticket drop
-    const linkdropType = await this.getLinkdropType(contractId, secretKey);
+    const linkdropType = await this.getLinkdropType(drop, contractId, secretKey);
     if (linkdropType !== DROP_TYPE.TICKET) {
       throw new Error('This drop is not a Ticket drop. Please contact your drop creator.');
-    }
-
-    let drop;
-    try {
-      drop = await this.getDropInfo({ secretKey });
-    } catch (err) {
-      throw new Error('Unable to claim. This drop may have been claimed before.');
     }
     const remainingUses = await this.checkTicketRemainingUses(contractId, secretKey);
 
