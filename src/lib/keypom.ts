@@ -120,7 +120,7 @@ class KeypomJS {
 
   checkIfDropExists = async (secretKey: string) => {
     try {
-      await getDropInformation({ secretKey });
+      await this.getDropInfo({ secretKey });
       return true;
     } catch (err) {
       return false;
@@ -209,10 +209,30 @@ class KeypomJS {
   deleteKeys = async ({ wallet, dropId, publicKeys }) =>
     await deleteKeys({ wallet, dropId, publicKeys });
 
-  getDropInfo = async (dropId?: string): Promise<ProtocolReturnedDrop> => {
-    if (!dropId) throw new Error('Missing dropId');
-    // TODO: add basic catch
-    return await getDropInformation({ dropId });
+  getDropInfo = async ({
+    dropId,
+    secretKey,
+  }: {
+    dropId?: string;
+    secretKey?: string;
+  }): Promise<ProtocolReturnedDrop> => {
+    let drop;
+
+    if (!dropId && !secretKey) {
+      throw new Error('dropId / secretKey is not provided.');
+    }
+
+    try {
+      if (dropId) {
+        drop = await getDropInformation({ dropId });
+      } else if (secretKey) {
+        drop = await getDropInformation({ secretKey });
+      }
+    } catch (err) {
+      throw new Error('Unable to claim. This drop may have been claimed before.');
+    }
+
+    return drop;
   };
 
   getClaimedDropInfo = async (dropId: string) => await getKeySupplyForDrop({ dropId });
@@ -221,7 +241,7 @@ class KeypomJS {
     await getKeysForDrop({ dropId, limit, start });
 
   getLinksToExport = async (dropId) => {
-    const drop = await this.getDropInfo(dropId);
+    const drop = await this.getDropInfo({ dropId });
     const { secretKeys } = await generateKeys({
       numKeys: drop.next_key_id,
       rootEntropy: `${get(MASTER_KEY) as string}-${dropId as string}`,
@@ -244,7 +264,7 @@ class KeypomJS {
   ) => {
     let drop: ProtocolReturnedDrop;
     try {
-      drop = await this.getDropInfo(dropId);
+      drop = await this.getDropInfo({ dropId });
 
       const dropSize = drop.next_key_id;
       const { dropName } = this.getDropMetadata(drop.metadata as string);
@@ -283,7 +303,7 @@ class KeypomJS {
   ) => {
     // verify the drop first
     try {
-      await getDropInformation({ secretKey });
+      await this.getDropInfo({ secretKey });
     } catch (err) {
       console.error(err);
       throw new Error('This drop has been claimed.');
@@ -312,7 +332,7 @@ class KeypomJS {
 
     let drop;
     try {
-      drop = await getDropInformation({ secretKey });
+      drop = await this.getDropInfo({ secretKey });
     } catch (err) {
       throw new Error('Unable to claim. This drop may have been claimed before.');
     }
@@ -375,7 +395,7 @@ class KeypomJS {
     // given fc
     let drop;
     try {
-      drop = await getDropInformation({ secretKey });
+      drop = await this.getDropInfo({ secretKey });
     } catch (err) {
       throw new Error('Unable to claim. This drop may have been claimed before.');
     }
@@ -400,7 +420,7 @@ class KeypomJS {
 
     let drop;
     try {
-      drop = await getDropInformation({ secretKey });
+      drop = await this.getDropInfo({ secretKey });
     } catch (err) {
       throw new Error('Unable to claim. This drop may have been claimed before.');
     }

@@ -78,7 +78,7 @@ export default function TicketDropManagerPage() {
     const keySupply = await keypomInstance.getClaimedDropInfo(dropId);
 
     const getScannedInner = async (scanned = 0, index = 0) => {
-      const drop = await keypomInstance.getDropInfo(dropId);
+      const drop = await keypomInstance.getDropInfo({ dropId });
 
       const size = 200; // max limit is 306
 
