@@ -1,6 +1,8 @@
 import React from 'react';
 import { createBrowserRouter } from 'react-router-dom';
 
+import LandingPage from '@/features/landing/routes/LandingPage';
+
 const NotFound404 = React.lazy(
   async () =>
     await import('./components/NotFound404').then((mod) => ({ default: mod.NotFound404 })),
@@ -19,7 +21,7 @@ const ProtectedRoute = React.lazy(
 const AllDropsPage = React.lazy(
   async () => await import('./features/all-drops/routes/AllDropsPage'),
 );
-const LandingPage = React.lazy(async () => await import('@/features/landing/routes/LandingPage'));
+// const LandingPage = React.lazy(async () => await import('@/features/landing/routes/LandingPage'));
 const ClaimPage = React.lazy(async () => await import('@/features/claim/routes/ClaimPage'));
 const ClaimTokenPage = React.lazy(
   async () => await import('@/features/claim/routes/TokenClaimPage'),

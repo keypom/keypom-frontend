@@ -6,6 +6,8 @@ import { theme } from '@/theme';
 import { router } from '@/router';
 import { Loading } from '@/components/Loading';
 
+// import { AuthWalletContextProvider } from './contexts/AuthWalletContext';
+
 const Fonts = React.lazy(
   async () =>
     await import('@/components/Fonts').then((mod) => {
@@ -36,11 +38,11 @@ export const App = () => {
     <React.Suspense fallback={<Loading />}>
       <ChakraProvider theme={theme}>
         <Fonts />
-        <AppContextProvider>
-          <AuthWalletContextProvider>
+        <AuthWalletContextProvider>
+          <AppContextProvider>
             <RouterProvider router={router} />
-          </AuthWalletContextProvider>
-        </AppContextProvider>
+          </AppContextProvider>
+        </AuthWalletContextProvider>
       </ChakraProvider>
     </React.Suspense>
   );
