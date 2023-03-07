@@ -126,7 +126,7 @@ export default function AllDrops() {
     const claimedKeys = await keypomInstance.getClaimedDropInfo(id);
     const claimedText = `${totalKeys - claimedKeys} / ${totalKeys}`;
 
-    const { dropName } = keypomInstance.getDropMetadata(metadata as string);
+    const { dropName } = keypomInstance.getDropMetadata(metadata);
 
     let type: string | null = '';
     try {
