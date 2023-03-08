@@ -1,7 +1,7 @@
 import React from 'react';
 import { createBrowserRouter } from 'react-router-dom';
 
-import LandingPage from '@/features/landing/routes/LandingPage';
+const LandingPage = React.lazy(async () => await import('@/features/landing/routes/LandingPage'));
 
 const NotFound404 = React.lazy(
   async () =>
