@@ -19,7 +19,6 @@ export const CoreLayout = () => {
   return (
     <Flex
       alignItems="flex-start"
-      // backgroundImage="none"
       bg={layoutBg}
       bgBlendMode="overlay, normal, normal"
       flexDir="column"
