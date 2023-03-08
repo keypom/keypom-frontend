@@ -59,12 +59,12 @@ const ScannerPage = React.lazy(async () => await import('@/features/scanner/rout
 
 export const router = createBrowserRouter([
   {
+    index: true,
+    element: <LandingPage />,
+  },
+  {
     element: <CoreLayout />,
     children: [
-      {
-        index: true,
-        element: <LandingPage />,
-      },
       {
         path: 'ethdenver',
         element: <EthDenverLandingPage />,

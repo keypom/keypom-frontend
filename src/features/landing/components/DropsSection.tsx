@@ -4,8 +4,6 @@ import { useNavigate } from 'react-router-dom';
 
 import { ImageIcon, StarIcon, TicketIcon } from '@/components/Icons';
 import { RoundedTabs, type TabListItem } from '@/components/RoundedTabs';
-import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
-import { UNAUTHORIZED_TOAST } from '@/constants/toast';
 
 import { DropsTemplate } from './DropsTemplate';
 
@@ -13,12 +11,12 @@ type DropsTabItem = TabListItem & { content: ReactElement };
 
 export const DropsSection = () => {
   const toast = useToast();
-  const { isLoggedIn } = useAuthWalletContext();
+  // const { isLoggedIn } = useAuthWalletContext();
   const navigate = useNavigate();
 
   const dropCta = (dropType: string) => {
-    if (isLoggedIn) navigate(`/drop/${dropType}/new`);
-    else toast(UNAUTHORIZED_TOAST);
+    // if (isLoggedIn) navigate(`/drop/${dropType}/new`);
+    // else toast(UNAUTHORIZED_TOAST);
   };
 
   const TAB_LIST: DropsTabItem[] = [
