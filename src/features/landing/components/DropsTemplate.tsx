@@ -2,6 +2,10 @@ import { Box, Button, Center, Flex, Hide, Image, Show, Text } from '@chakra-ui/r
 
 import { IconBox } from '@/components/IconBox';
 
+// token banner image is preloaded
+const tokenBannerImage = new URL('../../../../public/assets/token_banner.webp', import.meta.url);
+const ticketBannerImage = new URL('../../../../public/assets/ticket_banner.webp', import.meta.url);
+const nftBannerImage = new URL('../../../../public/assets/nft_banner.webp', import.meta.url);
 interface DropsTemplateProps {
   imageNumber: number;
   subHeadingText: string;
@@ -13,9 +17,9 @@ interface DropsTemplateProps {
 }
 
 const IMAGES = [
-  '/assets/token_banner.webp',
-  '/assets/ticket_banner.webp',
-  '/assets/nft_banner.webp',
+  tokenBannerImage.href.replace(tokenBannerImage.search, ''),
+  ticketBannerImage.href.replace(tokenBannerImage.search, ''),
+  nftBannerImage.href.replace(tokenBannerImage.search, ''),
 ];
 const IMAGES_TOP_DISTANCE = ['calc(50% - 208px)', 'calc(50% - 188px)', 'calc(50% - 240px)'];
 
