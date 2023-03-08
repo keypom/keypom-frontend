@@ -15,12 +15,12 @@ const Fonts = React.lazy(
     }),
 );
 
-// const AuthWalletContextProvider = React.lazy(
-//   async () =>
-//     await import('@/contexts/AuthWalletContext').then((mod) => {
-//       return { default: mod.AuthWalletContextProvider };
-//     }),
-// );
+const AuthWalletContextProvider = React.lazy(
+  async () =>
+    await import('@/contexts/AuthWalletContext').then((mod) => {
+      return { default: mod.AuthWalletContextProvider };
+    }),
+);
 
 const AppContextProvider = React.lazy(
   async () =>
@@ -29,21 +29,21 @@ const AppContextProvider = React.lazy(
     }),
 );
 
-import('@/lib/keypom').then(async (keypomLib) => {
-  await keypomLib.default.init();
-});
-
 export const App = () => {
   return (
     <React.Suspense fallback={<Loading />}>
       <ChakraProvider theme={theme}>
         <Fonts />
-        {/* <AuthWalletContextProvider> */}
-        <AppContextProvider>
-          <RouterProvider router={router} />
-        </AppContextProvider>
-        {/* </AuthWalletContextProvider> */}
+        <AuthWalletContextProvider>
+          <AppContextProvider>
+            <RouterProvider router={router} />
+          </AppContextProvider>
+        </AuthWalletContextProvider>
       </ChakraProvider>
     </React.Suspense>
   );
 };
+
+// import('@/lib/keypom').then(async (keypomLib) => {
+//   await keypomLib.default.init();
+// });

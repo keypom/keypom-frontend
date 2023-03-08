@@ -57,104 +57,118 @@ const EthDenverLandingPage = React.lazy(async () => await import('@/pages/EthDen
 
 const ScannerPage = React.lazy(async () => await import('@/features/scanner/routes/ScannerPage'));
 
+const initKeypom = () => {
+  import('@/lib/keypom').then(async (keypomLib) => {
+    await keypomLib.default.init();
+  });
+};
+
 export const router = createBrowserRouter([
-  {
-    index: true,
-    element: <LandingPage />,
-  },
   {
     element: <CoreLayout />,
     children: [
+      {
+        index: true,
+        element: <LandingPage />,
+      },
       {
         path: 'ethdenver',
         element: <EthDenverLandingPage />,
       },
       {
-        path: 'drops',
-        element: (
-          <ProtectedRoute>
-            <AllDropsPage />
-          </ProtectedRoute>
-        ),
-      },
-      {
-        path: 'drop',
-        element: <ProtectedRoute />,
+        loader: () => {
+          initKeypom();
+          return null;
+        },
         children: [
           {
-            path: 'token',
+            path: 'drops',
+            element: (
+              <ProtectedRoute>
+                <AllDropsPage />
+              </ProtectedRoute>
+            ),
+          },
+          {
+            path: 'drop',
+            element: <ProtectedRoute />,
             children: [
               {
-                path: 'new',
-                element: <CreateTokenDropPage />,
+                path: 'token',
+                children: [
+                  {
+                    path: 'new',
+                    element: <CreateTokenDropPage />,
+                  },
+                  {
+                    path: ':id',
+                    element: <TokenDropManagerPage />,
+                  },
+                ],
               },
               {
-                path: ':id',
-                element: <TokenDropManagerPage />,
+                path: 'nft',
+                children: [
+                  {
+                    path: 'new',
+                    element: <CreateNftDropPage />,
+                  },
+                  {
+                    path: ':id',
+                    element: <NFTDropManagerPage />,
+                  },
+                ],
+              },
+              {
+                path: 'ticket',
+                children: [
+                  {
+                    path: 'new',
+                    element: <CreateTicketDropPage />,
+                  },
+                  {
+                    path: ':id',
+                    element: <TicketDropManagerPage />,
+                  },
+                ],
+              },
+            ],
+          },
+          //  claim structure should be claim/:contractId#secretKey
+          {
+            path: 'claim',
+            children: [
+              {
+                path: 'token/:contractId',
+                element: <ClaimTokenPage />,
+              },
+              {
+                path: 'nft/:contractId',
+                element: <ClaimNftPage />,
+              },
+              {
+                path: 'gift/:contractId',
+                element: <ClaimGiftPage />,
+              },
+              {
+                path: 'ticket/:contractId',
+                element: <ClaimTicketPage />,
+              },
+              {
+                path: 'trial/:contractId',
+                element: <ClaimTrialPage />,
+              },
+              {
+                path: ':contractId',
+                element: <ClaimPage />,
               },
             ],
           },
           {
-            path: 'nft',
-            children: [
-              {
-                path: 'new',
-                element: <CreateNftDropPage />,
-              },
-              {
-                path: ':id',
-                element: <NFTDropManagerPage />,
-              },
-            ],
-          },
-          {
-            path: 'ticket',
-            children: [
-              {
-                path: 'new',
-                element: <CreateTicketDropPage />,
-              },
-              {
-                path: ':id',
-                element: <TicketDropManagerPage />,
-              },
-            ],
+            path: 'scanner',
+            element: <ScannerPage />,
           },
         ],
-      },
-      //  claim structure should be claim/:contractId#secretKey
-      {
-        path: 'claim',
-        children: [
-          {
-            path: 'token/:contractId',
-            element: <ClaimTokenPage />,
-          },
-          {
-            path: 'nft/:contractId',
-            element: <ClaimNftPage />,
-          },
-          {
-            path: 'gift/:contractId',
-            element: <ClaimGiftPage />,
-          },
-          {
-            path: 'ticket/:contractId',
-            element: <ClaimTicketPage />,
-          },
-          {
-            path: 'trial/:contractId',
-            element: <ClaimTrialPage />,
-          },
-          {
-            path: ':contractId',
-            element: <ClaimPage />,
-          },
-        ],
-      },
-      {
-        path: 'scanner',
-        element: <ScannerPage />,
       },
       {
         path: '*',
