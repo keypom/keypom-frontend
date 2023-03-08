@@ -1,5 +1,5 @@
 import { Box, Button, Text, useToast } from '@chakra-ui/react';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { CopyIcon, DeleteIcon } from '@/components/Icons';
@@ -130,36 +130,39 @@ export default function TicketDropManagerPage() {
     },
   });
 
-  const handleGetDrops = async ({ pageIndex = 0, pageSize = PAGE_SIZE_LIMIT }) => {
-    if (!accountId) return;
-    const keyInfoReturn = await keypomInstance.getKeysInfo(dropId, pageIndex, pageSize, () => {
-      setMissingDropModal(setAppModal); // User will be redirected if getDropInformation fails
-      navigate('/drops');
-    });
-    if (keyInfoReturn === undefined) {
-      navigate('/drops');
-      return;
-    }
-    const { dropSize, dropName, publicKeys, secretKeys, keyInfo } = keyInfoReturn;
-    setDataSize(dropSize);
-    setName(dropName);
+  const handleGetDrops = useCallback(
+    async ({ pageIndex = 0, pageSize = PAGE_SIZE_LIMIT }) => {
+      if (!accountId) return;
+      const keyInfoReturn = await keypomInstance.getKeysInfo(dropId, pageIndex, pageSize, () => {
+        setMissingDropModal(setAppModal); // User will be redirected if getDropInformation fails
+        navigate('/drops');
+      });
+      if (keyInfoReturn === undefined) {
+        navigate('/drops');
+        return;
+      }
+      const { dropSize, dropName, publicKeys, secretKeys, keyInfo } = keyInfoReturn;
+      setDataSize(dropSize);
+      setName(dropName);
 
-    setData(
-      secretKeys.map((key: string, i) => ({
-        id: i,
-        publicKey: publicKeys[i],
-        link: `${window.location.origin}/claim/${getConfig().contractId}#${key.replace(
-          'ed25519:',
-          '',
-        )}`,
-        slug: key.substring(8, 16),
-        claimStatus: getClaimStatus(keyInfo[i]),
-        action: 'delete',
-      })),
-    );
+      setData(
+        secretKeys.map((key: string, i) => ({
+          id: i,
+          publicKey: publicKeys[i],
+          link: `${window.location.origin}/claim/${getConfig().contractId}#${key.replace(
+            'ed25519:',
+            '',
+          )}`,
+          slug: key.substring(8, 16),
+          claimStatus: getClaimStatus(keyInfo[i]),
+          action: 'delete',
+        })),
+      );
 
-    setLoading(false);
-  };
+      setLoading(false);
+    },
+    [pagination],
+  );
 
   useEffect(() => {
     handleGetDrops({});

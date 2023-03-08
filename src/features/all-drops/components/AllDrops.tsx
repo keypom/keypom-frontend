@@ -15,7 +15,7 @@ import {
   Skeleton,
   VStack,
 } from '@chakra-ui/react';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { type ProtocolReturnedDrop } from 'keypom-js';
 import { ChevronDownIcon } from '@chakra-ui/icons';
 
@@ -160,21 +160,24 @@ export default function AllDrops() {
     };
   };
 
-  const handleGetDrops = async ({ start = 0, limit = pagination.pageSize }) => {
-    const drops = await keypomInstance.getDrops({ accountId, start, limit });
+  const handleGetDrops = useCallback(
+    async ({ start = 0, limit = pagination.pageSize }) => {
+      const drops = await keypomInstance.getDrops({ accountId, start, limit });
 
-    setWallet(await selector.wallet());
+      setWallet(await selector.wallet());
 
-    setData(
-      await Promise.all(
-        drops.map(async (drop) => {
-          return await setAllDropsData(drop);
-        }),
-      ),
-    );
+      setData(
+        await Promise.all(
+          drops.map(async (drop) => {
+            return await setAllDropsData(drop);
+          }),
+        ),
+      );
 
-    setIsLoading(false);
-  };
+      setIsLoading(false);
+    },
+    [pagination],
+  );
 
   useEffect(() => {
     if (!accountId) return;
