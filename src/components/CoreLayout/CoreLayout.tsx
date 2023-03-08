@@ -15,10 +15,11 @@ const AppModal = React.lazy(
 
 export const CoreLayout = () => {
   const layoutBg =
-    'url(.png), linear-gradient(180deg, rgba(239, 250, 253, 0.4) 0%, rgba(239, 250, 253, 0.6) 27.41%), #FFFFFF;';
+    'none, linear-gradient(180deg, rgba(239, 250, 253, 0.4) 0%, rgba(239, 250, 253, 0.6) 27.41%), #FFFFFF;';
   return (
     <Flex
       alignItems="flex-start"
+      // backgroundImage="none"
       bg={layoutBg}
       bgBlendMode="overlay, normal, normal"
       flexDir="column"
