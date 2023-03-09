@@ -20,7 +20,8 @@ const ClaimPage = () => {
 
   const getClaimInfo = async () => {
     try {
-      const type = await keypomInstance.getLinkdropType(contractId, secretKey);
+      const drop = await keypomInstance.getDropInfo({ secretKey });
+      const type = await keypomInstance.getLinkdropType(drop, contractId, secretKey);
 
       switch (type) {
         case DROP_TYPE.TOKEN:

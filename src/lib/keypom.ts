@@ -120,7 +120,7 @@ class KeypomJS {
 
   checkIfDropExists = async (secretKey: string) => {
     try {
-      await getDropInformation({ secretKey });
+      await this.getDropInfo({ secretKey });
       return true;
     } catch (err) {
       return false;
@@ -157,15 +157,8 @@ class KeypomJS {
     fc -> NFT (1 method call)
     simple -> simple drop?
   */
-  getLinkdropType = async (contractId: string, secretKey: string) => {
+  getLinkdropType = async (drop: ProtocolReturnedDrop, contractId: string, secretKey: string) => {
     await this.verifyDrop(contractId, secretKey);
-    let drop;
-    try {
-      drop = await getDropInformation({ secretKey });
-    } catch (err) {
-      throw new Error('Unable to claim. This drop may have been claimed before.');
-    }
-
     return this.getDropType(drop);
   };
 
@@ -201,7 +194,7 @@ class KeypomJS {
 
   getDropSupplyForOwner = async ({ accountId }) => await getDropSupplyForOwner({ accountId });
 
-  getDropMetadata = (metadata: string) =>
+  getDropMetadata = (metadata: string | undefined) =>
     JSON.parse(metadata || JSON.stringify({ dropName: 'Untitled' }));
 
   deleteDrops = async ({ wallet, dropIds }) => await deleteDrops({ wallet, dropIds });
@@ -209,10 +202,26 @@ class KeypomJS {
   deleteKeys = async ({ wallet, dropId, publicKeys }) =>
     await deleteKeys({ wallet, dropId, publicKeys });
 
-  getDropInfo = async (dropId?: string): Promise<ProtocolReturnedDrop> => {
-    if (!dropId) throw new Error('Missing dropId');
-    // TODO: add basic catch
-    return await getDropInformation({ dropId });
+  getDropInfo = async ({
+    dropId,
+    secretKey,
+  }: {
+    dropId?: string;
+    secretKey?: string;
+  }): Promise<ProtocolReturnedDrop> => {
+    let drop: ProtocolReturnedDrop;
+
+    if (!dropId && !secretKey) {
+      throw new Error('dropId or secretKey must be provided.');
+    }
+
+    try {
+      drop = await getDropInformation({ dropId, secretKey });
+    } catch (err) {
+      throw new Error('Unable to claim. This drop may have been claimed before.');
+    }
+
+    return drop;
   };
 
   getClaimedDropInfo = async (dropId: string) => await getKeySupplyForDrop({ dropId });
@@ -221,7 +230,7 @@ class KeypomJS {
     await getKeysForDrop({ dropId, limit, start });
 
   getLinksToExport = async (dropId) => {
-    const drop = await this.getDropInfo(dropId);
+    const drop = await this.getDropInfo({ dropId });
     const { secretKeys } = await generateKeys({
       numKeys: drop.next_key_id,
       rootEntropy: `${get(MASTER_KEY) as string}-${dropId as string}`,
@@ -244,10 +253,10 @@ class KeypomJS {
   ) => {
     let drop: ProtocolReturnedDrop;
     try {
-      drop = await this.getDropInfo(dropId);
+      drop = await this.getDropInfo({ dropId });
 
       const dropSize = drop.next_key_id;
-      const { dropName } = this.getDropMetadata(drop.metadata as string);
+      const { dropName } = this.getDropMetadata(drop.metadata);
 
       const { publicKeys, secretKeys } = await generateKeys({
         numKeys:
@@ -283,7 +292,7 @@ class KeypomJS {
   ) => {
     // verify the drop first
     try {
-      await getDropInformation({ secretKey });
+      await this.getDropInfo({ secretKey });
     } catch (err) {
       console.error(err);
       throw new Error('This drop has been claimed.');
@@ -304,19 +313,14 @@ class KeypomJS {
     secretKey: string,
     skipLinkdropCheck = false,
   ) => {
+    const drop = await this.getDropInfo({ secretKey });
+
     // verify if secretKey is a token drop
-    const linkdropType = await this.getLinkdropType(contractId, secretKey);
+    const linkdropType = await this.getLinkdropType(drop, contractId, secretKey);
     if (linkdropType && !DROP_TYPE[linkdropType]) {
       throw new Error('This drop is not supported. Please contact the sender of this link.');
     }
 
-    let drop;
-    try {
-      drop = await getDropInformation({ secretKey });
-    } catch (err) {
-      throw new Error('Unable to claim. This drop may have been claimed before.');
-    }
-    console.log(drop);
     const dropMetadata = this.getDropMetadata(drop.metadata);
     let ftMetadata;
     if (drop.ft !== undefined) {
@@ -367,17 +371,13 @@ class KeypomJS {
   };
 
   getNFTClaimInformation = async (contractId: string, secretKey: string) => {
+    // given fc
+    const drop = await this.getDropInfo({ secretKey });
+
     // verify if secretKey is a nft drop
-    const linkdropType = await this.getLinkdropType(contractId, secretKey);
+    const linkdropType = await this.getLinkdropType(drop, contractId, secretKey);
     if (linkdropType !== DROP_TYPE.NFT) {
       throw new Error('This drop is not an NFT drop. Please contact your drop creator.');
-    }
-    // given fc
-    let drop;
-    try {
-      drop = await getDropInformation({ secretKey });
-    } catch (err) {
-      throw new Error('Unable to claim. This drop may have been claimed before.');
     }
 
     const dropMetadata = this.getDropMetadata(drop.metadata);
@@ -392,17 +392,12 @@ class KeypomJS {
   };
 
   getTicketNftInformation = async (contractId: string, secretKey: string) => {
+    const drop = await this.getDropInfo({ secretKey });
+
     // verify if secretKey is a ticket drop
-    const linkdropType = await this.getLinkdropType(contractId, secretKey);
+    const linkdropType = await this.getLinkdropType(drop, contractId, secretKey);
     if (linkdropType !== DROP_TYPE.TICKET) {
       throw new Error('This drop is not a Ticket drop. Please contact your drop creator.');
-    }
-
-    let drop;
-    try {
-      drop = await getDropInformation({ secretKey });
-    } catch (err) {
-      throw new Error('Unable to claim. This drop may have been claimed before.');
     }
     const remainingUses = await this.checkTicketRemainingUses(contractId, secretKey);
 
