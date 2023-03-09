@@ -4,8 +4,8 @@ import { useNavigate } from 'react-router-dom';
 
 import { ImageIcon, StarIcon, TicketIcon } from '@/components/Icons';
 import { RoundedTabs, type TabListItem } from '@/components/RoundedTabs';
-import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
 import { UNAUTHORIZED_TOAST } from '@/constants/toast';
+import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
 
 import { DropsTemplate } from './DropsTemplate';
 
@@ -17,6 +17,7 @@ export const DropsSection = () => {
   const navigate = useNavigate();
 
   const dropCta = (dropType: string) => {
+    // TODO: suggestion - should show wallet modal to allow user to log in
     if (isLoggedIn) navigate(`/drop/${dropType}/new`);
     else toast(UNAUTHORIZED_TOAST);
   };
@@ -79,6 +80,7 @@ export const DropsSection = () => {
   return (
     <Center maxW="995px" mb={{ base: '14', md: '120px' }} mx="auto">
       <RoundedTabs
+        isLazy
         align="center"
         size="lg"
         tablist={TAB_LIST}

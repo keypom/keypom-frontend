@@ -1,13 +1,20 @@
+import React from 'react';
 import { Box, Flex } from '@chakra-ui/react';
 import { Outlet } from 'react-router-dom';
 
-import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
-import { AppModal } from '@/components/AppModal';
+
+const Navbar = React.lazy(
+  async () => await import('@/components/Navbar').then((mod) => ({ default: mod.Navbar })),
+);
+
+const AppModal = React.lazy(
+  async () => await import('@/components/AppModal').then((mod) => ({ default: mod.AppModal })),
+);
 
 export const CoreLayout = () => {
   const layoutBg =
-    'url(.png), linear-gradient(180deg, rgba(239, 250, 253, 0.4) 0%, rgba(239, 250, 253, 0.6) 27.41%), #FFFFFF;';
+    'none, linear-gradient(180deg, rgba(239, 250, 253, 0.4) 0%, rgba(239, 250, 253, 0.6) 27.41%), #FFFFFF;';
   return (
     <Flex
       alignItems="flex-start"
