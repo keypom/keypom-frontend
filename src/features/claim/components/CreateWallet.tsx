@@ -43,10 +43,12 @@ export const CreateWallet = ({
         }
       }, 20000);
 
-      if (redirectUrl) {
-        return window.open(url + '?redirectUrl=' + redirectUrl, '_blank');
-      }
-      window.open(url, '_blank');
+      window.setTimeout(() => {
+        if (redirectUrl) {
+          return window.open(url + '?redirectUrl=' + redirectUrl, '_blank');
+        }
+        return window.open(url, '_blank');
+      });
     } catch (err) {
       // drop has been claimed
       // refresh to show error
