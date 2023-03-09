@@ -16,15 +16,7 @@ import {
   VStack,
 } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
-import {
-  getDrops,
-  getKeySupplyForDrop,
-  getDropSupplyForOwner,
-  type ProtocolReturnedFCData,
-  type ProtocolReturnedMethod,
-  getEnv,
-  type ProtocolReturnedDrop,
-} from 'keypom-js';
+import { type ProtocolReturnedDrop } from 'keypom-js';
 import { ChevronDownIcon } from '@chakra-ui/icons';
 
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
@@ -35,9 +27,8 @@ import { handleFinishNFTDrop } from '@/features/create-drop/contexts/CreateNftDr
 import { truncateAddress } from '@/utils/truncateAddress';
 import { NextButton, PrevButton } from '@/components/Pagination';
 import { usePagination } from '@/hooks/usePagination';
-import { asyncWithTimeout } from '@/utils/asyncWithTimeout';
 import { useAppContext } from '@/contexts/AppContext';
-import { CLOUDFLARE_IPFS, DROP_TYPE } from '@/constants/common';
+import { DROP_TYPE } from '@/constants/common';
 import keypomInstance from '@/lib/keypom';
 import { PopoverTemplate } from '@/components/PopoverTemplate';
 
@@ -45,8 +36,6 @@ import { MENU_ITEMS } from '../config/menuItems';
 
 import { MobileDrawerMenu } from './MobileDrawerMenu';
 import { setConfirmationModalHelper } from './ConfirmationModal';
-
-const FETCH_NFT_METHOD_NAME = 'get_series_info';
 
 const COLUMNS: ColumnItem[] = [
   {
@@ -91,7 +80,6 @@ const COLUMNS: ColumnItem[] = [
 export default function AllDrops() {
   const { setAppModal } = useAppContext();
 
-  const { viewCall } = getEnv();
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [isLoading, setIsLoading] = useState(true);
 
@@ -126,7 +114,7 @@ export default function AllDrops() {
   const { selector, accountId } = useAuthWalletContext();
 
   const handleGetDropsSize = async () => {
-    const numDrops = await getDropSupplyForOwner({
+    const numDrops = await keypomInstance.getDropSupplyForOwner({
       accountId,
     });
 
@@ -134,7 +122,10 @@ export default function AllDrops() {
   };
 
   const setAllDropsData = async (drop: ProtocolReturnedDrop) => {
-    const { drop_id: id, fc, metadata, next_key_id } = drop;
+    const { drop_id: id, metadata, next_key_id: totalKeys } = drop;
+    const claimedKeys = await keypomInstance.getClaimedDropInfo(id);
+    const claimedText = `${totalKeys - claimedKeys} / ${totalKeys}`;
+
     const { dropName } = keypomInstance.getDropMetadata(metadata as string);
 
     let type: string | null = '';
@@ -143,40 +134,34 @@ export default function AllDrops() {
     } catch (_) {
       return null;
     }
+    if (type === undefined || type === null || type === '') return null; // don't show the drop if the type return is unexpected
 
-    let nftHref = '';
+    let nftHref: string | undefined;
     if (type === DROP_TYPE.NFT) {
-      const fcMethod = (fc as ProtocolReturnedFCData).methods[0]?.[0];
-      const { receiver_id } = fcMethod as ProtocolReturnedMethod;
-
-      const nftData = await asyncWithTimeout(
-        viewCall({
-          contractId: receiver_id,
-          methodName: FETCH_NFT_METHOD_NAME,
-          args: {
-            mint_id: parseInt(id),
-          },
-        }),
-      ).catch((_) => {
-        console.error(); // eslint-disable-line no-console
-      });
-
-      nftHref =
-        `${CLOUDFLARE_IPFS}/${nftData?.metadata?.media as string}` ??
-        'https://placekitten.com/200/300';
+      let nftMetadata = {
+        media: '',
+        title: '',
+        description: '',
+      };
+      try {
+        nftMetadata = await keypomInstance.getNftMetadata(drop);
+      } catch (e) {
+        console.error('failed to get nft metadata', e); // eslint-disable-line no-console
+      }
+      nftHref = nftMetadata?.media || 'assets/image-not-found.png';
     }
 
     return {
       id,
       name: truncateAddress(dropName, 'end', 48),
       type: type?.toLowerCase(),
-      media: type === DROP_TYPE.NFT ? nftHref : undefined,
-      claimed: `${next_key_id - (await getKeySupplyForDrop({ dropId: id }))} / ${next_key_id}`,
+      media: nftHref,
+      claimed: claimedText,
     };
   };
 
   const handleGetDrops = async ({ start = 0, limit = pagination.pageSize }) => {
-    const drops = await getDrops({ accountId, start, limit });
+    const drops = await keypomInstance.getDrops({ accountId, start, limit });
 
     setWallet(await selector.wallet());
 

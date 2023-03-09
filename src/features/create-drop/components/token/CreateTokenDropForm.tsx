@@ -6,27 +6,29 @@ import { formatNearAmount, createDrop } from 'keypom-js';
 import { IconBox } from '@/components/IconBox';
 import { FormControl } from '@/components/FormControl';
 import { Checkboxes } from '@/components/Checkboxes';
-import { WalletBalanceInput } from '@/components/WalletBalanceInput';
-import { LinkIcon, NearLogoIcon } from '@/components/Icons';
+import { TokenInput } from '@/components/TokenInputMenu';
+import { LinkIcon } from '@/components/Icons';
 import { useDropFlowContext } from '@/features/create-drop/contexts';
 import { get } from '@/utils/localStorage';
 import { MASTER_KEY } from '@/constants/common';
 import { useAppContext, setAppModalHelper } from '@/contexts/AppContext';
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
+import getConfig from '@/config/config';
+import { type IToken } from '@/types/common';
 
-import { WALLET_OPTIONS } from '../WalletComponent';
+import { WALLET_CHECKBOXES } from '../WalletComponent';
+
+const { defaultWallet } = getConfig();
 
 export const CreateTokenDropForm = () => {
   const { setAppModal } = useAppContext();
   const { account } = useAuthWalletContext();
 
-  const WALLET_TOKENS = account
+  const WALLET_TOKENS: IToken[] = account
     ? [
         {
           amount: formatNearAmount(account.amount, 4),
           symbol: 'NEAR',
-          wallet: 'near_wallet',
-          icon: <NearLogoIcon height="4" width="4" />,
         },
       ]
     : [];
@@ -42,8 +44,8 @@ export const CreateTokenDropForm = () => {
 
   const [totalCost, setTotalCost] = useState(0);
 
-  const [selectedFromWallet, amountPerLink, totalLinks] = watch([
-    'selectedFromWallet',
+  const [selectedToken, amountPerLink, totalLinks] = watch([
+    'selectedToken',
     'amountPerLink',
     'totalLinks',
   ]);
@@ -67,7 +69,7 @@ export const CreateTokenDropForm = () => {
 
   const handleWalletChange = (walletSymbol: string) => {
     const foundWallet = WALLET_TOKENS.find((wallet) => wallet.symbol === walletSymbol);
-    setValue('selectedFromWallet', { symbol: foundWallet?.symbol, amount: foundWallet?.amount });
+    setValue('selectedToken', { symbol: foundWallet?.symbol, amount: foundWallet?.amount });
   };
 
   const handleCheckboxChange = useCallback(
@@ -144,7 +146,7 @@ export const CreateTokenDropForm = () => {
           name="amountPerLink"
           render={({ field: { value, onChange, name }, fieldState: { error } }) => (
             <FormControl errorText={error?.message} label="Amount per link">
-              <WalletBalanceInput
+              <TokenInput
                 isInvalid={Boolean(error?.message)}
                 maxLength={14}
                 name={name}
@@ -155,17 +157,17 @@ export const CreateTokenDropForm = () => {
                   onChange(parseFloat(e.target.value));
                 }}
               >
-                <WalletBalanceInput.TokenMenu
-                  selectedWalletToken={selectedFromWallet}
+                <TokenInput.TokenMenu
+                  selectedToken={selectedToken}
                   tokens={WALLET_TOKENS}
                   onChange={handleWalletChange}
                 />
-                <WalletBalanceInput.CostDisplay
-                  balanceAmount={selectedFromWallet.amount}
-                  symbol={selectedFromWallet.symbol}
+                <TokenInput.CostDisplay
+                  balanceAmount={selectedToken.amount}
+                  symbol={selectedToken.symbol}
                   totalCost={totalCost}
                 />
-              </WalletBalanceInput>
+              </TokenInput>
             </FormControl>
           )}
         />
@@ -180,8 +182,8 @@ export const CreateTokenDropForm = () => {
               label="Wallets"
             >
               <Checkboxes
-                defaultValues={['mynearwallet']}
-                items={WALLET_OPTIONS}
+                defaultValues={[defaultWallet.name]}
+                items={WALLET_CHECKBOXES}
                 onChange={handleCheckboxChange}
               />
             </FormControl>

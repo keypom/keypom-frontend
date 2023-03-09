@@ -1,8 +1,8 @@
 import { Text, useBoolean, VStack } from '@chakra-ui/react';
 
-import { WALLET_OPTIONS } from '@/constants/common';
 import keypomInstance from '@/lib/keypom';
 import { storeClaimDrop } from '@/utils/claimedDrops';
+import getConfig from '@/config/config';
 
 import { WalletOption } from './WalletOption';
 
@@ -14,7 +14,7 @@ interface CreateWalletProps {
   redirectUrl?: string;
 }
 
-const defaultWallet = WALLET_OPTIONS[0];
+const { supportedWallets, defaultWallet } = getConfig();
 
 export const CreateWallet = ({
   contractId,
@@ -25,7 +25,7 @@ export const CreateWallet = ({
 }: CreateWalletProps) => {
   const [isClaimSuccessful, setSuccess] = useBoolean(false);
 
-  const handleWalletClick = async (walletName: string) => {
+  const handleWalletClick = async (walletName: string, wRef: any) => {
     try {
       const url = await keypomInstance.generateExternalWalletLink(
         walletName,
@@ -43,10 +43,7 @@ export const CreateWallet = ({
         }
       }, 20000);
 
-      if (redirectUrl) {
-        return window.open(url + '?redirectUrl=' + redirectUrl, '_blank');
-      }
-      window.open(url, '_blank');
+      wRef.location.href = `${url}?redirectUrl=${redirectUrl}`;
     } catch (err) {
       // drop has been claimed
       // refresh to show error
@@ -54,17 +51,18 @@ export const CreateWallet = ({
     }
   };
 
-  const walletOptions = WALLET_OPTIONS
+  const walletOptions = supportedWallets
 
     // TODO replace with filter this is temporary
     // .filter((wallet) => wallets.includes(wallet.id))
-    .filter((wallet) => wallet.id === 'mynearwallet')
+    .filter((wallet) => wallet.name === 'mynearwallet')
 
     .map((options, index) => (
       <WalletOption
         key={index}
-        handleWalletClick={async () => {
-          await handleWalletClick(options.id);
+        handleWalletClick={() => {
+          const wRef = window.open();
+          handleWalletClick(options.name, wRef);
         }}
         {...options}
       />
@@ -85,7 +83,8 @@ export const CreateWallet = ({
         ) : (
           <WalletOption
             handleWalletClick={async () => {
-              await handleWalletClick(defaultWallet?.id);
+              const wRef = window.open();
+              await handleWalletClick(defaultWallet.name, wRef);
             }}
             {...defaultWallet}
           />

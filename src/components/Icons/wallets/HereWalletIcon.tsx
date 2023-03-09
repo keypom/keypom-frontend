@@ -1,6 +1,6 @@
 import { Icon, type IconProps } from '@chakra-ui/react';
 
-export const TokenHereIcon = ({ ...props }: IconProps) => {
+export const HereWalletIcon = ({ ...props }: IconProps) => {
   return (
     <Icon h="8" viewBox="0 0 32 32" w="8" xmlns="http://www.w3.org/2000/svg" {...props}>
       <path

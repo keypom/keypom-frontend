@@ -46,7 +46,6 @@
     "zod": "^3.20.2"
   },
   "devDependencies": {
-    "@chakra-ui/icons": "^2.0.17",
     "@parcel/config-default": "^2.8.3",
     "@parcel/reporter-bundle-analyzer": "^2.8.3",
     "@parcel/transformer-svg-react": "^2.8.3",
