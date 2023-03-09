@@ -6,8 +6,6 @@ import { theme } from '@/theme';
 import { router } from '@/router';
 import { Loading } from '@/components/Loading';
 
-// import { AuthWalletContextProvider } from './contexts/AuthWalletContext';
-
 const Fonts = React.lazy(
   async () =>
     await import('@/components/Fonts').then((mod) => {
@@ -43,7 +41,3 @@ export const App = () => {
     </React.Suspense>
   );
 };
-
-// import('@/lib/keypom').then(async (keypomLib) => {
-//   await keypomLib.default.init();
-// });

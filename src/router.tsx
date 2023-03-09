@@ -12,7 +12,6 @@ const CoreLayout = React.lazy(
   async () => await import('@/components/CoreLayout').then((mod) => ({ default: mod.CoreLayout })),
 );
 
-// import { ProtectedRoute } from React.lazy('./components/ProtectedRoutes';
 const ProtectedRoute = React.lazy(
   async () =>
     await import('./components/ProtectedRoutes').then((mod) => ({ default: mod.ProtectedRoute })),
@@ -21,7 +20,6 @@ const ProtectedRoute = React.lazy(
 const AllDropsPage = React.lazy(
   async () => await import('./features/all-drops/routes/AllDropsPage'),
 );
-// const LandingPage = React.lazy(async () => await import('@/features/landing/routes/LandingPage'));
 const ClaimPage = React.lazy(async () => await import('@/features/claim/routes/ClaimPage'));
 const ClaimTokenPage = React.lazy(
   async () => await import('@/features/claim/routes/TokenClaimPage'),
@@ -57,12 +55,6 @@ const EthDenverLandingPage = React.lazy(async () => await import('@/pages/EthDen
 
 const ScannerPage = React.lazy(async () => await import('@/features/scanner/routes/ScannerPage'));
 
-const initKeypom = () => {
-  import('@/lib/keypom').then(async (keypomLib) => {
-    await keypomLib.default.init();
-  });
-};
-
 export const router = createBrowserRouter([
   {
     element: <CoreLayout />,
@@ -77,7 +69,9 @@ export const router = createBrowserRouter([
       },
       {
         loader: () => {
-          initKeypom();
+          import('@/lib/keypom').then(async (keypomLib) => {
+            await keypomLib.default.init();
+          });
           return null;
         },
         children: [
