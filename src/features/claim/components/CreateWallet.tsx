@@ -25,7 +25,7 @@ export const CreateWallet = ({
 }: CreateWalletProps) => {
   const [isClaimSuccessful, setSuccess] = useBoolean(false);
 
-  const handleWalletClick = async (walletName: string) => {
+  const handleWalletClick = async (walletName: string, wRef: any) => {
     try {
       const url = await keypomInstance.generateExternalWalletLink(
         walletName,
@@ -43,10 +43,7 @@ export const CreateWallet = ({
         }
       }, 20000);
 
-      if (redirectUrl) {
-        return window.open(url + '?redirectUrl=' + redirectUrl, '_blank');
-      }
-      window.open(url, '_blank');
+      wRef.location.href = `${url}?redirectUrl=${redirectUrl}`;
     } catch (err) {
       // drop has been claimed
       // refresh to show error
@@ -63,8 +60,9 @@ export const CreateWallet = ({
     .map((options, index) => (
       <WalletOption
         key={index}
-        handleWalletClick={async () => {
-          await handleWalletClick(options.name);
+        handleWalletClick={() => {
+          const wRef = window.open();
+          handleWalletClick(options.name, wRef);
         }}
         {...options}
       />
@@ -85,7 +83,8 @@ export const CreateWallet = ({
         ) : (
           <WalletOption
             handleWalletClick={async () => {
-              await handleWalletClick(defaultWallet.name);
+              const wRef = window.open();
+              await handleWalletClick(defaultWallet.name, wRef);
             }}
             {...defaultWallet}
           />
