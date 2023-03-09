@@ -82,8 +82,9 @@ export const CreateWallet = ({
           walletOptions
         ) : (
           <WalletOption
-            handleWalletClick={async () => {
-              await handleWalletClick(defaultWallet?.id);
+            handleWalletClick={() => {
+              const wRef = window.open()
+              handleWalletClick(defaultWallet.id, wRef);
             }}
             {...defaultWallet}
           />
