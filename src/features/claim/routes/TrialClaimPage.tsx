@@ -2,6 +2,7 @@ import { Box, Button, Center, Heading, useBoolean, VStack } from '@chakra-ui/rea
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { claimTrialAccountDrop, accountExists } from 'keypom-js';
+import _ from 'lodash';
 
 import { IconBox } from '@/components/IconBox';
 import { BoxWithShape } from '@/components/BoxWithShape';
@@ -11,13 +12,33 @@ import keypomInstance from '@/lib/keypom';
 import { useAppContext } from '@/contexts/AppContext';
 import { ErrorBox } from '@/components/ErrorBox';
 import { useClaimParams } from '@/hooks/useClaimParams';
+import { getIpfsData } from '@/utils/fetchIpfs';
 
 import { ExistingWallet } from '../components/ExistingWallet';
+import { NftReward } from '../components/nft/NftReward';
+import { TrialAppButton } from '../components/TrialAppButtonOption';
 
 interface TokenAsset {
   icon: string;
   value: string;
   symbol: string;
+}
+
+interface TrialInfo {
+  version: string;
+  landing?: {
+    title?: string;
+    description?: string;
+    button?: string;
+    media?: string;
+  };
+  apps: Array<{
+    title: string;
+    url: string;
+    description?: string;
+    media?: string;
+    delimiter?: string;
+  }>;
 }
 
 const TrialClaimPage = () => {
@@ -34,11 +55,18 @@ const TrialClaimPage = () => {
   const [openResultModal, setOpenResultModal] = useState(false);
   const [desiredAccountId, setDesiredAccountId] = useState('');
   const [searchParams] = useSearchParams();
-  const appsStr = searchParams.get('apps');
-  let apps;
-  try {
-    apps = JSON.parse(appsStr || '[]');
-  } catch (e) {}
+
+  const defaultTrialInfo: TrialInfo = {
+    version: '0.0.0',
+    landing: {
+      title: `You've received a Trial Account Drop!`,
+      description: `Create Your Account`,
+      button: `Send`,
+    },
+    apps: [],
+  };
+
+  const [trialInfo, setTrialInfo] = useState<TrialInfo>(defaultTrialInfo);
 
   const loadClaimInfo = async () => {
     try {
@@ -50,12 +78,30 @@ const TrialClaimPage = () => {
     }
   };
 
+  const loadTrialInfo = async () => {
+    const ipfsLink = searchParams.get('meta');
+
+    if (ipfsLink) {
+      try {
+        const incomingData = await getIpfsData(ipfsLink);
+
+        const newTrialInfo = { ...defaultTrialInfo };
+        _.merge(newTrialInfo, incomingData);
+
+        setTrialInfo(newTrialInfo);
+      } catch (e) {
+        console.log(e);
+      }
+    }
+  };
+
   useEffect(() => {
     if (secretKey === '') {
       navigate('/');
     }
 
     loadClaimInfo();
+    loadTrialInfo();
   }, []);
 
   useEffect(() => {
@@ -109,6 +155,8 @@ const TrialClaimPage = () => {
   };
 
   const openTransactionResultModal = () => {
+    const apps = trialInfo.apps;
+    console.log('apps: ', apps);
     setAppModal({
       isOpen: true,
       isLoading: false,
@@ -118,24 +166,17 @@ const TrialClaimPage = () => {
         <>
           <p>Account created successfully</p>
           {apps.length > 0 ? (
-            apps.map(({ title = 'Go to App', url }) => {
+            apps.map(({ title = 'Go to App', url, media, description, delimiter = '#' }) => {
               if (!url) return null;
-              if (url.slice(-1) === '/') {
-                url = url.substring(0, url.length - 1);
-              }
               return (
-                <div key={url} style={{ marginTop: 16 }}>
-                  <Button
-                    onClick={() =>
-                      window.open(
-                        `${url as string}/keypom-url/${desiredAccountId}#${secretKey}`,
-                        '_blank',
-                      )
-                    }
-                  >
-                    {title}
-                  </Button>
-                </div>
+                <TrialAppButton
+                  key={url}
+                  handleAppClick={() => {
+                    window.open(`${url}${desiredAccountId}${delimiter}${secretKey}`, '_blank');
+                  }}
+                  media={media}
+                  title={title}
+                />
               );
             })
           ) : (
@@ -176,7 +217,7 @@ const TrialClaimPage = () => {
         {/** the additional gap is to accommodate for the absolute roundIcon size */}
         <VStack gap={{ base: 'calc(24px + 8px)', md: 'calc(32px + 10px)' }}>
           {/** Prompt text */}
-          <Heading textAlign="center">{`You've received a Trial Account Drop!`}</Heading>
+          <Heading textAlign="center">{trialInfo.landing.title}</Heading>
 
           {/** Claim token component */}
           <IconBox
@@ -195,6 +236,9 @@ const TrialClaimPage = () => {
               shapeSize="md"
               w="full "
             >
+              {trialInfo.landing.media && (
+                <NftReward artworkSrc={trialInfo.landing.media} description={''} nftName={''} />
+              )}
               <VStack>
                 {/** div placeholder */}
                 {tokens.map(({ icon, value, symbol }, index) => (
@@ -210,12 +254,13 @@ const TrialClaimPage = () => {
               w="full"
             >
               <ExistingWallet
+                buttonText={trialInfo.landing.button}
                 claimErrorText={claimError}
                 handleSubmit={handleClaim}
                 isLoading={isClaimLoading}
                 isSuccess={isClaimSuccessful}
                 label={`Your Account Name`}
-                message={`Create Your Account`}
+                message={trialInfo.landing.description}
                 noBackIcon={true}
                 onBack={showInputWallet.off}
               />

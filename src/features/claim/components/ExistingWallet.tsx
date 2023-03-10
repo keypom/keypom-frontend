@@ -12,6 +12,7 @@ interface ExistingWalletProps {
   claimErrorText: string;
   message?: string;
   label?: string;
+  buttonText?: string;
   noBackIcon?: boolean;
 }
 
@@ -23,6 +24,7 @@ export const ExistingWallet = ({
   claimErrorText,
   message = 'Send to existing wallet',
   label = 'Your wallet address',
+  buttonText = 'Send',
   noBackIcon = false,
 }: ExistingWalletProps) => {
   const [walletAddress, setWalletAddress] = useState('');
@@ -63,7 +65,7 @@ export const ExistingWallet = ({
             await handleSubmit(walletAddress);
           }}
         >
-          Send
+          {buttonText}
         </Button>
       )}
       {claimErrorText !== undefined && <Text variant="error">{claimErrorText}</Text>}
