@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
 import { Controller, useFormContext } from 'react-hook-form';
 import { Button, Flex, VStack } from '@chakra-ui/react';
 
@@ -7,6 +7,7 @@ import { FormControl } from '@/components/FormControl';
 import { LinkIcon } from '@/components/Icons';
 import { IconBox } from '@/components/IconBox';
 import { useDropFlowContext } from '@/features/create-drop/contexts/DropFlowContext';
+import { DEBUG_DEL_NFT_ATTEMPT } from '@/features/create-drop/contexts/CreateNftDropContext'
 import getConfig from '@/config/config';
 
 import { ArtworkInput } from '../Fields/ArtworkInput';
@@ -35,6 +36,13 @@ export const CreateNftDropForm = () => {
     control,
     formState: { isDirty, isValid },
   } = useFormContext<CreateNftDropFormFieldTypes>();
+
+  // TODO REMOVE
+  useEffect(() => {
+    DEBUG_DEL_NFT_ATTEMPT()
+    setValue('title', 'My Title')
+    setValue('description', 'My Description')
+  }, [])
 
   const handleCheckboxChange = useCallback(
     (value) => {
