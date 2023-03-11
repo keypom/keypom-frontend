@@ -5,8 +5,6 @@ interface TrialAppButtonIconProps extends IconProps {
 }
 
 export const TrialAppButtonIcon = ({ media, ...props }: TrialAppButtonIconProps) => {
-  console.log('props: ', props);
-  console.log('media: ', media);
   const uniqueId = Math.ceil(Math.random() * 1000); // prevent reusing of svg that aren't visible on page
   return (
     <Icon

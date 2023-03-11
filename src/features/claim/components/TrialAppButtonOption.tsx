@@ -28,7 +28,7 @@ export const TrialAppButton = ({ title, media, handleAppClick, ...props }: Trial
       {...props}
     >
       {/** wallet logo */}
-      {media && <TrialAppButtonIcon h="6" left="4" media={media} position="absolute" w="6" />}
+      <TrialAppButtonIcon h="6" left="4" media={media || ''} position="absolute" w="6" />
       <Text size={{ base: 'sm', md: 'md' }}>{title}</Text>
     </Center>
   );

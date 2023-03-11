@@ -1,7 +1,7 @@
 import { Box, Button, Center, Heading, useBoolean, VStack } from '@chakra-ui/react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { claimTrialAccountDrop, accountExists } from 'keypom-js';
+import { accountExists } from 'keypom-js';
 import _ from 'lodash';
 
 import { IconBox } from '@/components/IconBox';
@@ -26,10 +26,10 @@ interface TokenAsset {
 
 interface TrialInfo {
   version: string;
-  landing?: {
-    title?: string;
-    description?: string;
-    button?: string;
+  landing: {
+    title: string;
+    description: string;
+    button: string;
     media?: string;
   };
   apps: Array<{
@@ -132,10 +132,10 @@ const TrialClaimPage = () => {
     setIsClaimLoading(true);
     setOpenLoadingModal(true);
     try {
-      await claimTrialAccountDrop({
-        secretKey,
-        desiredAccountId: accountId,
-      });
+      // await claimTrialAccountDrop({
+      //   secretKey,
+      //   desiredAccountId: accountId,
+      // });
       setIsClaimSuccessful(true);
     } catch (e) {
       console.warn(e);
@@ -164,36 +164,38 @@ const TrialClaimPage = () => {
       isSuccess: isClaimSuccessful,
       bodyComponent: (
         <>
-          <p>Account created successfully</p>
-          {apps.length > 0 ? (
-            apps.map(({ title = 'Go to App', url, media, description, delimiter = '#' }) => {
-              if (!url) return null;
-              return (
-                <TrialAppButton
-                  key={url}
-                  handleAppClick={() => {
-                    window.open(`${url}${desiredAccountId}${delimiter}${secretKey}`, '_blank');
-                  }}
-                  media={media}
-                  title={title}
-                />
-              );
-            })
-          ) : (
-            <Button
-              onClick={() =>
-                window.open(
-                  `https://testnet.mynearwallet.com/auto-import-secret-key#${desiredAccountId}/ed25519:${secretKey.replace(
-                    'ed25519:',
-                    '',
-                  )}`,
-                  '_blank',
-                )
-              }
-            >
-              Go to MyNearWallet
-            </Button>
-          )}
+          <VStack spacing="2" w="full">
+            <p>Account created successfully</p>
+            {apps.length > 0 ? (
+              apps.map(({ title = 'Go to App', url, media, description, delimiter = '#' }) => {
+                if (!url) return null;
+                return (
+                  <TrialAppButton
+                    key={url}
+                    handleAppClick={() => {
+                      window.open(`${url}${desiredAccountId}${delimiter}${secretKey}`, '_blank');
+                    }}
+                    media={media}
+                    title={title}
+                  />
+                );
+              })
+            ) : (
+              <Button
+                onClick={() =>
+                  window.open(
+                    `https://testnet.mynearwallet.com/auto-import-secret-key#${desiredAccountId}/ed25519:${secretKey.replace(
+                      'ed25519:',
+                      '',
+                    )}`,
+                    '_blank',
+                  )
+                }
+              >
+                Go to MyNearWallet
+              </Button>
+            )}
+          </VStack>
         </>
       ),
     });
