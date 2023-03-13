@@ -1,6 +1,10 @@
 import React from 'react';
 import { createBrowserRouter } from 'react-router-dom';
 
+const CreateEventDropsPage = React.lazy(
+  async () => await import('@/features/create-drop/routes/CreateEventDropsPage'),
+);
+
 const LandingPage = React.lazy(async () => await import('@/features/landing/routes/LandingPage'));
 
 const NotFound404 = React.lazy(
@@ -124,6 +128,19 @@ export const router = createBrowserRouter([
                     path: ':id',
                     element: <TicketDropManagerPage />,
                   },
+                ],
+              },
+              {
+                path: 'event',
+                children: [
+                  {
+                    path: 'new',
+                    element: <CreateEventDropsPage />,
+                  },
+                  // {
+                  //   path: ':id',
+                  //   element: <TicketDropManagerPage />,
+                  // },
                 ],
               },
             ],
