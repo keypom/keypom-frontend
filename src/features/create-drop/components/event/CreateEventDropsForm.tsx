@@ -1,4 +1,4 @@
-import { Button, Flex, Input } from '@chakra-ui/react';
+import { Button, Flex, Input, useDisclosure } from '@chakra-ui/react';
 import { Controller, useFormContext } from 'react-hook-form';
 import { AddIcon } from '@chakra-ui/icons';
 
@@ -7,6 +7,8 @@ import { FormControl } from '@/components/FormControl';
 import { LinkIcon } from '@/components/Icons';
 import { useDropFlowContext } from '@/features/create-drop/contexts';
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
+
+import { CreateTicketModal } from './CreateTicketModal';
 
 // const { defaultWallet } = getConfig();
 
@@ -21,6 +23,8 @@ export const CreateEventDropsForm = () => {
     watch,
     formState: { isDirty, isValid },
   } = useFormContext();
+
+  const { isOpen, onClose, onOpen } = useDisclosure();
 
   // const calcTotalCost = async () => {
   //   if (totalLinks && amountPerLink) {
@@ -66,7 +70,13 @@ export const CreateEventDropsForm = () => {
           }}
         />
 
-        <Button leftIcon={<AddIcon />} w="full">
+        <Button
+          leftIcon={<AddIcon />}
+          w="full"
+          onClick={() => {
+            onOpen();
+          }}
+        >
           Add a ticket
         </Button>
 
@@ -76,6 +86,8 @@ export const CreateEventDropsForm = () => {
           </Button>
         </Flex>
       </form>
+
+      <CreateTicketModal isOpen={isOpen} onClose={onClose} />
     </IconBox>
   );
 };
