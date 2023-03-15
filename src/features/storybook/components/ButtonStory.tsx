@@ -8,7 +8,7 @@ export const ButtonStory = () => {
   const variants = [
     {
       component: <Button w="fit-content"> Primary Button</Button>,
-      label: 'primary (default)',
+      label: 'primary (default) variant',
     },
     {
       component: (
@@ -16,7 +16,7 @@ export const ButtonStory = () => {
           Landing Button
         </Button>
       ),
-      label: 'landing',
+      label: 'landing variant',
     },
     {
       component: (
@@ -24,7 +24,7 @@ export const ButtonStory = () => {
           Secondary Button
         </Button>
       ),
-      label: 'secondary',
+      label: 'secondary variant',
     },
     {
       component: (
@@ -32,7 +32,7 @@ export const ButtonStory = () => {
           Secondary Content Button
         </Button>
       ),
-      label: 'secondary-content-box',
+      label: 'secondary-content-box variant',
     },
     {
       component: (
@@ -40,7 +40,7 @@ export const ButtonStory = () => {
           <AddIcon />
         </Button>
       ),
-      label: 'icon',
+      label: 'icon variant',
     },
     {
       component: (
@@ -48,7 +48,7 @@ export const ButtonStory = () => {
           Pill Button
         </Button>
       ),
-      label: 'pill',
+      label: 'pill variant',
     },
   ];
 
@@ -59,11 +59,11 @@ export const ButtonStory = () => {
           Small Button
         </Button>
       ),
-      label: 'sm',
+      label: 'sm size',
     },
     {
       component: <Button w="fit-content"> Medium Button</Button>,
-      label: 'md (default)',
+      label: 'md (default) size',
     },
   ];
 
@@ -74,7 +74,7 @@ export const ButtonStory = () => {
           Left icon
         </Button>
       ),
-      label: 'With left icon',
+      label: 'leftIcon props',
     },
     {
       component: (
@@ -82,7 +82,7 @@ export const ButtonStory = () => {
           Right icon
         </Button>
       ),
-      label: 'With right icon',
+      label: 'rightIcon props',
     },
     {
       component: (
@@ -90,7 +90,7 @@ export const ButtonStory = () => {
           Token icon
         </Button>
       ),
-      label: 'With ETH token icon',
+      label: 'leftIcon props with TokenIcon',
     },
     {
       component: (
@@ -98,7 +98,7 @@ export const ButtonStory = () => {
           Token icon
         </Button>
       ),
-      label: 'With near icon',
+      label: 'rightIcon props with TokenIcon',
     },
     {
       component: (
@@ -110,7 +110,7 @@ export const ButtonStory = () => {
           Near wallet
         </Button>
       ),
-      label: 'With Near Wallet',
+      label: 'leftIcon props with WalletIcon',
     },
     {
       component: (
@@ -118,7 +118,7 @@ export const ButtonStory = () => {
           Here wallet
         </Button>
       ),
-      label: 'With HERE Wallet',
+      label: 'rightIcon props with WalletIcon',
     },
     {
       component: (
@@ -126,7 +126,7 @@ export const ButtonStory = () => {
           MyNearWallet
         </Button>
       ),
-      label: 'With MyNearWallet',
+      label: 'leftIcon props with WalletIcon',
     },
     {
       component: (
@@ -134,7 +134,7 @@ export const ButtonStory = () => {
           <TokenIcon height="4" symbol="eth" width="4" />
         </Button>
       ),
-      label: 'ETH',
+      label: 'icon variant with ETH symbol',
     },
     {
       component: (
@@ -142,7 +142,7 @@ export const ButtonStory = () => {
           <TokenIcon symbol="near" />
         </Button>
       ),
-      label: 'NEAR',
+      label: 'icon variant with NEAR symbol',
     },
   ];
 
@@ -158,7 +158,7 @@ export const ButtonStory = () => {
           Moon
         </Button>
       ),
-      label: 'With Moon image on the left',
+      label: 'leftIcon props with Moon Image',
     },
     {
       component: (
@@ -171,7 +171,7 @@ export const ButtonStory = () => {
           Moon
         </Button>
       ),
-      label: 'With Moon image on the right',
+      label: 'rightIcon props with Moon Image',
     },
     {
       component: (
@@ -179,7 +179,7 @@ export const ButtonStory = () => {
           <Image alt="keypom-logo" h="6" src={'https://docs.keypom.xyz/img/moon.png'} w="6" />
         </Button>
       ),
-      label: 'Moon',
+      label: 'icon variant with Moon image',
     },
   ];
   return (
