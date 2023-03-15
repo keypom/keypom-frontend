@@ -66,6 +66,16 @@ class KeypomJS {
     this.nearConnection = await connect(connectionConfig);
   };
 
+  dropInformationMeta: {
+    lastFetch: number;
+    lastPageIndex: number;
+    drops: ProtocolReturnedDrop[];
+  } = {
+    lastFetch: Date.now(),
+    lastPageIndex: Infinity,
+    drops: [],
+  };
+
   public static getInstance(): KeypomJS {
     if (!KeypomJS.instance) {
       KeypomJS.instance = new KeypomJS();
@@ -190,7 +200,23 @@ class KeypomJS {
     return null;
   };
 
-  getDrops = async ({ accountId, start, limit }) => await getDrops({ accountId, start, limit });
+  getDrops = async ({ accountId, start, limit }) => {
+    const currentTime = Date.now(); // in ms
+    const timeSinceGetDrop = currentTime - this.dropInformationMeta.lastFetch;
+
+    if (
+      this.dropInformationMeta.drops.length === 0 ||
+      timeSinceGetDrop > 50000 ||
+      start !== this.dropInformationMeta.lastPageIndex
+    ) {
+      console.log('re-fetching getDrops');
+      this.dropInformationMeta.lastFetch = currentTime;
+      this.dropInformationMeta.lastPageIndex = start;
+      this.dropInformationMeta.drops = await getDrops({ accountId, start, limit });
+    }
+
+    return this.dropInformationMeta.drops;
+  };
 
   getDropSupplyForOwner = async ({ accountId }) => await getDropSupplyForOwner({ accountId });
 
