@@ -1,4 +1,4 @@
-import { Box, Button, Center, Heading, Image, useBoolean, VStack } from '@chakra-ui/react';
+import { Box, Button, Center, Heading, Image, Text, useBoolean, VStack } from '@chakra-ui/react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { accountExists, claimTrialAccountDrop } from 'keypom-js';
@@ -64,7 +64,6 @@ const TrialClaimPage = () => {
     },
     apps: [],
   };
-
   const [trialInfo, setTrialInfo] = useState<TrialInfo>(defaultTrialInfo);
 
   const loadClaimInfo = async () => {
@@ -161,10 +160,11 @@ const TrialClaimPage = () => {
       isLoading: false,
       isError: Boolean(claimError),
       isSuccess: isClaimSuccessful,
+      trapFocus: false,
       bodyComponent: (
         <>
           <VStack spacing="2" w="full">
-            <p>Account created successfully</p>
+            <Text>Account created successfully</Text>
             {apps.length > 0 ? (
               apps.map(({ title = 'Go to App', url, media, description, delimiter = '#' }) => {
                 if (!url) return null;

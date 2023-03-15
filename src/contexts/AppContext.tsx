@@ -27,6 +27,7 @@ interface AppModalValues {
   isLoading?: boolean;
   isSuccess?: boolean;
   isError?: boolean;
+  trapFocus?: boolean;
 }
 
 interface AppContextValues {
@@ -39,6 +40,7 @@ const AppContext = createContext<AppContextValues | null>(null);
 export const AppContextProvider = ({ children }: PropsWithChildren) => {
   const [appModal, setAppModal] = useState<AppModalValues>({
     isOpen: false,
+    trapFocus: true,
   });
 
   const value = {

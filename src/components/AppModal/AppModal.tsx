@@ -24,15 +24,14 @@ import { RoundIcon } from '../IconBox/RoundIcon';
 // TODO: enhance css after merging sushan's sign in modal branch
 export const AppModal = () => {
   const { appModal, setAppModal } = useAppContext();
-
   const [values, setValues] = useState({});
   const [loading, setLoading] = useState(false);
-
   return (
     <Modal
       isCentered
       closeOnOverlayClick={appModal.closeOnOverlayClick || false}
       isOpen={appModal.isOpen}
+      trapFocus={appModal.trapFocus}
       onClose={() => {
         setAppModal({
           isOpen: false,
