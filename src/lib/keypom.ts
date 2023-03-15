@@ -209,7 +209,6 @@ class KeypomJS {
       timeSinceGetDrop > 50000 ||
       start !== this.dropInformationMeta.lastPageIndex
     ) {
-      console.log('re-fetching getDrops');
       this.dropInformationMeta.lastFetch = currentTime;
       this.dropInformationMeta.lastPageIndex = start;
       this.dropInformationMeta.drops = await getDrops({ accountId, start, limit });
