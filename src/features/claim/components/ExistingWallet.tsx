@@ -14,6 +14,7 @@ interface ExistingWalletProps {
   label?: string;
   buttonText?: string;
   noBackIcon?: boolean;
+  inputRightAddonText?: string;
 }
 
 export const ExistingWallet = ({
@@ -26,6 +27,7 @@ export const ExistingWallet = ({
   label = 'Your wallet address',
   buttonText = 'Send',
   noBackIcon = false,
+  inputRightAddonText,
 }: ExistingWalletProps) => {
   const [walletAddress, setWalletAddress] = useState('');
   return (
@@ -44,9 +46,11 @@ export const ExistingWallet = ({
         </Text>
       </Center>
       <TextInput
+        errorMessage={claimErrorText}
         label={label}
         mb="5"
-        placeholder="yourname.near"
+        placeholder="yourname"
+        rightAddOnText={inputRightAddonText}
         value={walletAddress}
         onChange={(e) => {
           setWalletAddress(e.target.value);
@@ -68,7 +72,6 @@ export const ExistingWallet = ({
           {buttonText}
         </Button>
       )}
-      {claimErrorText !== undefined && <Text variant="error">{claimErrorText}</Text>}
     </>
   );
 };

@@ -11,6 +11,10 @@ export const InputTheme = helpers.defineMultiStyleConfig({
         borderRadius: '6xl',
         h: '12',
       },
+      addon: {
+        h: '12',
+        borderRadius: '6xl',
+      },
     },
   },
   variants: {

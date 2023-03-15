@@ -74,6 +74,17 @@ class KeypomJS {
     return KeypomJS.instance;
   }
 
+  getAccountIdPostfix = () => {
+    const { networkId } = getEnv();
+    switch (networkId) {
+      case 'mainnet':
+        return '.near';
+      case 'testnet':
+      default:
+        return '.testnet';
+    }
+  };
+
   validateAccountId = async (accountId: string) => {
     if (!(accountId.length >= 2 && accountId.length <= 64 && ACCOUNT_ID_REGEX.test(accountId))) {
       throw new Error('Account Id is invalid');

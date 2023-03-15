@@ -6,21 +6,28 @@ import {
   InputGroup,
   type InputProps,
   Text,
+  InputLeftAddon,
+  InputRightAddon,
 } from '@chakra-ui/react';
 
 interface TextInputProps extends InputProps {
   label: string;
   topLeftHelperMessage?: string;
   errorMessage?: string;
+  leftAddOnText?: string;
+  rightAddOnText?: string;
 }
 
 export const TextInput = ({
   label,
   topLeftHelperMessage,
   errorMessage,
+  leftAddOnText,
+  rightAddOnText,
   ...props
 }: TextInputProps) => {
   const haveTopHelperText = !!topLeftHelperMessage;
+
   return (
     <FormControl>
       <Flex alignItems="center" justifyContent="flex-start" w="full">
@@ -36,10 +43,14 @@ export const TextInput = ({
         </Flex>
       )}
       <InputGroup>
+        {leftAddOnText && <InputLeftAddon>{leftAddOnText}</InputLeftAddon>}
         <Input isInvalid={!!errorMessage} type="text" {...props} />
+        {rightAddOnText && (
+          <InputRightAddon border="1px solid red">{rightAddOnText}</InputRightAddon>
+        )}
       </InputGroup>
       {errorMessage && (
-        <Text fontSize={{ base: 'xs', md: 'sm' }} mt="6px" textAlign="left" variant="error">
+        <Text fontSize={{ base: 'xs', md: 'sm' }} textAlign="left" variant="error">
           {errorMessage}
         </Text>
       )}

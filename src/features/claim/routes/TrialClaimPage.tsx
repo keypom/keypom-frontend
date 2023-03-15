@@ -1,7 +1,7 @@
 import { Box, Button, Center, Heading, Image, Text, useBoolean, VStack } from '@chakra-ui/react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { accountExists, claimTrialAccountDrop } from 'keypom-js';
+import { accountExists } from 'keypom-js';
 import _ from 'lodash';
 
 import { IconBox } from '@/components/IconBox';
@@ -114,9 +114,9 @@ const TrialClaimPage = () => {
     }
   }, [openResultModal]);
 
-  const handleClaim = async (walletAddress: string) => {
-    const root = '.testnet';
-    const accountId = walletAddress + root;
+  const handleClaim = async (accountName: string) => {
+    const accountId = accountName + keypomInstance.getAccountIdPostfix();
+    setClaimError('');
     setDesiredAccountId(accountId);
     console.log('attempting ', accountId);
 
@@ -124,16 +124,17 @@ const TrialClaimPage = () => {
 
     if (exists) {
       console.warn('exists');
+      setClaimError('Account already exists.');
       return;
     }
 
     setIsClaimLoading(true);
     setOpenLoadingModal(true);
     try {
-      await claimTrialAccountDrop({
-        secretKey,
-        desiredAccountId: accountId,
-      });
+      // await claimTrialAccountDrop({
+      //   secretKey,
+      //   desiredAccountId: accountId,
+      // });
       setIsClaimSuccessful(true);
     } catch (e) {
       console.warn(e);
@@ -265,6 +266,7 @@ const TrialClaimPage = () => {
                 buttonText={trialInfo.landing.button}
                 claimErrorText={claimError}
                 handleSubmit={handleClaim}
+                inputRightAddonText={keypomInstance.getAccountIdPostfix()}
                 isLoading={isClaimLoading}
                 isSuccess={isClaimSuccessful}
                 label={`Your Account Name`}
