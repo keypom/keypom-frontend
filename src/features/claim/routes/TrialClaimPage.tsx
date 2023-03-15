@@ -1,7 +1,7 @@
 import { Box, Button, Center, Heading, Image, Text, useBoolean, VStack } from '@chakra-ui/react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { accountExists } from 'keypom-js';
+import { accountExists, claimTrialAccountDrop } from 'keypom-js';
 import _ from 'lodash';
 
 import { IconBox } from '@/components/IconBox';
@@ -131,10 +131,10 @@ const TrialClaimPage = () => {
     setIsClaimLoading(true);
     setOpenLoadingModal(true);
     try {
-      // await claimTrialAccountDrop({
-      //   secretKey,
-      //   desiredAccountId: accountId,
-      // });
+      await claimTrialAccountDrop({
+        secretKey,
+        desiredAccountId: accountId,
+      });
       setIsClaimSuccessful(true);
     } catch (e) {
       console.warn(e);
