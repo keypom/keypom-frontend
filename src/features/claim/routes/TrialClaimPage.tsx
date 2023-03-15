@@ -1,4 +1,4 @@
-import { Box, Button, Center, Heading, Text, useBoolean, VStack } from '@chakra-ui/react';
+import { Box, Button, Center, Heading, Image, useBoolean, VStack } from '@chakra-ui/react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { accountExists, claimTrialAccountDrop } from 'keypom-js';
@@ -13,7 +13,6 @@ import { useAppContext } from '@/contexts/AppContext';
 import { ErrorBox } from '@/components/ErrorBox';
 import { useClaimParams } from '@/hooks/useClaimParams';
 import { getIpfsData } from '@/utils/fetchIpfs';
-import { TrialAppButtonIcon } from '@/components/Icons/TrialAppButtonIcon';
 
 import { ExistingWallet } from '../components/ExistingWallet';
 import { NftReward } from '../components/nft/NftReward';
@@ -117,7 +116,7 @@ const TrialClaimPage = () => {
   }, [openResultModal]);
 
   const handleClaim = async (walletAddress: string) => {
-    const root = '.linkdrop-beta.keypom.testnet';
+    const root = '.testnet';
     const accountId = walletAddress + root;
     setDesiredAccountId(accountId);
     console.log('attempting ', accountId);
@@ -170,35 +169,21 @@ const TrialClaimPage = () => {
               apps.map(({ title = 'Go to App', url, media, description, delimiter = '#' }) => {
                 if (!url) return null;
                 return (
-                  <Center
+                  <Button
                     key={url}
-                    _hover={{
-                      cursor: 'pointer',
-                      bg: 'gray.100',
-                    }}
                     bg="white"
                     border="1px solid"
                     borderColor="gray.200"
                     borderRadius={{ base: '5xl', md: '6xl' }}
-                    h={{ base: '39px', md: '12' }}
-                    position="relative"
-                    px="4"
-                    py="2"
+                    leftIcon={<Image h="15px" src={media} w="15px" />}
+                    variant="secondary"
                     w="full"
                     onClick={() => {
                       window.open(`${url}${desiredAccountId}${delimiter}${secretKey}`, '_blank');
                     }}
                   >
-                    {/** wallet logo */}
-                    <TrialAppButtonIcon
-                      h="6"
-                      left="4"
-                      media={media || ''}
-                      position="absolute"
-                      w="6"
-                    />
-                    <Text size={{ base: 'sm', md: 'md' }}>{title}</Text>
-                  </Center>
+                    {title}
+                  </Button>
                 );
               })
             ) : (
