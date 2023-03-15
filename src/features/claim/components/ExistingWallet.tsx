@@ -15,6 +15,7 @@ interface ExistingWalletProps {
   buttonText?: string;
   noBackIcon?: boolean;
   inputRightAddonText?: string;
+  inputPlaceholder?: string;
 }
 
 export const ExistingWallet = ({
@@ -26,6 +27,7 @@ export const ExistingWallet = ({
   message = 'Send to existing wallet',
   label = 'Your wallet address',
   buttonText = 'Send',
+  inputPlaceholder = 'yourname.near',
   noBackIcon = false,
   inputRightAddonText,
 }: ExistingWalletProps) => {
@@ -49,7 +51,7 @@ export const ExistingWallet = ({
         errorMessage={claimErrorText}
         label={label}
         mb="5"
-        placeholder="yourname"
+        placeholder={inputPlaceholder}
         rightAddOnText={inputRightAddonText}
         value={walletAddress}
         onChange={(e) => {

@@ -266,6 +266,7 @@ const TrialClaimPage = () => {
                 buttonText={trialInfo.landing.button}
                 claimErrorText={claimError}
                 handleSubmit={handleClaim}
+                inputPlaceholder="yourname"
                 inputRightAddonText={keypomInstance.getAccountIdPostfix()}
                 isLoading={isClaimLoading}
                 isSuccess={isClaimSuccessful}
