@@ -45,9 +45,7 @@ export const TextInput = ({
       <InputGroup>
         {leftAddOnText && <InputLeftAddon>{leftAddOnText}</InputLeftAddon>}
         <Input isInvalid={!!errorMessage} type="text" {...props} />
-        {rightAddOnText && (
-          <InputRightAddon border="1px solid red">{rightAddOnText}</InputRightAddon>
-        )}
+        {rightAddOnText && <InputRightAddon>{rightAddOnText}</InputRightAddon>}
       </InputGroup>
       {errorMessage && (
         <Text fontSize={{ base: 'xs', md: 'sm' }} textAlign="left" variant="error">

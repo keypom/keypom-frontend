@@ -10,7 +10,6 @@ import { StarIcon } from '@/components/Icons';
 import { DropBox } from '@/components/DropBox/DropBox';
 import keypomInstance from '@/lib/keypom';
 import { useAppContext } from '@/contexts/AppContext';
-import { ErrorBox } from '@/components/ErrorBox';
 import { useClaimParams } from '@/hooks/useClaimParams';
 import { getIpfsData } from '@/utils/fetchIpfs';
 
@@ -49,7 +48,7 @@ const TrialClaimPage = () => {
   const [isClaimSuccessful, setIsClaimSuccessful] = useState(false);
   const [isClaimLoading, setIsClaimLoading] = useState(false);
   const [claimError, setClaimError] = useState('');
-  const [isDropClaimed] = useState(false);
+  const [claimInfoError, setClaimInfoError] = useState(false);
   const [openLoadingModal, setOpenLoadingModal] = useState(false);
   const [openResultModal, setOpenResultModal] = useState(false);
   const [desiredAccountId, setDesiredAccountId] = useState('');
@@ -72,7 +71,7 @@ const TrialClaimPage = () => {
     } catch (e) {
       console.log(e);
       // `no drop ID for PK` is error we should pass through to the redirect URL
-      setClaimError('No drop for this link!');
+      setClaimInfoError(true);
     }
   };
 
@@ -208,11 +207,7 @@ const TrialClaimPage = () => {
     });
   };
 
-  if (isDropClaimed) {
-    return <ErrorBox message="This drop has been claimed." />;
-  }
-
-  if (claimError.length > 0) {
+  if (claimInfoError) {
     return (
       <Box mb={{ base: '5', md: '14' }} minH="100%" minW="100%" mt={{ base: '52px', md: '100px' }}>
         <Center>No drop for that link!</Center>
