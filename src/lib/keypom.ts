@@ -49,10 +49,15 @@ class KeypomJS {
   test = 0;
 
   dropStore: {
+    paginatedDrops: Record<
+      string,
+      ProtocolReturnedDrop & { getExpiryTime: number; getPageIndex: number }
+    >;
     drops: ProtocolReturnedDrop[];
     getDropsLastPage: number;
     getDropsExpiryTime: number;
   } = {
+    paginatedDrops: {},
     drops: [],
     getDropsLastPage: Infinity,
     getDropsExpiryTime: 0,
@@ -277,12 +282,24 @@ class KeypomJS {
     pageSize: number,
     getDropErrorCallback?: () => void,
   ) => {
-    let drop: ProtocolReturnedDrop;
     try {
-      drop = await this.getDropInfo({ dropId });
+      /** Get PaginatedDrops caching logic */
+      if (
+        !Object.prototype.hasOwnProperty.call(this.dropStore.paginatedDrops, dropId) ||
+        Date.now() > this.dropStore.paginatedDrops[dropId].getExpiryTime ||
+        pageIndex !== this.dropStore.paginatedDrops[dropId].getPageIndex
+      ) {
+        const newGetPaginatedDropsExpiryTime = new Date(Date.now() + CACHE_MAX_AGE).getTime();
 
-      const dropSize = drop.next_key_id;
-      const { dropName } = this.getDropMetadata(drop.metadata);
+        this.dropStore.paginatedDrops[dropId] = {
+          ...(await this.getDropInfo({ dropId })),
+          getPageIndex: pageIndex,
+          getExpiryTime: newGetPaginatedDropsExpiryTime,
+        };
+      }
+
+      const dropSize = this.dropStore.paginatedDrops[dropId].next_key_id;
+      const { dropName } = this.getDropMetadata(this.dropStore.paginatedDrops[dropId].metadata);
 
       const { publicKeys, secretKeys } = await generateKeys({
         numKeys:
