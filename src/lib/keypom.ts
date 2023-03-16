@@ -41,19 +41,21 @@ const connectionConfig = {
   helperUrl: config.helperUrl,
   explorerUrl: config.explorerUrl,
 };
+
+const CACHE_MAX_AGE = 5000; // in ms
 class KeypomJS {
   private static instance: KeypomJS;
   nearConnection: nearAPI.Near;
   test = 0;
 
-  dropInformationMeta: {
-    lastFetch: number;
-    lastPageIndex: number;
+  dropStore: {
     drops: ProtocolReturnedDrop[];
+    getDropsLastPage: number;
+    getDropsExpiryTime: number;
   } = {
-    lastFetch: Date.now(),
-    lastPageIndex: Infinity,
     drops: [],
+    getDropsLastPage: Infinity,
+    getDropsExpiryTime: 0,
   };
 
   constructor() {
@@ -201,21 +203,19 @@ class KeypomJS {
   };
 
   getDrops = async ({ accountId, start, limit }) => {
-    const currentTime = Date.now(); // in ms
-    const timeSinceGetDrop = currentTime - this.dropInformationMeta.lastFetch;
-
     /** Get Drops caching logic */
     if (
-      this.dropInformationMeta.drops.length === 0 ||
-      timeSinceGetDrop > 5000 || // 5 seconds in MS
-      start !== this.dropInformationMeta.lastPageIndex
+      Date.now() > this.dropStore.getDropsExpiryTime ||
+      start !== this.dropStore.getDropsLastPage
     ) {
-      this.dropInformationMeta.lastFetch = currentTime;
-      this.dropInformationMeta.lastPageIndex = start;
-      this.dropInformationMeta.drops = await getDrops({ accountId, start, limit });
+      const newGetDropsExpiryTime = new Date(Date.now() + CACHE_MAX_AGE).getTime();
+      this.dropStore.getDropsExpiryTime = newGetDropsExpiryTime;
+
+      this.dropStore.getDropsLastPage = start;
+      this.dropStore.drops = await getDrops({ accountId, start, limit });
     }
 
-    return this.dropInformationMeta.drops;
+    return this.dropStore.drops;
   };
 
   getDropSupplyForOwner = async ({ accountId }) => await getDropSupplyForOwner({ accountId });
