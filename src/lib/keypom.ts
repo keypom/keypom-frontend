@@ -46,6 +46,16 @@ class KeypomJS {
   nearConnection: nearAPI.Near;
   test = 0;
 
+  dropInformationMeta: {
+    lastFetch: number;
+    lastPageIndex: number;
+    drops: ProtocolReturnedDrop[];
+  } = {
+    lastFetch: Date.now(),
+    lastPageIndex: Infinity,
+    drops: [],
+  };
+
   constructor() {
     if (instance !== undefined) {
       throw new Error('New instance cannot be created!!');
@@ -64,16 +74,6 @@ class KeypomJS {
     const { connect } = nearAPI;
 
     this.nearConnection = await connect(connectionConfig);
-  };
-
-  dropInformationMeta: {
-    lastFetch: number;
-    lastPageIndex: number;
-    drops: ProtocolReturnedDrop[];
-  } = {
-    lastFetch: Date.now(),
-    lastPageIndex: Infinity,
-    drops: [],
   };
 
   public static getInstance(): KeypomJS {
@@ -204,9 +204,10 @@ class KeypomJS {
     const currentTime = Date.now(); // in ms
     const timeSinceGetDrop = currentTime - this.dropInformationMeta.lastFetch;
 
+    /** Get Drops caching logic */
     if (
       this.dropInformationMeta.drops.length === 0 ||
-      timeSinceGetDrop > 50000 ||
+      timeSinceGetDrop > 5000 || // 5 seconds in MS
       start !== this.dropInformationMeta.lastPageIndex
     ) {
       this.dropInformationMeta.lastFetch = currentTime;
