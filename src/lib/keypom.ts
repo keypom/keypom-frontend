@@ -53,13 +53,11 @@ class KeypomJS {
       string,
       ProtocolReturnedDrop & { cacheExpiryTime: number; currentPageIndex: number }
     >;
-    drops: ProtocolReturnedDrop[];
-    currentPageIndex: number;
+    drops: Record<number, { drops: ProtocolReturnedDrop[]; cacheExpiryTime: number }>;
     dropsCacheExpiryTime: number;
   } = {
     paginatedDrops: {},
-    drops: [],
-    currentPageIndex: Infinity,
+    drops: {},
     dropsCacheExpiryTime: 0,
   };
 
@@ -220,17 +218,19 @@ class KeypomJS {
   }) => {
     /** Get Drops caching logic */
     if (
-      Date.now() > this.dropStore.dropsCacheExpiryTime ||
-      start !== this.dropStore.currentPageIndex
+      !Object.prototype.hasOwnProperty.call(this.dropStore.drops, start) ||
+      Date.now() > this.dropStore.drops[start].cacheExpiryTime
     ) {
       const newDropsCacheExpiryTime = new Date(Date.now() + CACHE_MAX_AGE).getTime();
       this.dropStore.dropsCacheExpiryTime = newDropsCacheExpiryTime;
 
-      this.dropStore.currentPageIndex = start;
-      this.dropStore.drops = await getDrops({ accountId, start, limit, withKeys });
+      this.dropStore.drops[start] = {
+        drops: await getDrops({ accountId, start, limit, withKeys }),
+        cacheExpiryTime: newDropsCacheExpiryTime,
+      };
     }
 
-    return this.dropStore.drops;
+    return this.dropStore.drops[start].drops;
   };
 
   getDropSupplyForOwner = async ({ accountId }) => await getDropSupplyForOwner({ accountId });
