@@ -51,16 +51,16 @@ class KeypomJS {
   dropStore: {
     paginatedDrops: Record<
       string,
-      ProtocolReturnedDrop & { getExpiryTime: number; getPageIndex: number }
+      ProtocolReturnedDrop & { cacheExpiryTime: number; currentPageIndex: number }
     >;
     drops: ProtocolReturnedDrop[];
-    getDropsLastPage: number;
-    getDropsExpiryTime: number;
+    currentPageIndex: number;
+    dropsCacheExpiryTime: number;
   } = {
     paginatedDrops: {},
     drops: [],
-    getDropsLastPage: Infinity,
-    getDropsExpiryTime: 0,
+    currentPageIndex: Infinity,
+    dropsCacheExpiryTime: 0,
   };
 
   constructor() {
@@ -207,17 +207,27 @@ class KeypomJS {
     return null;
   };
 
-  getDrops = async ({ accountId, start, limit }) => {
+  getDrops = async ({
+    accountId,
+    start,
+    limit,
+    withKeys,
+  }: {
+    accountId: string;
+    start: number;
+    limit: number;
+    withKeys: boolean;
+  }) => {
     /** Get Drops caching logic */
     if (
-      Date.now() > this.dropStore.getDropsExpiryTime ||
-      start !== this.dropStore.getDropsLastPage
+      Date.now() > this.dropStore.dropsCacheExpiryTime ||
+      start !== this.dropStore.currentPageIndex
     ) {
-      const newGetDropsExpiryTime = new Date(Date.now() + CACHE_MAX_AGE).getTime();
-      this.dropStore.getDropsExpiryTime = newGetDropsExpiryTime;
+      const newDropsCacheExpiryTime = new Date(Date.now() + CACHE_MAX_AGE).getTime();
+      this.dropStore.dropsCacheExpiryTime = newDropsCacheExpiryTime;
 
-      this.dropStore.getDropsLastPage = start;
-      this.dropStore.drops = await getDrops({ accountId, start, limit });
+      this.dropStore.currentPageIndex = start;
+      this.dropStore.drops = await getDrops({ accountId, start, limit, withKeys });
     }
 
     return this.dropStore.drops;
@@ -286,15 +296,15 @@ class KeypomJS {
       /** Get PaginatedDrops caching logic */
       if (
         !Object.prototype.hasOwnProperty.call(this.dropStore.paginatedDrops, dropId) ||
-        Date.now() > this.dropStore.paginatedDrops[dropId].getExpiryTime ||
-        pageIndex !== this.dropStore.paginatedDrops[dropId].getPageIndex
+        Date.now() > this.dropStore.paginatedDrops[dropId].cacheExpiryTime ||
+        pageIndex !== this.dropStore.paginatedDrops[dropId].currentPageIndex
       ) {
-        const newGetPaginatedDropsExpiryTime = new Date(Date.now() + CACHE_MAX_AGE).getTime();
+        const newPaginatedDropsCacheExpiryTime = new Date(Date.now() + CACHE_MAX_AGE).getTime();
 
         this.dropStore.paginatedDrops[dropId] = {
           ...(await this.getDropInfo({ dropId })),
-          getPageIndex: pageIndex,
-          getExpiryTime: newGetPaginatedDropsExpiryTime,
+          currentPageIndex: pageIndex,
+          cacheExpiryTime: newPaginatedDropsCacheExpiryTime,
         };
       }
 
