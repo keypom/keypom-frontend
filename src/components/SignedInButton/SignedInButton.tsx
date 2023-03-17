@@ -48,6 +48,8 @@ export const SignedInButton = () => {
   };
 
   const getAccountBalance = () => {
+    if (account === null) return null;
+
     const amountInNEAR = formatNearAmount(account.amount, 4);
 
     if (amountInNEAR === null) {
@@ -107,6 +109,7 @@ export const SignedInButton = () => {
               <Flex>
                 <Text
                   fontWeight="medium"
+                  maxWidth={showNear ? 'initial' : '100'}
                   mr="1"
                   overflow="hidden"
                   textOverflow="ellipsis"
