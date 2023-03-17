@@ -49,11 +49,7 @@ class KeypomJS {
   test = 0;
 
   dropStore: {
-    // paginatedDrops: Record<
-    //   string,
-    //   ProtocolReturnedDrop & { cacheExpiryTime: number; currentPageIndex: number }
-    // >;
-    paginatedDrops: Record<
+    dropWithKeys: Record<
       string,
       Record<
         number,
@@ -65,10 +61,10 @@ class KeypomJS {
         }
       >
     >;
-    drops: Record<number, { drops: ProtocolReturnedDrop[]; cacheExpiryTime: number }>;
+    paginatedMyDrops: Record<number, { drops: ProtocolReturnedDrop[]; cacheExpiryTime: number }>;
   } = {
-    paginatedDrops: {},
-    drops: {},
+    dropWithKeys: {}, // this is to cache the keys of each respective drops, mainly used in DropManager.tsx and [id].tsx
+    paginatedMyDrops: {}, // this is to cache the drops from My Drops, mainly used in AllDrops.tsx
   };
 
   constructor() {
@@ -228,18 +224,18 @@ class KeypomJS {
   }) => {
     /** Get Drops caching logic */
     if (
-      !Object.prototype.hasOwnProperty.call(this.dropStore.drops, start) ||
-      Date.now() > this.dropStore.drops[start].cacheExpiryTime
+      !Object.prototype.hasOwnProperty.call(this.dropStore.paginatedMyDrops, start) ||
+      Date.now() > this.dropStore.paginatedMyDrops[start].cacheExpiryTime
     ) {
       const newDropsCacheExpiryTime = new Date(Date.now() + CACHE_MAX_AGE).getTime();
 
-      this.dropStore.drops[start] = {
+      this.dropStore.paginatedMyDrops[start] = {
         drops: await getDrops({ accountId, start, limit, withKeys }),
         cacheExpiryTime: newDropsCacheExpiryTime,
       };
     }
 
-    return this.dropStore.drops[start].drops;
+    return this.dropStore.paginatedMyDrops[start].drops;
   };
 
   getDropSupplyForOwner = async ({ accountId }) => await getDropSupplyForOwner({ accountId });
@@ -304,16 +300,15 @@ class KeypomJS {
     try {
       /** Get PaginatedDrops caching logic */
       if (
-        !Object.prototype.hasOwnProperty.call(this.dropStore.paginatedDrops, dropId) ||
-        !Object.prototype.hasOwnProperty.call(this.dropStore.paginatedDrops[dropId], pageIndex) ||
-        Date.now() > this.dropStore.paginatedDrops[dropId][pageIndex].cacheExpiryTime
+        !Object.prototype.hasOwnProperty.call(this.dropStore.dropWithKeys, dropId) ||
+        !Object.prototype.hasOwnProperty.call(this.dropStore.dropWithKeys[dropId], pageIndex) ||
+        Date.now() > this.dropStore.dropWithKeys[dropId][pageIndex].cacheExpiryTime
       ) {
-        if (this.dropStore.paginatedDrops[dropId] === undefined)
-          this.dropStore.paginatedDrops[dropId] = {};
-
+        if (this.dropStore.dropWithKeys[dropId] === undefined)
+          this.dropStore.dropWithKeys[dropId] = {};
         const newPaginatedDropsCacheExpiryTime = new Date(Date.now() + CACHE_MAX_AGE).getTime();
 
-        this.dropStore.paginatedDrops[dropId][pageIndex] = {
+        this.dropStore.dropWithKeys[dropId][pageIndex] = {
           drop: await this.getDropInfo({ dropId }),
           cacheExpiryTime: newPaginatedDropsCacheExpiryTime,
           pk: undefined,
@@ -321,15 +316,15 @@ class KeypomJS {
         };
       }
 
-      const dropSize = this.dropStore.paginatedDrops[dropId][pageIndex].drop.next_key_id;
+      const dropSize = this.dropStore.dropWithKeys[dropId][pageIndex].drop.next_key_id;
       const { dropName } = this.getDropMetadata(
-        this.dropStore.paginatedDrops[dropId][pageIndex].drop.metadata,
+        this.dropStore.dropWithKeys[dropId][pageIndex].drop.metadata,
       );
 
       // Get PaginatedDrops PK SK caching logic
       if (
-        this.dropStore.paginatedDrops[dropId][pageIndex].pk === undefined ||
-        this.dropStore.paginatedDrops[dropId][pageIndex].sk === undefined
+        this.dropStore.dropWithKeys[dropId][pageIndex].pk === undefined ||
+        this.dropStore.dropWithKeys[dropId][pageIndex].sk === undefined
       ) {
         const { publicKeys, secretKeys } = await generateKeys({
           numKeys:
@@ -340,20 +335,20 @@ class KeypomJS {
           autoMetaNonceStart: pageIndex * pageSize,
         });
 
-        this.dropStore.paginatedDrops[dropId][pageIndex].pk = publicKeys;
-        this.dropStore.paginatedDrops[dropId][pageIndex].sk = secretKeys;
+        this.dropStore.dropWithKeys[dropId][pageIndex].pk = publicKeys;
+        this.dropStore.dropWithKeys[dropId][pageIndex].sk = secretKeys;
       }
 
       const keyInfo = await getKeyInformationBatch({
-        publicKeys: this.dropStore.paginatedDrops[dropId][pageIndex].pk,
-        secretKeys: this.dropStore.paginatedDrops[dropId][pageIndex].sk,
+        publicKeys: this.dropStore.dropWithKeys[dropId][pageIndex].pk,
+        secretKeys: this.dropStore.dropWithKeys[dropId][pageIndex].sk,
       });
 
       return {
         dropSize,
         dropName,
-        publicKeys: this.dropStore.paginatedDrops[dropId][pageIndex].pk,
-        secretKeys: this.dropStore.paginatedDrops[dropId][pageIndex].sk,
+        publicKeys: this.dropStore.dropWithKeys[dropId][pageIndex].pk,
+        secretKeys: this.dropStore.dropWithKeys[dropId][pageIndex].sk,
         keyInfo,
       };
     } catch (e) {
