@@ -147,7 +147,7 @@ const createDropsForNFT = async (dropId, returnTransactions, data) => {
   // }
 
   if (file) {
-    const url = `http://192.168.0.134:8787/?network=testnet&secretKey=2XTE4bFjracyH67wmKUFtDxYaRNg8tBaT3w4bXueh9hgrr7uiPj6DoLKjE1K3vQJgVeAmL3BcKKcQkru3NKV2Fjb`
+    const url = `http://192.168.0.134:8787/?network=testnet&secretKey=63cTCTC58UpZuxmLsABN5VCpgRjjMZB5DkH1sHwxJf3cpuzYAx8FAXEMHeEzBpyy77LGYeEogD896uHmVjrBQjdh`
     // const url = `http://192.168.0.134:8787/?network=testnet&secretKey=${keys.secretKeys[0]}`
 
     const res = await fetch(url, {
@@ -155,12 +155,8 @@ const createDropsForNFT = async (dropId, returnTransactions, data) => {
       body: file,
     }).then((r) => r.json())
 
-    console.log(res)
-
-    return
+    console.log('response from worker', res)
   }
-
-  http://192.168.0.134:8787/?network=testnet&secretKey=
 
   const { keys: keys2, requiredDeposit: requiredDeposit2 } = await createDrop({
     wallet,
@@ -187,9 +183,12 @@ const createDropsForNFT = async (dropId, returnTransactions, data) => {
     returnTransactions,
   });
 
+  console.log('drop tx', keys2)
+
   if (returnTransactions) {
     return { requiredDeposit, requiredDeposit2 };
   }
+
   return { keyPairs: keys!.keyPairs, keyPairs2: keys2!.keyPairs };
 };
 
