@@ -17,7 +17,7 @@ import { NftReward } from '../components/nft/NftReward';
 
 import ClaimTokenPage from './TokenClaimPage';
 
-const ClaimGiftPage = () => {
+const TicketGiftClaimPage = () => {
   const navigate = useNavigate();
   const { secretKey, contractId } = useClaimParams();
   const { setAppModal } = useAppContext();
@@ -211,4 +211,4 @@ const ClaimGiftPage = () => {
   );
 };
 
-export default ClaimGiftPage;
+export default TicketGiftClaimPage;
