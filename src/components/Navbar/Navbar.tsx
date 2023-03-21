@@ -1,12 +1,25 @@
 import { Box, Flex, HStack, Link, type BoxProps } from '@chakra-ui/react';
+import { Link as RouterLink } from 'react-router-dom';
+import React from 'react';
 
 import { KeypomLogo } from '@/components/KeypomLogo';
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
 
-import { SignedInButton } from '../SignedInButton';
-import { ConnectWalletButton } from '../ConnectWalletButton';
+import '@near-wallet-selector/modal-ui/styles.css';
+import '@/components/WalletSelectorModal/WalletSelectorModal.css';
 
-import { MobileMenu } from './MobileMenu';
+const MobileMenu = React.lazy(
+  async () => await import('./MobileMenu').then((mod) => ({ default: mod.MobileMenu })),
+);
+
+const SignedInButton = React.lazy(
+  async () => await import('../SignedInButton').then((mod) => ({ default: mod.SignedInButton })),
+);
+
+const ConnectWalletButton = React.lazy(
+  async () =>
+    await import('../ConnectWalletButton').then((mod) => ({ default: mod.ConnectWalletButton })),
+);
 
 type NavbarProps = BoxProps;
 
@@ -32,7 +45,13 @@ export const Navbar = (props: NavbarProps) => {
   ];
 
   const menuItems = MENU_ITEMS.map((item) => (
-    <Link key={item.name} hidden={item.isProtected} href={item.href} isExternal={item.isExternal}>
+    <Link
+      key={item.name}
+      as={RouterLink}
+      hidden={item.isProtected}
+      isExternal={item.isExternal}
+      to={item.href}
+    >
       <Box fontSize={{ base: 'sm', md: 'md' }}>{item.name}</Box>
     </Link>
   ));

@@ -1,6 +1,5 @@
 import { useEffect, type PropsWithChildren } from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
-import { isUndefined } from 'lodash';
 
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
 
@@ -22,5 +21,5 @@ export const ProtectedRoute = ({
     }
   }, [isLoggedIn]);
 
-  return isUndefined(children) ? <Outlet /> : <>{children}</>;
+  return children === undefined ? <Outlet /> : <>{children}</>;
 };
