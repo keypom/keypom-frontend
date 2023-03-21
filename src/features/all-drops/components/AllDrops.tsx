@@ -78,7 +78,7 @@ const COLUMNS: ColumnItem[] = [
 ];
 
 export default function AllDrops() {
-  const { setAppModal } = useAppContext();
+  const { setAppModal, refreshTrigger, setRefreshTrigger } = useAppContext();
 
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [isLoading, setIsLoading] = useState(true);
@@ -86,6 +86,19 @@ export default function AllDrops() {
   const [dataSize, setDataSize] = useState<number>(0);
   const [data, setData] = useState<Array<DataItem | null>>([]);
   const [wallet, setWallet] = useState({});
+
+  const { selector, accountId } = useAuthWalletContext();
+
+  useEffect(() => {
+    if (!accountId) return;
+    if (refreshTrigger !== '') {
+      handleGetDropsSize();
+      handleGetDrops({});
+    } else {
+      // first mount, check for NFT attempt
+      handleFinishNFTDrop(setRefreshTrigger, setAppModal);
+    }
+  }, [accountId, refreshTrigger]);
 
   const {
     hasPagination,
@@ -110,8 +123,6 @@ export default function AllDrops() {
       });
     },
   });
-
-  const { selector, accountId } = useAuthWalletContext();
 
   const handleGetDropsSize = async () => {
     const numDrops = await keypomInstance.getDropSupplyForOwner({
@@ -162,6 +173,7 @@ export default function AllDrops() {
 
   const handleGetDrops = useCallback(
     async ({ start = 0, limit = pagination.pageSize }) => {
+
       const drops = await keypomInstance.getDrops({ accountId, start, limit });
 
       setWallet(await selector.wallet());
@@ -178,13 +190,6 @@ export default function AllDrops() {
     },
     [pagination],
   );
-
-  useEffect(() => {
-    if (!accountId) return;
-    handleGetDropsSize();
-    handleGetDrops({});
-    handleFinishNFTDrop();
-  }, [accountId]);
 
   const dropMenuItems = MENU_ITEMS.map((item) => (
     <MenuItem key={item.label} {...item}>

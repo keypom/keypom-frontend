@@ -431,7 +431,7 @@ class KeypomJS {
         args: { mint_id: parseInt(drop.drop_id) },
       });
     } catch (err) {
-      console.error('NFT series not found');
+      console.error('NFT series not found', drop.drop_id);
       throw new Error('NFT series not found');
     }
 

@@ -40,8 +40,11 @@ export const AppContextProvider = ({ children }: PropsWithChildren) => {
   const [appModal, setAppModal] = useState<AppModalValues>({
     isOpen: false,
   });
+  const [refreshTrigger, setRefreshTrigger] = useState<string>('');
 
   const value = {
+    refreshTrigger,
+    setRefreshTrigger,
     appModal,
     setAppModal,
   };
