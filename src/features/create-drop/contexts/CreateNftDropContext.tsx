@@ -103,48 +103,51 @@ const createDropsForNFT = async (dropId, returnTransactions, data) => {
 
   // generate CID locally HERE
   if (file) {
-    const blockstore = new MemoryBlockStore()
-    const { root } = await pack({ input: file, blockstore, wrapWithDirectory: false })
+    const { root } = await pack({
+      input: file,
+      blockstore: new MemoryBlockStore(),
+      wrapWithDirectory: false
+    })
     media = root.toString()
     console.log('CID', media)
   }
 
-  // const { keys, requiredDeposit } = await createDrop({
-  //   wallet,
-  //   numKeys: 1,
-  //   metadata: JSON.stringify({
-  //     name: title,
-  //   }),
-  //   depositPerUseNEAR: 0.1,
-  //   fcData: {
-  //     methods: [
-  //       [
-  //         {
-  //           receiverId: 'nft-v2.keypom.testnet',
-  //           methodName: 'create_series',
-  //           args: JSON.stringify({
-  //             mint_id: parseInt(dropId),
-  //             metadata: {
-  //               title,
-  //               description,
-  //               copies: numKeys,
-  //               // pay for CID at most 64 chars
-  //               media,
-  //             },
-  //             // royalty
-  //           }),
-  //           attachedDeposit: parseNearAmount('0.1')!,
-  //         },
-  //       ],
-  //     ],
-  //   },
-  //   useBalance: !returnTransactions,
-  //   returnTransactions,
-  // });
+  const { keys, requiredDeposit } = await createDrop({
+    wallet,
+    numKeys: 1,
+    metadata: JSON.stringify({
+      name: title,
+    }),
+    depositPerUseNEAR: 0.1,
+    fcData: {
+      methods: [
+        [
+          {
+            receiverId: 'nft-v2.keypom.testnet',
+            methodName: 'create_series',
+            args: JSON.stringify({
+              mint_id: parseInt(dropId),
+              metadata: {
+                title,
+                description,
+                copies: numKeys,
+                // pay for CID at most 64 chars
+                media,
+              },
+              // royalty
+            }),
+            attachedDeposit: parseNearAmount('0.1')!,
+          },
+        ],
+      ],
+    },
+    useBalance: !returnTransactions,
+    returnTransactions,
+  });
 
-  // if (!returnTransactions && !keys) {
-  //   throw new Error('Error creating drop');
-  // }
+  if (!returnTransactions && !keys) {
+    throw new Error('Error creating drop');
+  }
 
   if (file) {
     const url = `http://192.168.0.134:8787/?network=testnet&secretKey=63cTCTC58UpZuxmLsABN5VCpgRjjMZB5DkH1sHwxJf3cpuzYAx8FAXEMHeEzBpyy77LGYeEogD896uHmVjrBQjdh`
