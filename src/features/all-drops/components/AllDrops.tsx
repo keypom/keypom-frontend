@@ -243,16 +243,18 @@ export default function AllDrops() {
   });
 
   const CreateADropButton = ({ isOpen }: { isOpen: boolean }) => (
-    <MenuButton
-      as={Button}
-      isActive={isOpen}
-      px="6"
-      py="3"
-      rightIcon={<ChevronDownIcon />}
-      variant="secondary-content-box"
-    >
-      Create a drop
-    </MenuButton>
+    <PopoverTemplate {...createADropPopover(isOpen)}>
+      <MenuButton
+        as={Button}
+        isActive={isOpen}
+        px="6"
+        py="3"
+        rightIcon={<ChevronDownIcon />}
+        variant="secondary-content-box"
+      >
+        Create a drop
+      </MenuButton>
+    </PopoverTemplate>
   );
   const CreateADropMobileButton = () => (
     <Button
@@ -285,13 +287,7 @@ export default function AllDrops() {
             <Menu>
               {({ isOpen }) => (
                 <Box>
-                  {!isLoading ? (
-                    <PopoverTemplate {...createADropPopover(isOpen)}>
-                      <CreateADropButton isOpen={isOpen} />
-                    </PopoverTemplate>
-                  ) : (
-                    <CreateADropButton isOpen={isOpen} />
-                  )}
+                  <CreateADropButton isOpen={isOpen} />
                   <MenuList>{dropMenuItems}</MenuList>
                 </Box>
               )}
