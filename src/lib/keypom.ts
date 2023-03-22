@@ -127,7 +127,7 @@ class KeypomJS {
     await updateKeypomContractId({ keypomContractId: contractId });
   };
 
-  checkTicketRemainingUses = async (contractId: string, secretKey: string) => {
+  getCurrentKeyUse = async (contractId: string, secretKey: string) => {
     await this.verifyDrop(contractId, secretKey);
 
     const keyInfo = await getKeyInformation({ secretKey });
@@ -136,7 +136,7 @@ class KeypomJS {
       throw new Error('Drop has been deleted or has already been claimed');
     }
 
-    return keyInfo.remaining_uses;
+    return keyInfo.cur_key_use;
   };
 
   checkIfDropExists = async (secretKey: string) => {
@@ -471,7 +471,6 @@ class KeypomJS {
     if (linkdropType !== DROP_TYPE.TICKET) {
       throw new Error('This drop is not a Ticket drop. Please contact your drop creator.');
     }
-    const remainingUses = await this.checkTicketRemainingUses(contractId, secretKey);
 
     const dropMetadata = this.getDropMetadata(drop.metadata);
 

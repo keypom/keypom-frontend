@@ -151,6 +151,14 @@ export const router = createBrowserRouter([
                 element: <ClaimTicketPage />,
               },
               {
+                path: 'ticket2/:contractId',
+                element: (
+                  <ClaimFormContextProvider>
+                    <ClaimTicketPage2 />
+                  </ClaimFormContextProvider>
+                ),
+              },
+              {
                 path: 'trial/:contractId',
                 element: <ClaimTrialPage />,
               },
