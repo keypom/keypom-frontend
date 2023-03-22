@@ -148,7 +148,7 @@ export const CreateTokenDropForm = () => {
                 onChange={(e) => {
                   if (e.target.value.length > e.target.maxLength)
                     e.target.value = e.target.value.slice(0, e.target.maxLength);
-                  field.onChange(parseFloat(e.target.value));
+                  field.onChange(e.target.value);
                 }}
               >
                 <WalletBalanceInput.TokenMenu
