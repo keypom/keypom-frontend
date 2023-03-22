@@ -154,7 +154,7 @@ export const CreateTokenDropForm = () => {
                 onChange={(e) => {
                   if (e.target.value.length > e.target.maxLength)
                     e.target.value = e.target.value.slice(0, e.target.maxLength);
-                  onChange(parseFloat(e.target.value));
+                  onChange(e.target.value);
                 }}
               >
                 <TokenInput.TokenMenu
