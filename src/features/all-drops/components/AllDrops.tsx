@@ -18,6 +18,7 @@ import {
 import { useCallback, useEffect, useState } from 'react';
 import { type ProtocolReturnedDrop } from 'keypom-js';
 import { ChevronDownIcon } from '@chakra-ui/icons';
+import { useSearchParams } from 'react-router-dom';
 
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
 import { type ColumnItem, type DataItem } from '@/components/Table/types';
@@ -28,7 +29,7 @@ import { truncateAddress } from '@/utils/truncateAddress';
 import { NextButton, PrevButton } from '@/components/Pagination';
 import { usePagination } from '@/hooks/usePagination';
 import { useAppContext } from '@/contexts/AppContext';
-import { DROP_TYPE } from '@/constants/common';
+import { DROP_TYPE, PAGE_QUERY_PARAM } from '@/constants/common';
 import keypomInstance from '@/lib/keypom';
 import { PopoverTemplate } from '@/components/PopoverTemplate';
 
@@ -78,6 +79,8 @@ const COLUMNS: ColumnItem[] = [
 ];
 
 export default function AllDrops() {
+  const [searchParams, setSearchParams] = useSearchParams();
+
   const { setAppModal } = useAppContext();
 
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -88,6 +91,7 @@ export default function AllDrops() {
   const [wallet, setWallet] = useState({});
 
   const {
+    setPagination,
     hasPagination,
     pagination,
     isFirstPage,
@@ -98,16 +102,26 @@ export default function AllDrops() {
   } = usePagination({
     dataSize,
     handlePrevApiCall: async () => {
+      const prevPageIndex = pagination.pageIndex - 1;
       await handleGetDrops({
-        start: (pagination.pageIndex - 1) * pagination.pageSize,
+        start: prevPageIndex * pagination.pageSize,
         limit: pagination.pageSize,
       });
+      const newQueryParams = new URLSearchParams({
+        [PAGE_QUERY_PARAM]: prevPageIndex.toString(),
+      });
+      setSearchParams(newQueryParams);
     },
     handleNextApiCall: async () => {
+      const nextPageIndex = pagination.pageIndex + 1;
       await handleGetDrops({
-        start: (pagination.pageIndex + 1) * pagination.pageSize,
+        start: nextPageIndex * pagination.pageSize,
         limit: pagination.pageSize,
       });
+      const newQueryParams = new URLSearchParams({
+        [PAGE_QUERY_PARAM]: nextPageIndex.toString(),
+      });
+      setSearchParams(newQueryParams);
     },
   });
 
@@ -134,7 +148,7 @@ export default function AllDrops() {
     } catch (_) {
       return null;
     }
-    if (type === undefined || type === null || type === '') return null; // don't show the drop if the type return is unexpected
+    // if (type === undefined || type === null || type === '') return null; // don't show the drop if the type return is unexpected
 
     let nftHref: string | undefined;
     if (type === DROP_TYPE.NFT) {
@@ -181,8 +195,11 @@ export default function AllDrops() {
 
   useEffect(() => {
     if (!accountId) return;
+    const pageQuery = searchParams.get('page');
+    const currentPageIndex = pageQuery !== null ? parseInt(pageQuery) : 0;
+    setPagination((pagination) => ({ ...pagination, pageIndex: currentPageIndex }));
     handleGetDropsSize();
-    handleGetDrops({});
+    handleGetDrops({ start: currentPageIndex * pagination.pageSize });
     handleFinishNFTDrop();
   }, [accountId]);
 
@@ -198,7 +215,7 @@ export default function AllDrops() {
         wallet,
         dropIds: [dropId],
       });
-      handleGetDrops({});
+      window.location.reload();
     });
   };
 
