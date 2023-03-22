@@ -130,7 +130,7 @@ export default function AllDrops() {
 
     let type: string | null = '';
     try {
-      type = keypomInstance.getDropType(drop);
+      type = keypomInstance.getDropType(drop) || 'OTHER';
     } catch (_) {
       return null;
     }
@@ -207,6 +207,7 @@ export default function AllDrops() {
 
     return data.reduce((result: DataItem[], drop) => {
       if (drop !== null) {
+        const type = drop.type === 'other' ? 'token' : (drop.type as string).toLowerCase();
         const dataItem = {
           ...drop,
           name: <Text color="gray.800">{drop.name}</Text>,
@@ -229,7 +230,7 @@ export default function AllDrops() {
               <DeleteIcon color="red" />
             </Button>
           ),
-          href: `/drop/${(drop.type as string).toLowerCase()}/${drop.id}`,
+          href: `/drop/${type}/${drop.id}`,
         };
         result.push(dataItem);
       }
@@ -239,7 +240,7 @@ export default function AllDrops() {
 
   const createADropPopover = (menuIsOpen: boolean) => ({
     header: 'Click here to create a drop!',
-    shouldOpen: !isLoading && data.length === 0 && !menuIsOpen,
+    shouldOpen: data.length === 0 && !menuIsOpen,
   });
 
   const CreateADropButton = ({ isOpen }: { isOpen: boolean }) => (
@@ -257,17 +258,15 @@ export default function AllDrops() {
     </PopoverTemplate>
   );
   const CreateADropMobileButton = () => (
-    <PopoverTemplate placement="bottom" {...createADropPopover(false)}>
-      <Button
-        px="6"
-        py="3"
-        rightIcon={<ChevronDownIcon />}
-        variant="secondary-content-box"
-        onClick={onOpen}
-      >
-        Create a drop
-      </Button>
-    </PopoverTemplate>
+    <Button
+      px="6"
+      py="3"
+      rightIcon={<ChevronDownIcon />}
+      variant="secondary-content-box"
+      onClick={onOpen}
+    >
+      Create a drop
+    </Button>
   );
 
   return (
@@ -315,7 +314,13 @@ export default function AllDrops() {
           </Heading>
 
           <HStack justify="space-between" w="full">
-            <CreateADropMobileButton />
+            {!isLoading ? (
+              <PopoverTemplate placement="bottom" {...createADropPopover(false)}>
+                <CreateADropMobileButton />
+              </PopoverTemplate>
+            ) : (
+              <CreateADropMobileButton />
+            )}
             {hasPagination && (
               <HStack>
                 <PrevButton
