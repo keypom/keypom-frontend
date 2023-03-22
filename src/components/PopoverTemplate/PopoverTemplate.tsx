@@ -30,7 +30,7 @@ export const PopoverTemplate = ({
   ...props
 }: PropsWithChildren<PopoverTemplateProps>) => {
   return (
-    <Popover closeOnBlur defaultIsOpen={shouldOpen} placement="left" {...props}>
+    <Popover closeOnBlur isOpen={shouldOpen} placement="left" {...props}>
       <PopoverTrigger>{children}</PopoverTrigger>
       <PopoverContent bg="gray.800" color="gray.50" {...popoverContentProps}>
         {header && (

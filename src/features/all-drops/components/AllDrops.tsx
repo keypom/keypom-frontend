@@ -239,7 +239,7 @@ export default function AllDrops() {
 
   const createADropPopover = (menuIsOpen: boolean) => ({
     header: 'Click here to create a drop!',
-    shouldOpen: data.length === 0 && !menuIsOpen,
+    shouldOpen: !isLoading && data.length === 0 && !menuIsOpen,
   });
 
   const CreateADropButton = ({ isOpen }: { isOpen: boolean }) => (
@@ -257,15 +257,17 @@ export default function AllDrops() {
     </PopoverTemplate>
   );
   const CreateADropMobileButton = () => (
-    <Button
-      px="6"
-      py="3"
-      rightIcon={<ChevronDownIcon />}
-      variant="secondary-content-box"
-      onClick={onOpen}
-    >
-      Create a drop
-    </Button>
+    <PopoverTemplate placement="bottom" {...createADropPopover(false)}>
+      <Button
+        px="6"
+        py="3"
+        rightIcon={<ChevronDownIcon />}
+        variant="secondary-content-box"
+        onClick={onOpen}
+      >
+        Create a drop
+      </Button>
+    </PopoverTemplate>
   );
 
   return (
@@ -313,13 +315,7 @@ export default function AllDrops() {
           </Heading>
 
           <HStack justify="space-between" w="full">
-            {!isLoading ? (
-              <PopoverTemplate placement="bottom" {...createADropPopover(false)}>
-                <CreateADropMobileButton />
-              </PopoverTemplate>
-            ) : (
-              <CreateADropMobileButton />
-            )}
+            <CreateADropMobileButton />
             {hasPagination && (
               <HStack>
                 <PrevButton
