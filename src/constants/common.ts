@@ -9,6 +9,7 @@ export const DROP_TYPE = {
   TRIAL: 'TRIAL',
   NFT: 'NFT',
   SIMPLE: 'SIMPLE',
+  OTHER: 'OTHER',
 };
 
 export const MASTER_KEY = 'MASTER_KEY';

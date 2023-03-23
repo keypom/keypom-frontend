@@ -108,7 +108,7 @@ export default function AllDrops() {
         limit: pagination.pageSize,
       });
       const newQueryParams = new URLSearchParams({
-        [PAGE_QUERY_PARAM]: prevPageIndex.toString(),
+        [PAGE_QUERY_PARAM]: (prevPageIndex + 1).toString(),
       });
       setSearchParams(newQueryParams);
     },
@@ -119,7 +119,7 @@ export default function AllDrops() {
         limit: pagination.pageSize,
       });
       const newQueryParams = new URLSearchParams({
-        [PAGE_QUERY_PARAM]: nextPageIndex.toString(),
+        [PAGE_QUERY_PARAM]: (nextPageIndex + 1).toString(),
       });
       setSearchParams(newQueryParams);
     },
@@ -144,11 +144,10 @@ export default function AllDrops() {
 
     let type: string | null = '';
     try {
-      type = keypomInstance.getDropType(drop) || 'OTHER';
+      type = keypomInstance.getDropType(drop);
     } catch (_) {
-      return null;
+      type = DROP_TYPE.OTHER;
     }
-    // if (type === undefined || type === null || type === '') return null; // don't show the drop if the type return is unexpected
 
     let nftHref: string | undefined;
     if (type === DROP_TYPE.NFT) {
@@ -195,8 +194,9 @@ export default function AllDrops() {
 
   useEffect(() => {
     if (!accountId) return;
+    // page query param should be indexed from 1
     const pageQuery = searchParams.get('page');
-    const currentPageIndex = pageQuery !== null ? parseInt(pageQuery) : 0;
+    const currentPageIndex = pageQuery !== null ? parseInt(pageQuery) - 1 : 0;
     setPagination((pagination) => ({ ...pagination, pageIndex: currentPageIndex }));
     handleGetDropsSize();
     handleGetDrops({ start: currentPageIndex * pagination.pageSize });
@@ -224,6 +224,8 @@ export default function AllDrops() {
 
     return data.reduce((result: DataItem[], drop) => {
       if (drop !== null) {
+        // show token drop manager for other drops type
+        const dropType = drop.type === DROP_TYPE.OTHER ? DROP_TYPE.TOKEN : drop.type;
         const dataItem = {
           ...drop,
           name: <Text color="gray.800">{drop.name}</Text>,
@@ -246,9 +248,9 @@ export default function AllDrops() {
               <DeleteIcon color="red" />
             </Button>
           ),
-          href: `/drop/${(drop.type as string).toLowerCase()}/${drop.id}`,
+          href: `/drop/${(dropType as string).toLowerCase()}/${drop.id}`,
         };
-        result.push(dataItem);
+        return [...result, dataItem];
       }
       return result;
     }, []);
@@ -256,7 +258,7 @@ export default function AllDrops() {
 
   const createADropPopover = (menuIsOpen: boolean) => ({
     header: 'Click here to create a drop!',
-    shouldOpen: !isLoading && data.length === 0 && !menuIsOpen,
+    shouldOpen: !isLoading && !hasPagination && data.length === 0 && !menuIsOpen,
   });
 
   const CreateADropButton = ({ isOpen }: { isOpen: boolean }) => (

@@ -204,11 +204,9 @@ class KeypomJS {
       ) {
         return DROP_TYPE.NFT;
       }
-
-      return null;
     }
 
-    return null;
+    return DROP_TYPE.OTHER;
   };
 
   getDrops = async ({
