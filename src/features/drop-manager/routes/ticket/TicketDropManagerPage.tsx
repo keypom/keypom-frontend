@@ -16,7 +16,7 @@ export default function TicketDropManagerPage() {
 
   const { id: dropId = '' } = useParams();
 
-  const [claimed, setClaimed] = useState<number>(0);
+  const [scannedAndClaimed, setScannedAndClaimed] = useState<number>(0);
 
   useEffect(() => {
     if (dropId === '') navigate('/drops');
@@ -38,6 +38,7 @@ export default function TicketDropManagerPage() {
   }, [masterKeyValidity]);
 
   const getScannedKeys = async () => {
+    const keysSupply = await keypomInstance.getAvailableKeys(dropId);
     const getScannedInner = async (scanned = 0, index = 0) => {
       const drop = await keypomInstance.getDropInfo({ dropId });
 
@@ -55,7 +56,7 @@ export default function TicketDropManagerPage() {
       scanned += scannedKeys.length;
       index = index + 1;
 
-      setClaimed(scanned);
+      setScannedAndClaimed(keysSupply - scanned);
 
       getScannedInner(scanned, index);
     };
@@ -114,7 +115,7 @@ export default function TicketDropManagerPage() {
   return (
     <DropManager
       claimedHeaderText="Scanned"
-      getClaimedText={(dropSize) => `${claimed} / ${dropSize}`}
+      getClaimedText={(dropSize) => `${dropSize - scannedAndClaimed} / ${dropSize}`}
       getData={getTableRows}
       showColumns={false}
       tableColumns={tableColumns}
