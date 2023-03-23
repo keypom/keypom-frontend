@@ -137,7 +137,7 @@ export default function AllDrops() {
 
   const setAllDropsData = async (drop: ProtocolReturnedDrop) => {
     const { drop_id: id, metadata, next_key_id: totalKeys } = drop;
-    const claimedKeys = await keypomInstance.getClaimedDropInfo(id);
+    const claimedKeys = await keypomInstance.getAvailableKeys(id);
     const claimedText = `${totalKeys - claimedKeys} / ${totalKeys}`;
 
     const { dropName } = keypomInstance.getDropMetadata(metadata);

@@ -1,17 +1,14 @@
 import { Badge } from '@chakra-ui/react';
 
-import { type TicketClaimStatus } from '../types/types';
-
-export const getBadgeType = (status: TicketClaimStatus): React.ReactNode => {
-  switch (status) {
-    case 'Unclaimed':
-      return <Badge variant="gray">Unclaimed</Badge>;
-    case 'Viewed':
+export const getBadgeType = (currentKeyUse: number): React.ReactNode => {
+  if (!currentKeyUse) return <Badge variant="lightgreen">Claimed</Badge>;
+  switch (currentKeyUse) {
+    case 2:
       return <Badge variant="blue">Viewed</Badge>;
-    case 'Attended':
+    case 3:
       return <Badge variant="pink">Attended</Badge>;
-    case 'Claimed':
+    case 1:
     default:
-      return <Badge variant="lightgreen">Claimed</Badge>;
+      return <Badge variant="gray">Unclaimed</Badge>;
   }
 };

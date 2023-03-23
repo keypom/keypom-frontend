@@ -268,7 +268,7 @@ class KeypomJS {
     return drop;
   };
 
-  getClaimedDropInfo = async (dropId: string) => await getKeySupplyForDrop({ dropId });
+  getAvailableKeys = async (dropId: string) => await getKeySupplyForDrop({ dropId });
 
   getKeysForDrop = async ({ dropId, limit, start }) =>
     await getKeysForDrop({ dropId, limit, start });

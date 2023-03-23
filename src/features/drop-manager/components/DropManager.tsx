@@ -7,9 +7,11 @@ import {
   type TableProps,
   Text,
   Skeleton,
+  useToast,
 } from '@chakra-ui/react';
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { type ProtocolReturnedKeyInfo } from 'keypom-js';
 
 import { type ColumnItem, type DataItem } from '@/components/Table/types';
 import { DataTable } from '@/components/Table';
@@ -19,61 +21,179 @@ import { file } from '@/utils/file';
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
 import { useAppContext } from '@/contexts/AppContext';
 import keypomInstance from '@/lib/keypom';
+import { useValidMasterKey } from '@/hooks/useValidMasterKey';
+import { usePagination } from '@/hooks/usePagination';
+import { PAGE_QUERY_PARAM, PAGE_SIZE_LIMIT } from '@/constants/common';
+import getConfig from '@/config/config';
+import { share } from '@/utils/share';
+import { setMasterKeyValidityModal } from '@/features/drop-manager/components/MasterKeyValidityModal';
+
+import { INITIAL_SAMPLE_DATA } from '../constants/common';
 
 import { setConfirmationModalHelper } from './ConfirmationModal';
+import { setMissingDropModal } from './MissingDropModal';
+
+export interface DropKeyItem {
+  id: number;
+  publicKey: string;
+  link: string;
+  slug: string;
+  hasClaimed: boolean;
+  keyInfo?: ProtocolReturnedKeyInfo;
+}
+
+export type GetDataFn = (
+  data: DropKeyItem[],
+  handleDelete: (pubKey: string) => Promise<void>,
+  handleCopy: (link: string) => void,
+) => DataItem[];
 
 interface DropManagerProps {
-  dropName: string;
   claimedHeaderText: string;
-  claimedText: string;
+  getClaimedText: (dropSize: number) => string;
   tableColumns: ColumnItem[];
   showColumns?: boolean;
-  data: DataItem[];
-  pagination?: {
-    hasPagination: boolean;
-    id: string;
-    paginationLoading: {
-      previous: boolean;
-      next: boolean;
-    };
-    isFirstPage: boolean;
-    isLastPage: boolean;
-    handlePrevPage: () => void;
-    handleNextPage: () => void;
-  };
+  getData: GetDataFn;
   tableProps?: TableProps;
   loading?: boolean;
 }
 
 export const DropManager = ({
-  dropName,
   claimedHeaderText,
-  claimedText,
+  getClaimedText,
   tableColumns = [],
-  data = [],
+  getData,
   showColumns = true,
   tableProps,
-  pagination,
-  loading = false,
 }: DropManagerProps) => {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const { id: dropId = '' } = useParams();
   const navigate = useNavigate();
+  const toast = useToast();
   const { setAppModal } = useAppContext();
   const [wallet, setWallet] = useState({});
-  const { selector } = useAuthWalletContext();
+  const { selector, accountId } = useAuthWalletContext();
+  const [loading, setLoading] = useState(true);
 
+  const [name, setName] = useState('Untitled');
+  const [dropKeys, setDropKeys] = useState<DropKeyItem[]>([INITIAL_SAMPLE_DATA[0]]);
+  const [totalKeys, setTotalKeys] = useState<number>(0);
   const [deleting, setDeleting] = useState<boolean>(false);
   const [exporting, setExporting] = useState<boolean>(false);
 
-  const allowAction = data.length > 0;
+  const {
+    setPagination,
+    hasPagination,
+    pagination,
+    isFirstPage,
+    isLastPage,
+    loading: paginationLoading,
+    handleNextPage,
+    handlePrevPage,
+  } = usePagination({
+    dataSize: totalKeys,
+    handlePrevApiCall: async () => {
+      const prevPageIndex = pagination.pageIndex - 1;
+      await handleGetDrops({
+        pageIndex: prevPageIndex,
+        pageSize: pagination.pageSize,
+      });
+      const newQueryParams = new URLSearchParams({
+        [PAGE_QUERY_PARAM]: (prevPageIndex + 1).toString(),
+      });
+      setSearchParams(newQueryParams);
+    },
+    handleNextApiCall: async () => {
+      const nextPageIndex = pagination.pageIndex + 1;
+      await handleGetDrops({
+        pageIndex: nextPageIndex,
+        pageSize: pagination.pageSize,
+      });
+      const newQueryParams = new URLSearchParams({
+        [PAGE_QUERY_PARAM]: (nextPageIndex + 1).toString(),
+      });
+      setSearchParams(newQueryParams);
+    },
+  });
+
+  const getWallet = async () => {
+    if (selector === null) {
+      return;
+    }
+    try {
+      const selectorWallet = await selector?.wallet();
+      setWallet(selectorWallet);
+    } catch (err) {
+      console.log(err);
+    }
+  };
 
   useEffect(() => {
-    if (selector === null) return;
-
-    const getWallet = async () => {
-      setWallet(await selector.wallet());
-    };
     getWallet();
   }, [selector]);
+
+  const { masterKeyValidity } = useValidMasterKey({ dropId });
+  useEffect(() => {
+    if (!masterKeyValidity) {
+      setMasterKeyValidityModal(
+        setAppModal,
+        () => {
+          window.location.reload();
+        },
+        () => {
+          navigate('/drops');
+        },
+      );
+    }
+  }, [masterKeyValidity]);
+
+  // TODO: Pass data back to parent component and bring it back here
+  const handleGetDrops = useCallback(
+    async ({ pageIndex = 0, pageSize = PAGE_SIZE_LIMIT }) => {
+      if (!accountId) return;
+      const keyInfoReturn = await keypomInstance.getKeysInfo(dropId, pageIndex, pageSize, () => {
+        setMissingDropModal(setAppModal); // User will be redirected if getDropInformation fails
+        navigate('/drops');
+      });
+      if (
+        keyInfoReturn === undefined ||
+        keyInfoReturn?.secretKeys === undefined ||
+        keyInfoReturn?.publicKeys === undefined
+      ) {
+        navigate('/drops');
+        return;
+      }
+      const { dropSize, dropName, publicKeys, secretKeys, keyInfo } = keyInfoReturn;
+      setTotalKeys(dropSize);
+      setName(dropName);
+
+      setDropKeys(
+        secretKeys.map((key: string, i) => ({
+          id: i,
+          publicKey: publicKeys[i],
+          link: `${window.location.origin}/claim/${getConfig().contractId}#${key.replace(
+            'ed25519:',
+            '',
+          )}`,
+          slug: key.substring(8, 16),
+          hasClaimed: keyInfo[i] === null,
+          keyInfo: keyInfo[i],
+        })),
+      );
+
+      setLoading(false);
+    },
+    [pagination],
+  );
+
+  useEffect(() => {
+    // page query param should be indexed from 1
+    const pageQuery = searchParams.get('page');
+    const currentPageIndex = pageQuery !== null ? parseInt(pageQuery) - 1 : 0;
+    setPagination((pagination) => ({ ...pagination, pageIndex: currentPageIndex }));
+
+    handleGetDrops({ ...pagination, pageIndex: currentPageIndex });
+  }, [accountId]);
 
   const breadcrumbItems = [
     {
@@ -81,7 +201,7 @@ export const DropManager = ({
       href: '/drops',
     },
     {
-      name: dropName,
+      name,
       href: '',
     },
   ];
@@ -123,6 +243,33 @@ export const DropManager = ({
     }
   };
 
+  const handleCopyClick = (link: string) => {
+    share(link);
+    toast({ title: 'Copied!', status: 'success', duration: 1000, isClosable: true });
+  };
+
+  const handleDeleteClick = async (pubKey: string) => {
+    setConfirmationModalHelper(
+      setAppModal,
+      async () => {
+        await keypomInstance.deleteKeys({
+          wallet: await selector?.wallet(),
+          dropId,
+          publicKeys: pubKey,
+        });
+        window.location.reload();
+      },
+      'key',
+    );
+  };
+
+  const data = useMemo(
+    () => getData(dropKeys, handleDeleteClick, handleCopyClick),
+    [getData, dropKeys, dropKeys.length, handleCopyClick, handleDeleteClick],
+  );
+
+  const allowAction = data.length > 0;
+
   return (
     <Box px="1" py={{ base: '3.25rem', md: '5rem' }}>
       <Breadcrumbs items={breadcrumbItems} />
@@ -139,7 +286,7 @@ export const DropManager = ({
             <Stack maxW={{ base: 'full', md: '22.5rem' }}>
               <Text color="gray.800">Drop name</Text>
               <Skeleton isLoaded={!loading}>
-                <Heading>{dropName}</Heading>
+                <Heading>{name}</Heading>
               </Skeleton>
             </Stack>
 
@@ -147,7 +294,7 @@ export const DropManager = ({
             <Stack maxW={{ base: 'full', md: '22.5rem' }}>
               <Text color="gray.800">{claimedHeaderText}</Text>
               <Skeleton isLoaded={!loading}>
-                <Heading>{claimedText}</Heading>
+                <Heading>{getClaimedText(totalKeys)}</Heading>
               </Skeleton>
             </Stack>
           </Stack>
@@ -156,12 +303,11 @@ export const DropManager = ({
 
         {/* Right Section */}
         <HStack alignItems="end" justify="end" mt="1rem !important">
-          {pagination?.hasPagination && (
+          {hasPagination && (
             <PrevButton
-              id={pagination.id}
-              isDisabled={!!pagination.isFirstPage}
-              isLoading={pagination.paginationLoading.previous}
-              onClick={pagination.handlePrevPage}
+              isDisabled={!!isFirstPage}
+              isLoading={paginationLoading.previous}
+              onClick={handlePrevPage}
             />
           )}
           <Button
@@ -182,12 +328,11 @@ export const DropManager = ({
           >
             Export .CSV
           </Button>
-          {pagination?.hasPagination && (
+          {hasPagination && (
             <NextButton
-              id={pagination.id}
-              isDisabled={!!pagination.isLastPage}
-              isLoading={pagination.paginationLoading.next}
-              onClick={pagination.handleNextPage}
+              isDisabled={!!isLastPage}
+              isLoading={paginationLoading.next}
+              onClick={handleNextPage}
             />
           )}
         </HStack>

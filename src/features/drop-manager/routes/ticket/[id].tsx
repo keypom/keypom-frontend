@@ -1,64 +1,26 @@
-import { Box, Button, Text, useToast } from '@chakra-ui/react';
-import { useCallback, useEffect, useState } from 'react';
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { Button, Text } from '@chakra-ui/react';
+import { useEffect, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 
 import { CopyIcon, DeleteIcon } from '@/components/Icons';
-import { DropManager } from '@/features/drop-manager/components/DropManager';
-import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
-import { PAGE_QUERY_PARAM, PAGE_SIZE_LIMIT } from '@/constants/common';
-import { usePagination } from '@/hooks/usePagination';
-import { type DataItem } from '@/components/Table/types';
-import { useAppContext } from '@/contexts/AppContext';
-import getConfig from '@/config/config';
+import { DropManager, type GetDataFn } from '@/features/drop-manager/components/DropManager';
 import { useValidMasterKey } from '@/hooks/useValidMasterKey';
-import { share } from '@/utils/share';
 import keypomInstance from '@/lib/keypom';
 
 import { getClaimStatus } from '../../utils/getClaimStatus';
 import { getBadgeType } from '../../utils/getBadgeType';
 import { tableColumns } from '../../components/TableColumn';
-import { INITIAL_SAMPLE_DATA } from '../../constants/common';
-import { type TicketClaimStatus } from '../../types/types';
-import { setConfirmationModalHelper } from '../../components/ConfirmationModal';
-import { setMasterKeyValidityModal } from '../../components/MasterKeyValidityModal';
-import { setMissingDropModal } from '../../components/MissingDropModal';
 
 export default function TicketDropManagerPage() {
   const navigate = useNavigate();
-  const [searchParams, setSearchParams] = useSearchParams();
-  const { setAppModal } = useAppContext();
-  const toast = useToast();
 
   const { id: dropId = '' } = useParams();
-  const [loading, setLoading] = useState(true);
 
-  const [name, setName] = useState('Untitled');
-  const [dataSize, setDataSize] = useState<number>(0);
   const [claimed, setClaimed] = useState<number>(0);
-  const [data, setData] = useState<DataItem[]>([INITIAL_SAMPLE_DATA[1]]);
-
-  const [wallet, setWallet] = useState({});
-  const { selector, accountId } = useAuthWalletContext();
 
   useEffect(() => {
     if (dropId === '') navigate('/drops');
   }, [dropId]);
-
-  const getWallet = async () => {
-    if (selector === null) {
-      return;
-    }
-    try {
-      const selectorWallet = await selector?.wallet();
-      setWallet(selectorWallet);
-    } catch (err) {
-      console.log(err);
-    }
-  };
-
-  useEffect(() => {
-    getWallet();
-  }, [selector]);
 
   const { masterKeyValidity } = useValidMasterKey({ dropId });
   useEffect(() => {
@@ -76,8 +38,6 @@ export default function TicketDropManagerPage() {
   }, [masterKeyValidity]);
 
   const getScannedKeys = async () => {
-    const keySupply = await keypomInstance.getClaimedDropInfo(dropId);
-
     const getScannedInner = async (scanned = 0, index = 0) => {
       const drop = await keypomInstance.getDropInfo({ dropId });
 
@@ -95,7 +55,7 @@ export default function TicketDropManagerPage() {
       scanned += scannedKeys.length;
       index = index + 1;
 
-      setClaimed(keySupply - scanned);
+      setClaimed(scanned);
 
       getScannedInner(scanned, index);
     };
@@ -107,120 +67,22 @@ export default function TicketDropManagerPage() {
     getScannedKeys();
   }, []);
 
-  const {
-    setPagination,
-    hasPagination,
-    pagination,
-    isFirstPage,
-    isLastPage,
-    loading: paginationLoading,
-    handleNextPage,
-    handlePrevPage,
-  } = usePagination({
-    dataSize,
-    handlePrevApiCall: async () => {
-      const prevPageIndex = pagination.pageIndex - 1;
-      await handleGetDrops({
-        pageIndex: prevPageIndex,
-        pageSize: pagination.pageSize,
-      });
-      const newQueryParams = new URLSearchParams({
-        [PAGE_QUERY_PARAM]: (prevPageIndex + 1).toString(),
-      });
-      setSearchParams(newQueryParams);
-    },
-    handleNextApiCall: async () => {
-      const nextPageIndex = pagination.pageIndex + 1;
-      await handleGetDrops({
-        pageIndex: nextPageIndex,
-        pageSize: pagination.pageSize,
-      });
-      const newQueryParams = new URLSearchParams({
-        [PAGE_QUERY_PARAM]: (nextPageIndex + 1).toString(),
-      });
-      setSearchParams(newQueryParams);
-    },
-  });
-
-  const handleGetDrops = useCallback(
-    async ({ pageIndex = 0, pageSize = PAGE_SIZE_LIMIT }) => {
-      if (!accountId) return;
-      const keyInfoReturn = await keypomInstance.getKeysInfo(dropId, pageIndex, pageSize, () => {
-        setMissingDropModal(setAppModal); // User will be redirected if getDropInformation fails
-        navigate('/drops');
-      });
-      if (keyInfoReturn === undefined) {
-        navigate('/drops');
-        return;
-      }
-      const { dropSize, dropName, publicKeys, secretKeys, keyInfo } = keyInfoReturn;
-      setDataSize(dropSize);
-      setName(dropName);
-
-      setData(
-        secretKeys.map((key: string, i) => ({
-          id: i,
-          publicKey: publicKeys[i],
-          link: `${window.location.origin}/claim/${getConfig().contractId}#${key.replace(
-            'ed25519:',
-            '',
-          )}`,
-          slug: key.substring(8, 16),
-          claimStatus: getClaimStatus(keyInfo[i]),
-          action: 'delete',
-        })),
-      );
-
-      setLoading(false);
-    },
-    [pagination],
-  );
-
-  useEffect(() => {
-    // page query param should be indexed from 1
-    const pageQuery = searchParams.get('page');
-    const currentPageIndex = pageQuery !== null ? parseInt(pageQuery) - 1 : 0;
-    setPagination((pagination) => ({ ...pagination, pageIndex: currentPageIndex }));
-
-    handleGetDrops({ ...pagination, pageIndex: currentPageIndex });
-  }, [accountId]);
-
-  const handleCopyClick = (link: string) => {
-    share(link);
-    toast({ title: 'Copied!', status: 'success', duration: 1000, isClosable: true });
-  };
-
-  const handleDeleteClick = async (pubKey: string) => {
-    setConfirmationModalHelper(
-      setAppModal,
-      async () => {
-        await keypomInstance.deleteKeys({
-          wallet,
-          dropId,
-          publicKeys: pubKey,
-        });
-        window.location.reload();
-      },
-      'key',
-    );
-  };
-
-  const getTableRows = () => {
+  const getTableRows: GetDataFn = (data, handleDeleteClick, handleCopyClick) => {
     if (data === undefined) return [];
 
     return data.map((item) => ({
-      ...item,
+      id: item.id,
       dropId,
       dropLink: item.link,
       link: (
         <Text color="gray.400" display="flex">
-          keypom.xyz/
+          {window.location.hostname}/
           <Text as="span" color="gray.800">
             {item.slug}
           </Text>
         </Text>
       ),
-      hasClaimed: getBadgeType(item.claimStatus as TicketClaimStatus),
+      hasClaimed: getBadgeType(item.keyInfo?.cur_key_use as number),
       action: (
         <>
           <Button
@@ -228,17 +90,17 @@ export default function TicketDropManagerPage() {
             size="sm"
             variant="icon"
             onClick={() => {
-              handleCopyClick(item.link as string);
+              handleCopyClick(item.link);
             }}
           >
             <CopyIcon />
           </Button>
-          {item.claimStatus !== 'Claimed' && (
+          {!item.hasClaimed && (
             <Button
               size="sm"
               variant="icon"
               onClick={async () => {
-                await handleDeleteClick(item.publicKey as string);
+                await handleDeleteClick(item.publicKey);
               }}
             >
               <DeleteIcon color="red" />
@@ -250,27 +112,12 @@ export default function TicketDropManagerPage() {
   };
 
   return (
-    <Box>
-      {data !== undefined && (
-        <DropManager
-          claimedHeaderText="Scanned"
-          claimedText={`${dataSize - claimed} / ${dataSize}`}
-          data={getTableRows()}
-          dropName={name}
-          loading={loading}
-          pagination={{
-            hasPagination,
-            id: 'token',
-            paginationLoading,
-            isFirstPage,
-            isLastPage,
-            handleNextPage,
-            handlePrevPage,
-          }}
-          tableColumns={tableColumns}
-          tableProps={{ variant: 'secondary' }}
-        />
-      )}
-    </Box>
+    <DropManager
+      claimedHeaderText="Scanned"
+      getClaimedText={(dropSize) => `${claimed} / ${dropSize}`}
+      getData={getTableRows}
+      showColumns={false}
+      tableColumns={tableColumns}
+    />
   );
 }
