@@ -147,7 +147,6 @@ export const DropManager = ({
     }
   }, [masterKeyValidity]);
 
-  // TODO: Pass data back to parent component and bring it back here
   const handleGetDrops = useCallback(
     async ({ pageIndex = 0, pageSize = PAGE_SIZE_LIMIT }) => {
       if (!accountId) return;

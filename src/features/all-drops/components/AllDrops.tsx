@@ -225,7 +225,8 @@ export default function AllDrops() {
     return data.reduce((result: DataItem[], drop) => {
       if (drop !== null) {
         // show token drop manager for other drops type
-        const dropType = drop.type === DROP_TYPE.OTHER ? DROP_TYPE.TOKEN : drop.type;
+        const dropType =
+          (drop.type as string).toUpperCase() === DROP_TYPE.OTHER ? DROP_TYPE.TOKEN : drop.type;
         const dataItem = {
           ...drop,
           name: <Text color="gray.800">{drop.name}</Text>,
