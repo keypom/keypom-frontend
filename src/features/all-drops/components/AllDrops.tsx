@@ -201,7 +201,7 @@ export default function AllDrops() {
     handleGetDropsSize();
     handleGetDrops({ start: currentPageIndex * pagination.pageSize });
     handleFinishNFTDrop();
-  }, [accountId]);
+  }, [accountId, searchParams]);
 
   const dropMenuItems = MENU_ITEMS.map((item) => (
     <MenuItem key={item.label} {...item}>
