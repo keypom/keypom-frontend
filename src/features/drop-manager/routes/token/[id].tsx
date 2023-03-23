@@ -1,11 +1,11 @@
 import { Badge, Box, Button, Text, useToast } from '@chakra-ui/react';
 import { useCallback, useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
 import { CopyIcon, DeleteIcon } from '@/components/Icons';
 import { DropManager } from '@/features/drop-manager/components/DropManager';
-import { PAGE_SIZE_LIMIT } from '@/constants/common';
+import { PAGE_QUERY_PARAM, PAGE_SIZE_LIMIT } from '@/constants/common';
 import { usePagination } from '@/hooks/usePagination';
 import { type DataItem } from '@/components/Table/types';
 import { useAppContext } from '@/contexts/AppContext';
@@ -22,6 +22,7 @@ import { setMissingDropModal } from '../../components/MissingDropModal';
 
 export default function TokenDropManagerPage() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { setAppModal } = useAppContext();
   const toast = useToast();
 
@@ -72,6 +73,7 @@ export default function TokenDropManagerPage() {
   }, [masterKeyValidity]);
 
   const {
+    setPagination,
     hasPagination,
     pagination,
     isFirstPage,
@@ -82,16 +84,26 @@ export default function TokenDropManagerPage() {
   } = usePagination({
     dataSize,
     handlePrevApiCall: async () => {
+      const prevPageIndex = pagination.pageIndex - 1;
       await handleGetDrops({
-        pageIndex: pagination.pageIndex - 1,
+        pageIndex: prevPageIndex,
         pageSize: pagination.pageSize,
       });
+      const newQueryParams = new URLSearchParams({
+        [PAGE_QUERY_PARAM]: (prevPageIndex + 1).toString(),
+      });
+      setSearchParams(newQueryParams);
     },
     handleNextApiCall: async () => {
+      const nextPageIndex = pagination.pageIndex + 1;
       await handleGetDrops({
-        pageIndex: pagination.pageIndex + 1,
+        pageIndex: nextPageIndex,
         pageSize: pagination.pageSize,
       });
+      const newQueryParams = new URLSearchParams({
+        [PAGE_QUERY_PARAM]: (nextPageIndex + 1).toString(),
+      });
+      setSearchParams(newQueryParams);
     },
   });
 
@@ -131,7 +143,12 @@ export default function TokenDropManagerPage() {
   );
 
   useEffect(() => {
-    handleGetDrops({});
+    // page query param should be indexed from 1
+    const pageQuery = searchParams.get('page');
+    const currentPageIndex = pageQuery !== null ? parseInt(pageQuery) - 1 : 0;
+    setPagination((pagination) => ({ ...pagination, pageIndex: currentPageIndex }));
+
+    handleGetDrops({ ...pagination, pageIndex: currentPageIndex });
   }, [accountId]);
 
   const handleCopyClick = (link: string) => {
