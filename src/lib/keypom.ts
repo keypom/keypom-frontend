@@ -238,8 +238,13 @@ class KeypomJS {
 
   getDropSupplyForOwner = async ({ accountId }) => await getDropSupplyForOwner({ accountId });
 
-  getDropMetadata = (metadata: string | undefined) =>
-    JSON.parse(metadata || JSON.stringify({ dropName: 'Untitled' }));
+  getDropMetadata = (metadata: string) => {
+    const parsedObj = JSON.parse(metadata) || {};
+    if (!Object.hasOwn(parsedObj, 'dropName')) {
+      parsedObj.dropName = 'Untitled';
+    }
+    return parsedObj;
+  };
 
   deleteDrops = async ({ wallet, dropIds }) => await deleteDrops({ wallet, dropIds });
 
