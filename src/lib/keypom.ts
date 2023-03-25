@@ -238,7 +238,7 @@ class KeypomJS {
 
   getDropSupplyForOwner = async ({ accountId }) => await getDropSupplyForOwner({ accountId });
 
-  getDropMetadata = (metadata: string) => {
+  getDropMetadata = (metadata: string | undefined) => {
     const parsedObj = JSON.parse(metadata || '{}');
     if (!Object.hasOwn(parsedObj, 'dropName')) {
       parsedObj.dropName = 'Untitled';
