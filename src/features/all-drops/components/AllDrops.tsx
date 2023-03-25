@@ -15,7 +15,7 @@ import {
   Skeleton,
   VStack,
 } from '@chakra-ui/react';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { type ProtocolReturnedDrop } from 'keypom-js';
 import { ChevronDownIcon } from '@chakra-ui/icons';
 import { useSearchParams } from 'react-router-dom';
@@ -85,6 +85,7 @@ export default function AllDrops() {
 
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [isLoading, setIsLoading] = useState(true);
+  const popoverClicked = useRef(0);
 
   const [dataSize, setDataSize] = useState<number>(0);
   const [data, setData] = useState<Array<DataItem | null>>([]);
@@ -132,7 +133,7 @@ export default function AllDrops() {
       accountId,
     });
 
-    setDataSize(numDrops);
+    // setDataSize(numDrops);
   };
 
   const setAllDropsData = async (drop: ProtocolReturnedDrop) => {
@@ -179,13 +180,13 @@ export default function AllDrops() {
 
       setWallet(await selector.wallet());
 
-      setData(
-        await Promise.all(
-          drops.map(async (drop) => {
-            return await setAllDropsData(drop);
-          }),
-        ),
-      );
+      // setData(
+      //   await Promise.all(
+      //     drops.map(async (drop) => {
+      //       return await setAllDropsData(drop);
+      //     }),
+      //   ),
+      // );
 
       setIsLoading(false);
     },
@@ -259,7 +260,12 @@ export default function AllDrops() {
 
   const createADropPopover = (menuIsOpen: boolean) => ({
     header: 'Click here to create a drop!',
-    shouldOpen: !isLoading && !hasPagination && data.length === 0 && !menuIsOpen,
+    shouldOpen:
+      !isLoading &&
+      popoverClicked.current === 0 &&
+      !hasPagination &&
+      data.length === 0 &&
+      !menuIsOpen,
   });
 
   const CreateADropButton = ({ isOpen }: { isOpen: boolean }) => (
@@ -271,6 +277,7 @@ export default function AllDrops() {
         py="3"
         rightIcon={<ChevronDownIcon />}
         variant="secondary-content-box"
+        onClick={() => (popoverClicked.current += 1)}
       >
         Create a drop
       </MenuButton>
@@ -283,7 +290,10 @@ export default function AllDrops() {
         py="3"
         rightIcon={<ChevronDownIcon />}
         variant="secondary-content-box"
-        onClick={onOpen}
+        onClick={() => {
+          popoverClicked.current += 1;
+          onOpen();
+        }}
       >
         Create a drop
       </Button>
