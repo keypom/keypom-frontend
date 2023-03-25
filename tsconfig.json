@@ -5,7 +5,8 @@
     "lib": [
       "es6",
       "dom",
-      "es2017"
+      "es2017",
+      "es2022",
     ],
     "sourceMap": true,
     "allowJs": true,
