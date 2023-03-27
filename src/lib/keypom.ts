@@ -383,11 +383,7 @@ class KeypomJS {
     return urls[0];
   };
 
-  getTokenClaimInformation = async (
-    contractId: string,
-    secretKey: string,
-    skipLinkdropCheck = false,
-  ) => {
+  getTokenClaimInformation = async (contractId: string, secretKey: string) => {
     const drop = await this.getDropInfo({ secretKey });
 
     // verify if secretKey is a token drop

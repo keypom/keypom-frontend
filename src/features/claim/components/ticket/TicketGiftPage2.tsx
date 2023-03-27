@@ -9,7 +9,7 @@ import { checkClaimedDrop } from '@/utils/claimedDrops';
 import { TicketIcon } from '@/components/Icons';
 import ClaimTokenPage from '@/features/claim/routes/TokenClaimPage';
 
-const NFTClaimPage = () => {
+const TicketGiftPage = () => {
   const navigate = useNavigate();
   const { contractId, secretKey } = useClaimParams();
 
@@ -61,6 +61,7 @@ const NFTClaimPage = () => {
     loadClaimInfo();
   }, []);
 
+  // TODO!!!!!!
   if (showTokenDrop) {
     return <ClaimTokenPage />;
   }
@@ -68,7 +69,7 @@ const NFTClaimPage = () => {
   return (
     <TokenNFTClaim
       claimInfoError={claimInfoError}
-      claimSuccessfulText="NFT claimed!"
+      claimSuccessfulText="Gifts claimed!"
       contractId={contractId}
       icon={<TicketIcon height={{ base: '8', md: '10' }} width={{ base: '8', md: '10' }} />}
       isClaimInfoLoading={isClaimInfoLoading}
@@ -77,7 +78,7 @@ const NFTClaimPage = () => {
         description,
         nftImage,
       }}
-      pageHeadingText="You've received an NFT"
+      pageHeadingText="Collect your gifts"
       secretKey={secretKey}
       type={DROP_TYPE.NFT}
       wallets={wallets}
@@ -85,4 +86,4 @@ const NFTClaimPage = () => {
   );
 };
 
-export default NFTClaimPage;
+export default TicketGiftPage;

@@ -3,11 +3,11 @@ import { Box, Text, VStack } from '@chakra-ui/react';
 import { AvatarImage } from '@/components/AvatarImage';
 import { DROP_TYPE } from '@/constants/common';
 import { DropBox } from '@/components/DropBox';
-import { type TokenAsset } from '@/features/claim/routes/TokenClaimPage';
+import { type TokenAsset } from '@/types/common';
 
 interface DropClaimMetadataProps {
   nftImage?: string;
-  title: string;
+  title?: string;
   description?: string;
   type: keyof typeof DROP_TYPE;
   tokens?: TokenAsset[];

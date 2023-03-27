@@ -1,20 +1,52 @@
-import { Box, Center, Heading, useBoolean, VStack } from '@chakra-ui/react';
+import { Box, Center, Heading, Spinner, useBoolean, VStack } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
 
-import { IconBox } from '@/components/IconBox';
 import { BoxWithShape } from '@/components/BoxWithShape';
-import { TicketIcon } from '@/components/Icons';
+import { IconBox } from '@/components/IconBox';
 import { useAppContext } from '@/contexts/AppContext';
 import keypomInstance from '@/lib/keypom';
 import { storeClaimDrop } from '@/utils/claimedDrops';
-import { useClaimParams } from '@/hooks/useClaimParams';
-import { DropClaimMetadata } from '@/features/claim/components/DropClaimMetadata';
-import { CreateWallet } from '@/features/claim/components/CreateWallet';
 import { ExistingWallet } from '@/features/claim/components/ExistingWallet';
-import { useTicketClaim } from '@/features/claim/contexts/TicketClaimContext';
+import { CreateWallet } from '@/features/claim/components/CreateWallet';
+import { type TokenAsset } from '@/types/common';
+import { ErrorBox } from '@/components/ErrorBox';
+import { type DROP_TYPES } from '@/constants/common';
+import { DropClaimMetadata } from '@/features/claim/components/DropClaimMetadata';
 
-const TicketGiftPage = () => {
-  const { secretKey, contractId } = useClaimParams();
+interface TokenNFTClaimProps {
+  icon: React.ReactNode;
+  pageHeadingText: string;
+  secretKey: string;
+  contractId: string;
+  isClaimInfoLoading: boolean;
+  claimInfoError?: string;
+  claimSuccessfulText: string;
+
+  type: DROP_TYPES;
+  wallets?: string[];
+  metadata: {
+    title?: string;
+    nftImage?: string;
+    description?: string;
+    tokens?: TokenAsset[];
+  };
+}
+
+/**
+ * Component for showing token or nft assets and claiming
+ */
+export const TokenNFTClaim = ({
+  icon,
+  pageHeadingText,
+  secretKey,
+  contractId,
+  isClaimInfoLoading,
+  claimInfoError,
+  claimSuccessfulText,
+  type,
+  metadata,
+  wallets,
+}: TokenNFTClaimProps) => {
   const { setAppModal } = useAppContext();
   const [haveWallet, showInputWallet] = useBoolean(false);
   const [isClaimSuccessful, setIsClaimSuccessful] = useState(false);
@@ -22,9 +54,6 @@ const TicketGiftPage = () => {
   const [claimError, setClaimError] = useState('');
   const [openLoadingModal, setOpenLoadingModal] = useState(false);
   const [openResultModal, setOpenResultModal] = useState(false);
-  const { getDropMetadata } = useTicketClaim();
-
-  const { title, description, nftImage, tokens, giftType, wallets } = getDropMetadata();
 
   useEffect(() => {
     if (openLoadingModal) {
@@ -36,21 +65,24 @@ const TicketGiftPage = () => {
     if (openResultModal) {
       openTransactionResultModal();
     }
-  }, [openResultModal]);
+  }, [openResultModal, isClaimLoading]);
 
   const handleClaim = async (walletAddress: string) => {
     setClaimError('');
+    setOpenResultModal(false);
     setIsClaimLoading(true);
     setOpenLoadingModal(true);
     try {
       await keypomInstance.claim(secretKey, walletAddress);
       storeClaimDrop(secretKey);
+      setOpenLoadingModal(false);
       setOpenResultModal(true);
       setIsClaimLoading(false);
       setIsClaimSuccessful(true);
     } catch (err) {
       setClaimError(err.message);
       setIsClaimLoading(false);
+      setOpenLoadingModal(false);
       setOpenResultModal(true);
     }
   };
@@ -68,7 +100,7 @@ const TicketGiftPage = () => {
       isLoading: false,
       isError: Boolean(claimError),
       isSuccess: isClaimSuccessful,
-      message: claimError || 'NFT claimed!',
+      message: claimError || claimSuccessfulText,
       options: [
         {
           label: 'Ok',
@@ -81,13 +113,27 @@ const TicketGiftPage = () => {
     });
   };
 
+  if (claimInfoError) {
+    return <ErrorBox message={claimInfoError} />;
+  }
+
+  if (isClaimInfoLoading) {
+    return (
+      <Center h={{ base: '300px', md: '500px' }}>
+        <Spinner size="xl" />
+      </Center>
+    );
+  }
+
   return (
     <Box mb={{ base: '5', md: '14' }} minH="100%" minW="100%" mt={{ base: '52px', md: '100px' }}>
       <Center>
         <VStack gap={{ base: 'calc(24px + 8px)', md: 'calc(32px + 10px)' }}>
-          <Heading textAlign="center">Collect your gifts</Heading>
+          <Heading textAlign="center">{pageHeadingText}</Heading>
+
+          {/** Claim token component */}
           <IconBox
-            icon={<TicketIcon height={{ base: '8', md: '10' }} width={{ base: '8', md: '10' }} />}
+            icon={icon}
             minW={{ base: 'inherit', md: '345px' }}
             p="0"
             pb="0"
@@ -102,13 +148,7 @@ const TicketGiftPage = () => {
               shapeSize="md"
               w="full "
             >
-              <DropClaimMetadata
-                description={description}
-                nftImage={nftImage}
-                title={title}
-                tokens={tokens}
-                type={giftType}
-              />
+              <DropClaimMetadata type={type} {...metadata} />
             </BoxWithShape>
             <VStack
               bg="gray.50"
@@ -125,15 +165,13 @@ const TicketGiftPage = () => {
                   onClick={showInputWallet.on}
                 />
               ) : (
-                <>
-                  <ExistingWallet
-                    claimErrorText={claimError}
-                    handleSubmit={handleClaim}
-                    isLoading={isClaimLoading}
-                    isSuccess={isClaimSuccessful}
-                    onBack={showInputWallet.off}
-                  />
-                </>
+                <ExistingWallet
+                  claimErrorText={claimError}
+                  handleSubmit={handleClaim}
+                  isLoading={isClaimLoading}
+                  isSuccess={isClaimSuccessful}
+                  onBack={showInputWallet.off}
+                />
               )}
             </VStack>
           </IconBox>
@@ -142,5 +180,3 @@ const TicketGiftPage = () => {
     </Box>
   );
 };
-
-export default TicketGiftPage;
