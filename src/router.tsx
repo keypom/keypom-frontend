@@ -43,13 +43,13 @@ const CreateTicketDropPage = React.lazy(
 );
 
 const TokenDropManagerPage = React.lazy(
-  async () => await import('@/features/drop-manager/routes/token/[id]'),
+  async () => await import('@/features/drop-manager/routes/token/TokenDropManagerPage'),
 );
 const NFTDropManagerPage = React.lazy(
-  async () => await import('@/features/drop-manager/routes/nft/[id]'),
+  async () => await import('@/features/drop-manager/routes/nft/NFTDropManagerPage'),
 );
 const TicketDropManagerPage = React.lazy(
-  async () => await import('@/features/drop-manager/routes/ticket/[id]'),
+  async () => await import('@/features/drop-manager/routes/ticket/TicketDropManagerPage'),
 );
 const EthDenverLandingPage = React.lazy(async () => await import('@/pages/EthDenver'));
 
