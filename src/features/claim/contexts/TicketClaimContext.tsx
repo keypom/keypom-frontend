@@ -50,7 +50,7 @@ export interface TicketClaimContextTypes {
 }
 
 const TicketClaimContext = createContext<TicketClaimContextTypes | null>(null);
-
+// TODO: check if drop has been claimed
 /**
  *
  * Context to manage whole ticket claim flow for each key uses

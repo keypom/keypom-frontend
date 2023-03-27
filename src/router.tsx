@@ -25,10 +25,7 @@ const ClaimTokenPage = React.lazy(
   async () => await import('@/features/claim/routes/TokenClaimPage'),
 );
 const ClaimNftPage = React.lazy(async () => await import('@/features/claim/routes/NFTClaimPage'));
-const ClaimGiftPage = React.lazy(
-  async () => await import('@/features/claim/routes/TicketGiftClaimPage'),
-);
-const ClaimTicketPage2 = React.lazy(
+const ClaimTicketPage = React.lazy(
   async () => await import('@/features/claim/routes/ticket/TicketClaimPage2'),
 );
 const ClaimTrialPage = React.lazy(
@@ -144,15 +141,11 @@ export const router = createBrowserRouter([
               },
               {
                 path: 'gift/:contractId',
-                element: <ClaimGiftPage />,
+                element: <ClaimTicketPage />,
               },
-              // {
-              //   path: 'ticket/:contractId',
-              //   element: <ClaimTicketPage />,
-              // },
               {
                 path: 'ticket/:contractId',
-                element: <ClaimTicketPage2 />,
+                element: <ClaimTicketPage />,
               },
               {
                 path: 'trial/:contractId',
