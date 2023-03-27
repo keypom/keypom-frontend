@@ -12,7 +12,7 @@ import { QrDetails } from '@/features/claim/components/ticket/[id]/QrDetails';
 import { NftGift } from '@/features/claim/components/ticket/[id]/NftGift';
 import { TokenGift } from '@/features/claim/components/ticket/[id]/TokenGift';
 import { DROP_TYPE } from '@/constants/common';
-import { DropMetadataCard } from '@/features/claim/components/DropMetadataCard';
+import { DropClaimMetadata } from '@/features/claim/components/DropClaimMetadata';
 
 export const TicketQRPage = () => {
   const { secretKey } = useClaimParams();
@@ -43,7 +43,6 @@ export const TicketQRPage = () => {
   return (
     <Center>
       <VStack gap={{ base: 'calc(24px + 8px)', md: 'calc(32px + 10px)' }}>
-        {/** Prompt text */}
         <Heading fontSize={{ base: '2xl', md: '4xl' }} fontWeight="500" textAlign="center">
           {isShowSummary ? 'Your ticket' : 'Claim your ticket'}
         </Heading>
@@ -90,7 +89,7 @@ export const TicketQRPage = () => {
               p={{ base: '6', md: '8' }}
               pt={{ base: '12', md: '16' }}
             >
-              <DropMetadataCard nftImage={nftImage} title={title} type={giftType} />
+              <DropClaimMetadata nftImage={nftImage} title={title} type={giftType} />
               <Button
                 type="submit"
                 w="full"

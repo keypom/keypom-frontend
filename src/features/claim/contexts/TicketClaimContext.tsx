@@ -11,6 +11,7 @@ import { useNavigate } from 'react-router-dom';
 import keypomInstance from '@/lib/keypom';
 import { useClaimParams } from '@/hooks/useClaimParams';
 import { DROP_TYPE, type DROP_TYPES } from '@/constants/common';
+import getConfig from '@/config/config';
 
 import { type TokenAsset } from '../routes/TokenClaimPage';
 
@@ -21,14 +22,14 @@ const TicketQRPage = lazy(
     })),
 );
 
-const TicketGiftClaimPage = lazy(
-  async () => await import('@/features/claim/routes/TicketGiftClaimPage'),
+const TicketGiftPage = lazy(
+  async () => await import('@/features/claim/components/ticket2/TicketGiftPage'),
 );
 
 const TICKET_FLOW_KEY_USE = {
   1: TicketQRPage,
   2: TicketQRPage,
-  3: TicketGiftClaimPage,
+  3: TicketGiftPage,
 };
 
 export interface TicketClaimContextTypes {
@@ -38,6 +39,7 @@ export interface TicketClaimContextTypes {
     nftImage: string;
     tokens: TokenAsset[];
     giftType: DROP_TYPES;
+    wallets: string[];
   };
   currentPage: (() => JSX.Element | null) | undefined;
   qrValue: string;
@@ -61,6 +63,7 @@ export const TicketClaimContextProvider = ({ children }: PropsWithChildren) => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [nftImage, setNftImage] = useState('');
+  const [wallets, setWallets] = useState([getConfig().defaultWallet.name]);
 
   // QR code
   const [qrValue, setQrValue] = useState('');
@@ -109,6 +112,7 @@ export const TicketClaimContextProvider = ({ children }: PropsWithChildren) => {
     setDescription(claimInfo.description);
     setNftImage(claimInfo.media);
     setQrValue(JSON.stringify({ contractId, secretKey }));
+    setWallets(claimInfo.wallets);
   };
 
   const loadTicketClaimInfo = async () => {
@@ -157,6 +161,7 @@ export const TicketClaimContextProvider = ({ children }: PropsWithChildren) => {
       nftImage,
       tokens,
       giftType,
+      wallets,
     };
   };
 

@@ -5,7 +5,7 @@ import { DROP_TYPE } from '@/constants/common';
 import { DropBox } from '@/components/DropBox';
 import { type TokenAsset } from '@/features/claim/routes/TokenClaimPage';
 
-interface DropMetadataCardProps {
+interface DropClaimMetadataProps {
   nftImage?: string;
   title: string;
   description?: string;
@@ -13,13 +13,13 @@ interface DropMetadataCardProps {
   tokens?: TokenAsset[];
 }
 
-export const DropMetadataCard = ({
+export const DropClaimMetadata = ({
   nftImage,
   title,
   description,
   type,
   tokens,
-}: DropMetadataCardProps) => {
+}: DropClaimMetadataProps) => {
   return (
     <>
       <Box>
