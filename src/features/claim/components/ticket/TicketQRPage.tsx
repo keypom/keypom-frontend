@@ -1,4 +1,4 @@
-import { Box, Button, Center, Flex, Heading, Text, VStack } from '@chakra-ui/react';
+import { Box, Button, Center, Flex, Heading, Hide, Text, VStack } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
 import { getKeyInformation } from 'keypom-js';
 
@@ -8,11 +8,11 @@ import { ErrorBox } from '@/components/ErrorBox';
 import { useTicketClaim } from '@/features/claim/contexts/TicketClaimContext';
 import { useClaimParams } from '@/hooks/useClaimParams';
 import { BoxWithShape } from '@/components/BoxWithShape';
-import { QrDetails } from '@/features/claim/components/ticket/[id]/QrDetails';
-import { NftGift } from '@/features/claim/components/ticket/[id]/NftGift';
-import { TokenGift } from '@/features/claim/components/ticket/[id]/TokenGift';
+import { QrDetails } from '@/features/claim/components/ticket/QrDetails';
 import { DROP_TYPE } from '@/constants/common';
 import { DropClaimMetadata } from '@/features/claim/components/DropClaimMetadata';
+import { AvatarImage } from '@/components/AvatarImage';
+import { DropBox } from '@/components/DropBox';
 
 export const TicketQRPage = () => {
   const { secretKey } = useClaimParams();
@@ -72,9 +72,26 @@ export const TicketQRPage = () => {
                 </Text>
 
                 {giftType === DROP_TYPE.NFT ? (
-                  <NftGift giftName={title} imageSrc={nftImage} />
+                  <>
+                    <AvatarImage altName={title} imageSrc={nftImage} />
+                    <Hide above="md">
+                      <Text
+                        color="gray.600"
+                        fontWeight="600"
+                        mb="2"
+                        size={{ base: 'sm', md: 'md' }}
+                        textAlign="center"
+                      >
+                        {title}
+                      </Text>
+                    </Hide>
+                  </>
                 ) : (
-                  <TokenGift tokenList={tokens} />
+                  <VStack mb="5" w="full">
+                    {tokens.map(({ icon, value, symbol }, index) => (
+                      <DropBox key={index} icon={icon} symbol={symbol} value={value} />
+                    ))}
+                  </VStack>
                 )}
 
                 <Text color="gray.600" mb="6" size={{ base: 'sm', md: 'base' }} textAlign="center">

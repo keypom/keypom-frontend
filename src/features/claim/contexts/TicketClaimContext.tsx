@@ -17,13 +17,13 @@ import { type TokenAsset } from '../routes/TokenClaimPage';
 
 const TicketQRPage = lazy(
   async () =>
-    await import('@/features/claim/components/ticket2/TicketQRPage').then((mod) => ({
+    await import('@/features/claim/components/ticket/TicketQRPage').then((mod) => ({
       default: mod.TicketQRPage,
     })),
 );
 
 const TicketGiftPage = lazy(
-  async () => await import('@/features/claim/components/ticket2/TicketGiftPage'),
+  async () => await import('@/features/claim/components/ticket/TicketGiftPage'),
 );
 
 const TICKET_FLOW_KEY_USE = {
