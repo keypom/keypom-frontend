@@ -1,20 +1,18 @@
-import { type DataItem } from '@/components/Table/types';
+import { type DropKeyItem } from '@/features/drop-manager/components/DropManager';
 
-import { type TicketClaimStatus } from '../types/types';
-
-export const INITIAL_SAMPLE_DATA: DataItem[] = [
+export const INITIAL_SAMPLE_DATA: DropKeyItem[] = [
   {
     id: 1,
     link: 'https://example.com',
     slug: 'https://example.com',
+    publicKey: '',
     hasClaimed: false,
-    action: 'delete',
   },
   {
     id: 2,
     link: 'https://example.com',
     slug: 'https://example.com',
-    hasClaimed: 'Viewed' as TicketClaimStatus,
-    action: 'delete',
+    publicKey: '',
+    hasClaimed: false,
   },
 ];
