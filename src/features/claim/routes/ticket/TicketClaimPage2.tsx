@@ -16,7 +16,7 @@ import {
 const TicketClaimPage2 = () => {
   const { claimInfoError, isClaimInfoLoading, currentPage: PageComponent } = useTicketClaim();
 
-  if (isClaimInfoLoading || PageComponent === undefined) {
+  if (isClaimInfoLoading) {
     return (
       <Center h={{ base: '300px', md: '500px' }}>
         <Spinner size="lg" />
@@ -31,7 +31,7 @@ const TicketClaimPage2 = () => {
   return (
     <Box mb={{ base: '5', md: '14' }} minH="100%" minW="100%" mt={{ base: '8px', md: '32px' }}>
       {/* render ticket page according to key use */}
-      <PageComponent />
+      {PageComponent && <PageComponent />}
     </Box>
   );
 };

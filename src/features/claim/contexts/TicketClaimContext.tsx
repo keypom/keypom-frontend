@@ -126,6 +126,7 @@ export const TicketClaimContextProvider = ({ children }: PropsWithChildren) => {
         // show tokens instead
         await loadTokenClaimInfo();
       } else {
+        console.error(err.message);
         setClaimInfoError(err.message);
       }
     }
