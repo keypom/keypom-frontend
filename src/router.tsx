@@ -20,7 +20,7 @@ const ProtectedRoute = React.lazy(
 const AllDropsPage = React.lazy(
   async () => await import('./features/all-drops/routes/AllDropsPage'),
 );
-const ClaimPage = React.lazy(async () => await import('@/features/claim/routes/ClaimPage'));
+const ClaimPage = React.lazy(async () => await import('@/features/claim/routes/ClaimRouter'));
 const ClaimTokenPage = React.lazy(
   async () => await import('@/features/claim/routes/TokenClaimPage'),
 );
