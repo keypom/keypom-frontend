@@ -26,7 +26,7 @@ const ClaimTokenPage = React.lazy(
 );
 const ClaimNftPage = React.lazy(async () => await import('@/features/claim/routes/NFTClaimPage'));
 const ClaimTicketPage = React.lazy(
-  async () => await import('@/features/claim/routes/ticket/TicketClaimPage2'),
+  async () => await import('@/features/claim/routes/ticket/TicketClaimPage'),
 );
 const ClaimTrialPage = React.lazy(
   async () => await import('@/features/claim/routes/TrialClaimPage'),

@@ -1,36 +1,47 @@
-import { Box } from '@chakra-ui/react';
+import { Box, Center, Spinner } from '@chakra-ui/react';
 
-import { type IFlowPage } from '@/types/common';
+import { ErrorBox } from '@/components/ErrorBox';
+import {
+  TicketClaimContextProvider,
+  useTicketClaim,
+} from '@/features/claim/contexts/TicketClaimContext';
 
-import { ClaimFormContextProvider } from '../../components/ClaimFormContext';
-import { ClaimTicketFlowProvider } from '../../components/ticket/ClaimTicketFlowContext';
-import { ClaimTicketFormFlow } from '../../components/ticket/ClaimTicketFormFlow';
-import { ClaimTicketSummaryFlow } from '../../components/ticket/ClaimTicketSummaryFlow';
-import { ClaimTicketFlow } from '../../components/ticket/ClaimTicketFlow';
+/**
+ *
+ * High level Ticket Claim page to handle all key uses
+ * - Handles claim info loading and error
+ * - Renders the page for the key use
+ */
 
-const flowPages: IFlowPage[] = [
-  {
-    name: 'form',
-    description: 'Enter the details to receive your ticket',
-    component: <ClaimTicketFormFlow />,
-  },
-  {
-    name: 'summary',
-    description: 'Your ticket summary',
-    component: <ClaimTicketSummaryFlow />,
-  },
-];
+const TicketClaimPage = () => {
+  const { claimInfoError, isClaimInfoLoading, currentPage: PageComponent } = useTicketClaim();
 
-const YourTicketPage = () => {
+  if (isClaimInfoLoading) {
+    return (
+      <Center h={{ base: '300px', md: '500px' }}>
+        <Spinner size="lg" />
+      </Center>
+    );
+  }
+
+  if (claimInfoError) {
+    return <ErrorBox message={claimInfoError} />;
+  }
+
   return (
     <Box mb={{ base: '5', md: '14' }} minH="100%" minW="100%" mt={{ base: '8px', md: '32px' }}>
-      <ClaimFormContextProvider>
-        <ClaimTicketFlowProvider flowPages={flowPages}>
-          <ClaimTicketFlow />
-        </ClaimTicketFlowProvider>
-      </ClaimFormContextProvider>
+      {/* render ticket page according to key use */}
+      {PageComponent && <PageComponent />}
     </Box>
   );
 };
 
-export default YourTicketPage;
+const WrappedTicketClaimPage = () => {
+  return (
+    <TicketClaimContextProvider>
+      <TicketClaimPage />
+    </TicketClaimContextProvider>
+  );
+};
+
+export default WrappedTicketClaimPage;
