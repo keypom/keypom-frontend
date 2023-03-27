@@ -133,7 +133,7 @@ export default function AllDrops() {
       accountId,
     });
 
-    // setDataSize(numDrops);
+    setDataSize(numDrops);
   };
 
   const setAllDropsData = async (drop: ProtocolReturnedDrop) => {
@@ -180,13 +180,13 @@ export default function AllDrops() {
 
       setWallet(await selector.wallet());
 
-      // setData(
-      //   await Promise.all(
-      //     drops.map(async (drop) => {
-      //       return await setAllDropsData(drop);
-      //     }),
-      //   ),
-      // );
+      setData(
+        await Promise.all(
+          drops.map(async (drop) => {
+            return await setAllDropsData(drop);
+          }),
+        ),
+      );
 
       setIsLoading(false);
     },
