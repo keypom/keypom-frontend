@@ -20,6 +20,7 @@ import {
   NFT_ATTEMPT_KEY
 } from '@/constants/common'
 
+const WORKER_BASE_URL = 'https://keypom-nft-storage.keypom.workers.dev/'
 const MAX_FILE_SIZE = 1000000;
 const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/gif', 'image/png', 'image/webp'];
 export const DEBUG_DEL_NFT_ATTEMPT = () => del(NFT_ATTEMPT_KEY)
@@ -161,7 +162,7 @@ const createDropsForNFT = async (dropId, returnTransactions, data, setAppModal) 
   }
 
   if (file) {
-    const url = `http://127.0.0.1:8787/?network=testnet&secretKey=${data.seriesSecret}`
+    const url = `${WORKER_BASE_URL}?network=testnet&secretKey=${data.seriesSecret}`
     let res
     try {
       res = await fetch(url, {
