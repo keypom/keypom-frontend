@@ -9,7 +9,7 @@ import { useClaimParams } from '@/hooks/useClaimParams';
 import { DROP_TYPE } from '@/constants/common';
 
 import { type TokenAsset } from '../routes/TokenClaimPage';
-import { TicketClaimQRPage } from '../components/ticket2/TicketClaimQRPage';
+import { TicketClaimQRPage } from '../components/ticket2/TicketPage';
 import TicketGiftClaimPage from '../routes/TicketGiftClaimPage';
 
 const TICKET_FLOW_KEY_USE = {
@@ -25,17 +25,21 @@ const schema = z.object({
 
 type Schema = z.infer<typeof schema>;
 
-interface TicketClaimContextTypes {
+export interface TicketClaimContextTypes {
+  getDropMetadata: () => {
+    title: string;
+    description: string;
+    nftImage: string;
+    tokens: TokenAsset[];
+    giftType: string;
+  };
+  currentPage: (() => JSX.Element | undefined) | undefined;
   getClaimFormData: () => string[];
-  title: string;
-  nftImage: string;
   qrValue: string;
   handleClaim: () => Promise<void>;
   isClaimInfoLoading: boolean;
-  showTokenDrop: boolean;
-  tokens: TokenAsset[];
-  giftType: string;
   claimInfoError: string | null;
+  claimError: string | null;
 }
 
 const TicketClaimContext = createContext<TicketClaimContextTypes | null>(null);
@@ -60,6 +64,7 @@ export const TicketClaimContextProvider = ({ children }: PropsWithChildren) => {
   const [currentPage, setCurrentPage] = useState<() => JSX.Element | undefined>();
   const [isClaimInfoLoading, setIsLoading] = useState(true);
   const [claimInfoError, setClaimInfoError] = useState<string | null>(null);
+  const [claimError, setClaimError] = useState(null);
 
   const [currentKeyUse, setCurrentKeyUse] = useState<number | null>(null);
   const [tokens, setTokens] = useState<TokenAsset[]>([]);
@@ -159,8 +164,12 @@ export const TicketClaimContextProvider = ({ children }: PropsWithChildren) => {
 
   const handleClaim = async () => {
     // Only allow claiming when there are 3 remaining uses
-    if (remainingUses === 3) {
-      await keypomInstance.claim(secretKey, 'foo', true);
+    if (currentKeyUse === 1) {
+      try {
+        await keypomInstance.claim(secretKey, 'foo', true);
+      } catch (err) {
+        setClaimError(err);
+      }
     }
   };
 
@@ -174,12 +183,13 @@ export const TicketClaimContextProvider = ({ children }: PropsWithChildren) => {
   return (
     <TicketClaimContext.Provider
       value={{
-        getDropMetadata
+        getDropMetadata,
         getClaimFormData,
         qrValue,
         handleClaim,
         isClaimInfoLoading,
         claimInfoError,
+        claimError,
         currentPage,
       }}
     >

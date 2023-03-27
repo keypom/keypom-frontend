@@ -1,6 +1,8 @@
 import React from 'react';
 import { createBrowserRouter } from 'react-router-dom';
 
+import { TicketClaimContextProvider } from '@/features/claim/contexts/TicketClaimContext';
+
 const LandingPage = React.lazy(async () => await import('@/features/landing/routes/LandingPage'));
 
 const NotFound404 = React.lazy(
@@ -30,6 +32,9 @@ const ClaimGiftPage = React.lazy(
 );
 const ClaimTicketPage = React.lazy(
   async () => await import('@/features/claim/routes/ticket/TicketClaimPage'),
+);
+const ClaimTicketPage2 = React.lazy(
+  async () => await import('@/features/claim/routes/ticket/TicketClaimPage2'),
 );
 const ClaimTrialPage = React.lazy(
   async () => await import('@/features/claim/routes/TrialClaimPage'),
@@ -153,9 +158,9 @@ export const router = createBrowserRouter([
               {
                 path: 'ticket2/:contractId',
                 element: (
-                  <ClaimFormContextProvider>
+                  <TicketClaimContextProvider>
                     <ClaimTicketPage2 />
-                  </ClaimFormContextProvider>
+                  </TicketClaimContextProvider>
                 ),
               },
               {

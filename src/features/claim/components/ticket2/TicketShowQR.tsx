@@ -3,25 +3,26 @@ import { useState, useEffect } from 'react';
 import { getKeyInformation } from 'keypom-js';
 
 import { useClaimParams } from '@/hooks/useClaimParams';
-
-import { useClaimForm } from '../ClaimFormContext';
+import { useTicketClaim } from '@/features/claim/contexts/TicketClaimContext';
 
 export interface TicketClaimQRPageFieldTypes {
   name: string;
   email: string;
 }
 
+// TODO: check that this page is working
+// then work on summary page
 export const TicketClaimQRPage = () => {
   const { secretKey } = useClaimParams();
   const [isLoading, setIsLoading] = useState(false);
   const [claimError, setClaimError] = useState('');
   const [claimAttempted, setClaimAttempted] = useState(false);
-  const { handleClaim } = useClaimForm();
+  const { handleGiftClaim } = useTicketClaim();
   // const { handleSubmit, control } = useFormContext<TicketClaimQRPageFieldTypes>();
 
   const claimTicket = async () => {
     try {
-      await handleClaim();
+      await handleGiftClaim();
     } catch (err) {
       setClaimError(err.message);
     }
