@@ -15,9 +15,10 @@ import {
   Skeleton,
   VStack,
 } from '@chakra-ui/react';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { type ProtocolReturnedDrop } from 'keypom-js';
 import { ChevronDownIcon } from '@chakra-ui/icons';
+import { useSearchParams } from 'react-router-dom';
 
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
 import { type ColumnItem, type DataItem } from '@/components/Table/types';
@@ -28,7 +29,7 @@ import { truncateAddress } from '@/utils/truncateAddress';
 import { NextButton, PrevButton } from '@/components/Pagination';
 import { usePagination } from '@/hooks/usePagination';
 import { useAppContext } from '@/contexts/AppContext';
-import { DROP_TYPE } from '@/constants/common';
+import { DROP_TYPE, PAGE_QUERY_PARAM } from '@/constants/common';
 import keypomInstance from '@/lib/keypom';
 import { PopoverTemplate } from '@/components/PopoverTemplate';
 
@@ -78,10 +79,13 @@ const COLUMNS: ColumnItem[] = [
 ];
 
 export default function AllDrops() {
+  const [searchParams, setSearchParams] = useSearchParams();
+
   const { setAppModal, refreshTrigger, setRefreshTrigger } = useAppContext();
 
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [isLoading, setIsLoading] = useState(true);
+  const popoverClicked = useRef(0);
 
   const [dataSize, setDataSize] = useState<number>(0);
   const [data, setData] = useState<Array<DataItem | null>>([]);
@@ -101,6 +105,7 @@ export default function AllDrops() {
   }, [accountId, refreshTrigger]);
 
   const {
+    setPagination,
     hasPagination,
     pagination,
     isFirstPage,
@@ -111,16 +116,26 @@ export default function AllDrops() {
   } = usePagination({
     dataSize,
     handlePrevApiCall: async () => {
+      const prevPageIndex = pagination.pageIndex - 1;
       await handleGetDrops({
-        start: (pagination.pageIndex - 1) * pagination.pageSize,
+        start: prevPageIndex * pagination.pageSize,
         limit: pagination.pageSize,
       });
+      const newQueryParams = new URLSearchParams({
+        [PAGE_QUERY_PARAM]: (prevPageIndex + 1).toString(),
+      });
+      setSearchParams(newQueryParams);
     },
     handleNextApiCall: async () => {
+      const nextPageIndex = pagination.pageIndex + 1;
       await handleGetDrops({
-        start: (pagination.pageIndex + 1) * pagination.pageSize,
+        start: nextPageIndex * pagination.pageSize,
         limit: pagination.pageSize,
       });
+      const newQueryParams = new URLSearchParams({
+        [PAGE_QUERY_PARAM]: (nextPageIndex + 1).toString(),
+      });
+      setSearchParams(newQueryParams);
     },
   });
 
@@ -134,7 +149,7 @@ export default function AllDrops() {
 
   const setAllDropsData = async (drop: ProtocolReturnedDrop) => {
     const { drop_id: id, metadata, next_key_id: totalKeys } = drop;
-    const claimedKeys = await keypomInstance.getClaimedDropInfo(id);
+    const claimedKeys = await keypomInstance.getAvailableKeys(id);
     const claimedText = `${totalKeys - claimedKeys} / ${totalKeys}`;
 
     const { dropName } = keypomInstance.getDropMetadata(metadata);
@@ -143,9 +158,8 @@ export default function AllDrops() {
     try {
       type = keypomInstance.getDropType(drop);
     } catch (_) {
-      return null;
+      type = DROP_TYPE.OTHER;
     }
-    if (type === undefined || type === null || type === '') return null; // don't show the drop if the type return is unexpected
 
     let nftHref: string | undefined;
     if (type === DROP_TYPE.NFT) {
@@ -191,6 +205,17 @@ export default function AllDrops() {
     [pagination],
   );
 
+  useEffect(() => {
+    if (!accountId) return;
+    // page query param should be indexed from 1
+    const pageQuery = searchParams.get('page');
+    const currentPageIndex = pageQuery !== null ? parseInt(pageQuery) - 1 : 0;
+    setPagination((pagination) => ({ ...pagination, pageIndex: currentPageIndex }));
+    handleGetDropsSize();
+    handleGetDrops({ start: currentPageIndex * pagination.pageSize });
+    handleFinishNFTDrop();
+  }, [accountId, searchParams]);
+
   const dropMenuItems = MENU_ITEMS.map((item) => (
     <MenuItem key={item.label} {...item}>
       {item.label}
@@ -203,7 +228,7 @@ export default function AllDrops() {
         wallet,
         dropIds: [dropId],
       });
-      handleGetDrops({});
+      window.location.reload();
     });
   };
 
@@ -212,6 +237,9 @@ export default function AllDrops() {
 
     return data.reduce((result: DataItem[], drop) => {
       if (drop !== null) {
+        // show token drop manager for other drops type
+        const dropType =
+          (drop.type as string).toUpperCase() === DROP_TYPE.OTHER ? DROP_TYPE.TOKEN : drop.type;
         const dataItem = {
           ...drop,
           name: <Text color="gray.800">{drop.name}</Text>,
@@ -234,9 +262,9 @@ export default function AllDrops() {
               <DeleteIcon color="red" />
             </Button>
           ),
-          href: `/drop/${(drop.type as string).toLowerCase()}/${drop.id}`,
+          href: `/drop/${(dropType as string).toLowerCase()}/${drop.id}`,
         };
-        result.push(dataItem);
+        return [...result, dataItem];
       }
       return result;
     }, []);
@@ -244,31 +272,44 @@ export default function AllDrops() {
 
   const createADropPopover = (menuIsOpen: boolean) => ({
     header: 'Click here to create a drop!',
-    shouldOpen: data.length === 0 && !menuIsOpen,
+    shouldOpen:
+      !isLoading &&
+      popoverClicked.current === 0 &&
+      !hasPagination &&
+      data.length === 0 &&
+      !menuIsOpen,
   });
 
   const CreateADropButton = ({ isOpen }: { isOpen: boolean }) => (
-    <MenuButton
-      as={Button}
-      isActive={isOpen}
-      px="6"
-      py="3"
-      rightIcon={<ChevronDownIcon />}
-      variant="secondary-content-box"
-    >
-      Create a drop
-    </MenuButton>
+    <PopoverTemplate {...createADropPopover(isOpen)}>
+      <MenuButton
+        as={Button}
+        isActive={isOpen}
+        px="6"
+        py="3"
+        rightIcon={<ChevronDownIcon />}
+        variant="secondary-content-box"
+        onClick={() => (popoverClicked.current += 1)}
+      >
+        Create a drop
+      </MenuButton>
+    </PopoverTemplate>
   );
   const CreateADropMobileButton = () => (
-    <Button
-      px="6"
-      py="3"
-      rightIcon={<ChevronDownIcon />}
-      variant="secondary-content-box"
-      onClick={onOpen}
-    >
-      Create a drop
-    </Button>
+    <PopoverTemplate placement="bottom" {...createADropPopover(false)}>
+      <Button
+        px="6"
+        py="3"
+        rightIcon={<ChevronDownIcon />}
+        variant="secondary-content-box"
+        onClick={() => {
+          popoverClicked.current += 1;
+          onOpen();
+        }}
+      >
+        Create a drop
+      </Button>
+    </PopoverTemplate>
   );
 
   return (
@@ -290,13 +331,7 @@ export default function AllDrops() {
             <Menu>
               {({ isOpen }) => (
                 <Box>
-                  {!isLoading ? (
-                    <PopoverTemplate {...createADropPopover(isOpen)}>
-                      <CreateADropButton isOpen={isOpen} />
-                    </PopoverTemplate>
-                  ) : (
-                    <CreateADropButton isOpen={isOpen} />
-                  )}
+                  <CreateADropButton isOpen={isOpen} />
                   <MenuList>{dropMenuItems}</MenuList>
                 </Box>
               )}
@@ -322,13 +357,7 @@ export default function AllDrops() {
           </Heading>
 
           <HStack justify="space-between" w="full">
-            {!isLoading ? (
-              <PopoverTemplate placement="bottom" {...createADropPopover(false)}>
-                <CreateADropMobileButton />
-              </PopoverTemplate>
-            ) : (
-              <CreateADropMobileButton />
-            )}
+            <CreateADropMobileButton />
             {hasPagination && (
               <HStack>
                 <PrevButton

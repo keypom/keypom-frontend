@@ -204,11 +204,9 @@ class KeypomJS {
       ) {
         return DROP_TYPE.NFT;
       }
-
-      return null;
     }
 
-    return null;
+    return DROP_TYPE.OTHER;
   };
 
   getDrops = async ({
@@ -240,8 +238,13 @@ class KeypomJS {
 
   getDropSupplyForOwner = async ({ accountId }) => await getDropSupplyForOwner({ accountId });
 
-  getDropMetadata = (metadata: string | undefined) =>
-    JSON.parse(metadata || JSON.stringify({ dropName: 'Untitled' }));
+  getDropMetadata = (metadata: string | undefined) => {
+    const parsedObj = JSON.parse(metadata || '{}');
+    if (!Object.hasOwn(parsedObj, 'dropName')) {
+      parsedObj.dropName = 'Untitled';
+    }
+    return parsedObj;
+  };
 
   deleteDrops = async ({ wallet, dropIds }) => await deleteDrops({ wallet, dropIds });
 
@@ -270,7 +273,7 @@ class KeypomJS {
     return drop;
   };
 
-  getClaimedDropInfo = async (dropId: string) => await getKeySupplyForDrop({ dropId });
+  getAvailableKeys = async (dropId: string) => await getKeySupplyForDrop({ dropId });
 
   getKeysForDrop = async ({ dropId, limit, start }) =>
     await getKeysForDrop({ dropId, limit, start });

@@ -8,7 +8,7 @@ import {
   type PopoverContentProps,
   type PopoverHeaderProps,
 } from '@chakra-ui/react';
-import { type PropsWithChildren } from 'react';
+import React, { type PropsWithChildren } from 'react';
 
 interface PopoverTemplateProps extends PopoverProps {
   shouldOpen: boolean;
@@ -19,7 +19,7 @@ interface PopoverTemplateProps extends PopoverProps {
   hasArrow?: boolean;
 }
 
-export const PopoverTemplate = ({
+const PopoverComponent = ({
   shouldOpen,
   header,
   popoverHeaderProps,
@@ -29,8 +29,9 @@ export const PopoverTemplate = ({
   children,
   ...props
 }: PropsWithChildren<PopoverTemplateProps>) => {
+  console.log('render popover');
   return (
-    <Popover closeOnBlur defaultIsOpen={shouldOpen} placement="left" {...props}>
+    <Popover autoFocus={false} isOpen={shouldOpen} placement="left" {...props}>
       <PopoverTrigger>{children}</PopoverTrigger>
       <PopoverContent bg="gray.800" color="gray.50" {...popoverContentProps}>
         {header && (
@@ -44,3 +45,5 @@ export const PopoverTemplate = ({
     </Popover>
   );
 };
+
+export const PopoverTemplate = React.memo(PopoverComponent);
