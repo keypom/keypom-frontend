@@ -9,7 +9,7 @@ interface DropMetadataCardProps {
   nftImage?: string;
   title: string;
   description?: string;
-  giftType: string;
+  type: keyof typeof DROP_TYPE;
   tokens?: TokenAsset[];
 }
 
@@ -17,13 +17,13 @@ export const DropMetadataCard = ({
   nftImage,
   title,
   description,
-  giftType,
+  type,
   tokens,
 }: DropMetadataCardProps) => {
   return (
     <>
       <Box>
-        {giftType === DROP_TYPE.NFT ? (
+        {type === DROP_TYPE.NFT ? (
           <AvatarImage altName="NFT image" imageSrc={nftImage as string} />
         ) : (
           <VStack>

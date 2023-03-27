@@ -1,4 +1,4 @@
-import { Box, Button, Center, Flex, Heading, Spinner, Text, VStack } from '@chakra-ui/react';
+import { Box, Button, Center, Flex, Heading, Text, VStack } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
 import { getKeyInformation } from 'keypom-js';
 
@@ -14,11 +14,10 @@ import { TokenGift } from '@/features/claim/components/ticket/[id]/TokenGift';
 import { DROP_TYPE } from '@/constants/common';
 import { DropMetadataCard } from '@/features/claim/components/DropMetadataCard';
 
-export const ClaimTicketFormFlow = () => {
+export const TicketQRPage = () => {
   const { secretKey } = useClaimParams();
   const [claimAttempted, setClaimAttempted] = useState(false);
-  const { claimInfoError, isClaimInfoLoading, handleClaim, qrValue, claimError, getDropMetadata } =
-    useTicketClaim();
+  const { handleClaim, qrValue, claimError, getDropMetadata } = useTicketClaim();
   const [isShowSummary, setShowSummary] = useState(false);
 
   const { giftType, title, tokens, nftImage } = getDropMetadata();
@@ -37,16 +36,8 @@ export const ClaimTicketFormFlow = () => {
     checkClaim();
   }, []);
 
-  if (claimInfoError || claimError) {
-    return <ErrorBox message={(claimInfoError as string) || (claimError as string)} />;
-  }
-
-  if (isClaimInfoLoading) {
-    return (
-      <Center h={{ base: '300px', md: '500px' }}>
-        <Spinner size="lg" />
-      </Center>
-    );
+  if (claimError) {
+    return <ErrorBox message={claimError} />;
   }
 
   return (
@@ -99,7 +90,7 @@ export const ClaimTicketFormFlow = () => {
               p={{ base: '6', md: '8' }}
               pt={{ base: '12', md: '16' }}
             >
-              <DropMetadataCard giftType={giftType} title={title} />
+              <DropMetadataCard nftImage={nftImage} title={title} type={giftType} />
               <Button
                 type="submit"
                 w="full"

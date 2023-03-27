@@ -504,7 +504,6 @@ class KeypomJS {
     }
 
     return {
-      remainingUses,
       dropName: dropMetadata.dropName,
       wallets: dropMetadata.wallets,
       media: `${CLOUDFLARE_IPFS}/${nftData.metadata.media}`, // eslint-disable-line

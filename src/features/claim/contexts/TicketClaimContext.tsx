@@ -1,29 +1,35 @@
-import { zodResolver } from '@hookform/resolvers/zod';
-import { createContext, type PropsWithChildren, useContext, useState, useEffect } from 'react';
-import { FormProvider, useForm } from 'react-hook-form';
-import * as z from 'zod';
+import {
+  createContext,
+  type PropsWithChildren,
+  useContext,
+  useState,
+  useEffect,
+  lazy,
+} from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import keypomInstance from '@/lib/keypom';
 import { useClaimParams } from '@/hooks/useClaimParams';
-import { DROP_TYPE } from '@/constants/common';
+import { DROP_TYPE, type DROP_TYPES } from '@/constants/common';
 
 import { type TokenAsset } from '../routes/TokenClaimPage';
-import { TicketClaimQRPage } from '../components/ticket2/TicketPage';
-import TicketGiftClaimPage from '../routes/TicketGiftClaimPage';
+
+const TicketQRPage = lazy(
+  async () =>
+    await import('@/features/claim/components/ticket2/TicketQRPage').then((mod) => ({
+      default: mod.TicketQRPage,
+    })),
+);
+
+const TicketGiftClaimPage = lazy(
+  async () => await import('@/features/claim/routes/TicketGiftClaimPage'),
+);
 
 const TICKET_FLOW_KEY_USE = {
-  1: TicketClaimQRPage,
-  // 2: scanner page claim
+  1: TicketQRPage,
+  2: TicketQRPage,
   3: TicketGiftClaimPage,
 };
-
-const schema = z.object({
-  name: z.string().min(1, 'Ticket holder name required'),
-  email: z.string().email(),
-});
-
-type Schema = z.infer<typeof schema>;
 
 export interface TicketClaimContextTypes {
   getDropMetadata: () => {
@@ -31,10 +37,9 @@ export interface TicketClaimContextTypes {
     description: string;
     nftImage: string;
     tokens: TokenAsset[];
-    giftType: string;
+    giftType: DROP_TYPES;
   };
-  currentPage: (() => JSX.Element | undefined) | undefined;
-  getClaimFormData: () => string[];
+  currentPage: (() => JSX.Element | null) | undefined;
   qrValue: string;
   handleClaim: () => Promise<void>;
   isClaimInfoLoading: boolean;
@@ -61,23 +66,14 @@ export const TicketClaimContextProvider = ({ children }: PropsWithChildren) => {
   const [qrValue, setQrValue] = useState('');
 
   // Claim info states
-  const [currentPage, setCurrentPage] = useState<() => JSX.Element | undefined>();
+  const [currentPage, setCurrentPage] = useState<() => JSX.Element | null>();
   const [isClaimInfoLoading, setIsLoading] = useState(true);
   const [claimInfoError, setClaimInfoError] = useState<string | null>(null);
   const [claimError, setClaimError] = useState(null);
 
   const [currentKeyUse, setCurrentKeyUse] = useState<number | null>(null);
   const [tokens, setTokens] = useState<TokenAsset[]>([]);
-  const [giftType, setGiftType] = useState(DROP_TYPE.NFT);
-
-  const methods = useForm<Schema>({
-    mode: 'onChange',
-    defaultValues: {
-      name: '',
-      email: '',
-    },
-    resolver: zodResolver(schema),
-  });
+  const [giftType, setGiftType] = useState<DROP_TYPES>(DROP_TYPE.NFT);
 
   const loadTokenClaimInfo = async () => {
     try {
@@ -149,7 +145,9 @@ export const TicketClaimContextProvider = ({ children }: PropsWithChildren) => {
       navigate('/');
     }
     // eslint-disable-next-line
-    loadTicketClaimInfo().then(() => showCurrentPage());
+    loadTicketClaimInfo().then(async () => {
+      await showCurrentPage();
+    });
   }, []);
 
   const getDropMetadata = () => {
@@ -173,18 +171,10 @@ export const TicketClaimContextProvider = ({ children }: PropsWithChildren) => {
     }
   };
 
-  const getClaimFormData = (): string[] => {
-    const { getValues } = methods;
-    const [name, email] = getValues(['name', 'email']);
-
-    return [name, email];
-  };
-
   return (
     <TicketClaimContext.Provider
       value={{
         getDropMetadata,
-        getClaimFormData,
         qrValue,
         handleClaim,
         isClaimInfoLoading,
@@ -193,7 +183,7 @@ export const TicketClaimContextProvider = ({ children }: PropsWithChildren) => {
         currentPage,
       }}
     >
-      <FormProvider {...methods}>{children}</FormProvider>
+      {children}
     </TicketClaimContext.Provider>
   );
 };
