@@ -1,46 +1,63 @@
 import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 
-import { DROP_TYPE } from '@/constants/common';
+import { DROP_TYPE, type DROP_TYPES } from '@/constants/common';
 import { TokenNFTClaim } from '@/features/claim/components/TokenNFTClaim';
 import { useClaimParams } from '@/hooks/useClaimParams';
 import keypomInstance from '@/lib/keypom';
 import { checkClaimedDrop } from '@/utils/claimedDrops';
 import { TicketIcon } from '@/components/Icons';
-import ClaimTokenPage from '@/features/claim/routes/TokenClaimPage';
+import { type TokenAsset } from '@/types/common';
 
 const NFTClaimPage = () => {
   const navigate = useNavigate();
   const { contractId, secretKey } = useClaimParams();
 
   // metadata
+  const [type, setType] = useState<DROP_TYPES>(DROP_TYPE.NFT);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [nftImage, setNftImage] = useState('');
   const [wallets, setWallets] = useState([]);
+  const [tokens, setTokens] = useState<TokenAsset[]>([]);
 
   // claim info
   const [isClaimInfoLoading, setClaimInfoLoading] = useState(true);
   const [claimInfoError, setClaimInfoError] = useState('');
 
-  const [showTokenDrop, setShowTokenDrop] = useState(false);
-
   const loadClaimInfo = async () => {
     try {
-      const nftData = await keypomInstance.getNFTClaimInformation(contractId, secretKey);
+      const data = await keypomInstance.getNFTClaimInformation(contractId, secretKey);
 
-      setTitle(nftData.title);
-      setDescription(nftData.description);
-      setNftImage(nftData.media);
-      setWallets(nftData.wallets);
-    } catch (err) {
-      if (err.message === 'NFT series not found') {
-        // show tokens instead TODO
-        setShowTokenDrop(true);
-        setClaimInfoLoading(false);
-        return;
+      if (data.type === DROP_TYPE.NFT) {
+        setTitle(data.title);
+        setDescription(data.description);
+        setNftImage(data.media);
+      } else {
+        setType(DROP_TYPE.TOKEN);
+        const tokens: TokenAsset[] = [
+          {
+            icon: 'https://cryptologos.cc/logos/near-protocol-near-logo.svg?v=024',
+            value: data.amountNEAR || '0',
+            symbol: 'NEAR',
+          },
+        ];
+        if (data.ftMetadata) {
+          setTokens([
+            ...tokens,
+            {
+              icon: data.ftMetadata.icon as string,
+              value: data.amountTokens ?? '0',
+              symbol: data.ftMetadata.symbol,
+            },
+          ]);
+        }
+
+        setTokens(tokens);
       }
 
+      setWallets(data.wallets);
+    } catch (err) {
       setClaimInfoError(err.message);
     }
     setClaimInfoLoading(false);
@@ -61,14 +78,10 @@ const NFTClaimPage = () => {
     loadClaimInfo();
   }, []);
 
-  if (showTokenDrop) {
-    return <ClaimTokenPage />;
-  }
-
   return (
     <TokenNFTClaim
       claimInfoError={claimInfoError}
-      claimSuccessfulText="NFT claimed!"
+      claimSuccessfulText={type === DROP_TYPE.NFT ? 'NFT claimed!' : 'Tokens claimed!'}
       contractId={contractId}
       icon={<TicketIcon height={{ base: '8', md: '10' }} width={{ base: '8', md: '10' }} />}
       isClaimInfoLoading={isClaimInfoLoading}
@@ -76,10 +89,13 @@ const NFTClaimPage = () => {
         title,
         description,
         nftImage,
+        tokens,
       }}
-      pageHeadingText="You've received an NFT"
+      pageHeadingText={
+        type === DROP_TYPE.NFT ? "You've received an NFT!" : "You've received a Keypom drop!"
+      }
       secretKey={secretKey}
-      type={DROP_TYPE.NFT}
+      type={type}
       wallets={wallets}
     />
   );

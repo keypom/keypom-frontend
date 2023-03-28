@@ -1,145 +1,101 @@
-import { Box, Center, Heading, useBoolean, VStack } from '@chakra-ui/react';
+import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 
-import { IconBox } from '@/components/IconBox';
-import { BoxWithShape } from '@/components/BoxWithShape';
-import { TicketIcon } from '@/components/Icons';
-import { useAppContext } from '@/contexts/AppContext';
-import keypomInstance from '@/lib/keypom';
-import { storeClaimDrop } from '@/utils/claimedDrops';
+import { DROP_TYPE, type DROP_TYPES } from '@/constants/common';
+import { TokenNFTClaim } from '@/features/claim/components/TokenNFTClaim';
 import { useClaimParams } from '@/hooks/useClaimParams';
-import { DropClaimMetadata } from '@/features/claim/components/DropClaimMetadata';
-import { CreateWallet } from '@/features/claim/components/CreateWallet';
-import { ExistingWallet } from '@/features/claim/components/ExistingWallet';
-import { useTicketClaim } from '@/features/claim/contexts/TicketClaimContext';
+import keypomInstance from '@/lib/keypom';
+import { checkClaimedDrop } from '@/utils/claimedDrops';
+import { TicketIcon } from '@/components/Icons';
+import { type TokenAsset } from '@/types/common';
 
 const TicketGiftPage = () => {
-  const { secretKey, contractId } = useClaimParams();
-  const { setAppModal } = useAppContext();
-  const [haveWallet, showInputWallet] = useBoolean(false);
-  const [isClaimSuccessful, setIsClaimSuccessful] = useState(false);
-  const [isClaimLoading, setIsClaimLoading] = useState(false);
-  const [claimError, setClaimError] = useState('');
-  const [openLoadingModal, setOpenLoadingModal] = useState(false);
-  const [openResultModal, setOpenResultModal] = useState(false);
-  const { getDropMetadata } = useTicketClaim();
+  const navigate = useNavigate();
+  const { contractId, secretKey } = useClaimParams();
 
-  const { title, description, nftImage, tokens, giftType, wallets } = getDropMetadata();
+  // metadata
+  const [type, setType] = useState<DROP_TYPES>(DROP_TYPE.NFT);
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [nftImage, setNftImage] = useState('');
+  const [wallets, setWallets] = useState([]);
+  const [tokens, setTokens] = useState<TokenAsset[]>([]);
 
-  useEffect(() => {
-    if (openLoadingModal) {
-      openTransactionLoadingModal();
-    }
-  }, [openLoadingModal]);
+  // claim info
+  const [isClaimInfoLoading, setClaimInfoLoading] = useState(true);
+  const [claimInfoError, setClaimInfoError] = useState('');
 
-  useEffect(() => {
-    if (openResultModal) {
-      openTransactionResultModal();
-    }
-  }, [openResultModal]);
-
-  const handleClaim = async (walletAddress: string) => {
-    setClaimError('');
-    setIsClaimLoading(true);
-    setOpenLoadingModal(true);
+  const loadClaimInfo = async () => {
     try {
-      await keypomInstance.claim(secretKey, walletAddress);
-      storeClaimDrop(secretKey);
-      setOpenResultModal(true);
-      setIsClaimLoading(false);
-      setIsClaimSuccessful(true);
-    } catch (err) {
-      setClaimError(err.message);
-      setIsClaimLoading(false);
-      setOpenResultModal(true);
-    }
-  };
+      const data = await keypomInstance.getNFTClaimInformation(contractId, secretKey);
 
-  const openTransactionLoadingModal = () => {
-    setAppModal({
-      isOpen: true,
-      isLoading: true,
-    });
-  };
-
-  const openTransactionResultModal = () => {
-    setAppModal({
-      isOpen: true,
-      isLoading: false,
-      isError: Boolean(claimError),
-      isSuccess: isClaimSuccessful,
-      message: claimError || 'NFT claimed!',
-      options: [
-        {
-          label: 'Ok',
-          func: () => {
-            setAppModal({ isOpen: false });
-            console.log('tx acknowledged');
+      if (data.type === DROP_TYPE.NFT) {
+        setTitle(data.title);
+        setDescription(data.description);
+        setNftImage(data.media);
+      } else {
+        setType(DROP_TYPE.TOKEN);
+        const tokens: TokenAsset[] = [
+          {
+            icon: 'https://cryptologos.cc/logos/near-protocol-near-logo.svg?v=024',
+            value: data.amountNEAR || '0',
+            symbol: 'NEAR',
           },
-        },
-      ],
-    });
+        ];
+        if (data.ftMetadata) {
+          setTokens([
+            ...tokens,
+            {
+              icon: data.ftMetadata.icon as string,
+              value: data.amountTokens ?? '0',
+              symbol: data.ftMetadata.symbol,
+            },
+          ]);
+        }
+
+        setTokens(tokens);
+      }
+
+      setWallets(data.wallets);
+    } catch (err) {
+      setClaimInfoError(err.message);
+    }
+    setClaimInfoLoading(false);
   };
+
+  useEffect(() => {
+    if (secretKey === '') {
+      navigate('/');
+    }
+
+    const hasDropClaimedBefore = checkClaimedDrop(secretKey);
+    if (hasDropClaimedBefore) {
+      setClaimInfoError('This drop has been claimed.');
+      return;
+    }
+
+    // eslint-disable-next-line
+    loadClaimInfo();
+  }, []);
 
   return (
-    <Box mb={{ base: '5', md: '14' }} minH="100%" minW="100%" mt={{ base: '52px', md: '100px' }}>
-      <Center>
-        <VStack gap={{ base: 'calc(24px + 8px)', md: 'calc(32px + 10px)' }}>
-          <Heading textAlign="center">Collect your gifts</Heading>
-          <IconBox
-            icon={<TicketIcon height={{ base: '8', md: '10' }} width={{ base: '8', md: '10' }} />}
-            minW={{ base: 'inherit', md: '345px' }}
-            p="0"
-            pb="0"
-            w={{ base: '345px', md: '30rem' }}
-          >
-            <BoxWithShape
-              bg="white"
-              borderTopRadius="8xl"
-              pb={{ base: '6', md: '8' }}
-              pt={{ base: '12', md: '16' }}
-              px={{ base: '6', md: '8' }}
-              shapeSize="md"
-              w="full "
-            >
-              <DropClaimMetadata
-                description={description}
-                nftImage={nftImage}
-                title={title}
-                tokens={tokens}
-                type={giftType}
-              />
-            </BoxWithShape>
-            <VStack
-              bg="gray.50"
-              borderBottomRadius="8xl"
-              p="8"
-              spacing={{ base: '4', md: '5' }}
-              w="full"
-            >
-              {!haveWallet ? (
-                <CreateWallet
-                  contractId={contractId}
-                  secretKey={secretKey}
-                  wallets={wallets}
-                  onClick={showInputWallet.on}
-                />
-              ) : (
-                <>
-                  <ExistingWallet
-                    claimErrorText={claimError}
-                    handleSubmit={handleClaim}
-                    isLoading={isClaimLoading}
-                    isSuccess={isClaimSuccessful}
-                    onBack={showInputWallet.off}
-                  />
-                </>
-              )}
-            </VStack>
-          </IconBox>
-        </VStack>
-      </Center>
-    </Box>
+    <TokenNFTClaim
+      claimInfoError={claimInfoError}
+      claimSuccessfulText="Gifts claimed!"
+      contractId={contractId}
+      icon={<TicketIcon height={{ base: '8', md: '10' }} width={{ base: '8', md: '10' }} />}
+      isClaimInfoLoading={isClaimInfoLoading}
+      metadata={{
+        title,
+        description,
+        nftImage,
+        tokens,
+      }}
+      pageHeadingText="Collect your gifts"
+      secretKey={secretKey}
+      type={type}
+      wallets={wallets}
+    />
   );
 };
 

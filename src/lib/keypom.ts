@@ -407,37 +407,37 @@ class KeypomJS {
     };
   };
 
-  getNftMetadata = async (drop: ProtocolReturnedDrop) => {
-    const fcMethods = drop.fc?.methods;
-    if (
-      fcMethods === undefined ||
-      fcMethods.length === 0 ||
-      fcMethods[0] === undefined ||
-      fcMethods[0][0] === undefined
-    ) {
-      throw new Error('Unable to retrieve function calls.');
-    }
+  getNFTorTokensMetadata = async (
+    secretKey: string,
+    contractId: string,
+    fcMethod: { receiver_id: string },
+    dropId: string,
+  ) => {
+    let nftData;
+    let tokensData;
 
-    const fcMethod = fcMethods[0][0];
     const { receiver_id: receiverId } = fcMethod;
     const { viewCall } = getEnv();
 
-    let nftData;
     try {
       nftData = await viewCall({
         contractId: receiverId,
         methodName: 'get_series_info',
-        args: { mint_id: parseInt(drop.drop_id) },
+        args: { mint_id: parseFloat(dropId) },
       });
     } catch (err) {
       console.error('NFT series not found');
-      throw new Error('NFT series not found');
+      // throw new Error('NFT series not found');
+    }
+
+    // show tokens if NFT series not found
+    if (nftData === undefined) {
+      tokensData = await this.getTokenClaimInformation(contractId, secretKey);
     }
 
     return {
-      media: `${CLOUDFLARE_IPFS}/${nftData.metadata.media}`, // eslint-disable-line
-      title: nftData.metadata.title,
-      description: nftData.metadata.description,
+      nftData,
+      tokensData,
     };
   };
 
@@ -453,12 +453,35 @@ class KeypomJS {
 
     const dropMetadata = this.getDropMetadata(drop.metadata);
 
-    const nftMetadata = await this.getNftMetadata(drop); // will still throw relevant error
+    const fcMethods = drop.fc?.methods;
+    if (
+      fcMethods === undefined ||
+      fcMethods.length === 0 ||
+      fcMethods[0] === undefined ||
+      fcMethods[0][0] === undefined
+    ) {
+      throw new Error('Unable to retrieve function calls.');
+    }
+
+    const { nftData, tokensData } = await this.getNFTorTokensMetadata(
+      secretKey,
+      contractId,
+      fcMethods[0][0],
+      drop.drop_id,
+    );
 
     return {
+      type: nftData ? DROP_TYPE.NFT : DROP_TYPE.TOKEN,
       dropName: dropMetadata.dropName,
       wallets: dropMetadata.wallets,
-      ...nftMetadata,
+      ...(nftData
+        ? {
+            media: `${CLOUDFLARE_IPFS}/${nftData.metadata.media}`, // eslint-disable-line
+            title: nftData.metadata.title,
+            description: nftData.metadata.description,
+          }
+        : {}),
+      ...(tokensData || {}),
     };
   };
 
@@ -484,27 +507,26 @@ class KeypomJS {
     }
 
     const fcMethod = fcMethods[2][0];
-    const { receiver_id: receiverId } = fcMethod;
-    const { viewCall } = getEnv();
 
-    let nftData;
-    try {
-      nftData = await viewCall({
-        contractId: receiverId,
-        methodName: 'get_series_info',
-        args: { mint_id: parseFloat(drop.drop_id) },
-      });
-    } catch (err) {
-      console.error('NFT series not found');
-      throw new Error('NFT series not found');
-    }
+    const { nftData, tokensData } = await this.getNFTorTokensMetadata(
+      secretKey,
+      contractId,
+      fcMethod,
+      drop.drop_id,
+    );
 
     return {
+      type: nftData ? DROP_TYPE.NFT : DROP_TYPE.TOKEN,
       dropName: dropMetadata.dropName,
       wallets: dropMetadata.wallets,
-      media: `${CLOUDFLARE_IPFS}/${nftData.metadata.media}`, // eslint-disable-line
-      title: nftData.metadata.title,
-      description: nftData.metadata.description,
+      ...(nftData
+        ? {
+            media: `${CLOUDFLARE_IPFS}/${nftData.metadata.media}`, // eslint-disable-line
+            title: nftData.metadata.title,
+            description: nftData.metadata.description,
+          }
+        : {}),
+      ...(tokensData || {}),
     };
   };
 

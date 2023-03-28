@@ -12,8 +12,7 @@ import keypomInstance from '@/lib/keypom';
 import { useClaimParams } from '@/hooks/useClaimParams';
 import { DROP_TYPE, type DROP_TYPES } from '@/constants/common';
 import getConfig from '@/config/config';
-
-import { type TokenAsset } from '../routes/TokenClaimPage';
+import { type TokenAsset } from '@/types/common';
 
 const TicketQRPage = lazy(
   async () =>
@@ -81,7 +80,7 @@ export const TicketClaimContextProvider = ({ children }: PropsWithChildren) => {
   const loadTokenClaimInfo = async () => {
     try {
       const { ftMetadata, amountNEAR, amountTokens } =
-        await keypomInstance.getTokenClaimInformation(contractId, secretKey, true);
+        await keypomInstance.getTokenClaimInformation(contractId, secretKey);
       const tokens: TokenAsset[] = [
         {
           icon: 'https://cryptologos.cc/logos/near-protocol-near-logo.svg?v=024',
