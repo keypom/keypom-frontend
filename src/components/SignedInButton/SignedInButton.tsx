@@ -14,7 +14,7 @@ import {
 import { formatNearAmount } from 'keypom-js';
 
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
-import { useAppContext, setAppModalHelper } from '@/contexts/AppContext';
+import { useAppContext, openMasterKeyModal } from '@/contexts/AppContext';
 import { truncateAddress } from '@/utils/truncateAddress';
 
 import { KeyIcon, NearIcon, SignOutIcon } from '../Icons';
@@ -44,7 +44,7 @@ export const SignedInButton = () => {
   };
 
   const handleMasterKey = async () => {
-    setAppModalHelper(setAppModal, null, null);
+    openMasterKeyModal(setAppModal, null, null);
   };
 
   const getAccountBalance = () => {
