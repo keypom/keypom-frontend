@@ -1,6 +1,6 @@
 import * as z from 'zod';
 
-const MAX_FILE_SIZE = 1000000;
+import { MAX_FILE_SIZE } from '@/constants/common'
 const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
 
 export const EventInfoSchema = z.object({
@@ -44,7 +44,11 @@ export const AdditionalGiftSchema = z
   .superRefine(({ additionalGift }, ctx) => {
     if (additionalGift.type === 'token') {
       const token = additionalGift.token;
-      if (token.amountPerLink === undefined || !(token?.amountPerLink > 0)) {
+      let amount = token?.amountPerLink;
+      if (!amount) amount = 0;
+      if (typeof amount === 'string') amount = parseInt(amount);
+      
+      if (amount as number <= 0) {
         ctx.addIssue({
           path: ['additionalGift.token.amountPerLink'],
           code: z.ZodIssueCode.custom,

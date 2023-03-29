@@ -19,16 +19,13 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { type ProtocolReturnedDrop } from 'keypom-js';
 import { ChevronDownIcon } from '@chakra-ui/icons';
 import { useSearchParams } from 'react-router-dom';
-
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
 import { type ColumnItem, type DataItem } from '@/components/Table/types';
 import { DataTable } from '@/components/Table';
 import { DeleteIcon } from '@/components/Icons';
-import { handleFinishNFTDrop } from '@/features/create-drop/contexts/CreateNftDropContext';
 import { truncateAddress } from '@/utils/truncateAddress';
 import { NextButton, PrevButton } from '@/components/Pagination';
 import { usePagination } from '@/hooks/usePagination';
-import { useAppContext } from '@/contexts/AppContext';
 import { CLOUDFLARE_IPFS, DROP_TYPE, PAGE_QUERY_PARAM } from '@/constants/common';
 import keypomInstance from '@/lib/keypom';
 import { PopoverTemplate } from '@/components/PopoverTemplate';
@@ -80,8 +77,6 @@ const COLUMNS: ColumnItem[] = [
 
 export default function AllDrops() {
   const [searchParams, setSearchParams] = useSearchParams();
-
-  const { setAppModal } = useAppContext();
 
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [isLoading, setIsLoading] = useState(true);
@@ -213,29 +208,6 @@ export default function AllDrops() {
     },
     [pagination],
   );
-
-  const handleNFTCreate = async () => {
-    setAppModal({
-      isOpen: true,
-      isLoading: true,
-      header: 'Creating NFT',
-      message:
-        'Uploading media and creating NFT drop links on-chain. This may take 15-30 seconds.',
-    });
-    await handleFinishNFTDrop(setAppModal);
-    setAppModal({
-      isOpen: false,
-      isLoading: false,
-      header: '',
-      message: '',
-    });
-    handleGetDropsSize();
-    handleGetDrops({ start: currentPageIndex * pagination.pageSize });
-  };
-  useEffect(() => {
-    if (!accountId) return;
-    handleNFTCreate()
-  }, [accountId])
 
   useEffect(() => {
     if (!accountId) return;
