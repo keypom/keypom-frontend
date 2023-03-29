@@ -11,7 +11,7 @@ import { LinkIcon } from '@/components/Icons';
 import { useDropFlowContext } from '@/features/create-drop/contexts';
 import { get } from '@/utils/localStorage';
 import { MASTER_KEY } from '@/constants/common';
-import { useAppContext, setAppModalHelper } from '@/contexts/AppContext';
+import { useAppContext, openMasterKeyModal } from '@/contexts/AppContext';
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
 import getConfig from '@/config/config';
 import { type IToken } from '@/types/common';
@@ -82,7 +82,7 @@ export const CreateTokenDropForm = () => {
   const handleSubmitClick = () => {
     const masterKey = get(MASTER_KEY);
     if (masterKey === undefined) {
-      setAppModalHelper(setAppModal, onNext?.(), () => {
+      openMasterKeyModal(setAppModal, onNext?.(), () => {
         // eslint-disable-next-line no-console
         console.log('user cancelled');
         window.location.reload();
@@ -154,7 +154,7 @@ export const CreateTokenDropForm = () => {
                 onChange={(e) => {
                   if (e.target.value.length > e.target.maxLength)
                     e.target.value = e.target.value.slice(0, e.target.maxLength);
-                  onChange(parseFloat(e.target.value));
+                  onChange(e.target.value);
                 }}
               >
                 <TokenInput.TokenMenu

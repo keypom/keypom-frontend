@@ -24,14 +24,13 @@ const ProtectedRoute = React.lazy(
 const AllDropsPage = React.lazy(
   async () => await import('./features/all-drops/routes/AllDropsPage'),
 );
-const ClaimPage = React.lazy(async () => await import('@/features/claim/routes/ClaimPage'));
+const ClaimPage = React.lazy(async () => await import('@/features/claim/routes/ClaimRouter'));
 const ClaimTokenPage = React.lazy(
   async () => await import('@/features/claim/routes/TokenClaimPage'),
 );
 const ClaimNftPage = React.lazy(async () => await import('@/features/claim/routes/NFTClaimPage'));
-const ClaimGiftPage = React.lazy(async () => await import('@/features/claim/routes/GiftClaimPage'));
 const ClaimTicketPage = React.lazy(
-  async () => await import('@/features/claim/routes/ticket/TicketClaimPage'),
+  async () => await import('@/features/claim/routes/TicketClaimPage'),
 );
 const ClaimTrialPage = React.lazy(
   async () => await import('@/features/claim/routes/TrialClaimPage'),
@@ -47,13 +46,13 @@ const CreateTicketDropPage = React.lazy(
 );
 
 const TokenDropManagerPage = React.lazy(
-  async () => await import('@/features/drop-manager/routes/token/[id]'),
+  async () => await import('@/features/drop-manager/routes/token/TokenDropManagerPage'),
 );
 const NFTDropManagerPage = React.lazy(
-  async () => await import('@/features/drop-manager/routes/nft/[id]'),
+  async () => await import('@/features/drop-manager/routes/nft/NFTDropManagerPage'),
 );
 const TicketDropManagerPage = React.lazy(
-  async () => await import('@/features/drop-manager/routes/ticket/[id]'),
+  async () => await import('@/features/drop-manager/routes/ticket/TicketDropManagerPage'),
 );
 const EthDenverLandingPage = React.lazy(async () => await import('@/pages/EthDenver'));
 
@@ -159,7 +158,7 @@ export const router = createBrowserRouter([
               },
               {
                 path: 'gift/:contractId',
-                element: <ClaimGiftPage />,
+                element: <ClaimTicketPage />,
               },
               {
                 path: 'ticket/:contractId',

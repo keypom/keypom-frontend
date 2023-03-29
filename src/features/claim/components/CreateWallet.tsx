@@ -8,7 +8,7 @@ import { WalletOption } from './WalletOption';
 
 interface CreateWalletProps {
   onClick: () => void;
-  wallets: string[];
+  wallets?: string[];
   contractId: string;
   secretKey: string;
   redirectUrl?: string;

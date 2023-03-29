@@ -9,8 +9,14 @@ export const DROP_TYPE = {
   TRIAL: 'TRIAL',
   NFT: 'NFT',
   SIMPLE: 'SIMPLE',
-};
+  OTHER: 'OTHER',
+} as const;
+
+type DROP_TYPE_KEYS = keyof typeof DROP_TYPE;
+export type DROP_TYPES = (typeof DROP_TYPE)[DROP_TYPE_KEYS];
 
 export const MASTER_KEY = 'MASTER_KEY';
 
 export const PAGE_SIZE_LIMIT = 10;
+
+export const PAGE_QUERY_PARAM = 'page';

@@ -41,10 +41,31 @@ const connectionConfig = {
   helperUrl: config.helperUrl,
   explorerUrl: config.explorerUrl,
 };
+
+const CACHE_MAX_AGE = 5000; // in ms
 class KeypomJS {
   private static instance: KeypomJS;
   nearConnection: nearAPI.Near;
   test = 0;
+
+  dropStore: {
+    dropWithKeys: Record<
+      string,
+      Record<
+        number,
+        {
+          drop: ProtocolReturnedDrop;
+          cacheExpiryTime: number;
+          pk?: string[];
+          sk?: string[];
+        }
+      >
+    >;
+    paginatedMyDrops: Record<number, { drops: ProtocolReturnedDrop[]; cacheExpiryTime: number }>;
+  } = {
+    dropWithKeys: {}, // this is to cache the keys of each respective drops, mainly used in DropManager.tsx and [id].tsx
+    paginatedMyDrops: {}, // this is to cache the drops from My Drops, mainly used in AllDrops.tsx
+  };
 
   constructor() {
     if (instance !== undefined) {
@@ -106,7 +127,7 @@ class KeypomJS {
     await updateKeypomContractId({ keypomContractId: contractId });
   };
 
-  checkTicketRemainingUses = async (contractId: string, secretKey: string) => {
+  getCurrentKeyUse = async (contractId: string, secretKey: string) => {
     await this.verifyDrop(contractId, secretKey);
 
     const keyInfo = await getKeyInformation({ secretKey });
@@ -115,7 +136,7 @@ class KeypomJS {
       throw new Error('Drop has been deleted or has already been claimed');
     }
 
-    return keyInfo.remaining_uses;
+    return keyInfo.cur_key_use;
   };
 
   checkIfDropExists = async (secretKey: string) => {
@@ -183,19 +204,47 @@ class KeypomJS {
       ) {
         return DROP_TYPE.NFT;
       }
-
-      return null;
     }
 
-    return null;
+    return DROP_TYPE.OTHER;
   };
 
-  getDrops = async ({ accountId, start, limit }) => await getDrops({ accountId, start, limit });
+  getDrops = async ({
+    accountId,
+    start,
+    limit,
+    withKeys,
+  }: {
+    accountId: string;
+    start: number;
+    limit: number;
+    withKeys: boolean;
+  }) => {
+    /** Get Drops caching logic */
+    if (
+      !Object.prototype.hasOwnProperty.call(this.dropStore.paginatedMyDrops, start) ||
+      Date.now() > this.dropStore.paginatedMyDrops[start].cacheExpiryTime
+    ) {
+      const newDropsCacheExpiryTime = new Date(Date.now() + CACHE_MAX_AGE).getTime();
+
+      this.dropStore.paginatedMyDrops[start] = {
+        drops: await getDrops({ accountId, start, limit, withKeys }),
+        cacheExpiryTime: newDropsCacheExpiryTime,
+      };
+    }
+
+    return this.dropStore.paginatedMyDrops[start].drops;
+  };
 
   getDropSupplyForOwner = async ({ accountId }) => await getDropSupplyForOwner({ accountId });
 
-  getDropMetadata = (metadata: string | undefined) =>
-    JSON.parse(metadata || JSON.stringify({ dropName: 'Untitled' }));
+  getDropMetadata = (metadata: string | undefined) => {
+    const parsedObj = JSON.parse(metadata || '{}');
+    if (!Object.hasOwn(parsedObj, 'dropName')) {
+      parsedObj.dropName = 'Untitled';
+    }
+    return parsedObj;
+  };
 
   deleteDrops = async ({ wallet, dropIds }) => await deleteDrops({ wallet, dropIds });
 
@@ -224,7 +273,7 @@ class KeypomJS {
     return drop;
   };
 
-  getClaimedDropInfo = async (dropId: string) => await getKeySupplyForDrop({ dropId });
+  getAvailableKeys = async (dropId: string) => await getKeySupplyForDrop({ dropId });
 
   getKeysForDrop = async ({ dropId, limit, start }) =>
     await getKeysForDrop({ dropId, limit, start });
@@ -251,32 +300,58 @@ class KeypomJS {
     pageSize: number,
     getDropErrorCallback?: () => void,
   ) => {
-    let drop: ProtocolReturnedDrop;
     try {
-      drop = await this.getDropInfo({ dropId });
+      /** Get PaginatedDrops caching logic */
+      if (
+        !Object.prototype.hasOwnProperty.call(this.dropStore.dropWithKeys, dropId) ||
+        !Object.prototype.hasOwnProperty.call(this.dropStore.dropWithKeys[dropId], pageIndex) ||
+        Date.now() > this.dropStore.dropWithKeys[dropId][pageIndex].cacheExpiryTime
+      ) {
+        if (this.dropStore.dropWithKeys[dropId] === undefined)
+          this.dropStore.dropWithKeys[dropId] = {};
+        const newPaginatedDropsCacheExpiryTime = new Date(Date.now() + CACHE_MAX_AGE).getTime();
 
-      const dropSize = drop.next_key_id;
-      const { dropName } = this.getDropMetadata(drop.metadata);
+        this.dropStore.dropWithKeys[dropId][pageIndex] = {
+          drop: await this.getDropInfo({ dropId }),
+          cacheExpiryTime: newPaginatedDropsCacheExpiryTime,
+          pk: undefined,
+          sk: undefined,
+        };
+      }
 
-      const { publicKeys, secretKeys } = await generateKeys({
-        numKeys:
-          (pageIndex + 1) * pageSize > dropSize
-            ? dropSize - pageIndex * pageSize
-            : Math.min(dropSize, pageSize),
-        rootEntropy: `${get(MASTER_KEY) as string}-${dropId}`,
-        autoMetaNonceStart: pageIndex * pageSize,
-      });
+      const dropSize = this.dropStore.dropWithKeys[dropId][pageIndex].drop.next_key_id;
+      const { dropName } = this.getDropMetadata(
+        this.dropStore.dropWithKeys[dropId][pageIndex].drop.metadata,
+      );
+
+      // Get PaginatedDrops PK SK caching logic
+      if (
+        this.dropStore.dropWithKeys[dropId][pageIndex].pk === undefined ||
+        this.dropStore.dropWithKeys[dropId][pageIndex].sk === undefined
+      ) {
+        const { publicKeys, secretKeys } = await generateKeys({
+          numKeys:
+            (pageIndex + 1) * pageSize > dropSize
+              ? dropSize - pageIndex * pageSize
+              : Math.min(dropSize, pageSize),
+          rootEntropy: `${get(MASTER_KEY) as string}-${dropId}`,
+          autoMetaNonceStart: pageIndex * pageSize,
+        });
+
+        this.dropStore.dropWithKeys[dropId][pageIndex].pk = publicKeys;
+        this.dropStore.dropWithKeys[dropId][pageIndex].sk = secretKeys;
+      }
 
       const keyInfo = await getKeyInformationBatch({
-        publicKeys,
-        secretKeys,
+        publicKeys: this.dropStore.dropWithKeys[dropId][pageIndex].pk,
+        secretKeys: this.dropStore.dropWithKeys[dropId][pageIndex].sk,
       });
 
       return {
         dropSize,
         dropName,
-        publicKeys,
-        secretKeys,
+        publicKeys: this.dropStore.dropWithKeys[dropId][pageIndex].pk,
+        secretKeys: this.dropStore.dropWithKeys[dropId][pageIndex].sk,
         keyInfo,
       };
     } catch (e) {
@@ -308,11 +383,7 @@ class KeypomJS {
     return urls[0];
   };
 
-  getTokenClaimInformation = async (
-    contractId: string,
-    secretKey: string,
-    skipLinkdropCheck = false,
-  ) => {
+  getTokenClaimInformation = async (contractId: string, secretKey: string) => {
     const drop = await this.getDropInfo({ secretKey });
 
     // verify if secretKey is a token drop
@@ -336,37 +407,37 @@ class KeypomJS {
     };
   };
 
-  getNftMetadata = async (drop: ProtocolReturnedDrop) => {
-    const fcMethods = drop.fc?.methods;
-    if (
-      fcMethods === undefined ||
-      fcMethods.length === 0 ||
-      fcMethods[0] === undefined ||
-      fcMethods[0][0] === undefined
-    ) {
-      throw new Error('Unable to retrieve function calls.');
-    }
+  getNFTorTokensMetadata = async (
+    secretKey: string,
+    contractId: string,
+    fcMethod: { receiver_id: string },
+    dropId: string,
+  ) => {
+    let nftData;
+    let tokensData;
 
-    const fcMethod = fcMethods[0][0];
     const { receiver_id: receiverId } = fcMethod;
     const { viewCall } = getEnv();
 
-    let nftData;
     try {
       nftData = await viewCall({
         contractId: receiverId,
         methodName: 'get_series_info',
-        args: { mint_id: parseInt(drop.drop_id) },
+        args: { mint_id: parseFloat(dropId) },
       });
     } catch (err) {
       console.error('NFT series not found');
-      throw new Error('NFT series not found');
+      // throw new Error('NFT series not found');
+    }
+
+    // show tokens if NFT series not found
+    if (nftData === undefined) {
+      tokensData = await this.getTokenClaimInformation(contractId, secretKey);
     }
 
     return {
-      media: `${CLOUDFLARE_IPFS}/${nftData.metadata.media}`, // eslint-disable-line
-      title: nftData.metadata.title,
-      description: nftData.metadata.description,
+      nftData,
+      tokensData,
     };
   };
 
@@ -382,12 +453,35 @@ class KeypomJS {
 
     const dropMetadata = this.getDropMetadata(drop.metadata);
 
-    const nftMetadata = await this.getNftMetadata(drop); // will still throw relevant error
+    const fcMethods = drop.fc?.methods;
+    if (
+      fcMethods === undefined ||
+      fcMethods.length === 0 ||
+      fcMethods[0] === undefined ||
+      fcMethods[0][0] === undefined
+    ) {
+      throw new Error('Unable to retrieve function calls.');
+    }
+
+    const { nftData, tokensData } = await this.getNFTorTokensMetadata(
+      secretKey,
+      contractId,
+      fcMethods[0][0],
+      drop.drop_id,
+    );
 
     return {
+      type: nftData ? DROP_TYPE.NFT : DROP_TYPE.TOKEN,
       dropName: dropMetadata.dropName,
       wallets: dropMetadata.wallets,
-      ...nftMetadata,
+      ...(nftData
+        ? {
+            media: `${CLOUDFLARE_IPFS}/${nftData.metadata.media}`, // eslint-disable-line
+            title: nftData.metadata.title,
+            description: nftData.metadata.description,
+          }
+        : {}),
+      ...(tokensData || {}),
     };
   };
 
@@ -399,7 +493,6 @@ class KeypomJS {
     if (linkdropType !== DROP_TYPE.TICKET) {
       throw new Error('This drop is not a Ticket drop. Please contact your drop creator.');
     }
-    const remainingUses = await this.checkTicketRemainingUses(contractId, secretKey);
 
     const dropMetadata = this.getDropMetadata(drop.metadata);
 
@@ -414,28 +507,26 @@ class KeypomJS {
     }
 
     const fcMethod = fcMethods[2][0];
-    const { receiver_id: receiverId } = fcMethod;
-    const { viewCall } = getEnv();
 
-    let nftData;
-    try {
-      nftData = await viewCall({
-        contractId: receiverId,
-        methodName: 'get_series_info',
-        args: { mint_id: parseFloat(drop.drop_id) },
-      });
-    } catch (err) {
-      console.error('NFT series not found');
-      throw new Error('NFT series not found');
-    }
+    const { nftData, tokensData } = await this.getNFTorTokensMetadata(
+      secretKey,
+      contractId,
+      fcMethod,
+      drop.drop_id,
+    );
 
     return {
-      remainingUses,
+      type: nftData ? DROP_TYPE.NFT : DROP_TYPE.TOKEN,
       dropName: dropMetadata.dropName,
       wallets: dropMetadata.wallets,
-      media: `${CLOUDFLARE_IPFS}/${nftData.metadata.media}`, // eslint-disable-line
-      title: nftData.metadata.title,
-      description: nftData.metadata.description,
+      ...(nftData
+        ? {
+            media: `${CLOUDFLARE_IPFS}/${nftData.metadata.media}`, // eslint-disable-line
+            title: nftData.metadata.title,
+            description: nftData.metadata.description,
+          }
+        : {}),
+      ...(tokensData || {}),
     };
   };
 

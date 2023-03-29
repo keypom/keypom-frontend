@@ -1,5 +1,4 @@
-import { Box, Button, Flex, Show, Text } from '@chakra-ui/react';
-import { Image } from '@chakra-ui/react';
+import { Box, Button, Flex, Show, Text, Image } from '@chakra-ui/react';
 
 import { IconBox } from '@/components/IconBox';
 
@@ -44,18 +43,23 @@ const LandingPage = () => {
             py={{ base: '8', md: 'auto' }}
             textAlign="left"
           >
-
-<Text color="gray.900" fontWeight="500" mb="4" size={{ base: 'xl', md: '3xl' }}>
+            <Text color="gray.900" fontWeight="500" mb="4" size={{ base: 'xl', md: '3xl' }}>
               PLUSHIE GIVEAWAY
             </Text>
 
-<Text color="blue" fontWeight="500" mb="4" size={{ base: 'xl', md: '3xl' }}>
-              <a href="https://twitter.com/keypomxyz/status/1632452700230279168?s=20" target="_blank">Instructions on how to win Sunday, March 5th</a>
+            <Text color="blue" fontWeight="500" mb="4" size={{ base: 'xl', md: '3xl' }}>
+              <a
+                href="https://twitter.com/keypomxyz/status/1632452700230279168?s=20"
+                rel="noreferrer"
+                target="_blank"
+              >
+                Instructions on how to win Sunday, March 5th
+              </a>
             </Text>
 
-      <Image alt="keypom-logo" src="/assets/plushie.jpg" w={{ base: '200px', md: '300px' }} />
-      <br/>
-              <br/>
+            <Image alt="keypom-logo" src="/assets/plushie.jpg" w={{ base: '200px', md: '300px' }} />
+            <br />
+            <br />
             <Text color="blue.400" fontWeight="500" mb="1" size={{ base: 'md', md: 'lg' }}>
               {subHeadingText}
             </Text>

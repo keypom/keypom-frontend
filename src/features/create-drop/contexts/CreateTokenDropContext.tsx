@@ -51,7 +51,7 @@ const schema = z.object({
     .positive()
     .min(1, 'Required')
     .max(50, 'Currently drops are limited to 50 links. This will be increased very soon!'),
-  amountPerLink: z.number({ invalid_type_error: 'Amount required' }).gt(0),
+  amountPerLink: z.coerce.number({ invalid_type_error: 'Amount required' }).gt(0),
   redirectLink: z
     .union([z.string().regex(urlRegex, 'Please enter a valid url'), z.string().length(0)])
     .optional(),
