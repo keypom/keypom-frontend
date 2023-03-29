@@ -7,7 +7,7 @@ import { FormControl } from '@/components/FormControl';
 import { LinkIcon } from '@/components/Icons';
 import { IconBox } from '@/components/IconBox';
 import { useDropFlowContext } from '@/features/create-drop/contexts/DropFlowContext';
-import { DEBUG_DEL_NFT_ATTEMPT } from '@/features/create-drop/contexts/CreateNftDropContext'
+import { DEBUG_DEL_NFT_ATTEMPT } from '@/features/create-drop/contexts/CreateNftDropContext';
 import getConfig from '@/config/config';
 
 import { ArtworkInput } from '../Fields/ArtworkInput';
@@ -39,10 +39,10 @@ export const CreateNftDropForm = () => {
 
   // TODO REMOVE
   useEffect(() => {
-    DEBUG_DEL_NFT_ATTEMPT()
-    setValue('title', 'My Title')
-    setValue('description', 'My Description')
-  }, [])
+    DEBUG_DEL_NFT_ATTEMPT();
+    setValue('title', 'My Title');
+    setValue('description', 'My Description');
+  }, []);
 
   const handleCheckboxChange = useCallback(
     (value) => {

@@ -176,7 +176,6 @@ export default function AllDrops() {
 
   const handleGetDrops = useCallback(
     async ({ start = 0, limit = pagination.pageSize }) => {
-
       const drops = await keypomInstance.getDrops({ accountId, start, limit });
 
       setWallet(await selector.wallet());
@@ -210,23 +209,22 @@ export default function AllDrops() {
         isOpen: true,
         isLoading: true,
         header: 'Creating NFT',
-        message: 'Uploading media and creating NFT drop links on-chain. This may take 15-30 seconds.'
-      })
+        message:
+          'Uploading media and creating NFT drop links on-chain. This may take 15-30 seconds.',
+      });
       await handleFinishNFTDrop(setRefreshTrigger, setAppModal);
       setAppModal({
         isOpen: false,
         isLoading: false,
         header: null,
         message: null,
-      })
+      });
     }
-  }
+  };
   useEffect(() => {
     if (!accountId) return;
-    handleMultipleEffects()
+    handleMultipleEffects();
   }, [accountId, refreshTrigger, searchParams]);
-
-
 
   const dropMenuItems = MENU_ITEMS.map((item) => (
     <MenuItem key={item.label} {...item}>

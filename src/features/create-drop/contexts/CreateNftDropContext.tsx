@@ -4,26 +4,31 @@ import useSWRMutation from 'swr/mutation';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import BN from 'bn.js';
-import { getEnv, generateKeys, createDrop, formatNearAmount, parseNearAmount, addToBalance, getUserBalance } from 'keypom-js';
-import { get, set, update, del } from 'idb-keyval'
+import {
+  getEnv,
+  generateKeys,
+  createDrop,
+  formatNearAmount,
+  parseNearAmount,
+  addToBalance,
+} from 'keypom-js';
+import { get, set, update, del } from 'idb-keyval';
+import { pack } from 'ipfs-car/dist/esm/pack';
+import { MemoryBlockStore } from 'ipfs-car/dist/esm/blockstore/memory';
 
-import { pack } from 'ipfs-car/dist/esm/pack'
-import { MemoryBlockStore } from 'ipfs-car/dist/esm/blockstore/memory'
-
-import { urlRegex, MASTER_KEY } from '@/constants/common';
+import { urlRegex, MASTER_KEY, NFT_ATTEMPT_KEY } from '@/constants/common';
 import {
   type PaymentData,
   type PaymentItem,
   type SummaryItem,
 } from '@/features/create-drop/types/types';
-import {
-  NFT_ATTEMPT_KEY
-} from '@/constants/common'
 
-const WORKER_BASE_URL = 'https://keypom-nft-storage.keypom.workers.dev/'
+const WORKER_BASE_URL = 'https://keypom-nft-storage.keypom.workers.dev/';
 const MAX_FILE_SIZE = 10000000;
 const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/gif', 'image/png', 'image/webp'];
-export const DEBUG_DEL_NFT_ATTEMPT = () => del(NFT_ATTEMPT_KEY)
+export const DEBUG_DEL_NFT_ATTEMPT = async () => {
+  await del(NFT_ATTEMPT_KEY);
+};
 
 const schema = z.object({
   title: z.string().min(1, 'NFT name required'),
@@ -85,35 +90,29 @@ const CreateNftDropContext = createContext<CreateNftDropContextType>({
 });
 
 const createDropsForNFT = async (dropId, returnTransactions, data, setAppModal) => {
-  const file = await data?.media?.arrayBuffer()
+  const file = await data?.media?.arrayBuffer();
 
-  let {
-    numKeys,
-    title,
-    description,
-    media = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  } = data;
+  let { media = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' } = data;
+
+  const { numKeys, title, description } = data;
 
   const wallet = await window.selector.wallet();
-
-  const balance = await getUserBalance({
-    accountId: (await wallet.getAccounts())[0].accountId,
-  })
 
   // generate CID locally HERE
   if (file) {
     const { root } = await pack({
       input: file,
       blockstore: new MemoryBlockStore(),
-      wrapWithDirectory: false
-    })
-    media = root.toString()
-    console.log('CID', media)
+      wrapWithDirectory: false,
+    });
+    media = root.toString();
+    console.log('CID', media);
   }
 
+  let keys, requiredDeposit;
   if (!data.seriesSecret) {
     try {
-      var { keys, requiredDeposit } = await createDrop({
+      const res = await createDrop({
         wallet,
         numKeys: 1,
         metadata: JSON.stringify({
@@ -144,17 +143,19 @@ const createDropsForNFT = async (dropId, returnTransactions, data, setAppModal) 
         useBalance: !returnTransactions,
         returnTransactions,
       });
-  
+
+      keys = res.keys;
+      requiredDeposit = res.requiredDeposit;
+
       if (!returnTransactions && !keys) {
         throw new Error('Error creating drop');
       }
-  
+
       // we're making the NFT now, so store the secret in case we have to re-attempt media upload
       if (file) {
-        await update(NFT_ATTEMPT_KEY, (val) => ({ ...val, seriesSecret: keys.secretKeys[0] }))
-        data.seriesSecret = keys.secretKeys[0]
+        await update(NFT_ATTEMPT_KEY, (val) => ({ ...val, seriesSecret: keys.secretKeys[0] }));
+        data.seriesSecret = keys.secretKeys[0];
       }
-      
     } catch (e) {
       console.warn(e);
       throw new Error('Error creating drop');
@@ -162,75 +163,79 @@ const createDropsForNFT = async (dropId, returnTransactions, data, setAppModal) 
   }
 
   if (file) {
-    const { networkId } = getEnv()
-    const url = `${WORKER_BASE_URL}?network=${networkId}&secretKey=${data.seriesSecret}`
-    let res
+    const { networkId } = getEnv();
+    const url = `${WORKER_BASE_URL}?network=${networkId as string}&secretKey=${
+      data.seriesSecret as string
+    }`;
+    let res;
     try {
       res = await fetch(url, {
         method: 'POST',
         body: file,
-      }).then((r) => r.json())
-    } catch(error) {
-      console.warn('cfw error', error)
-      res = { error }
+      }).then(async (r) => await r.json());
+    } catch (error) {
+      console.warn('cfw error', error);
+      res = { error };
     }
 
     if (res.error) {
-      console.warn('cfw error', res.error)
+      console.warn('cfw error', res.error);
 
-      const mediaErrorModal = () => setAppModal({
-        isOpen: true,
-        header: 'Whoops',
-        message:
-          'Your media failed to upload. Please reload this page to try again.',
-        options: [
-          {
-            label: 'Ok Reload',
-            func: () => window.location.reload(),
-            buttonProps: {
-              variant: 'outline',
+      const mediaErrorModal = () =>
+        setAppModal({
+          isOpen: true,
+          header: 'Whoops',
+          message: 'Your media failed to upload. Please reload this page to try again.',
+          options: [
+            {
+              label: 'Ok Reload',
+              func: () => {
+                window.location.reload();
+              },
+              buttonProps: {
+                variant: 'outline',
+              },
             },
-          },
-          {
-            label: 'DEBUG - CANCEL',
-            func: async () => {
-              await del(NFT_ATTEMPT_KEY)
-              window.location.reload()
+            {
+              label: 'DEBUG - CANCEL',
+              func: async () => {
+                await del(NFT_ATTEMPT_KEY);
+                window.location.reload();
+              },
+              buttonProps: {
+                variant: 'outline',
+              },
             },
-            buttonProps: {
-              variant: 'outline',
-            },
-          },
-        ],
-      });
+          ],
+        });
 
       if (/Invalid drop/.test(res.error.toString())) {
-        return mediaErrorModal()
+        return mediaErrorModal();
       }
 
       if (/drop not claimed/.test(res.error.toString())) {
-        return mediaErrorModal()
+        return mediaErrorModal();
       }
 
       if (/media not uploaded/.test(res.error.toString())) {
         // TODO get tx hash from error and store locally, resubmit tx hash to worker
         // TODO worker verifies that it tried to claim and was successful
-        return mediaErrorModal()
+        return mediaErrorModal();
       }
     }
 
-    await update(NFT_ATTEMPT_KEY, (val) => ({ ...val, seriesClaimed: true, fileUploaded: true }))
+    await update(NFT_ATTEMPT_KEY, (val) => ({ ...val, seriesClaimed: true, fileUploaded: true }));
 
-    console.log('response from worker', res)
+    console.log('response from worker', res);
   }
 
   try {
     const { publicKeys } = await generateKeys({
       numKeys,
-      rootEntropy: `${localStorage.getItem(MASTER_KEY) as string}-${dropId}`,
+      rootEntropy: `${localStorage.getItem(MASTER_KEY) as string}-${dropId as string}`,
       autoMetaNonceStart: 0,
     });
-  
+
     const { responses, requiredDeposit: requiredDeposit2 } = await createDrop({
       wallet,
       dropId,
@@ -261,12 +266,11 @@ const createDropsForNFT = async (dropId, returnTransactions, data, setAppModal) 
       return { requiredDeposit, requiredDeposit2 };
     }
 
-    return { responses }
-  } catch(e) {
-    console.warn(e)
-    del(NFT_ATTEMPT_KEY)
+    return { responses };
+  } catch (e) {
+    console.warn(e);
+    del(NFT_ATTEMPT_KEY);
   }
-
 };
 
 export const CreateNftDropProvider = ({ children }: PropsWithChildren) => {
@@ -328,7 +332,7 @@ export const CreateNftDropProvider = ({ children }: PropsWithChildren) => {
     const media = artwork[0];
 
     const dropId = Date.now().toString();
-    
+
     // json -> indexeddb NOT localStorage (see import above)
     await set(NFT_ATTEMPT_KEY, {
       confirmed: false,
@@ -349,8 +353,8 @@ export const CreateNftDropProvider = ({ children }: PropsWithChildren) => {
 
     const totalRequired = new BN(requiredDeposit).add(new BN(requiredDeposit2)).toString();
 
-    const totalLinkCost = parseFloat(formatNearAmount(requiredDeposit!, 4));
-    const totalStorageCost = parseFloat(formatNearAmount(requiredDeposit2!, 4));
+    const totalLinkCost = parseFloat(formatNearAmount(requiredDeposit, 4));
+    const totalStorageCost = parseFloat(formatNearAmount(requiredDeposit2, 4));
     const totalCost = totalLinkCost + totalStorageCost;
     const costsData: PaymentItem[] = [
       {
@@ -383,7 +387,7 @@ export const CreateNftDropProvider = ({ children }: PropsWithChildren) => {
   const handleDropConfirmation = async (paymentData: PaymentData) => {
     const totalRequired = paymentData.costsData[3].total;
 
-    await update(NFT_ATTEMPT_KEY, (val) => ({ ...val, confirmed: true }))
+    await update(NFT_ATTEMPT_KEY, (val) => ({ ...val, confirmed: true }));
 
     await addToBalance({
       wallet: await window.selector.wallet(),
@@ -412,7 +416,7 @@ export const CreateNftDropProvider = ({ children }: PropsWithChildren) => {
 };
 
 export const handleFinishNFTDrop = async (setRefreshTrigger, setAppModal) => {
-  const data = await get(NFT_ATTEMPT_KEY) || {}
+  const data = (await get(NFT_ATTEMPT_KEY)) || {};
   if (!data.dropId) {
     // forces AllDrops component to refresh drops via AppContext
     return setRefreshTrigger(Date.now().toString());
@@ -420,12 +424,7 @@ export const handleFinishNFTDrop = async (setRefreshTrigger, setAppModal) => {
 
   let res;
   try {
-    res = await createDropsForNFT(
-      data.dropId,
-      false,
-      data,
-      setAppModal
-    );
+    res = await createDropsForNFT(data.dropId, false, data, setAppModal);
   } catch (e) {
     console.warn(e);
   }
