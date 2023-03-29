@@ -4,11 +4,8 @@ import useSWRMutation from 'swr/mutation';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import BN from 'bn.js';
-import {
-  formatNearAmount,
-  addToBalance,
-} from 'keypom-js';
-import { get, set, update } from 'idb-keyval';
+import { formatNearAmount, addToBalance } from 'keypom-js';
+import { set, update } from 'idb-keyval';
 
 import { urlRegex, MAX_FILE_SIZE, NFT_ATTEMPT_KEY } from '@/constants/common';
 import {
@@ -17,9 +14,7 @@ import {
   type SummaryItem,
 } from '@/features/create-drop/types/types';
 
-import {
-  createDropsForNFT,
-} from './nft-utils'
+import { createDropsForNFT } from './nft-utils';
 
 const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/gif', 'image/png', 'image/webp'];
 
@@ -155,11 +150,16 @@ export const CreateNftDropProvider = ({ children }: PropsWithChildren) => {
       media,
     });
 
-    const { requiredDeposit, requiredDeposit2 } = await createDropsForNFT(dropId, true, {
-      title,
-      description,
-      numKeys,
-    }, null);
+    const { requiredDeposit, requiredDeposit2 } = await createDropsForNFT(
+      dropId,
+      true,
+      {
+        title,
+        description,
+        numKeys,
+      },
+      null,
+    );
 
     const totalRequired = new BN(requiredDeposit).add(new BN(requiredDeposit2)).toString();
 
