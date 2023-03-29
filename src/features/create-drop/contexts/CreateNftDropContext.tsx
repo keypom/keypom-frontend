@@ -4,7 +4,7 @@ import useSWRMutation from 'swr/mutation';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import BN from 'bn.js';
-import { generateKeys, createDrop, formatNearAmount, parseNearAmount, addToBalance, getUserBalance } from 'keypom-js';
+import { getEnv, generateKeys, createDrop, formatNearAmount, parseNearAmount, addToBalance, getUserBalance } from 'keypom-js';
 import { get, set, update, del } from 'idb-keyval'
 
 import { pack } from 'ipfs-car/dist/esm/pack'
@@ -21,7 +21,7 @@ import {
 } from '@/constants/common'
 
 const WORKER_BASE_URL = 'https://keypom-nft-storage.keypom.workers.dev/'
-const MAX_FILE_SIZE = 1000000;
+const MAX_FILE_SIZE = 10000000;
 const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/gif', 'image/png', 'image/webp'];
 export const DEBUG_DEL_NFT_ATTEMPT = () => del(NFT_ATTEMPT_KEY)
 
@@ -35,7 +35,7 @@ const schema = z.object({
   artwork: z
     .any()
     .refine((files) => files?.length === 1, 'Image is required.')
-    .refine((files) => files?.[0]?.size <= MAX_FILE_SIZE, `Max file size is 5MB.`)
+    .refine((files) => files?.[0]?.size <= MAX_FILE_SIZE, `Max file size is 10MB.`)
     .refine(
       (files) => ACCEPTED_IMAGE_TYPES.includes(files?.[0]?.type),
       '.jpg, .jpeg, .png and .webp files are accepted.',
@@ -162,7 +162,8 @@ const createDropsForNFT = async (dropId, returnTransactions, data, setAppModal) 
   }
 
   if (file) {
-    const url = `${WORKER_BASE_URL}?network=testnet&secretKey=${data.seriesSecret}`
+    const { networkId } = getEnv()
+    const url = `${WORKER_BASE_URL}?network=${networkId}&secretKey=${data.seriesSecret}`
     let res
     try {
       res = await fetch(url, {
@@ -414,8 +415,7 @@ export const handleFinishNFTDrop = async (setRefreshTrigger, setAppModal) => {
   const data = await get(NFT_ATTEMPT_KEY) || {}
   if (!data.dropId) {
     // forces AllDrops component to refresh drops via AppContext
-    setRefreshTrigger(Date.now().toString());
-    return
+    return setRefreshTrigger(Date.now().toString());
   }
 
   let res;

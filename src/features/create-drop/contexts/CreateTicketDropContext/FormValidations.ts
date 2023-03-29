@@ -1,6 +1,6 @@
 import * as z from 'zod';
 
-const MAX_FILE_SIZE = 500000;
+const MAX_FILE_SIZE = 1000000;
 const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
 
 export const EventInfoSchema = z.object({
@@ -97,7 +97,7 @@ export const AdditionalGiftSchema = z
         ctx.addIssue({
           path: ['additionalGift.poapNft.artwork'],
           code: z.ZodIssueCode.custom,
-          message: `Max file size is 5MB.`,
+          message: `Max file size is 10MB.`,
         });
         return z.NEVER;
       }

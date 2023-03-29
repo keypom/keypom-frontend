@@ -93,17 +93,6 @@ export default function AllDrops() {
 
   const { selector, accountId } = useAuthWalletContext();
 
-  useEffect(() => {
-    if (!accountId) return;
-    if (refreshTrigger !== '') {
-      handleGetDropsSize();
-      handleGetDrops({});
-    } else {
-      // first mount, check for NFT attempt
-      handleFinishNFTDrop(setRefreshTrigger, setAppModal);
-    }
-  }, [accountId, refreshTrigger]);
-
   const {
     setPagination,
     hasPagination,
@@ -205,16 +194,39 @@ export default function AllDrops() {
     [pagination],
   );
 
-  useEffect(() => {
+  const handleMultipleEffects = async () => {
     if (!accountId) return;
+
     // page query param should be indexed from 1
     const pageQuery = searchParams.get('page');
     const currentPageIndex = pageQuery !== null ? parseInt(pageQuery) - 1 : 0;
     setPagination((pagination) => ({ ...pagination, pageIndex: currentPageIndex }));
     handleGetDropsSize();
     handleGetDrops({ start: currentPageIndex * pagination.pageSize });
-    handleFinishNFTDrop();
-  }, [accountId, searchParams]);
+
+    // first mount, check for NFT attempt
+    if (refreshTrigger === '') {
+      setAppModal({
+        isOpen: true,
+        isLoading: true,
+        header: 'Creating NFT',
+        message: 'Uploading media and creating NFT drop links on-chain. This may take 15-30 seconds.'
+      })
+      await handleFinishNFTDrop(setRefreshTrigger, setAppModal);
+      setAppModal({
+        isOpen: false,
+        isLoading: false,
+        header: null,
+        message: null,
+      })
+    }
+  }
+  useEffect(() => {
+    if (!accountId) return;
+    handleMultipleEffects()
+  }, [accountId, refreshTrigger, searchParams]);
+
+
 
   const dropMenuItems = MENU_ITEMS.map((item) => (
     <MenuItem key={item.label} {...item}>
