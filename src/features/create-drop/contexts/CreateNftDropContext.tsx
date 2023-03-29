@@ -415,11 +415,10 @@ export const CreateNftDropProvider = ({ children }: PropsWithChildren) => {
   );
 };
 
-export const handleFinishNFTDrop = async (setRefreshTrigger, setAppModal) => {
+export const handleFinishNFTDrop = async (setAppModal) => {
   const data = (await get(NFT_ATTEMPT_KEY)) || {};
   if (!data.dropId) {
-    // forces AllDrops component to refresh drops via AppContext
-    return setRefreshTrigger(Date.now().toString());
+    return 
   }
 
   let res;
@@ -434,9 +433,6 @@ export const handleFinishNFTDrop = async (setRefreshTrigger, setAppModal) => {
   if (responses.length > 0) {
     del(NFT_ATTEMPT_KEY);
   }
-
-  // forces AllDrops component to refresh drops via AppContext
-  setRefreshTrigger(Date.now().toString());
 };
 
 export const useCreateNftDrop = (): CreateNftDropContextType => {

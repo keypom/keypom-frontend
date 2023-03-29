@@ -81,7 +81,7 @@ const COLUMNS: ColumnItem[] = [
 export default function AllDrops() {
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const { setAppModal, refreshTrigger, setRefreshTrigger } = useAppContext();
+  const { setAppModal } = useAppContext();
 
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [isLoading, setIsLoading] = useState(true);
@@ -193,7 +193,30 @@ export default function AllDrops() {
     [pagination],
   );
 
-  const handleMultipleEffects = async () => {
+  const handleNFTCreate = async () => {
+    setAppModal({
+      isOpen: true,
+      isLoading: true,
+      header: 'Creating NFT',
+      message:
+        'Uploading media and creating NFT drop links on-chain. This may take 15-30 seconds.',
+    });
+    await handleFinishNFTDrop(setAppModal);
+    setAppModal({
+      isOpen: false,
+      isLoading: false,
+      header: '',
+      message: '',
+    });
+    handleGetDropsSize();
+    handleGetDrops({ start: currentPageIndex * pagination.pageSize });
+  };
+  useEffect(() => {
+    if (!accountId) return;
+    handleNFTCreate()
+  }, [accountId])
+
+  useEffect(() => {
     if (!accountId) return;
 
     // page query param should be indexed from 1
@@ -202,29 +225,7 @@ export default function AllDrops() {
     setPagination((pagination) => ({ ...pagination, pageIndex: currentPageIndex }));
     handleGetDropsSize();
     handleGetDrops({ start: currentPageIndex * pagination.pageSize });
-
-    // first mount, check for NFT attempt
-    if (refreshTrigger === '') {
-      setAppModal({
-        isOpen: true,
-        isLoading: true,
-        header: 'Creating NFT',
-        message:
-          'Uploading media and creating NFT drop links on-chain. This may take 15-30 seconds.',
-      });
-      await handleFinishNFTDrop(setRefreshTrigger, setAppModal);
-      setAppModal({
-        isOpen: false,
-        isLoading: false,
-        header: null,
-        message: null,
-      });
-    }
-  };
-  useEffect(() => {
-    if (!accountId) return;
-    handleMultipleEffects();
-  }, [accountId, refreshTrigger, searchParams]);
+  }, [accountId, searchParams]);
 
   const dropMenuItems = MENU_ITEMS.map((item) => (
     <MenuItem key={item.label} {...item}>
