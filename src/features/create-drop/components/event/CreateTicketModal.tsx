@@ -10,7 +10,6 @@ import {
   ModalOverlay,
   Textarea,
 } from '@chakra-ui/react';
-import { RangeDatepicker } from 'chakra-dayzed-datepicker';
 import { useState } from 'react';
 
 import { FormControl } from '@/components/FormControl';
@@ -57,8 +56,8 @@ export const CreateTicketModal = ({ isOpen, onClose }) => {
               onChange={() => {}}
             />
           </FormControl>
-          <FormControl errorText="" label="Sales period">
-            <RangeDatepicker selectedDates={selectedDates} onDateChange={setSelectedDates} />
+          <FormControl errorText="" label="Sales start date">
+            <Input placeholder={new Date().toString()} type="datetime-local" />
           </FormControl>
         </ModalBody>
 
