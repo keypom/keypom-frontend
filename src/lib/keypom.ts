@@ -408,10 +408,10 @@ class KeypomJS {
   };
 
   getNFTorTokensMetadata = async (
-    secretKey: string,
-    contractId: string,
     fcMethod: { receiver_id: string },
     dropId: string,
+    secretKey?: string,
+    contractId?: string,
   ) => {
     let nftData;
     let tokensData;
@@ -431,7 +431,7 @@ class KeypomJS {
     }
 
     // show tokens if NFT series not found
-    if (nftData === undefined) {
+    if (nftData === undefined && contractId && secretKey) {
       tokensData = await this.getTokenClaimInformation(contractId, secretKey);
     }
 
@@ -464,10 +464,10 @@ class KeypomJS {
     }
 
     const { nftData, tokensData } = await this.getNFTorTokensMetadata(
-      secretKey,
-      contractId,
       fcMethods[0][0],
       drop.drop_id,
+      secretKey,
+      contractId,
     );
 
     return {
@@ -509,10 +509,10 @@ class KeypomJS {
     const fcMethod = fcMethods[2][0];
 
     const { nftData, tokensData } = await this.getNFTorTokensMetadata(
-      secretKey,
-      contractId,
       fcMethod,
       drop.drop_id,
+      secretKey,
+      contractId,
     );
 
     return {

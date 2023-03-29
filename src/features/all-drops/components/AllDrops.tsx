@@ -29,7 +29,7 @@ import { truncateAddress } from '@/utils/truncateAddress';
 import { NextButton, PrevButton } from '@/components/Pagination';
 import { usePagination } from '@/hooks/usePagination';
 import { useAppContext } from '@/contexts/AppContext';
-import { DROP_TYPE, PAGE_QUERY_PARAM } from '@/constants/common';
+import { CLOUDFLARE_IPFS, DROP_TYPE, PAGE_QUERY_PARAM } from '@/constants/common';
 import keypomInstance from '@/lib/keypom';
 import { PopoverTemplate } from '@/components/PopoverTemplate';
 
@@ -158,7 +158,28 @@ export default function AllDrops() {
         description: '',
       };
       try {
-        nftMetadata = await keypomInstance.getNftMetadata(drop);
+        const fcMethods = drop.fc?.methods;
+        if (
+          fcMethods === undefined ||
+          fcMethods.length === 0 ||
+          fcMethods[0] === undefined ||
+          fcMethods[0][0] === undefined
+        ) {
+          throw new Error('Unable to retrieve function calls.');
+        }
+
+        const { nftData } = await keypomInstance.getNFTorTokensMetadata(
+          fcMethods[0][0],
+          drop.drop_id,
+        );
+
+        nftMetadata = {
+          media: `${CLOUDFLARE_IPFS}/${nftData?.metadata?.media}`, // eslint-disable-line
+          title: nftData?.metadata?.title,
+          description: nftData?.metadata?.description,
+        };
+
+        console.log(nftData);
       } catch (e) {
         console.error('failed to get nft metadata', e); // eslint-disable-line no-console
       }
