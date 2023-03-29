@@ -4,7 +4,6 @@ import { useNavigate, useParams } from 'react-router-dom';
 
 import { CopyIcon, DeleteIcon } from '@/components/Icons';
 import { DropManager, type GetDataFn } from '@/features/drop-manager/components/DropManager';
-import { useValidMasterKey } from '@/hooks/useValidMasterKey';
 import keypomInstance from '@/lib/keypom';
 
 import { getClaimStatus } from '../../utils/getClaimStatus';
@@ -21,21 +20,6 @@ export default function TicketDropManagerPage() {
   useEffect(() => {
     if (dropId === '') navigate('/drops');
   }, [dropId]);
-
-  const { masterKeyValidity } = useValidMasterKey({ dropId });
-  useEffect(() => {
-    if (!masterKeyValidity) {
-      setMasterKeyValidityModal(
-        setAppModal,
-        () => {
-          window.location.reload();
-        },
-        () => {
-          navigate('/drops');
-        },
-      );
-    }
-  }, [masterKeyValidity]);
 
   const getScannedKeys = async () => {
     const keysSupply = await keypomInstance.getAvailableKeys(dropId);

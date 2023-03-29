@@ -132,14 +132,14 @@ const Scanner = () => {
 
     try {
       console.log(contractId, secretKey);
-      const remainingUses = await keypomInstance.checkTicketRemainingUses(contractId, secretKey);
-
-      switch (remainingUses) {
-        case 0:
-        case 1:
-          throw new Error('This ticket has been claimed');
+      const currentKeyUse = await keypomInstance.getCurrentKeyUse(contractId, secretKey);
+      console.log({ currentKeyUse });
+      switch (currentKeyUse) {
         case 3:
+          throw new Error('This ticket has been claimed');
+        case 1:
           throw new Error('RVSP first to enter');
+        case 2:
         default:
       }
     } catch (err) {

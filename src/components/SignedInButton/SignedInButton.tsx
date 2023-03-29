@@ -11,12 +11,11 @@ import {
   Text,
   useBoolean,
 } from '@chakra-ui/react';
+import { formatNearAmount } from 'keypom-js';
 
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
-import { useAppContext, setAppModalHelper } from '@/contexts/AppContext';
-import { toYocto } from '@/utils/toYocto';
+import { useAppContext, openMasterKeyModal } from '@/contexts/AppContext';
 import { truncateAddress } from '@/utils/truncateAddress';
-import { formatAmount } from '@/utils/formatAmount';
 
 import { KeyIcon, NearIcon, SignOutIcon } from '../Icons';
 
@@ -26,7 +25,6 @@ export const SignedInButton = () => {
   const { setAppModal } = useAppContext();
 
   const { account, selector } = useAuthWalletContext();
-  const amountInYocto = toYocto(account === null ? 0 : parseInt(account.amount));
 
   const handleSignOut = async () => {
     const wallet = await selector.wallet();
@@ -46,7 +44,20 @@ export const SignedInButton = () => {
   };
 
   const handleMasterKey = async () => {
-    setAppModalHelper(setAppModal, null, null);
+    openMasterKeyModal(setAppModal, null, null);
+  };
+
+  const getAccountBalance = () => {
+    if (account === null) return null;
+
+    const amountInNEAR = formatNearAmount(account.amount, 4);
+
+    if (amountInNEAR === null) {
+      console.error('Account amount is null');
+      return 0;
+    }
+
+    return amountInNEAR;
   };
 
   return (
@@ -98,15 +109,13 @@ export const SignedInButton = () => {
               <Flex>
                 <Text
                   fontWeight="medium"
+                  maxWidth={showNear ? 'initial' : '100'}
                   mr="1"
                   overflow="hidden"
                   textOverflow="ellipsis"
                   whiteSpace="nowrap"
                 >
-                  {showNear
-                    ? formatAmount(amountInYocto, { style: undefined, maximumFractionDigits: 3 })
-                    : formatAmount(amountInYocto, { style: undefined, maximumFractionDigits: 0 }) +
-                      '...'}
+                  {getAccountBalance()}
                 </Text>
               </Flex>
             </MenuItem>

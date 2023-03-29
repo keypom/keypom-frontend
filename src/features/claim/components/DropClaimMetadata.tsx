@@ -3,16 +3,28 @@ import { Box, Text, VStack } from '@chakra-ui/react';
 import { AvatarImage } from '@/components/AvatarImage';
 import { DROP_TYPE } from '@/constants/common';
 import { DropBox } from '@/components/DropBox';
+import { type TokenAsset } from '@/types/common';
 
-import { useClaimForm } from '../ClaimFormContext';
+interface DropClaimMetadataProps {
+  nftImage?: string;
+  title?: string;
+  description?: string;
+  type: keyof typeof DROP_TYPE;
+  tokens?: TokenAsset[];
+}
 
-export const ClaimTicketDetails = () => {
-  const { nftImage, title, description, giftType, tokens } = useClaimForm();
+export const DropClaimMetadata = ({
+  nftImage,
+  title,
+  description,
+  type,
+  tokens,
+}: DropClaimMetadataProps) => {
   return (
     <>
       <Box>
-        {giftType === DROP_TYPE.NFT ? (
-          <AvatarImage altName="NFT image" imageSrc={nftImage} />
+        {type === DROP_TYPE.NFT ? (
+          <AvatarImage altName="NFT image" imageSrc={nftImage as string} />
         ) : (
           <VStack>
             {tokens?.map(({ icon, value, symbol }, index) => (
@@ -32,7 +44,7 @@ export const ClaimTicketDetails = () => {
       >
         {title}
       </Text>
-      {description?.length > 0 && (
+      {description && description?.length > 0 && (
         <Text
           color="gray.600"
           maxH="200px"

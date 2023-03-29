@@ -29,7 +29,6 @@ const PopoverComponent = ({
   children,
   ...props
 }: PropsWithChildren<PopoverTemplateProps>) => {
-  console.log('render popover');
   return (
     <Popover autoFocus={false} isOpen={shouldOpen} placement="left" {...props}>
       <PopoverTrigger>{children}</PopoverTrigger>

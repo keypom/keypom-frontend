@@ -9,7 +9,7 @@ import { checkClaimedDrop } from '@/utils/claimedDrops';
 import { TicketIcon } from '@/components/Icons';
 import { type TokenAsset } from '@/types/common';
 
-const NFTClaimPage = () => {
+const TicketGiftPage = () => {
   const navigate = useNavigate();
   const { contractId, secretKey } = useClaimParams();
 
@@ -27,7 +27,7 @@ const NFTClaimPage = () => {
 
   const loadClaimInfo = async () => {
     try {
-      const data = await keypomInstance.getNFTClaimInformation(contractId, secretKey);
+      const data = await keypomInstance.getTicketNftInformation(contractId, secretKey);
 
       if (data.type === DROP_TYPE.NFT) {
         setTitle(data.title);
@@ -81,7 +81,7 @@ const NFTClaimPage = () => {
   return (
     <TokenNFTClaim
       claimInfoError={claimInfoError}
-      claimSuccessfulText={type === DROP_TYPE.NFT ? 'NFT claimed!' : 'Tokens claimed!'}
+      claimSuccessfulText="Gifts claimed!"
       contractId={contractId}
       icon={<TicketIcon height={{ base: '8', md: '10' }} width={{ base: '8', md: '10' }} />}
       isClaimInfoLoading={isClaimInfoLoading}
@@ -91,9 +91,7 @@ const NFTClaimPage = () => {
         nftImage,
         tokens,
       }}
-      pageHeadingText={
-        type === DROP_TYPE.NFT ? "You've received an NFT!" : "You've received a Keypom drop!"
-      }
+      pageHeadingText="Collect your gifts"
       secretKey={secretKey}
       type={type}
       wallets={wallets}
@@ -101,4 +99,4 @@ const NFTClaimPage = () => {
   );
 };
 
-export default NFTClaimPage;
+export default TicketGiftPage;
