@@ -20,3 +20,9 @@ export interface IToken {
   amount: string;
   symbol: string;
 }
+
+export interface TokenAsset {
+  icon: string;
+  value: string;
+  symbol: string;
+}
