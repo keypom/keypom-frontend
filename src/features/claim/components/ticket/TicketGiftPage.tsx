@@ -27,7 +27,7 @@ const TicketGiftPage = () => {
 
   const loadClaimInfo = async () => {
     try {
-      const data = await keypomInstance.getNFTClaimInformation(contractId, secretKey);
+      const data = await keypomInstance.getTicketNftInformation(contractId, secretKey);
 
       if (data.type === DROP_TYPE.NFT) {
         setTitle(data.title);
