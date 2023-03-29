@@ -178,8 +178,6 @@ export default function AllDrops() {
           title: nftData?.metadata?.title,
           description: nftData?.metadata?.description,
         };
-
-        console.log(nftData);
       } catch (e) {
         console.error('failed to get nft metadata', e); // eslint-disable-line no-console
       }
