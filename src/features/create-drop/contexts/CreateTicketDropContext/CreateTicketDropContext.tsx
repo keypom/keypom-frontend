@@ -3,13 +3,18 @@ import { FormProvider, useForm } from 'react-hook-form';
 import useSWRMutation from 'swr/mutation';
 import { zodResolver } from '@hookform/resolvers/zod';
 import type * as z from 'zod';
+import { set, update } from 'idb-keyval';
+import { urlRegex, MAX_FILE_SIZE, NFT_ATTEMPT_KEY } from '@/constants/common';
+import { createDropsForNFT } from './../nft-utils';
+import BN from 'bn.js';
+import { formatNearAmount, addToBalance } from 'keypom-js';
 
 import { useSteps } from '@/hooks/useSteps';
 import { type StepItem } from '@/components/Step/Step';
 import {
   type PaymentData,
   type PaymentItem,
-  type SummaryItem,
+  type SummaryItem
 } from '@/features/create-drop/types/types';
 import { EventInfoForm } from '@/features/create-drop/components/ticket/EventInfoForm';
 import { AdditionalGiftsForm } from '@/features/create-drop/components/ticket/AdditionalGiftsForm/AdditionalGiftsForm';
@@ -165,20 +170,65 @@ export const CreateTicketDropProvider = ({ children }: PropsWithChildren) => {
     return results;
   };
 
-  const getPaymentData = (): PaymentData => {
-    // TODO: assuming this comes from backend
-    const totalLinkCost = 20 * 3.5;
-    const NEARNetworkFee = 50.15;
-    const totalCost = totalLinkCost + NEARNetworkFee;
+  const getPaymentData = async (): Promise<PaymentData> => {
+    const { 
+      eventName: title,
+      totalTickets: number,
+      additionalGift: {
+        poapNft: {
+          // name,
+          description,
+          artwork
+        }
+      }
+    } = methods.getValues();
+
+    const numKeys = parseInt(Math.floor(number).toString());
+    if (!numKeys || Number.isNaN(numKeys)) {
+      throw new Error('incorrect number');
+    }
+
+    const media = artwork[0];
+
+    const dropId = Date.now().toString();
+
+    // json -> indexeddb NOT localStorage (see import above)
+    await set(NFT_ATTEMPT_KEY, {
+      confirmed: false,
+      seriesClaimed: false,
+      fileUploaded: false,
+      dropId,
+      title,
+      description,
+      numKeys,
+      media,
+    });
+
+    const { requiredDeposit, requiredDeposit2 } = await createDropsForNFT(
+      dropId,
+      true,
+      {
+        title,
+        description,
+        numKeys,
+      },
+      null,
+    );
+
+    const totalRequired = new BN(requiredDeposit).add(new BN(requiredDeposit2)).toString();
+
+    const totalLinkCost = parseFloat(formatNearAmount(requiredDeposit, 4));
+    const totalStorageCost = parseFloat(formatNearAmount(requiredDeposit2, 4));
+    const totalCost = totalLinkCost + totalStorageCost;
     const costsData: PaymentItem[] = [
       {
         name: 'Link cost',
         total: totalLinkCost,
-        helperText: `20 x 3.509`,
+        helperText: `${numKeys} x ${Number(totalLinkCost / numKeys).toFixed(4)}`,
       },
       {
-        name: 'NEAR network fees',
-        total: NEARNetworkFee,
+        name: 'Storage fees',
+        total: totalStorageCost,
       },
       {
         name: 'Keypom fee',
@@ -186,9 +236,14 @@ export const CreateTicketDropProvider = ({ children }: PropsWithChildren) => {
         isDiscount: true,
         discountText: 'Early bird discount',
       },
+      {
+        name: 'Total Required',
+        total: totalRequired,
+        doNotRender: true,
+      },
     ];
 
-    const confirmationText = `Creating 20 for ${totalCost} NEAR`;
+    const confirmationText = `Creating ${numKeys} for ${totalCost} NEAR`;
 
     return { costsData, totalCost, confirmationText };
   };

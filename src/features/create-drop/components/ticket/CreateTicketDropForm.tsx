@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useFormContext } from 'react-hook-form';
 import { Button, Divider, HStack } from '@chakra-ui/react';
 
@@ -9,10 +10,35 @@ import { useCreateTicketDropContext } from '@/features/create-drop/contexts/Crea
 
 export const CreateTicketDropForm = () => {
   const { onNext } = useDropFlowContext();
+  
+  const formContext = useFormContext();
+  let {
+    formState: { defaultValues },
+  } = formContext;
   const {
     reset,
-    formState: { isValid, dirtyFields, defaultValues },
-  } = useFormContext();
+    formState: { isValid, dirtyFields },
+  } = formContext;
+
+  // TODO REMOVE
+  
+  defaultValues = { ...defaultValues, ...{
+      eventName: 'Test Event',
+      totalTickets: 3,
+      additionalGift: {
+        poapN: {
+          name: 'blah',
+          description: 'Blerp',
+        }
+      }
+    }
+  }
+
+  console.log('defaultValues', defaultValues);
+
+  useEffect(() => {
+    reset(defaultValues);
+  }, [])
 
   const { currentIndex, onNextStep, onPreviousStep, formSteps } = useCreateTicketDropContext();
 
