@@ -16,7 +16,21 @@ const CreateEventDropsContext = createContext(null);
 
 const schema = z.object({
   eventName: z.string().min(1, 'Event name required'),
-  tickets: z.array(z.any()),
+  tickets: z
+    .array(
+      z.object({
+        name: z.string(),
+        description: z.string().optional(),
+        saleStartDate: z.string().datetime(),
+        salesEndDate: z.string().datetime(),
+        numberOfTickets: z.coerce
+          .number({ invalid_type_error: 'Number of tickets required' })
+          .positive()
+          .min(1, 'Required')
+          .max(50, 'Currently tickets are limited to 50 links. This will be increased very soon!'),
+      }),
+    )
+    .min(1),
 });
 
 type Schema = z.infer<typeof schema>;
@@ -32,6 +46,7 @@ export const CreateEventDropsProvider = ({ children }: PropsWithChildren) => {
     mode: 'onChange',
     defaultValues: {
       eventName: '',
+      tickets: [],
     },
     resolver: zodResolver(schema),
   });

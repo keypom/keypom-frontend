@@ -1,5 +1,5 @@
 import { Button, Flex, Input, useDisclosure } from '@chakra-ui/react';
-import { Controller, useFormContext } from 'react-hook-form';
+import { Controller, useFieldArray, useFormContext } from 'react-hook-form';
 import { AddIcon } from '@chakra-ui/icons';
 
 import { IconBox } from '@/components/IconBox';
@@ -21,8 +21,20 @@ export const CreateEventDropsForm = () => {
     handleSubmit,
     control,
     watch,
+    getValues,
     formState: { isDirty, isValid },
   } = useFormContext();
+
+  console.log(watch());
+
+  const {
+    fields,
+    append,
+    remove: removeTicket,
+  } = useFieldArray({
+    control,
+    name: 'tickets',
+  });
 
   const { isOpen, onClose, onOpen } = useDisclosure();
 
@@ -44,6 +56,11 @@ export const CreateEventDropsForm = () => {
 
   const handleSubmitClick = () => {
     console.log('submit');
+  };
+
+  const handleDeleteTicket = (index) => {
+    removeTicket(index);
+    onClose();
   };
 
   return (
@@ -74,6 +91,14 @@ export const CreateEventDropsForm = () => {
           leftIcon={<AddIcon />}
           w="full"
           onClick={() => {
+            const today = new Date().getDate();
+            append({
+              name: '',
+              description: '',
+              salesStartDate: new Date().setDate(today + 1),
+              salesEndDate: new Date().setDate(today + 2),
+              numberOfTickets: undefined,
+            });
             onOpen();
           }}
         >
@@ -87,7 +112,14 @@ export const CreateEventDropsForm = () => {
         </Flex>
       </form>
 
-      <CreateTicketModal isOpen={isOpen} onClose={onClose} />
+      <CreateTicketModal
+        isOpen={isOpen}
+        ticketIndex={0}
+        onCancel={() => {
+          handleDeleteTicket(fields.length - 1);
+        }}
+        onClose={onClose}
+      />
     </IconBox>
   );
 };
