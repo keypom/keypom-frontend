@@ -36,12 +36,6 @@ export const CreateNftDropForm = () => {
     formState: { isDirty, isValid },
   } = useFormContext<CreateNftDropFormFieldTypes>();
 
-  // TODO REMOVE
-  useEffect(() => {
-    setValue('title', 'My Title');
-    setValue('description', 'My Description');
-  }, []);
-
   const handleCheckboxChange = useCallback(
     (value) => {
       setValue('selectedToWallets', value, { shouldValidate: true });
