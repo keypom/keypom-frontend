@@ -1,18 +1,4 @@
-import {
-  Box,
-  Button,
-  Card,
-  CardBody,
-  CardFooter,
-  CardHeader,
-  Divider,
-  Flex,
-  Heading,
-  Input,
-  Stack,
-  Text,
-  useDisclosure,
-} from '@chakra-ui/react';
+import { Box, Button, Flex, Input, useDisclosure } from '@chakra-ui/react';
 import { Controller, useFieldArray, useFormContext } from 'react-hook-form';
 import { AddIcon } from '@chakra-ui/icons';
 import { useEffect, useState } from 'react';
@@ -22,6 +8,7 @@ import { FormControl } from '@/components/FormControl';
 import { LinkIcon } from '@/components/Icons';
 import { useDropFlowContext } from '@/features/create-drop/contexts';
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
+import { TicketCard } from '@/features/create-drop/components/TicketCard/TicketCard';
 
 import { CreateTicketDrawer } from './CreateTicketDrawer';
 
@@ -30,9 +17,10 @@ import { CreateTicketDrawer } from './CreateTicketDrawer';
 export const CreateEventDropsForm = () => {
   const [totalCost, setTotalCost] = useState(0);
   const [totalLinks, setTotalLinks] = useState(0);
-  const { account } = useAuthWalletContext();
-
+  const [modalTicketIndex, setTicketIndex] = useState<number>(0);
+  const [modalAction, setModalAction] = useState('create');
   const { onNext } = useDropFlowContext();
+  const { account } = useAuthWalletContext();
   const {
     setValue,
     handleSubmit,
@@ -64,22 +52,22 @@ export const CreateEventDropsForm = () => {
     calcTotalCost();
   }, [totalLinks]);
 
-  const handleSubmitClick = () => {
-    console.log('submit');
+  const handleSubmitClick = (data) => {
+    onNext?.();
   };
 
-  const getEstimatedCost = async () => {
-    await Promise.all(
-      tickets.map(async () => {
-        const { requiredDeposit } = await createDrop({
-          wallet: await window.selector.wallet(),
-          depositPerUseNEAR: amountPerLink,
-          numKeys: totalLinks,
-          returnTransactions: true,
-        });
-      }),
-    );
-  };
+  // const getEstimatedCost = async () => {
+  //   await Promise.all(
+  //     tickets.map(async () => {
+  //       const { requiredDeposit } = await createDrop({
+  //         wallet: await window.selector.wallet(),
+  //         depositPerUseNEAR: amountPerLink,
+  //         numKeys: totalLinks,
+  //         returnTransactions: true,
+  //       });
+  //     }),
+  //   );
+  // };
 
   return (
     <IconBox
@@ -110,12 +98,15 @@ export const CreateEventDropsForm = () => {
           w="full"
           onClick={() => {
             append({
-              name: '',
-              description: '',
-              salesStartDate: '2023-03-31T02:00',
-              salesEndDate: '2023-03-31T02:02',
-              numberOfTickets: '',
+              name: 'Test ticket ',
+              description: 'this is an awesome event',
+              salesStartDate: '2023-04-01T00:00',
+              salesEndDate: '2023-04-28T00:00',
+              nearPricePerTicket: '1.5',
+              numberOfTickets: '10',
             });
+            setModalAction('create');
+            setTicketIndex(fields.length);
             onOpen();
           }}
         >
@@ -124,43 +115,19 @@ export const CreateEventDropsForm = () => {
 
         <Box mt="10">
           {tickets.map((ticket, index) => (
-            <Card
-              key={fields[index]?.id}
-              // border="2px solid black"
-              // borderRadius="8xl"
-              minH="200px"
-              my="4"
-              p="4"
-              textAlign="left"
-              w="full"
-            >
-              <CardHeader>
-                <Heading size="sm">{ticket.name}</Heading>
-              </CardHeader>
-              <CardBody>
-                <Text>Number of tickets: {ticket.numberOfTickets}</Text>
-                {ticket.description && <Text>Description: {ticket.description}</Text>}
-                <Text>
-                  Sales period: {ticket.salesStartDate} - {ticket.salesStartDate}
-                </Text>
-              </CardBody>
-              <Divider />
-              <CardFooter>
-                <Stack direction="row" justify="flex-end" w="full">
-                  <Button variant="secondary">Edit</Button>
-                  <Button
-                    colorScheme="red"
-                    ml="3"
-                    variant="outline"
-                    onClick={() => {
-                      removeTicket(index);
-                    }}
-                  >
-                    Remove
-                  </Button>
-                </Stack>
-              </CardFooter>
-            </Card>
+            <TicketCard
+              key={fields?.[index]?.id}
+              id={fields?.[index]?.id}
+              ticket={ticket}
+              onEditClick={() => {
+                setTicketIndex(index);
+                setModalAction('update');
+                onOpen();
+              }}
+              onRemoveClick={() => {
+                removeTicket(index);
+              }}
+            />
           ))}
         </Box>
 
@@ -173,9 +140,12 @@ export const CreateEventDropsForm = () => {
 
       <CreateTicketDrawer
         isOpen={isOpen}
-        ticketIndex={fields.length - 1}
+        ticketIndex={modalTicketIndex}
         onCancel={() => {
-          removeTicket(fields.length - 1);
+          console.log(modalAction);
+          if (modalAction === 'create') {
+            removeTicket(modalTicketIndex);
+          }
           window.setTimeout(() => {
             onClose();
           }, 0);

@@ -72,7 +72,7 @@ export const CreateTicketDrawer = ({
                 >
                   <Input
                     isInvalid={Boolean(error?.message)}
-                    placeholder="3000"
+                    placeholder="50"
                     type="number"
                     {...field}
                   />
@@ -82,7 +82,7 @@ export const CreateTicketDrawer = ({
           />
           <Controller
             control={control}
-            name="nearPricePerTicket"
+            name={`tickets.${ticketIndex}.nearPricePerTicket`}
             render={({ field: { value, onChange, name }, fieldState: { error } }) => (
               <FormControl
                 errorText={error?.message}
@@ -136,7 +136,6 @@ export const CreateTicketDrawer = ({
                     type="datetime-local"
                     {...field}
                     onChange={(e) => {
-                      console.log(e.target.value);
                       field.onChange(e.target.value);
                     }}
                   />
