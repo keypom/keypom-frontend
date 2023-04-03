@@ -213,12 +213,12 @@ class KeypomJS {
     accountId,
     start,
     limit,
-    withKeys,
+    withKeys = false,
   }: {
     accountId: string;
     start: number;
     limit: number;
-    withKeys: boolean;
+    withKeys?: boolean;
   }) => {
     /** Get Drops caching logic */
     if (
@@ -329,12 +329,23 @@ class KeypomJS {
         this.dropStore.dropWithKeys[dropId][pageIndex].pk === undefined ||
         this.dropStore.dropWithKeys[dropId][pageIndex].sk === undefined
       ) {
+        // TODO: check if eventId exist
+        const drop = await this.getDropInfo({ dropId });
+        const { eventId } = this.getDropMetadata(drop.metadata);
+
+        let rootEntropy = '';
+        if (eventId !== undefined) {
+          rootEntropy = `${dropId}`;
+        } else {
+          rootEntropy = `${get(MASTER_KEY) as string}-${dropId}`;
+        }
+
         const { publicKeys, secretKeys } = await generateKeys({
           numKeys:
             (pageIndex + 1) * pageSize > dropSize
               ? dropSize - pageIndex * pageSize
               : Math.min(dropSize, pageSize),
-          rootEntropy: `${get(MASTER_KEY) as string}-${dropId}`,
+          rootEntropy,
           autoMetaNonceStart: pageIndex * pageSize,
         });
 
