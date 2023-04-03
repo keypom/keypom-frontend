@@ -7,19 +7,26 @@ import { MASTER_KEY, NFT_ATTEMPT_KEY } from '@/constants/common';
 
 const WORKER_BASE_URL = 'https://keypom-nft-storage.keypom.workers.dev/';
 
-export const DEBUG_DEL_NFT_ATTEMPT = async () => {
-  await del(NFT_ATTEMPT_KEY);
+export const DEBUG_DEL_NFT_ATTEMPT = async (key) => {
+  await del(key);
 };
 
-export const getNFTAttempt = async () => {
-  const data = (await get(NFT_ATTEMPT_KEY)) || {};
+export const getAttempt = async (key) => {
+  const data = (await get(key)) || {};
   if (!data.dropId) {
     return null;
   }
   return data;
 };
 
-export const createDropsForNFT = async (dropId, returnTransactions, data, setAppModal) => {
+export const createDropsWithLazyNFT = async ({
+  dropId,
+  returnTransactions = false,
+  data,
+  tickets = false,
+  setAppModal = null,
+  key,
+}) => {
   const file = await data?.media?.arrayBuffer();
 
   let { media = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' } = data;
@@ -83,7 +90,7 @@ export const createDropsForNFT = async (dropId, returnTransactions, data, setApp
 
       // we're making the NFT now, so store the secret in case we have to re-attempt media upload
       if (file) {
-        await update(NFT_ATTEMPT_KEY, (val) => ({ ...val, seriesSecret: keys.secretKeys[0] }));
+        await update(key, (val) => ({ ...val, seriesSecret: keys.secretKeys[0] }));
         data.seriesSecret = keys.secretKeys[0];
       }
     } catch (e) {
@@ -129,7 +136,7 @@ export const createDropsForNFT = async (dropId, returnTransactions, data, setApp
             {
               label: 'DEBUG - CANCEL',
               func: async () => {
-                await DEBUG_DEL_NFT_ATTEMPT();
+                await DEBUG_DEL_NFT_ATTEMPT(key);
                 window.location.reload();
               },
               buttonProps: {
@@ -154,7 +161,7 @@ export const createDropsForNFT = async (dropId, returnTransactions, data, setApp
       }
     }
 
-    await update(NFT_ATTEMPT_KEY, (val) => ({ ...val, seriesClaimed: true, fileUploaded: true }));
+    await update(key, (val) => ({ ...val, seriesClaimed: true, fileUploaded: true }));
 
     console.log('response from worker', res);
   }
@@ -166,27 +173,36 @@ export const createDropsForNFT = async (dropId, returnTransactions, data, setApp
       autoMetaNonceStart: 0,
     });
 
+    const methods: any[][] = [];
+
+    if (tickets) {
+      methods.push(null, null);
+    }
+
+    methods.push([
+      {
+        receiverId: 'nft-v2.keypom.testnet',
+        methodName: 'nft_mint',
+        args: '',
+        dropIdField: 'mint_id',
+        accountIdField: 'receiver_id',
+        attachedDeposit: parseNearAmount('0.1')!,
+      },
+    ]);
+
     const { responses, requiredDeposit: requiredDeposit2 } = await createDrop({
       wallet,
       dropId,
       numKeys,
       publicKeys,
+      config: {
+        usesPerKey: 3,
+      },
       metadata: JSON.stringify({
         dropName: title,
       }),
       fcData: {
-        methods: [
-          [
-            {
-              receiverId: 'nft-v2.keypom.testnet',
-              methodName: 'nft_mint',
-              args: '',
-              dropIdField: 'mint_id',
-              accountIdField: 'receiver_id',
-              attachedDeposit: parseNearAmount('0.1')!,
-            },
-          ],
-        ],
+        methods,
       },
       useBalance: !returnTransactions,
       returnTransactions,
@@ -204,8 +220,12 @@ export const createDropsForNFT = async (dropId, returnTransactions, data, setApp
   }
 };
 
-export const handleFinishNFTDrop = async (setAppModal) => {
-  const data = await getNFTAttempt();
+export const handleFinishDrop = async ({
+  setAppModal,
+  tickets = false,
+  key = NFT_ATTEMPT_KEY,
+}) => {
+  const data = await getAttempt(key);
   if (!data?.confirmed) {
     console.log(data);
     return false;
@@ -213,7 +233,13 @@ export const handleFinishNFTDrop = async (setAppModal) => {
 
   let res;
   try {
-    res = await createDropsForNFT(data.dropId, false, data, setAppModal);
+    res = await createDropsWithLazyNFT({
+      key,
+      tickets,
+      dropId: data.dropId,
+      data,
+      setAppModal,
+    });
   } catch (e) {
     console.warn(e);
   }
@@ -221,7 +247,7 @@ export const handleFinishNFTDrop = async (setAppModal) => {
   const { responses } = res;
   console.log(responses);
   if (responses?.length > 0) {
-    del(NFT_ATTEMPT_KEY);
+    del(key);
   }
 
   return data.dropId;

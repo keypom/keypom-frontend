@@ -4,8 +4,8 @@ import useSWRMutation from 'swr/mutation';
 import { zodResolver } from '@hookform/resolvers/zod';
 import type * as z from 'zod';
 import { set, update } from 'idb-keyval';
-import { urlRegex, MAX_FILE_SIZE, NFT_ATTEMPT_KEY } from '@/constants/common';
-import { createDropsForNFT } from './../nft-utils';
+import { TICKET_ATTEMPT_KEY } from '@/constants/common';
+import { createDropsWithLazyNFT } from '../create-drop-utils';
 import BN from 'bn.js';
 import { formatNearAmount, addToBalance } from 'keypom-js';
 
@@ -36,11 +36,11 @@ export interface CreateTicketDropContextTypes {
   currentIndex: number;
   getSummaryData: () => SummaryItem[];
   getPaymentData: () => PaymentData;
-  handleDropConfirmation: () => void;
+  handleDropConfirmation: (paymentData: PaymentData) => void;
   formSteps: FormStep[];
   createLinksSWR: {
     data?: { success: boolean };
-    handleDropConfirmation: () => void;
+    handleDropConfirmation: (paymentData: PaymentData) => void;
   };
 }
 
@@ -193,7 +193,7 @@ export const CreateTicketDropProvider = ({ children }: PropsWithChildren) => {
     const dropId = Date.now().toString();
 
     // json -> indexeddb NOT localStorage (see import above)
-    await set(NFT_ATTEMPT_KEY, {
+    await set(TICKET_ATTEMPT_KEY, {
       confirmed: false,
       seriesClaimed: false,
       fileUploaded: false,
@@ -204,16 +204,17 @@ export const CreateTicketDropProvider = ({ children }: PropsWithChildren) => {
       media,
     });
 
-    const { requiredDeposit, requiredDeposit2 } = await createDropsForNFT(
+    const { requiredDeposit, requiredDeposit2 } = await createDropsWithLazyNFT({
+      key: TICKET_ATTEMPT_KEY,
       dropId,
-      true,
-      {
+      data: {
         title,
         description,
         numKeys,
       },
-      null,
-    );
+      tickets: true,
+      returnTransactions: true,
+    });
 
     const totalRequired = new BN(requiredDeposit).add(new BN(requiredDeposit2)).toString();
 
@@ -248,9 +249,16 @@ export const CreateTicketDropProvider = ({ children }: PropsWithChildren) => {
     return { costsData, totalCost, confirmationText };
   };
 
-  const handleDropConfirmation = () => {
-    // TODO: send transaction/request to backend
-    void trigger();
+  const handleDropConfirmation = async (paymentData: PaymentData) => {
+    const totalRequired = paymentData.costsData[3].total;
+
+    await update(TICKET_ATTEMPT_KEY, (val) => ({ ...val, confirmed: true }));
+
+    await addToBalance({
+      wallet: await window.selector.wallet(),
+      amountYocto: totalRequired.toString(),
+      successUrl: window.location.origin + '/drop/nft/new',
+    });
   };
 
   const createLinksSWR = {

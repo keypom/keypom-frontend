@@ -14,7 +14,7 @@ import {
   type SummaryItem,
 } from '@/features/create-drop/types/types';
 
-import { createDropsForNFT } from './nft-utils';
+import { createDropsWithLazyNFT } from './create-drop-utils';
 
 const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/gif', 'image/png', 'image/webp'];
 
@@ -150,16 +150,16 @@ export const CreateNftDropProvider = ({ children }: PropsWithChildren) => {
       media,
     });
 
-    const { requiredDeposit, requiredDeposit2 } = await createDropsForNFT(
+    const { requiredDeposit, requiredDeposit2 } = await createDropsWithLazyNFT({
+      key: NFT_ATTEMPT_KEY,
       dropId,
-      true,
-      {
+      data: {
         title,
         description,
         numKeys,
       },
-      null,
-    );
+      returnTransactions: true,
+    });
 
     const totalRequired = new BN(requiredDeposit).add(new BN(requiredDeposit2)).toString();
 

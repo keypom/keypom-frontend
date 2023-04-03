@@ -19,7 +19,7 @@ export const CreateTicketDropSummary = () => {
       data={data}
       paymentData={paymentData}
       summaryData={getSummaryData()}
-      onConfirmClick={handleDropConfirmation}
+      onConfirmClick={() => handleDropConfirmation(paymentData)}
     />
   );
 };

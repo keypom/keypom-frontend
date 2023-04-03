@@ -21,4 +21,5 @@ export const MAX_FILE_SIZE = 1000000;
 
 export const PAGE_SIZE_LIMIT = 10;
 export const NFT_ATTEMPT_KEY = 'NFT_ATTEMPT';
+export const TICKET_ATTEMPT_KEY = 'TICKET_ATTEMPT_KEY';
 export const PAGE_QUERY_PARAM = 'page';

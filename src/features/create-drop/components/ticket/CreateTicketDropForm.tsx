@@ -21,12 +21,12 @@ export const CreateTicketDropForm = () => {
   } = formContext;
 
   // TODO REMOVE
-  
+
   defaultValues = { ...defaultValues, ...{
       eventName: 'Test Event',
       totalTickets: 3,
       additionalGift: {
-        poapN: {
+        poapNft: {
           name: 'blah',
           description: 'Blerp',
         }
@@ -38,6 +38,7 @@ export const CreateTicketDropForm = () => {
 
   useEffect(() => {
     reset(defaultValues);
+    console.log('reset')
   }, [])
 
   const { currentIndex, onNextStep, onPreviousStep, formSteps } = useCreateTicketDropContext();

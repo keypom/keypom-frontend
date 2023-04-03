@@ -2,7 +2,7 @@ import { Box } from '@chakra-ui/react';
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import { getNFTAttempt, handleFinishNFTDrop } from '@/features/create-drop/contexts/nft-utils';
+import { handleFinishDrop } from '@/features/create-drop/contexts/create-drop-utils';
 import { useAppContext } from '@/contexts/AppContext';
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
 import { type IBreadcrumbItem } from '@/components/Breadcrumbs';
@@ -42,16 +42,13 @@ const NewNftDrop = () => {
   const { accountId } = useAuthWalletContext();
 
   const handleNFTCreate = async () => {
-    const data = await getNFTAttempt();
-    console.log(data);
-
     setAppModal({
       isOpen: true,
       isLoading: true,
       header: 'Creating NFT',
       message: 'Uploading media and creating NFT drop links on-chain. This may take 15-30 seconds.',
     });
-    const dropId = await handleFinishNFTDrop(setAppModal);
+    const dropId = await handleFinishDrop({ setAppModal });
     console.log(dropId);
     setAppModal({
       isOpen: false,
