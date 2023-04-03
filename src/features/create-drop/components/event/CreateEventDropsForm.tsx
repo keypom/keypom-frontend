@@ -1,6 +1,21 @@
-import { Button, Flex, Input, useDisclosure } from '@chakra-ui/react';
+import {
+  Box,
+  Button,
+  Card,
+  CardBody,
+  CardFooter,
+  CardHeader,
+  Divider,
+  Flex,
+  Heading,
+  Input,
+  Stack,
+  Text,
+  useDisclosure,
+} from '@chakra-ui/react';
 import { Controller, useFieldArray, useFormContext } from 'react-hook-form';
 import { AddIcon } from '@chakra-ui/icons';
+import { useEffect, useState } from 'react';
 
 import { IconBox } from '@/components/IconBox';
 import { FormControl } from '@/components/FormControl';
@@ -8,11 +23,13 @@ import { LinkIcon } from '@/components/Icons';
 import { useDropFlowContext } from '@/features/create-drop/contexts';
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
 
-import { CreateTicketModal } from './CreateTicketModal';
+import { CreateTicketDrawer } from './CreateTicketDrawer';
 
 // const { defaultWallet } = getConfig();
 
 export const CreateEventDropsForm = () => {
+  const [totalCost, setTotalCost] = useState(0);
+  const [totalLinks, setTotalLinks] = useState(0);
   const { account } = useAuthWalletContext();
 
   const { onNext } = useDropFlowContext();
@@ -25,8 +42,6 @@ export const CreateEventDropsForm = () => {
     formState: { isDirty, isValid },
   } = useFormContext();
 
-  console.log(watch());
-
   const {
     fields,
     append,
@@ -36,31 +51,34 @@ export const CreateEventDropsForm = () => {
     name: 'tickets',
   });
 
+  const tickets = watch('tickets');
+
   const { isOpen, onClose, onOpen } = useDisclosure();
 
-  // const calcTotalCost = async () => {
-  //   if (totalLinks && amountPerLink) {
-  //     const { requiredDeposit } = await createDrop({
-  //       wallet: await window.selector.wallet(),
-  //       depositPerUseNEAR: amountPerLink,
-  //       numKeys: totalLinks,
-  //       returnTransactions: true,
-  //     });
-  //     setTotalCost(parseFloat(formatNearAmount(requiredDeposit!, 4)));
-  //   }
-  // };
+  const calcTotalCost = async () => {
+    setTotalCost(0);
+    // calculate all drops cost in this event
+  };
 
-  // useEffect(() => {
-  //   calcTotalCost();
-  // }, [amountPerLink, totalLinks]);
+  useEffect(() => {
+    calcTotalCost();
+  }, [totalLinks]);
 
   const handleSubmitClick = () => {
     console.log('submit');
   };
 
-  const handleDeleteTicket = (index) => {
-    removeTicket(index);
-    onClose();
+  const getEstimatedCost = async () => {
+    await Promise.all(
+      tickets.map(async () => {
+        const { requiredDeposit } = await createDrop({
+          wallet: await window.selector.wallet(),
+          depositPerUseNEAR: amountPerLink,
+          numKeys: totalLinks,
+          returnTransactions: true,
+        });
+      }),
+    );
   };
 
   return (
@@ -91,13 +109,12 @@ export const CreateEventDropsForm = () => {
           leftIcon={<AddIcon />}
           w="full"
           onClick={() => {
-            const today = new Date().getDate();
             append({
               name: '',
               description: '',
-              salesStartDate: new Date().setDate(today + 1),
-              salesEndDate: new Date().setDate(today + 2),
-              numberOfTickets: undefined,
+              salesStartDate: '2023-03-31T02:00',
+              salesEndDate: '2023-03-31T02:02',
+              numberOfTickets: '',
             });
             onOpen();
           }}
@@ -105,21 +122,73 @@ export const CreateEventDropsForm = () => {
           Add a ticket
         </Button>
 
+        <Box mt="10">
+          {tickets.map((ticket, index) => (
+            <Card
+              key={fields[index]?.id}
+              // border="2px solid black"
+              // borderRadius="8xl"
+              minH="200px"
+              my="4"
+              p="4"
+              textAlign="left"
+              w="full"
+            >
+              <CardHeader>
+                <Heading size="sm">{ticket.name}</Heading>
+              </CardHeader>
+              <CardBody>
+                <Text>Number of tickets: {ticket.numberOfTickets}</Text>
+                {ticket.description && <Text>Description: {ticket.description}</Text>}
+                <Text>
+                  Sales period: {ticket.salesStartDate} - {ticket.salesStartDate}
+                </Text>
+              </CardBody>
+              <Divider />
+              <CardFooter>
+                <Stack direction="row" justify="flex-end" w="full">
+                  <Button variant="secondary">Edit</Button>
+                  <Button
+                    colorScheme="red"
+                    ml="3"
+                    variant="outline"
+                    onClick={() => {
+                      removeTicket(index);
+                    }}
+                  >
+                    Remove
+                  </Button>
+                </Stack>
+              </CardFooter>
+            </Card>
+          ))}
+        </Box>
+
         <Flex justifyContent="flex-end">
-          <Button disabled={!isDirty || !isValid} mt="10" type="submit">
+          <Button disabled={fields.length === 0 || !isDirty || !isValid} mt="10" type="submit">
             Continue to summary
           </Button>
         </Flex>
       </form>
 
-      <CreateTicketModal
+      <CreateTicketDrawer
         isOpen={isOpen}
-        ticketIndex={0}
+        ticketIndex={fields.length - 1}
         onCancel={() => {
-          handleDeleteTicket(fields.length - 1);
+          removeTicket(fields.length - 1);
+          window.setTimeout(() => {
+            onClose();
+          }, 0);
         }}
         onClose={onClose}
       />
     </IconBox>
   );
 };
+
+/**
+ * drop metadata
+ * --------------
+ * event id, event name, drop name, wallets
+ * event id: 'drop name - event id'
+ */

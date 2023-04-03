@@ -2,42 +2,48 @@ import {
   Button,
   Heading,
   Input,
-  Modal,
-  ModalBody,
-  ModalContent,
-  ModalFooter,
-  ModalHeader,
-  ModalOverlay,
+  Drawer,
+  DrawerBody,
+  DrawerContent,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerOverlay,
   Textarea,
 } from '@chakra-ui/react';
 import { Controller, useFormContext } from 'react-hook-form';
 
 import { FormControl } from '@/components/FormControl';
+import { TokenInput } from '@/components/TokenInputMenu';
 
-interface CreateTicketModalProps {
+interface CreateTicketDrawerProps {
   isOpen: boolean;
   onClose: () => void;
   ticketIndex: number;
-  onSubmit: () => void;
   onCancel: () => void;
 }
 
-export const CreateTicketModal = ({
+export const CreateTicketDrawer = ({
   isOpen,
   onClose,
   onCancel,
   ticketIndex,
-}: CreateTicketModalProps) => {
+}: CreateTicketDrawerProps) => {
   const { control } = useFormContext();
 
   return (
-    <Modal closeOnEsc={false} closeOnOverlayClick={false} isOpen={isOpen} onClose={onClose}>
-      <ModalOverlay />
-      <ModalContent p="14" pb="8">
-        <ModalHeader>
+    <Drawer
+      closeOnEsc={false}
+      closeOnOverlayClick={false}
+      isOpen={isOpen}
+      size="lg"
+      onClose={onClose}
+    >
+      <DrawerOverlay />
+      <DrawerContent p="14" pb="8">
+        <DrawerHeader>
           <Heading size="sm">Add a new ticket type</Heading>
-        </ModalHeader>
-        <ModalBody>
+        </DrawerHeader>
+        <DrawerBody>
           <Controller
             control={control}
             name={`tickets.${ticketIndex}.name`}
@@ -76,6 +82,29 @@ export const CreateTicketModal = ({
           />
           <Controller
             control={control}
+            name="nearPricePerTicket"
+            render={({ field: { value, onChange, name }, fieldState: { error } }) => (
+              <FormControl
+                errorText={error?.message}
+                helperText="Amount of NEAR per ticket"
+                label="Ticket price"
+              >
+                <TokenInput
+                  isInvalid={Boolean(error?.message)}
+                  maxLength={14}
+                  name={name}
+                  value={value}
+                  onChange={(e) => {
+                    if (e.target.value.length > e.target.maxLength)
+                      e.target.value = e.target.value.slice(0, e.target.maxLength);
+                    onChange(e.target.value);
+                  }}
+                />
+              </FormControl>
+            )}
+          />
+          <Controller
+            control={control}
             name={`tickets.${ticketIndex}.description`}
             render={({ field }) => {
               return (
@@ -95,7 +124,7 @@ export const CreateTicketModal = ({
           />
           <Controller
             control={control}
-            name={`tickets.${ticketIndex}.saleStartDate`}
+            name={`tickets.${ticketIndex}.salesStartDate`}
             render={({ field, fieldState: { error } }) => {
               return (
                 <FormControl
@@ -103,7 +132,14 @@ export const CreateTicketModal = ({
                   isInvalid={Boolean(error?.message)}
                   label="Sales start date"
                 >
-                  <Input placeholder={new Date().toString()} type="datetime-local" {...field} />
+                  <Input
+                    type="datetime-local"
+                    {...field}
+                    onChange={(e) => {
+                      console.log(e.target.value);
+                      field.onChange(e.target.value);
+                    }}
+                  />
                 </FormControl>
               );
             }}
@@ -111,7 +147,7 @@ export const CreateTicketModal = ({
 
           <Controller
             control={control}
-            name={`tickets.${ticketIndex}.saleEndDate`}
+            name={`tickets.${ticketIndex}.salesEndDate`}
             render={({ field, fieldState: { error } }) => {
               return (
                 <FormControl
@@ -124,15 +160,15 @@ export const CreateTicketModal = ({
               );
             }}
           />
-        </ModalBody>
+        </DrawerBody>
 
-        <ModalFooter>
+        <DrawerFooter>
           <Button mr={3} variant="outline" onClick={onCancel}>
             Cancel
           </Button>
           <Button onClick={onClose}>Add</Button>
-        </ModalFooter>
-      </ModalContent>
-    </Modal>
+        </DrawerFooter>
+      </DrawerContent>
+    </Drawer>
   );
 };

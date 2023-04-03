@@ -21,8 +21,9 @@ const schema = z.object({
       z.object({
         name: z.string(),
         description: z.string().optional(),
-        saleStartDate: z.string().datetime(),
-        salesEndDate: z.string().datetime(),
+        salesStartDate: z.string(), // challenging to use z.string().datetime() to work with datetime-local
+        salesEndDate: z.string(),
+        nearPricePerTicket: z.number(),
         numberOfTickets: z.coerce
           .number({ invalid_type_error: 'Number of tickets required' })
           .positive()
