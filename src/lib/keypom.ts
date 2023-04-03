@@ -25,6 +25,7 @@ import * as nearAPI from 'near-api-js';
 import { CLOUDFLARE_IPFS, DROP_TYPE, MASTER_KEY } from '@/constants/common';
 import getConfig from '@/config/config';
 import { get } from '@/utils/localStorage';
+import { isEventDrop } from '@/utils/isEventDrop';
 
 let instance: KeypomJS;
 const ACCOUNT_ID_REGEX = /^(([a-z\d]+[-_])*[a-z\d]+\.)*([a-z\d]+[-_])*[a-z\d]+$/;
@@ -329,12 +330,8 @@ class KeypomJS {
         this.dropStore.dropWithKeys[dropId][pageIndex].pk === undefined ||
         this.dropStore.dropWithKeys[dropId][pageIndex].sk === undefined
       ) {
-        // TODO: check if eventId exist
-        const drop = await this.getDropInfo({ dropId });
-        const { eventId } = this.getDropMetadata(drop.metadata);
-
         let rootEntropy = '';
-        if (eventId !== undefined) {
+        if (await isEventDrop({ dropId })) {
           rootEntropy = `${dropId}`;
         } else {
           rootEntropy = `${get(MASTER_KEY) as string}-${dropId}`;

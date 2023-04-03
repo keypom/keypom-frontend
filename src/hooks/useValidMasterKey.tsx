@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 
 import { MASTER_KEY } from '@/constants/common';
 import { get } from '@/utils/localStorage';
-import keypomInstance from '@/lib/keypom';
+import { isEventDrop } from '@/utils/isEventDrop';
 
 interface useValidMasterKeyProps {
   dropId: string;
@@ -14,10 +14,7 @@ export const useValidMasterKey = ({ dropId }: useValidMasterKeyProps) => {
 
   useEffect(() => {
     const validateMasterKey = async () => {
-      const drop = await keypomInstance.getDropInfo({ dropId });
-      const { eventId } = keypomInstance.getDropMetadata(drop.metadata);
-      if (eventId) {
-        // if event drop, do not need to check for masterKey
+      if (await isEventDrop({ dropId })) {
         setValid(true);
       } else {
         const keys = await getKeysForDrop({ dropId, start: 0, limit: 1 });
