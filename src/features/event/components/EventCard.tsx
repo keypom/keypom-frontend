@@ -1,26 +1,29 @@
 import { Box, Button, Flex, Heading, Show, SimpleGrid, Text } from '@chakra-ui/react';
 import { Controller, useFieldArray, useForm } from 'react-hook-form';
-import { useEffect } from 'react';
+import { addKeys, generateKeys } from 'keypom-js';
 
 import { IconBox } from '@/components/IconBox';
+
+import { type EventMetadata } from '../types/common';
 
 import { TicketCard } from './TicketCard';
 
 interface EventCardProps {
-  eventName: string;
-  ticketArray: any[];
+  ticketArray: EventMetadata[];
 }
 
-export const EventCard = ({ eventName, ticketArray = [] }: EventCardProps) => {
-  const eventId = `event-${eventName}`;
+export const EventCard = ({ ticketArray = [] }: EventCardProps) => {
+  const eventId = `event-${ticketArray[0].eventName}`;
 
   const { handleSubmit, control, watch } = useForm({
     // TODO: populate with relevant drops (compared to the EVENT_NAME)
     defaultValues: {
       [eventId]: ticketArray.map((ticket) => ({
+        dropId: ticket.drop_id,
         ticketId: `${ticket.eventId}`,
         ticketName: `${ticket.dropName}`,
         value: 0,
+        ...ticket,
       })),
     },
   });
@@ -30,12 +33,20 @@ export const EventCard = ({ eventName, ticketArray = [] }: EventCardProps) => {
   });
 
   const handleOnSubmit = async () => {
-    console.log(eventId, watch());
+    watch(eventId).forEach(async (field) => {
+      const { publicKeys } = await generateKeys({
+        numKeys: field.value,
+        rootEntropy: `${field.dropId as string}`,
+        autoMetaNonceStart: field.next_key_id,
+      });
+      await addKeys({
+        wallet: await window.selector.wallet(),
+        publicKeys,
+        dropId: field.dropId,
+        numKeys: field.value,
+      });
+    });
   };
-
-  useEffect(() => {
-    console.log(watch());
-  }, [watch('test')]);
 
   return (
     <form onSubmit={handleSubmit(handleOnSubmit)}>
@@ -77,7 +88,7 @@ export const EventCard = ({ eventName, ticketArray = [] }: EventCardProps) => {
             position="relative"
             textAlign="left"
           >
-            <Heading>{eventName}</Heading>
+            <Heading>{ticketArray[0].eventName}</Heading>
             <Text>09:00 - 21:00</Text>
           </Flex>
           <SimpleGrid columns={3} mb="4" spacingX="40px" spacingY="40px">

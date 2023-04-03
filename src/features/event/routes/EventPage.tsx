@@ -6,12 +6,13 @@ import keypomInstance from '@/lib/keypom';
 
 import { EventCard } from '../components/EventCard';
 import { EventHeader } from '../components/EventHeader';
+import { type EventCardMetadata } from '../types/common';
 
 const EventPage = () => {
   const { accountId = '' } = useParams();
 
   const [loading, setLoading] = useBoolean(true);
-  const [data, setData] = useState<any[]>([]);
+  const [data, setData] = useState<EventCardMetadata[]>([]);
 
   // TODO: get all drops and categorized based on the events
   const handleGetDrops = useCallback(async () => {
@@ -22,7 +23,7 @@ const EventPage = () => {
       return !!eventId;
     });
 
-    const events = {};
+    const events: Record<string, EventCardMetadata> = {};
     filteredDrops.forEach((drop) => {
       const { eventId, eventName, dropName, wallets } = keypomInstance.getDropMetadata(
         drop.metadata,
@@ -38,7 +39,7 @@ const EventPage = () => {
       });
     });
 
-    const dataArray = [];
+    const dataArray: EventCardMetadata[] = [];
     for (const eventData in events) {
       dataArray.push(events[eventData]);
     }
@@ -54,11 +55,10 @@ const EventPage = () => {
   return (
     <Box mb={{ base: '5', md: '14' }} minH="100%" minW="100%" mt={{ base: '52px', md: '100px' }}>
       <EventHeader headerText="My Events" />
-      <>{JSON.stringify(data)}</>
       {!loading && (
         <VStack maxW="995px" mx="auto" spacing="6">
           {data.map((event) => (
-            <EventCard key={event[0].eventId} eventName={event[0].eventName} ticketArray={event} />
+            <EventCard key={event[0].eventId} ticketArray={event} />
           ))}
         </VStack>
       )}
