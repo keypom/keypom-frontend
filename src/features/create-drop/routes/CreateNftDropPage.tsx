@@ -1,5 +1,10 @@
 import { Box } from '@chakra-ui/react';
+import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
+import { getNFTAttempt, handleFinishNFTDrop } from '@/features/create-drop/contexts/nft-utils';
+import { useAppContext } from '@/contexts/AppContext';
+import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
 import { type IBreadcrumbItem } from '@/components/Breadcrumbs';
 import { type IFlowPage } from '@/types/common';
 import { DropFlow } from '@/features/create-drop/components/DropFlow';
@@ -32,6 +37,35 @@ const breadcrumbs: IBreadcrumbItem[] = [
 ];
 
 const NewNftDrop = () => {
+  const navigate = useNavigate();
+  const { setAppModal } = useAppContext();
+  const { accountId } = useAuthWalletContext();
+
+  const handleNFTCreate = async () => {
+    const data = await getNFTAttempt();
+    console.log(data);
+
+    setAppModal({
+      isOpen: true,
+      isLoading: true,
+      header: 'Creating NFT',
+      message: 'Uploading media and creating NFT drop links on-chain. This may take 15-30 seconds.',
+    });
+    const dropId = await handleFinishNFTDrop(setAppModal);
+    console.log(dropId);
+    setAppModal({
+      isOpen: false,
+      isLoading: false,
+      header: '',
+      message: '',
+    });
+    if (dropId) navigate(`/drop/nft/${dropId as string}`);
+  };
+  useEffect(() => {
+    if (!accountId) return;
+    handleNFTCreate();
+  }, [accountId]);
+
   return (
     <Box mb={{ base: '5', md: '14' }} minH="100%" minW="100%" mt={{ base: '52px', md: '100px' }}>
       <DropFlowProvider breadcrumbs={breadcrumbs} flowPages={flowPages}>

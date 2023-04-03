@@ -24,11 +24,9 @@ import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
 import { type ColumnItem, type DataItem } from '@/components/Table/types';
 import { DataTable } from '@/components/Table';
 import { DeleteIcon } from '@/components/Icons';
-import { handleFinishNFTDrop } from '@/features/create-drop/contexts/CreateNftDropContext';
 import { truncateAddress } from '@/utils/truncateAddress';
 import { NextButton, PrevButton } from '@/components/Pagination';
 import { usePagination } from '@/hooks/usePagination';
-import { useAppContext } from '@/contexts/AppContext';
 import { CLOUDFLARE_IPFS, DROP_TYPE, PAGE_QUERY_PARAM } from '@/constants/common';
 import keypomInstance from '@/lib/keypom';
 import { PopoverTemplate } from '@/components/PopoverTemplate';
@@ -81,8 +79,6 @@ const COLUMNS: ColumnItem[] = [
 export default function AllDrops() {
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const { setAppModal } = useAppContext();
-
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [isLoading, setIsLoading] = useState(true);
   const popoverClicked = useRef(0);
@@ -90,6 +86,8 @@ export default function AllDrops() {
   const [dataSize, setDataSize] = useState<number>(0);
   const [data, setData] = useState<Array<DataItem | null>>([]);
   const [wallet, setWallet] = useState({});
+
+  const { selector, accountId } = useAuthWalletContext();
 
   const {
     setPagination,
@@ -125,8 +123,6 @@ export default function AllDrops() {
       setSearchParams(newQueryParams);
     },
   });
-
-  const { selector, accountId } = useAuthWalletContext();
 
   const handleGetDropsSize = async () => {
     const numDrops = await keypomInstance.getDropSupplyForOwner({
@@ -216,13 +212,13 @@ export default function AllDrops() {
 
   useEffect(() => {
     if (!accountId) return;
+
     // page query param should be indexed from 1
     const pageQuery = searchParams.get('page');
     const currentPageIndex = pageQuery !== null ? parseInt(pageQuery) - 1 : 0;
     setPagination((pagination) => ({ ...pagination, pageIndex: currentPageIndex }));
     handleGetDropsSize();
     handleGetDrops({ start: currentPageIndex * pagination.pageSize });
-    handleFinishNFTDrop();
   }, [accountId, searchParams]);
 
   const dropMenuItems = MENU_ITEMS.map((item) => (

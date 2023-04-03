@@ -1,6 +1,7 @@
 import * as z from 'zod';
 
-const MAX_FILE_SIZE = 500000;
+import { MAX_FILE_SIZE } from '@/constants/common';
+
 const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
 
 export const EventInfoSchema = z.object({
@@ -44,7 +45,11 @@ export const AdditionalGiftSchema = z
   .superRefine(({ additionalGift }, ctx) => {
     if (additionalGift.type === 'token') {
       const token = additionalGift.token;
-      if (token.amountPerLink === undefined || !(token?.amountPerLink > 0)) {
+      let amount = token?.amountPerLink;
+      if (!amount) amount = 0;
+      if (typeof amount === 'string') amount = parseInt(amount);
+
+      if (amount <= 0) {
         ctx.addIssue({
           path: ['additionalGift.token.amountPerLink'],
           code: z.ZodIssueCode.custom,
@@ -97,7 +102,7 @@ export const AdditionalGiftSchema = z
         ctx.addIssue({
           path: ['additionalGift.poapNft.artwork'],
           code: z.ZodIssueCode.custom,
-          message: `Max file size is 5MB.`,
+          message: `Max file size is 10MB.`,
         });
         return z.NEVER;
       }

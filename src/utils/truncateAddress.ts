@@ -5,6 +5,7 @@ export const truncateAddress = (
   placement: Placement = 'middle',
   maxLength = 24,
 ) => {
+  if (!address) return '';
   if (address.length > maxLength) {
     switch (placement) {
       case 'start':
