@@ -71,7 +71,7 @@ export const CreateEventDropsProvider = ({ children }: PropsWithChildren) => {
   const handleCreateDrops = () => {
     const { getValues } = methods;
     const { tickets, eventName } = getValues();
-
+    const eventId = eventName.replace(' ', '_');
     tickets.forEach(async (ticket, index) => {
       const dropId = (Date.now() + index).toString();
       await createDrop({
@@ -79,7 +79,7 @@ export const CreateEventDropsProvider = ({ children }: PropsWithChildren) => {
         wallet: await window.selector.wallet(),
         numKeys: parseInt(ticket.numberOfTickets),
         metadata: JSON.stringify({
-          eventId: new Date().getTime() + index,
+          eventId,
           eventName,
           dropName: `${eventName} - ${ticket.name}`,
           wallets: ['mynearwallet', 'herewallet'],
@@ -160,12 +160,10 @@ export const CreateEventDropsProvider = ({ children }: PropsWithChildren) => {
           usesPerKey: 3,
           sale: {
             // Maximum of 100 Keys
-            maxNumKeys: ticket.numberOfTickets,
+            maxNumKeys: parseInt(ticket.numberOfTickets),
 
             // 1 $NEAR per key
-            pricePerKeyNEAR: parseFloat(
-              parseNearAmount(ticket.nearPricePerTicket.toString()) as string,
-            ),
+            pricePerKeyNEAR: parseFloat(ticket.nearPricePerTicket),
 
             // only allow benji.testnet and minqi.testnet to add keys
             // allowlist: ["benji.testnet", "minqi.testnet"],
