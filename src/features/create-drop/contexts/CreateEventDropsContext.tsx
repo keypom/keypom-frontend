@@ -1,14 +1,16 @@
-import { createContext, type PropsWithChildren, useContext } from 'react';
+import { createContext, type PropsWithChildren, useContext, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { createDrop, formatNearAmount, parseNearAmount } from 'keypom-js';
+import { addToBalance, createDrop, formatNearAmount, parseNearAmount } from 'keypom-js';
 
 import {
   type PaymentItem,
   type PaymentData,
   type SummaryItem,
 } from '@/features/create-drop/types/types';
+import { set } from '@/utils/localStorage';
+import { PENDING_EVENT_TICKETS } from '@/constants/common';
 
 // import { type PaymentData, type SummaryItem } from '../types/types';
 
@@ -58,6 +60,7 @@ type Schema = z.infer<typeof schema>;
  */
 export const CreateEventDropsProvider = ({ children }: PropsWithChildren) => {
   // const { account } = useAuthWalletContext();
+  const [totalRequiredDeposits, setTotalDeposits] = useState(0);
 
   const methods = useForm<Schema>({
     mode: 'onChange',
@@ -68,65 +71,16 @@ export const CreateEventDropsProvider = ({ children }: PropsWithChildren) => {
     resolver: zodResolver(schema),
   });
 
-  const handleCreateDrops = () => {
+  // get total deposits
+  // add total deposits amount to the user balance
+  // reduct user balance from creating drops
+  const handleCreateDrops = async () => {
     const { getValues } = methods;
-    const { tickets, eventName } = getValues();
-    const eventId = eventName.replace(' ', '_');
-    tickets.forEach(async (ticket, index) => {
-      const dropId = (Date.now() + index).toString();
-      await createDrop({
-        dropId,
-        wallet: await window.selector.wallet(),
-        numKeys: parseInt(ticket.numberOfTickets),
-        metadata: JSON.stringify({
-          eventId,
-          eventName,
-          dropName: `${eventName} - ${ticket.name}`,
-          wallets: ['mynearwallet', 'herewallet'],
-        }),
-        config: {
-          usesPerKey: 3,
-          sale: {
-            // Maximum of 100 Keys
-            maxNumKeys: parseInt(ticket.numberOfTickets),
-
-            // 1 $NEAR per key
-            pricePerKeyNEAR: parseFloat(ticket.nearPricePerTicket),
-
-            // only allow benji.testnet and minqi.testnet to add keys
-            // allowlist: ["benji.testnet", "minqi.testnet"],
-
-            // don't allow boogieman.testnet to add keys
-            blocklist: ['satoshi.testnet'],
-
-            // send revenue back to funder's NEAR wallet
-            autoWithdrawFunds: true,
-
-            // start 3 days from now
-            start: new Date(ticket.salesStartDate).getTime(),
-
-            // end 10 days from now
-            end: new Date(ticket.salesEndDate).getTime(),
-          },
-        },
-        fcData: {
-          methods: [
-            null,
-            null,
-            [
-              {
-                receiverId: `nft-v2.keypom.testnet`,
-                methodName: 'nft_mint',
-                args: '',
-                dropIdField: 'mint_id',
-                accountIdField: 'receiver_id',
-                attachedDeposit: parseNearAmount('0.1'),
-              },
-            ],
-          ],
-        },
-        successUrl: `${window.location.origin}/drops`,
-      });
+    set(PENDING_EVENT_TICKETS, JSON.stringify(getValues()));
+    await addToBalance({
+      amountNear: totalRequiredDeposits.toString(),
+      wallet: await window.selector.wallet(),
+      successUrl: `${window.location.origin}/drop/event/create`,
     });
   };
 
@@ -210,6 +164,8 @@ export const CreateEventDropsProvider = ({ children }: PropsWithChildren) => {
     const costsData: PaymentItem[] = totalDeposits.tickets;
 
     const confirmationText = `Creating ${tickets.length} tickets for ${totalCost} NEAR`;
+
+    setTotalDeposits(totalDeposits.totalDeposit + 0.5);
 
     return { costsData, totalCost, confirmationText };
   };

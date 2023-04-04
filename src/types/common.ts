@@ -44,3 +44,8 @@ export interface ITicketData {
   nearPricePerTicket: number | string;
   numberOfTickets: number;
 }
+
+export interface IPendingEventTickets {
+  eventName: string;
+  tickets: ITicketData[];
+}

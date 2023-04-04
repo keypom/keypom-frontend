@@ -4,6 +4,9 @@ import { createBrowserRouter } from 'react-router-dom';
 const CreateEventDropsPage = React.lazy(
   async () => await import('@/features/create-drop/routes/CreateEventDropsPage'),
 );
+const CreatePendingEventDropsPage = React.lazy(
+  async () => await import('@/features/create-drop/routes/CreatePendingEventDropsPage'),
+);
 
 const LandingPage = React.lazy(async () => await import('@/features/landing/routes/LandingPage'));
 
@@ -135,6 +138,10 @@ export const router = createBrowserRouter([
                   {
                     path: 'new',
                     element: <CreateEventDropsPage />,
+                  },
+                  {
+                    path: 'create',
+                    element: <CreatePendingEventDropsPage />,
                   },
                   // {
                   //   path: ':id',
