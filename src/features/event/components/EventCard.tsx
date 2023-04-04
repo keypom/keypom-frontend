@@ -1,6 +1,7 @@
 import { Box, Button, Flex, Heading, Show, SimpleGrid, Text } from '@chakra-ui/react';
 import { Controller, useFieldArray, useForm } from 'react-hook-form';
 import { addKeys, generateKeys } from 'keypom-js';
+import { DateTime } from 'luxon';
 
 import { IconBox } from '@/components/IconBox';
 
@@ -13,7 +14,13 @@ interface EventCardProps {
 }
 
 export const EventCard = ({ ticketArray = [] }: EventCardProps) => {
-  const eventId = `event-${ticketArray[0].eventName}`;
+  // event details
+
+  const eventId = `${ticketArray[0].eventId}`;
+  const { config: { sale: { start, end } } = { sale: {} } } = ticketArray[0];
+  const time = `${DateTime.fromMillis(start).toLocaleString(
+    DateTime.DATETIME_SHORT,
+  )} - ${DateTime.fromMillis(end).toLocaleString(DateTime.DATETIME_SHORT)}`;
 
   const { handleSubmit, control, watch } = useForm({
     // TODO: populate with relevant drops (compared to the EVENT_NAME)
@@ -89,7 +96,7 @@ export const EventCard = ({ ticketArray = [] }: EventCardProps) => {
             textAlign="left"
           >
             <Heading>{ticketArray[0].eventName}</Heading>
-            <Text>09:00 - 21:00</Text>
+            <Text>{time}</Text>
           </Flex>
           <SimpleGrid columns={3} mb="4" spacingX="40px" spacingY="40px">
             {fields.map((item, index) => {
