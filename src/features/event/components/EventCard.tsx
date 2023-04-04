@@ -21,7 +21,7 @@ export const EventCard = ({ ticketArray = [] }: EventCardProps) => {
   const time = `${DateTime.fromMillis(start).toLocaleString(
     DateTime.DATETIME_SHORT,
   )} - ${DateTime.fromMillis(end).toLocaleString(DateTime.DATETIME_SHORT)}`;
-
+  console.log(ticketArray[0]);
   const { handleSubmit, control, watch } = useForm({
     // TODO: populate with relevant drops (compared to the EVENT_NAME)
     defaultValues: {
@@ -112,6 +112,7 @@ export const EventCard = ({ ticketArray = [] }: EventCardProps) => {
                       fieldState={fieldState}
                       name={FIELD_NAME}
                       ticketName={item.ticketName}
+                      ticketPrice={item.config.sale.price_per_key}
                     />
                   )}
                 />

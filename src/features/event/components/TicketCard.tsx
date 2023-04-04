@@ -9,6 +9,7 @@ import {
   VStack,
 } from '@chakra-ui/react';
 import { type ControllerFieldState, type ControllerRenderProps } from 'react-hook-form';
+import { formatNearAmount } from 'keypom-js';
 
 import { IconBox } from '@/components/IconBox';
 
@@ -26,9 +27,16 @@ interface TicketCardProps {
   >;
   fieldState: ControllerFieldState;
   ticketName: string;
+  ticketPrice: string;
 }
 
-export const TicketCard = ({ name, field, fieldState, ticketName }: TicketCardProps) => {
+export const TicketCard = ({
+  name,
+  field,
+  fieldState,
+  ticketName,
+  ticketPrice,
+}: TicketCardProps) => {
   const { getIncrementButtonProps, getDecrementButtonProps, getInputProps } = useNumberInput({
     min: 0,
     value: field.value,
@@ -37,13 +45,15 @@ export const TicketCard = ({ name, field, fieldState, ticketName }: TicketCardPr
     },
   });
 
+  const amountInNEAR = formatNearAmount(ticketPrice, 4);
+
   return (
     <FormControl>
       <Flex flexDir="column" w="full">
         <IconBox borderRadius={{ base: 'xs', md: 'sm' }} height="80px" mb="4" p="0" pb="0">
           <VStack py="2">
             <Text size="lg">{ticketName}</Text>
-            <Text>10 NEAR</Text>
+            <Text>{amountInNEAR} NEAR</Text>
           </VStack>
         </IconBox>
         <HStack justify="center">
