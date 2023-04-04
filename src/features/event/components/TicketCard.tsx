@@ -1,4 +1,5 @@
 import {
+  Box,
   Button,
   Flex,
   FormControl,
@@ -10,8 +11,6 @@ import {
 } from '@chakra-ui/react';
 import { type ControllerFieldState, type ControllerRenderProps } from 'react-hook-form';
 import { formatNearAmount } from 'keypom-js';
-
-import { IconBox } from '@/components/IconBox';
 
 interface TicketCardProps {
   name: string;
@@ -50,12 +49,19 @@ export const TicketCard = ({
   return (
     <FormControl>
       <Flex flexDir="column" w="full">
-        <IconBox borderRadius={{ base: 'xs', md: 'sm' }} height="80px" mb="4" p="0" pb="0">
+        <Box
+          borderRadius={{ base: '1rem', md: '8xl' }}
+          boxShadow="md"
+          mb="4"
+          minH="80px"
+          p="2"
+          pb="2"
+        >
           <VStack py="2">
             <Text size="lg">{ticketName}</Text>
             <Text>{amountInNEAR} NEAR</Text>
           </VStack>
-        </IconBox>
+        </Box>
         <HStack justify="center">
           <Button {...getDecrementButtonProps()}>-</Button>
           <Input {...getInputProps()} {...field} name={name} />
