@@ -16,7 +16,7 @@ import { CheckCircleIcon } from '@chakra-ui/icons';
 import { useNavigate } from 'react-router-dom';
 
 import { PENDING_EVENT_TICKETS } from '@/constants/common';
-import { get } from '@/utils/localStorage';
+import { del, get } from '@/utils/localStorage';
 import { type IPendingEventTickets } from '@/types/common';
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
 
