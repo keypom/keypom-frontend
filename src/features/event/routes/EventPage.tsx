@@ -14,7 +14,6 @@ const EventPage = () => {
   const [loading, setLoading] = useBoolean(true);
   const [data, setData] = useState<EventCardMetadata[]>([]);
 
-  // TODO: get all drops and categorized based on the events
   const handleGetDrops = useCallback(async () => {
     const drops = await keypomInstance.getDrops({ accountId, start: 0, limit: 99 });
 

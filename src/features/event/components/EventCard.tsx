@@ -15,15 +15,13 @@ interface EventCardProps {
 
 export const EventCard = ({ ticketArray = [] }: EventCardProps) => {
   // event details
-
   const eventId = `${ticketArray[0].eventId}`;
   const { config: { sale: { start, end } } = { sale: {} } } = ticketArray[0];
   const time = `${DateTime.fromMillis(start).toLocaleString(
     DateTime.DATETIME_SHORT,
   )} - ${DateTime.fromMillis(end).toLocaleString(DateTime.DATETIME_SHORT)}`;
-  console.log(ticketArray[0]);
+
   const { handleSubmit, control, watch } = useForm({
-    // TODO: populate with relevant drops (compared to the EVENT_NAME)
     defaultValues: {
       [eventId]: ticketArray.map((ticket) => ({
         dropId: ticket.drop_id,
