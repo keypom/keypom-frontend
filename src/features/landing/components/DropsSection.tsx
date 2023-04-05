@@ -64,11 +64,11 @@ export const DropsSection = () => {
       icon: <ImageIcon height={{ base: '6', md: '7' }} width={{ base: '6', md: '7' }} />,
       content: (
         <DropsTemplate
-          ctaDisabled={true}
+          ctaDisabled={false}
           ctaOnClick={() => {
-            // dropCta('nft');
+            dropCta('nft');
           }}
-          ctaText="Coming soon"
+          ctaText="Create a NFT Drop"
           description="Easily drop NFTs to a large audience, without needing their wallets."
           headingText="NFTs in a link."
           imageNumber={2}

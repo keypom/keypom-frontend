@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback } from 'react';
 import { Controller, useFormContext } from 'react-hook-form';
 import { Button, Flex, VStack } from '@chakra-ui/react';
 
@@ -57,7 +57,7 @@ export const CreateNftDropForm = () => {
         <VStack spacing={{ base: '4', md: '5' }}>
           <NftNameInput control={control} />
           <DescriptionInput control={control} />
-          <NumberInput control={control} />
+          <NumberInput control={control} label="Number of NFTs" />
 
           <ArtworkInput />
 
