@@ -1,19 +1,68 @@
 import { Box, Button, Flex, Heading, Show, SimpleGrid, Text } from '@chakra-ui/react';
 import { Controller, useFieldArray, useForm } from 'react-hook-form';
-import { addKeys, generateKeys } from 'keypom-js';
+import { addKeys, addToBalance, formatNearAmount, generateKeys, getUserBalance } from 'keypom-js';
 import { DateTime } from 'luxon';
+import { useEffect } from 'react';
 
 import { IconBox } from '@/components/IconBox';
+import { get, set, del } from '@/utils/localStorage';
+import { useAppContext } from '@/contexts/AppContext';
+import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
 
 import { type EventMetadata } from '../types/common';
 
 import { TicketCard } from './TicketCard';
+import { setCartCheckoutModal } from './CartCheckoutModal';
 
 interface EventCardProps {
   ticketArray: EventMetadata[];
 }
 
 export const EventCard = ({ ticketArray = [] }: EventCardProps) => {
+  const { setAppModal } = useAppContext();
+  const { accountId } = useAuthWalletContext();
+
+  useEffect(() => {
+    const currentDropId = get('current_cart_dropid') || '';
+    const currentPk = get('current_cart_pk') || [];
+    if (currentPk.length !== 0 && currentDropId.length !== 0) {
+      const getBalance = async () => {
+        console.log('userbalance:', formatNearAmount(await getUserBalance({ accountId }), 4));
+      };
+      getBalance();
+
+      setCartCheckoutModal(
+        setAppModal,
+        async () => {
+          const wallet = await window.selector.wallet();
+
+          await Promise.all(
+            currentPk.map(async (_, i) => {
+              await addKeys({
+                wallet,
+                publicKeys: currentPk[i],
+                dropId: currentDropId[i],
+                numKeys: currentPk[i].length,
+                useBalance: true,
+              });
+            }),
+          )
+            .catch(console.error)
+            .finally(() => {
+              console.log('deleting local storage cart');
+              del('current_cart_pk');
+              del('current_cart_dropid');
+            });
+        },
+        () => {
+          console.log('cancelling checkout');
+          del('current_cart_pk');
+          del('current_cart_dropid');
+        },
+      );
+    }
+  }, []);
+
   // event details
   const eventId = `${ticketArray[0].eventId}`;
   const { config: { sale: { start, end } } = { sale: {} } } = ticketArray[0];
@@ -38,18 +87,43 @@ export const EventCard = ({ ticketArray = [] }: EventCardProps) => {
   });
 
   const handleOnSubmit = async () => {
-    watch(eventId).forEach(async (field) => {
-      const { publicKeys } = await generateKeys({
-        numKeys: field.value,
-        rootEntropy: `${field.dropId as string}`,
-        autoMetaNonceStart: field.next_key_id,
+    const wallet = await window.selector.wallet();
+
+    let totalAmount = 0;
+    const currentPk: string[][] = [];
+    const currentDropId: string[] = [];
+    await Promise.all(
+      watch(eventId).map(async (field) => {
+        const { value, dropId, next_key_id } = field;
+
+        const { publicKeys } = await generateKeys({
+          numKeys: value,
+          rootEntropy: `${dropId as string}`,
+          autoMetaNonceStart: next_key_id,
+        });
+
+        return {
+          publicKeys,
+          ...(await addKeys({
+            wallet,
+            publicKeys,
+            dropId,
+            numKeys: publicKeys.length,
+            returnTransactions: true,
+          })),
+        };
+      }),
+    ).then(async (result) => {
+      console.log('result', result);
+      result.forEach(({ requiredDeposit = 0, publicKeys = [], dropId = '' }) => {
+        totalAmount += parseFloat(formatNearAmount(requiredDeposit as string, 4));
+        currentPk.push(publicKeys);
+        currentDropId.push(dropId);
       });
-      await addKeys({
-        wallet: await window.selector.wallet(),
-        publicKeys,
-        dropId: field.dropId,
-        numKeys: field.value,
-      });
+      console.log('totalAmount', totalAmount);
+      set('current_cart_pk', currentPk);
+      set('current_cart_dropid', currentDropId);
+      await addToBalance({ wallet, amountNear: (totalAmount + 0.5).toString() }); // + 0.1 to prevent insufficient balance
     });
   };
 
