@@ -17,8 +17,10 @@ export type DROP_TYPES = (typeof DROP_TYPE)[DROP_TYPE_KEYS];
 
 export const MASTER_KEY = 'MASTER_KEY';
 
-export const PAGE_SIZE_LIMIT = 10;
+export const MAX_FILE_SIZE = 10000000;
 
+export const PAGE_SIZE_LIMIT = 10;
+export const NFT_ATTEMPT_KEY = 'NFT_ATTEMPT';
 export const PAGE_QUERY_PARAM = 'page';
 
 export const PENDING_EVENT_TICKETS = 'PENDING_EVENT_TICKETS';
