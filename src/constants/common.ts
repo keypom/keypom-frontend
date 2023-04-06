@@ -20,3 +20,5 @@ export const MASTER_KEY = 'MASTER_KEY';
 export const PAGE_SIZE_LIMIT = 10;
 
 export const PAGE_QUERY_PARAM = 'page';
+
+export const PENDING_EVENT_TICKETS = 'PENDING_EVENT_TICKETS';
