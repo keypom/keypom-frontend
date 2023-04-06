@@ -17,7 +17,7 @@ export interface PaymentItem {
 
 export interface PaymentData {
   costsData: PaymentItem[];
-  totalCost: number;
+  totalCost: number | string;
   confirmationText: string;
 }
 

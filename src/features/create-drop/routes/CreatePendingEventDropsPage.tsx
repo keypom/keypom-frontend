@@ -11,89 +11,100 @@ import {
   VStack,
 } from '@chakra-ui/react';
 import { useEffect, useMemo, useState } from 'react';
-import { createDrop, parseNearAmount } from 'keypom-js';
 import { CheckCircleIcon } from '@chakra-ui/icons';
 import { useNavigate } from 'react-router-dom';
+import { createDrop, parseNearAmount } from 'keypom-js';
 
 import { PENDING_EVENT_TICKETS } from '@/constants/common';
 import { del, get } from '@/utils/localStorage';
-import { type IPendingEventTickets } from '@/types/common';
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
+import { type ITicketData } from '@/types/common';
+import keypomInstance from '@/lib/keypom';
 
 const CreatePendingEventDropsPage = () => {
-  const pendingEventTickets = get(PENDING_EVENT_TICKETS);
   const navigate = useNavigate();
   const { account, accountId } = useAuthWalletContext();
   const [ticketsStatuses, setTicketsStatuses] = useState<Record<string, boolean>>({});
+  const [tickets, setTickets] = useState<ITicketData[]>([]);
+  const [error, setError] = useState('');
 
-  const { tickets = [], eventName = '' }: IPendingEventTickets = pendingEventTickets || {};
-
-  const createTicketDrops = async () => {
-    tickets.forEach(async (ticket, index) => {
-      const dropId = (Date.now() + index).toString();
-      await createDrop({
-        dropId,
-        useBalance: true,
-        wallet: await window.selector.wallet(),
-        numKeys: parseInt(ticket.numberOfTickets.toString()),
-        metadata: JSON.stringify({
-          eventId: eventName.replace(' ', '_'),
-          eventName,
-          dropName: `${eventName} - ${ticket.name}`,
-          wallets: ['mynearwallet', 'herewallet'],
-        }),
-        config: {
-          usesPerKey: 3,
-          sale: {
-            maxNumKeys: parseInt(ticket.numberOfTickets.toString()),
-            pricePerKeyNEAR: parseFloat(ticket.nearPricePerTicket.toString()),
-            blocklist: ['satoshi.testnet'],
-            autoWithdrawFunds: true,
-            start: new Date(ticket.salesStartDate).getTime(),
-            end: new Date(ticket.salesEndDate).getTime(),
+  const createTicketDrops = async (tickets: ITicketData[], eventName: string) => {
+    await keypomInstance.init();
+    await Promise.all(
+      tickets.map(async (ticket, index) => {
+        const dropId = (Date.now() + index).toString();
+        await createDrop({
+          dropId,
+          useBalance: true,
+          wallet: await window.selector.wallet(),
+          numKeys: parseInt(ticket.numberOfTickets.toString()),
+          metadata: JSON.stringify({
+            eventId: eventName.replace(' ', '_'),
+            eventName,
+            dropName: `${eventName} - ${ticket.name}`,
+            wallets: ['mynearwallet', 'herewallet'],
+          }),
+          config: {
+            usesPerKey: 3,
+            sale: {
+              maxNumKeys: parseInt(ticket.numberOfTickets.toString()),
+              pricePerKeyNEAR: parseFloat(ticket.nearPricePerTicket.toString()),
+              blocklist: ['satoshi.testnet'],
+              autoWithdrawFunds: true,
+              start: new Date(ticket.salesStartDate).getTime(),
+              end: new Date(ticket.salesEndDate).getTime(),
+            },
           },
-        },
-        fcData: {
-          methods: [
-            null,
-            null,
-            [
-              {
-                receiverId: `nft-v2.keypom.testnet`,
-                methodName: 'nft_mint',
-                args: '',
-                dropIdField: 'mint_id',
-                accountIdField: 'receiver_id',
-                attachedDeposit: parseNearAmount('0.1') as string,
-              },
+          fcData: {
+            methods: [
+              null,
+              null,
+              [
+                {
+                  receiverId: `nft-v2.keypom.testnet`,
+                  methodName: 'nft_mint',
+                  args: '',
+                  dropIdField: 'mint_id',
+                  accountIdField: 'receiver_id',
+                  attachedDeposit: parseNearAmount('0.1') as string,
+                },
+              ],
             ],
-          ],
-        },
-      });
-      setTicketsStatuses((statuses) => ({ ...statuses, [ticket.name]: true }));
-    });
+          },
+        });
+        setTicketsStatuses((statuses) => ({ ...statuses, [ticket.name]: true }));
+      }),
+    );
 
     del(PENDING_EVENT_TICKETS);
   };
 
   useEffect(() => {
-    if (!eventName || !tickets) {
-      console.error('Event name and tickets not found');
+    if (!account || tickets.length > 0) return;
+
+    const pendingEventTickets = get(PENDING_EVENT_TICKETS);
+    if (!pendingEventTickets) {
+      setError('No pending tickets found');
       return;
     }
 
-    if (!account) return;
+    const { tickets: ticketsData, eventName } = pendingEventTickets;
+    if (!eventName || !ticketsData) {
+      setError('Event name and tickets not found');
+      return;
+    }
 
-    const allTicketsStatuses = tickets.reduce((statuses, ticket) => {
+    const allTicketsStatuses = ticketsData.reduce((statuses, ticket) => {
       return {
         ...statuses,
         [ticket.name]: false,
       };
     }, {});
 
+    setTickets(ticketsData);
     setTicketsStatuses(allTicketsStatuses);
 
-    createTicketDrops();
+    createTicketDrops(ticketsData, eventName);
   }, [account]);
 
   const isAllTicketsCreated = useMemo(
@@ -101,11 +112,11 @@ const CreatePendingEventDropsPage = () => {
     [ticketsStatuses],
   );
 
-  if (tickets.length === 0) {
+  if (error) {
     return (
       <AbsoluteCenter flexDirection="column">
         <Heading mb={{ base: '5', md: '10' }} minW="100%" textAlign="center">
-          No pending tickets found
+          {error}
         </Heading>
       </AbsoluteCenter>
     );

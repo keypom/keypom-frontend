@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Box } from '@chakra-ui/react';
+import { Box, Spinner } from '@chakra-ui/react';
 import { useFormContext } from 'react-hook-form';
 
 import { DropSummary } from '@/features/create-drop/components/DropSummary';
@@ -24,7 +24,12 @@ export const CreateEventDropsSummary = () => {
     fetchPaymentData();
   }, []);
 
-  if (isLoading && !paymentData) return <Box>loading...</Box>;
+  if (isLoading && !paymentData)
+    return (
+      <Box>
+        <Spinner />
+      </Box>
+    );
 
   const tickets = getValues('tickets');
 
