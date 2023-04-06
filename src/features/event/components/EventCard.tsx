@@ -3,74 +3,43 @@ import { Controller, useFieldArray, useForm } from 'react-hook-form';
 import { addKeys, addToBalance, formatNearAmount, generateKeys, getUserBalance } from 'keypom-js';
 import { DateTime } from 'luxon';
 import { useEffect } from 'react';
+import BN from 'bn.js';
 
 import { IconBox } from '@/components/IconBox';
-import { get, set, del } from '@/utils/localStorage';
-import { useAppContext } from '@/contexts/AppContext';
+import { set } from '@/utils/localStorage';
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
+import { PENDING_TICKET_PURCHASE } from '@/constants/common';
 
 import { type EventMetadata } from '../types/common';
 
 import { TicketCard } from './TicketCard';
-import { setCartCheckoutModal } from './CartCheckoutModal';
 
 interface EventCardProps {
   ticketArray: EventMetadata[];
 }
 
 export const EventCard = ({ ticketArray = [] }: EventCardProps) => {
-  const { setAppModal } = useAppContext();
   const { accountId } = useAuthWalletContext();
 
   useEffect(() => {
-    const currentDropId = get('current_cart_dropid') || '';
-    const currentPk = get('current_cart_pk') || [];
-    if (currentPk.length !== 0 && currentDropId.length !== 0) {
-      const getBalance = async () => {
-        console.log('userbalance:', formatNearAmount(await getUserBalance({ accountId }), 4));
-      };
-      getBalance();
-
-      setCartCheckoutModal(
-        setAppModal,
-        async () => {
-          const wallet = await window.selector.wallet();
-
-          await Promise.all(
-            currentPk.map(async (_, i) => {
-              await addKeys({
-                wallet,
-                publicKeys: currentPk[i],
-                dropId: currentDropId[i],
-                numKeys: currentPk[i].length,
-                useBalance: true,
-              });
-            }),
-          )
-            .catch(console.error)
-            .finally(() => {
-              console.log('deleting local storage cart');
-              del('current_cart_pk');
-              del('current_cart_dropid');
-            });
-        },
-        () => {
-          console.log('cancelling checkout');
-          del('current_cart_pk');
-          del('current_cart_dropid');
-        },
-      );
-    }
+    const getBalance = async () => {
+      console.log('userbalance:', formatNearAmount(await getUserBalance({ accountId }), 4));
+    };
+    getBalance();
   }, []);
 
   // event details
   const eventId = `${ticketArray[0].eventId}`;
-  const { config: { sale: { start, end } } = { sale: {} } } = ticketArray[0];
-  const time = `${DateTime.fromMillis(start).toLocaleString(
-    DateTime.DATETIME_SHORT,
-  )} - ${DateTime.fromMillis(end).toLocaleString(DateTime.DATETIME_SHORT)}`;
+  const { config: { sale: { start = undefined, end = undefined } } = { sale: {} } } =
+    ticketArray[0];
+  const time =
+    !start || !end
+      ? `undefined date`
+      : `${DateTime.fromMillis(start).toLocaleString(DateTime.DATETIME_SHORT)}
+   - 
+   ${DateTime.fromMillis(end).toLocaleString(DateTime.DATETIME_SHORT)}`;
 
-  const { handleSubmit, control, watch } = useForm({
+  const { handleSubmit, control, getValues } = useForm({
     defaultValues: {
       [eventId]: ticketArray.map((ticket) => ({
         dropId: ticket.drop_id,
@@ -89,19 +58,19 @@ export const EventCard = ({ ticketArray = [] }: EventCardProps) => {
   const handleOnSubmit = async () => {
     const wallet = await window.selector.wallet();
 
-    let totalAmount = 0;
+    let totalAmount = new BN(0);
     const currentPk: string[][] = [];
     const currentDropId: string[] = [];
     await Promise.all(
-      watch(eventId).map(async (field) => {
+      getValues(eventId).map(async (field) => {
         const { value, dropId, next_key_id } = field;
+        if (!value || value === 0) return {};
 
         const { publicKeys } = await generateKeys({
           numKeys: value,
           rootEntropy: `${dropId as string}`,
           autoMetaNonceStart: next_key_id,
         });
-
         return {
           publicKeys,
           ...(await addKeys({
@@ -113,17 +82,29 @@ export const EventCard = ({ ticketArray = [] }: EventCardProps) => {
           })),
         };
       }),
-    ).then(async (result) => {
-      console.log('result', result);
-      result.forEach(({ requiredDeposit = 0, publicKeys = [], dropId = '' }) => {
-        totalAmount += parseFloat(formatNearAmount(requiredDeposit as string, 4));
-        currentPk.push(publicKeys);
-        currentDropId.push(dropId);
+    ).then(async (transactions) => {
+      console.log('transactions', transactions);
+      transactions.forEach((tx) => {
+        const { requiredDeposit = 0, publicKeys = [], dropId = '' } = tx;
+        if (requiredDeposit !== 0 && publicKeys.length > 0 && dropId) {
+          totalAmount = totalAmount.add(new BN(requiredDeposit));
+
+          currentPk.push(publicKeys);
+          currentDropId.push(dropId);
+        }
       });
-      console.log('totalAmount', totalAmount);
-      set('current_cart_pk', currentPk);
-      set('current_cart_dropid', currentDropId);
-      await addToBalance({ wallet, amountNear: (totalAmount + 0.5).toString() }); // + 0.1 to prevent insufficient balance
+
+      console.log('totalAmount', totalAmount, totalAmount.toString());
+      const pendingTicketPurchase = {
+        publicKeys: currentPk,
+        dropIds: currentDropId,
+      };
+      set(PENDING_TICKET_PURCHASE, pendingTicketPurchase);
+      await addToBalance({
+        wallet,
+        amountYocto: totalAmount.toString(),
+        successUrl: `${window.location.origin}/events/${accountId}/pending`,
+      });
     });
   };
 
@@ -191,8 +172,8 @@ export const EventCard = ({ ticketArray = [] }: EventCardProps) => {
               );
             })}
           </SimpleGrid>
-          <Flex justify="flex-end">
-            <Button type="submit" w="120px">
+          <Flex justify="center" mt="12">
+            <Button type="submit" w="full">
               Buy
             </Button>
           </Flex>

@@ -50,10 +50,11 @@ export const TicketCard = ({
     <FormControl>
       <Flex flexDir="column" w="full">
         <Box
-          borderRadius={{ base: '1rem', md: '8xl' }}
+          bg="white"
+          borderRadius={{ base: '1rem', md: '4xl' }}
           boxShadow="md"
           mb="4"
-          minH="80px"
+          minH="120px"
           p="2"
           pb="2"
         >
@@ -64,7 +65,7 @@ export const TicketCard = ({
         </Box>
         <HStack justify="center">
           <Button {...getDecrementButtonProps()}>-</Button>
-          <Input {...getInputProps()} {...field} name={name} />
+          <Input {...getInputProps()} {...field} bg="white" name={name} />
           <Button {...getIncrementButtonProps()}>+</Button>
         </HStack>
       </Flex>

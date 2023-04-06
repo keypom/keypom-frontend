@@ -4,6 +4,9 @@ import { createBrowserRouter } from 'react-router-dom';
 const LandingPage = React.lazy(async () => await import('@/features/landing/routes/LandingPage'));
 
 const EventPage = React.lazy(async () => await import('@/features/event/routes/EventPage'));
+const PendingPurchasePage = React.lazy(
+  async () => await import('@/features/event/routes/PendingPurchasePage'),
+);
 
 const NotFound404 = React.lazy(
   async () =>
@@ -81,7 +84,16 @@ export const router = createBrowserRouter([
             children: [
               {
                 path: ':accountId',
-                element: <EventPage />,
+                children: [
+                  {
+                    index: true,
+                    element: <EventPage />,
+                  },
+                  {
+                    path: 'pending',
+                    element: <PendingPurchasePage />,
+                  },
+                ],
               },
             ],
           },
