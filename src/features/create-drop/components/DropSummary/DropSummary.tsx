@@ -1,5 +1,4 @@
 import { Box, Button, Divider, HStack, Text, useDisclosure } from '@chakra-ui/react';
-import { useEffect } from 'react';
 
 import { IconBox } from '@/components/IconBox';
 import { LinkIcon } from '@/components/Icons';
@@ -13,18 +12,16 @@ interface DropSummaryProps {
   confirmButtonText: string;
   summaryData: SummaryItem[];
   paymentData: PaymentData;
-  data?: {
-    success: boolean;
-  };
   onConfirmClick: () => void;
+  children?: React.ReactNode | undefined;
 }
 
 export const DropSummary = ({
   confirmButtonText,
   summaryData,
   paymentData,
-  data,
   onConfirmClick,
+  children,
 }: DropSummaryProps) => {
   const { onPrevious } = useDropFlowContext();
   const { costsData, confirmationText, totalCost } = paymentData;
@@ -63,14 +60,6 @@ export const DropSummary = ({
     );
   });
 
-  useEffect(() => {
-    if (data?.success) {
-      // TODO: redirect to token drop manager page (next task)
-      // eslint-disable-next-line no-console
-      console.log('transaction success..redirect to drop manager page');
-    }
-  }, [data?.success]);
-
   const handleConfirmClick = () => {
     onOpen();
     onConfirmClick();
@@ -85,6 +74,7 @@ export const DropSummary = ({
         <Box mb="8" textAlign="left">
           {summaryItems}
         </Box>
+        <Box mb="8">{children}</Box>
         <Divider bgColor="gray.100" />
         <Box my="8">
           {paymentSummary}
@@ -104,11 +94,7 @@ export const DropSummary = ({
           <Button onClick={handleConfirmClick}>{confirmButtonText}</Button>
         </HStack>
       </IconBox>
-      <DropSummaryModal
-        confirmationText={confirmationText}
-        isConfirmed={data?.success}
-        isOpen={isOpen}
-      />
+      <DropSummaryModal confirmationText={confirmationText} isConfirmed={false} isOpen={isOpen} />
     </>
   );
 };

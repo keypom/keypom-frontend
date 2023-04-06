@@ -135,8 +135,6 @@ export const CreateTokenDropProvider = ({ children }: PropsWithChildren) => {
   const getPaymentData = async (): Promise<PaymentData> => {
     const { totalLinks, amountPerLink } = methods.getValues();
 
-    // TODO: assuming this comes from backend
-
     const { requiredDeposit } = await createDrop({
       wallet: await window.selector.wallet(),
       depositPerUseNEAR: amountPerLink,

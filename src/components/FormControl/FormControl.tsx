@@ -28,7 +28,11 @@ export const FormControlComponent = ({
       <FormLabel color="gray.800" fontSize={{ base: 'sm', md: 'base' }} m="0" {...labelProps}>
         {label}
       </FormLabel>
-      {helperText && <Text mt="0.5">{helperText}</Text>}
+      {helperText && (
+        <Text fontSize="sm" mt="0.5">
+          {helperText}
+        </Text>
+      )}
       <Box mt="1.5">{children}</Box>
       {errorText && (
         <Text fontSize={{ base: 'xs', md: 'sm' }} mt="6px" variant="error">

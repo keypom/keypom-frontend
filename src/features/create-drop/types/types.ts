@@ -1,5 +1,3 @@
-export const NFT_ATTEMPT_KEY = 'NFT_ATTEMPT';
-
 export interface SummaryItem {
   type: 'text' | 'image' | 'number';
   name: string;
@@ -17,7 +15,7 @@ export interface PaymentItem {
 
 export interface PaymentData {
   costsData: PaymentItem[];
-  totalCost: number;
+  totalCost: number | string;
   confirmationText: string;
 }
 

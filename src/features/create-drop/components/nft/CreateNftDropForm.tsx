@@ -57,7 +57,7 @@ export const CreateNftDropForm = () => {
         <VStack spacing={{ base: '4', md: '5' }}>
           <NftNameInput control={control} />
           <DescriptionInput control={control} />
-          <NumberInput control={control} />
+          <NumberInput control={control} label="Number of NFTs" />
 
           <ArtworkInput />
 
