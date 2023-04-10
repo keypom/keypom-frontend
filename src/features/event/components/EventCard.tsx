@@ -19,6 +19,7 @@ interface EventCardProps {
 }
 
 export const EventCard = ({ ticketArray = [] }: EventCardProps) => {
+  /** to delete */
   const { accountId } = useAuthWalletContext();
 
   useEffect(() => {
@@ -27,6 +28,7 @@ export const EventCard = ({ ticketArray = [] }: EventCardProps) => {
     };
     getBalance();
   }, []);
+  /** ** */
 
   // event details
   const eventId = `${ticketArray[0].eventId}`;
