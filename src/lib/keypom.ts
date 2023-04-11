@@ -25,6 +25,7 @@ import * as nearAPI from 'near-api-js';
 import { CLOUDFLARE_IPFS, DROP_TYPE, MASTER_KEY } from '@/constants/common';
 import getConfig from '@/config/config';
 import { get } from '@/utils/localStorage';
+import { isEventDrop } from '@/utils/isEventDrop';
 
 let instance: KeypomJS;
 const ACCOUNT_ID_REGEX = /^(([a-z\d]+[-_])*[a-z\d]+\.)*([a-z\d]+[-_])*[a-z\d]+$/;
@@ -213,12 +214,12 @@ class KeypomJS {
     accountId,
     start,
     limit,
-    withKeys,
+    withKeys = false,
   }: {
     accountId: string;
     start: number;
     limit: number;
-    withKeys: boolean;
+    withKeys?: boolean;
   }) => {
     /** Get Drops caching logic */
     if (
@@ -329,12 +330,19 @@ class KeypomJS {
         this.dropStore.dropWithKeys[dropId][pageIndex].pk === undefined ||
         this.dropStore.dropWithKeys[dropId][pageIndex].sk === undefined
       ) {
+        let rootEntropy = '';
+        if (await isEventDrop({ dropId })) {
+          rootEntropy = `${dropId}`;
+        } else {
+          rootEntropy = `${get(MASTER_KEY) as string}-${dropId}`;
+        }
+
         const { publicKeys, secretKeys } = await generateKeys({
           numKeys:
             (pageIndex + 1) * pageSize > dropSize
               ? dropSize - pageIndex * pageSize
               : Math.min(dropSize, pageSize),
-          rootEntropy: `${get(MASTER_KEY) as string}-${dropId}`,
+          rootEntropy,
           autoMetaNonceStart: pageIndex * pageSize,
         });
 

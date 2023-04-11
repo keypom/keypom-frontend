@@ -10,6 +10,11 @@ const CreatePendingEventDropsPage = React.lazy(
 
 const LandingPage = React.lazy(async () => await import('@/features/landing/routes/LandingPage'));
 
+const EventPage = React.lazy(async () => await import('@/features/event/routes/EventPage'));
+const PendingPurchasePage = React.lazy(
+  async () => await import('@/features/event/routes/PendingPurchasePage'),
+);
+
 const NotFound404 = React.lazy(
   async () =>
     await import('./components/NotFound404').then((mod) => ({ default: mod.NotFound404 })),
@@ -81,6 +86,24 @@ export const router = createBrowserRouter([
           return null;
         },
         children: [
+          {
+            path: 'events',
+            children: [
+              {
+                path: ':accountId',
+                children: [
+                  {
+                    index: true,
+                    element: <EventPage />,
+                  },
+                  {
+                    path: 'pending',
+                    element: <PendingPurchasePage />,
+                  },
+                ],
+              },
+            ],
+          },
           {
             path: 'drops',
             element: (
