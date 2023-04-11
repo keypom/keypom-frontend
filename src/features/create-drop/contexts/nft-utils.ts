@@ -207,7 +207,6 @@ export const createDropsForNFT = async (dropId, returnTransactions, data, setApp
 export const handleFinishNFTDrop = async (setAppModal) => {
   const data = await getNFTAttempt();
   if (!data?.confirmed) {
-    console.log(data);
     return false;
   }
 
