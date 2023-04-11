@@ -44,7 +44,7 @@ const NewNftDrop = () => {
   const handleNFTCreate = async () => {
     const data = await getNFTAttempt();
     if (!data?.confirmed) {
-      return
+      return;
     }
     setAppModal({
       isOpen: true,
