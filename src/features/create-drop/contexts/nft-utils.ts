@@ -204,12 +204,18 @@ export const createDropsForNFT = async (dropId, returnTransactions, data, setApp
   }
 };
 
+const unloadFn = (e) => {
+  e.preventDefault();
+  e.returnValue = '';
+};
+
 export const handleFinishNFTDrop = async (setAppModal) => {
   const data = await getNFTAttempt();
   if (!data?.confirmed) {
     return false;
   }
 
+  window.addEventListener('beforeunload', unloadFn);
   let res;
   try {
     res = await createDropsForNFT(data.dropId, false, data, setAppModal);
@@ -222,6 +228,8 @@ export const handleFinishNFTDrop = async (setAppModal) => {
   if (responses?.length > 0) {
     del(NFT_ATTEMPT_KEY);
   }
+
+  window.removeEventListener('beforeunload', unloadFn);
 
   return data.dropId;
 };
