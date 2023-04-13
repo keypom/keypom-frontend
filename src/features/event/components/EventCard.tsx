@@ -61,11 +61,13 @@ export const EventCard = ({ ticketArray = [] }: EventCardProps) => {
     const wallet = await window.selector.wallet();
 
     let totalAmount = new BN(0);
+    const currentDropPrice = [];
     const currentPk: string[][] = [];
     const currentDropId: string[] = [];
     await Promise.all(
       getValues(eventId).map(async (field) => {
-        const { value, dropId, next_key_id } = field;
+        const { value, dropId, next_key_id, config: { sale: { price_per_key } } = {} } = field;
+
         if (!value || value === 0) return {};
 
         const { publicKeys } = await generateKeys({
@@ -73,12 +75,17 @@ export const EventCard = ({ ticketArray = [] }: EventCardProps) => {
           rootEntropy: `${dropId as string}`,
           autoMetaNonceStart: next_key_id,
         });
+
+        const totalPrice = new BN(price_per_key).mul(new BN(value));
+
         return {
           publicKeys,
+          totalPrice,
           ...(await addKeys({
             wallet,
             publicKeys,
             dropId,
+            extraDepositYocto: totalPrice,
             numKeys: publicKeys.length,
             returnTransactions: true,
           })),
@@ -87,10 +94,11 @@ export const EventCard = ({ ticketArray = [] }: EventCardProps) => {
     ).then(async (transactions) => {
       console.log('transactions', transactions);
       transactions.forEach((tx) => {
-        const { requiredDeposit = 0, publicKeys = [], dropId = '' } = tx;
+        const { requiredDeposit = 0, publicKeys = [], dropId = '', totalPrice = new BN(0) } = tx;
         if (requiredDeposit !== 0 && publicKeys.length > 0 && dropId) {
           totalAmount = totalAmount.add(new BN(requiredDeposit));
 
+          currentDropPrice.push(formatNearAmount(totalPrice.toString(), 4));
           currentPk.push(publicKeys);
           currentDropId.push(dropId);
         }
@@ -100,6 +108,7 @@ export const EventCard = ({ ticketArray = [] }: EventCardProps) => {
       const pendingTicketPurchase = {
         publicKeys: currentPk,
         dropIds: currentDropId,
+        dropPrices: currentDropPrice,
       };
       set(PENDING_TICKET_PURCHASE, pendingTicketPurchase);
       await addToBalance({
