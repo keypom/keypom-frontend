@@ -1,4 +1,4 @@
-import { Box, Button, Center, Flex, Heading, Hide, Text, VStack } from '@chakra-ui/react';
+import { Box, Button, Center, Flex, Heading, Hide, Input, Text, VStack } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
 import { getKeyInformation } from 'keypom-js';
 
@@ -13,6 +13,7 @@ import { DROP_TYPE } from '@/constants/common';
 import { DropClaimMetadata } from '@/features/claim/components/DropClaimMetadata';
 import { AvatarImage } from '@/components/AvatarImage';
 import { DropBox } from '@/components/DropBox';
+import { FormControl } from '@/components/FormControl';
 
 export const TicketQRPage = () => {
   const { secretKey } = useClaimParams();
@@ -20,7 +21,7 @@ export const TicketQRPage = () => {
   const { handleClaim, qrValue, claimError, getDropMetadata } = useTicketClaim();
   const [isShowSummary, setShowSummary] = useState(false);
 
-  const { giftType, title, tokens, nftImage } = getDropMetadata();
+  const { giftType, title, tokens, nftImage, questions } = getDropMetadata();
 
   const checkClaim = async () => {
     const keyInfo = await getKeyInformation({ secretKey });
@@ -35,6 +36,13 @@ export const TicketQRPage = () => {
   useEffect(() => {
     checkClaim();
   }, []);
+
+  console.log(questions);
+
+  const handleShowTicketClick = () => {
+    // encrypt data
+    setShowSummary(true);
+  };
 
   if (claimError) {
     return <ErrorBox message={claimError} />;
@@ -107,6 +115,13 @@ export const TicketQRPage = () => {
               pt={{ base: '12', md: '16' }}
             >
               <DropClaimMetadata nftImage={nftImage} title={title} type={giftType} />
+              {questions?.map((question, index) => {
+                return (
+                  <FormControl key={index} label={question.text}>
+                    <Input />
+                  </FormControl>
+                );
+              })}
               <Button
                 type="submit"
                 w="full"

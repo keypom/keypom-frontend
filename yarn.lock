@@ -1478,10 +1478,10 @@
   resolved "https://registry.yarnpkg.com/@msgpackr-extract/msgpackr-extract-linux-x64/-/msgpackr-extract-linux-x64-3.0.2.tgz#091b1218b66c341f532611477ef89e83f25fae4f"
   integrity sha512-gsWNDCklNy7Ajk0vBBf9jEx04RUxuDQfBse918Ww+Qb9HCPoGzS+XJTLe96iN3BVK7grnLiYghP/M4L8VsaHeA==
 
-"@msgpackr-extract/msgpackr-extract-win32-x64@3.0.0":
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/@msgpackr-extract/msgpackr-extract-win32-x64/-/msgpackr-extract-win32-x64-3.0.0.tgz#03c6bfcd3acb179ea69546c20d50895b9d623ada"
-  integrity sha512-Wg0+9615kHKlr9iLVcG5I+/CHnf6w3x5UADRv8Ad16yA0Bu5l9eVOROjV7aHPG6uC8ZPFIVVaoSjDChD+Y0pzg==
+"@msgpackr-extract/msgpackr-extract-win32-x64@3.0.2":
+  version "3.0.2"
+  resolved "https://registry.yarnpkg.com/@msgpackr-extract/msgpackr-extract-win32-x64/-/msgpackr-extract-win32-x64-3.0.2.tgz#0f164b726869f71da3c594171df5ebc1c4b0a407"
+  integrity sha512-O+6Gs8UeDbyFpbSh2CPEz/UOrrdWPTBYNblZK5CxxLisYt4kGX3Sc+czffFonyjiGSq3jWLwJS/CCJc7tBr4sQ==
 
 "@multiformats/murmur3@^1.0.3":
   version "1.1.3"
@@ -1491,17 +1491,17 @@
     multiformats "^9.5.4"
     murmurhash3js-revisited "^3.0.0"
 
-"@near-wallet-selector/core@7.8.0", "@near-wallet-selector/core@^7.6.1":
-  version "7.8.0"
-  resolved "https://registry.yarnpkg.com/@near-wallet-selector/core/-/core-7.8.0.tgz#690a9f20deb20dbcfb40074933a4fbcd280662e6"
-  integrity sha512-hFYbWE4aUwhaCqYHXQ7eyhu2dZQl5EIi1TFwkaEcaaQirHBhLda8vpHARAzrZ9H5po2yUhqxv1lw/5O6uAcF4Q==
+"@near-wallet-selector/core@7.9.2":
+  version "7.9.2"
+  resolved "https://registry.yarnpkg.com/@near-wallet-selector/core/-/core-7.9.2.tgz#8bc5d7a8ef3930e56b3ce0c5374a09c9467a4c4c"
+  integrity sha512-WJktKLmTR9vpIQj3FgXqKl344j50HnV8dBhDcDKPhQ2lwf7zZxMuqrGZWRbBhgQXIU+JCYwmDzRLLMTVbvwv0g==
   dependencies:
     rxjs "^7.8.0"
 
-"@near-wallet-selector/core@7.8.2":
-  version "7.8.2"
-  resolved "https://registry.yarnpkg.com/@near-wallet-selector/core/-/core-7.8.2.tgz#4671660a5bdf3517133e4ea48729655ae643d4d8"
-  integrity sha512-jR4KDwrT3y0TiHoaVqGM5crd8M8UvSn+hp9xu8x6tKVeIe+s1hB7rFPAh3uJho/1BuyBIOVOzkcMBgrWMoFnVw==
+"@near-wallet-selector/core@^7.6.1":
+  version "7.8.0"
+  resolved "https://registry.yarnpkg.com/@near-wallet-selector/core/-/core-7.8.0.tgz#690a9f20deb20dbcfb40074933a4fbcd280662e6"
+  integrity sha512-hFYbWE4aUwhaCqYHXQ7eyhu2dZQl5EIi1TFwkaEcaaQirHBhLda8vpHARAzrZ9H5po2yUhqxv1lw/5O6uAcF4Q==
   dependencies:
     rxjs "^7.8.0"
 

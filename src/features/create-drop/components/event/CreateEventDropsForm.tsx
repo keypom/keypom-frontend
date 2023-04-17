@@ -158,7 +158,6 @@ export const CreateEventDropsForm = () => {
                         control={control}
                         name={`questions.${index}.text`}
                         render={({ field, fieldState: { error } }) => {
-                          console.log(field);
                           return (
                             <Input
                               as={EditableInput}
@@ -177,40 +176,6 @@ export const CreateEventDropsForm = () => {
               </Flex>
             );
           })}
-          {/* <Flex alignItems="center" justifyContent="center" mb="2" w="full">
-            <Text w="20px">1.</Text>
-            <Editable
-              defaultValue="Enter your email"
-              // fontSize="sm"
-              isPreviewFocusable={false}
-              width="full"
-            >
-              <Flex alignContent="center" justifyContent="space-between">
-                <Box>
-                  <EditablePreview />
-                  <Input as={EditableInput} />
-                </Box>
-                <EditableControls />
-              </Flex>
-            </Editable>
-          </Flex> */}
-          {/* <Flex alignItems="center" justifyContent="center" w="full">
-            <Text w="20px">2.</Text>
-            <Editable
-              defaultValue="How did you find out about us?"
-              // fontSize="sm"
-              isPreviewFocusable={false}
-              width="full"
-            >
-              <Flex alignContent="center" justifyContent="space-between">
-                <Box>
-                  <EditablePreview />
-                  <Input as={EditableInput} />
-                </Box>
-                <EditableControls />
-              </Flex>
-            </Editable>
-          </Flex> */}
         </FormControl>
 
         <Box mt="10">

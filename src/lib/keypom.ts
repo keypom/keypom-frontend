@@ -527,6 +527,7 @@ class KeypomJS {
       type: nftData ? DROP_TYPE.NFT : DROP_TYPE.TOKEN,
       dropName: dropMetadata.dropName,
       wallets: dropMetadata.wallets,
+      questions: dropMetadata.questions,
       ...(nftData
         ? {
             media: `${CLOUDFLARE_IPFS}/${nftData.metadata.media}`, // eslint-disable-line

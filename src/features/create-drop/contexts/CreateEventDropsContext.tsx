@@ -109,7 +109,7 @@ export const CreateEventDropsProvider = ({ children }: PropsWithChildren) => {
   };
 
   const getPaymentData = async (): Promise<PaymentData> => {
-    const { tickets, eventName } = methods.getValues();
+    const { tickets, eventName, questions } = methods.getValues();
 
     const totalDeposits = await tickets.reduce(async (deposits, ticket, index) => {
       const { requiredDeposit } = await createDrop({
@@ -120,6 +120,7 @@ export const CreateEventDropsProvider = ({ children }: PropsWithChildren) => {
           eventName,
           dropName: ticket.name,
           wallets: ['mynearwallet', 'herewallet'],
+          questions,
         }),
         config: {
           usesPerKey: 3,

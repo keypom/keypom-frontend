@@ -31,6 +31,11 @@ const TICKET_FLOW_KEY_USE = {
   3: TicketGiftPage,
 };
 
+interface ITicketQuestion {
+  text: string;
+  type: 'TEXT' | 'RADIO';
+}
+
 export interface TicketClaimContextTypes {
   getDropMetadata: () => {
     title: string;
@@ -39,6 +44,7 @@ export interface TicketClaimContextTypes {
     tokens: TokenAsset[];
     giftType: DROP_TYPES;
     wallets: string[];
+    questions: ITicketQuestion[];
   };
   currentPage: (() => JSX.Element | null) | undefined;
   qrValue: string;
@@ -76,6 +82,7 @@ export const TicketClaimContextProvider = ({ children }: PropsWithChildren) => {
   const [currentKeyUse, setCurrentKeyUse] = useState<number | null>(null);
   const [tokens, setTokens] = useState<TokenAsset[]>([]);
   const [giftType, setGiftType] = useState<DROP_TYPES>(DROP_TYPE.NFT);
+  const [questions, setQuestions] = useState<ITicketQuestion[]>([]);
 
   const loadTokenClaimInfo = async () => {
     try {
@@ -112,6 +119,7 @@ export const TicketClaimContextProvider = ({ children }: PropsWithChildren) => {
     setNftImage(claimInfo.media);
     setQrValue(JSON.stringify({ contractId, secretKey }));
     setWallets(claimInfo.wallets);
+    setQuestions(claimInfo.questions);
   };
 
   const loadTicketClaimInfo = async () => {
@@ -162,6 +170,7 @@ export const TicketClaimContextProvider = ({ children }: PropsWithChildren) => {
       tokens,
       giftType,
       wallets,
+      questions,
     };
   };
 
