@@ -51,6 +51,12 @@ const schema = z.object({
       }),
     )
     .min(1),
+  questions: z.array(
+    z.object({
+      text: z.string(),
+      type: z.enum(['TEXT', 'RADIO']),
+    }),
+  ),
 });
 
 type Schema = z.infer<typeof schema>;
@@ -68,6 +74,10 @@ export const CreateEventDropsProvider = ({ children }: PropsWithChildren) => {
     defaultValues: {
       eventName: '',
       tickets: [],
+      questions: [
+        { text: 'Email address', type: 'TEXT' },
+        { text: 'How did you find this event?', type: 'TEXT' },
+      ],
     },
     resolver: zodResolver(schema),
   });
