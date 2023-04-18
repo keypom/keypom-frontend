@@ -63,6 +63,7 @@ export const EventCard = ({ ticketArray = [] }: EventCardProps) => {
     let totalAmount = new BN(0);
     const currentDropPrice = [];
     const currentPk: string[][] = [];
+    const currentSk: string[][] = [];
     const currentDropId: string[] = [];
     await Promise.all(
       getValues(eventId).map(async (field) => {
@@ -70,7 +71,7 @@ export const EventCard = ({ ticketArray = [] }: EventCardProps) => {
 
         if (!value || value === 0) return {};
 
-        const { publicKeys } = await generateKeys({
+        const { publicKeys, secretKeys } = await generateKeys({
           numKeys: value,
           rootEntropy: `${dropId as string}`,
           autoMetaNonceStart: next_key_id,
@@ -80,6 +81,7 @@ export const EventCard = ({ ticketArray = [] }: EventCardProps) => {
 
         return {
           publicKeys,
+          secretKeys,
           totalPrice,
           ...(await addKeys({
             wallet,
@@ -94,12 +96,19 @@ export const EventCard = ({ ticketArray = [] }: EventCardProps) => {
     ).then(async (transactions) => {
       console.log('transactions', transactions);
       transactions.forEach((tx) => {
-        const { requiredDeposit = 0, publicKeys = [], dropId = '', totalPrice = new BN(0) } = tx;
-        if (requiredDeposit !== 0 && publicKeys.length > 0 && dropId) {
+        const {
+          requiredDeposit = 0,
+          publicKeys = [],
+          secretKeys = [],
+          dropId = '',
+          totalPrice = new BN(0),
+        } = tx;
+        if (requiredDeposit !== 0 && publicKeys.length > 0 && secretKeys.length > 0 && dropId) {
           totalAmount = totalAmount.add(new BN(requiredDeposit));
 
           currentDropPrice.push(formatNearAmount(totalPrice.toString(), 4));
           currentPk.push(publicKeys);
+          currentSk.push(secretKeys);
           currentDropId.push(dropId);
         }
       });
@@ -107,6 +116,7 @@ export const EventCard = ({ ticketArray = [] }: EventCardProps) => {
       console.log('totalAmount', totalAmount, totalAmount.toString());
       const pendingTicketPurchase = {
         publicKeys: currentPk,
+        secretKeys: currentSk,
         dropIds: currentDropId,
         dropPrices: currentDropPrice,
       };
