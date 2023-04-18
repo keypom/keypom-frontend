@@ -1,7 +1,6 @@
 import { Box, Button, Flex, Heading, Show, SimpleGrid, Text } from '@chakra-ui/react';
 import { Controller, useFieldArray, useForm } from 'react-hook-form';
 import { addKeys, addToBalance, formatNearAmount, generateKeys, getUserBalance } from 'keypom-js';
-import { DateTime } from 'luxon';
 import { useEffect } from 'react';
 import BN from 'bn.js';
 
@@ -9,6 +8,7 @@ import { IconBox } from '@/components/IconBox';
 import { set } from '@/utils/localStorage';
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
 import { PENDING_TICKET_PURCHASE } from '@/constants/common';
+import { formatSaleDate } from '@/utils/formatSaleDate';
 
 import { type EventMetadata } from '../types/common';
 
@@ -34,12 +34,7 @@ export const EventCard = ({ ticketArray = [] }: EventCardProps) => {
   const eventId = `${ticketArray[0].eventId}`;
   const { config: { sale: { start = undefined, end = undefined } } = { sale: {} } } =
     ticketArray[0];
-  const time =
-    !start || !end
-      ? `undefined date`
-      : `${DateTime.fromMillis(start).toLocaleString(DateTime.DATETIME_SHORT)}
-   - 
-   ${DateTime.fromMillis(end).toLocaleString(DateTime.DATETIME_SHORT)}`;
+  const time = !start || !end ? `undefined date` : formatSaleDate(start, end);
 
   const { handleSubmit, control, getValues } = useForm({
     defaultValues: {
@@ -61,7 +56,7 @@ export const EventCard = ({ ticketArray = [] }: EventCardProps) => {
     const wallet = await window.selector.wallet();
 
     let totalAmount = new BN(0);
-    const currentDropPrice = [];
+    const currentDropPrice: string[] = [];
     const currentPk: string[][] = [];
     const currentSk: string[][] = [];
     const currentDropId: string[] = [];
@@ -186,7 +181,7 @@ export const EventCard = ({ ticketArray = [] }: EventCardProps) => {
                       fieldState={fieldState}
                       name={FIELD_NAME}
                       ticketName={item.ticketName}
-                      ticketPrice={item.config.sale.price_per_key}
+                      ticketPrice={item?.config?.sale?.price_per_key}
                     />
                   )}
                 />
