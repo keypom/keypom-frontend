@@ -26,7 +26,7 @@ export const AvatarImage = ({ altName, imageSrc, ...props }: AvatarImageProps) =
         src={src}
         top={0}
         onError={() => {
-          setSrc('/assets/image-not-found.png');
+          setSrc('/assets/image-not-found.webp');
         }}
       />
     </Box>

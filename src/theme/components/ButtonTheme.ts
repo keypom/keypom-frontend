@@ -67,6 +67,22 @@ export const ButtonTheme = defineStyleConfig({
         borderColor: 'blue.400',
       },
     },
+    'secondary-content-box': {
+      boxSizing: 'content-box',
+      h: 'calc(40px - 24px)',
+      border: '2px solid',
+      borderColor: 'gray.200',
+      color: 'gray.800',
+      bgColor: 'white',
+      _hover: {
+        bgColor: 'gray.200',
+      },
+      _focus: {
+        bgColor: 'gray.200',
+        border: '2px solid',
+        borderColor: 'blue.400',
+      },
+    },
     icon: {
       border: '2px solid',
       borderColor: 'gray.200',

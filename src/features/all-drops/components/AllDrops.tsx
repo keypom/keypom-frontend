@@ -13,41 +13,33 @@ import {
   Heading,
   Avatar,
   Skeleton,
+  VStack,
 } from '@chakra-ui/react';
-import { useEffect, useState } from 'react';
-import {
-  getDrops,
-  getKeySupplyForDrop,
-  getDropSupplyForOwner,
-  type ProtocolReturnedFCData,
-  type ProtocolReturnedMethod,
-  getEnv,
-  type ProtocolReturnedDrop,
-} from 'keypom-js';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { type ProtocolReturnedDrop } from 'keypom-js';
 import { ChevronDownIcon } from '@chakra-ui/icons';
+import { useSearchParams } from 'react-router-dom';
 
+import { useAppContext } from '@/contexts/AppContext';
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
 import { type ColumnItem, type DataItem } from '@/components/Table/types';
 import { DataTable } from '@/components/Table';
 import { DeleteIcon } from '@/components/Icons';
-import { handleFinishNFTDrop } from '@/features/create-drop/contexts/CreateNftDropContext';
 import { truncateAddress } from '@/utils/truncateAddress';
 import { NextButton, PrevButton } from '@/components/Pagination';
 import { usePagination } from '@/hooks/usePagination';
-import { asyncWithTimeout } from '@/utils/asyncWithTimeout';
-import { useAppContext } from '@/contexts/AppContext';
-import { CLOUDFLARE_IPFS, DROP_TYPE } from '@/constants/common';
+import { CLOUDFLARE_IPFS, DROP_TYPE, PAGE_QUERY_PARAM } from '@/constants/common';
 import keypomInstance from '@/lib/keypom';
+import { PopoverTemplate } from '@/components/PopoverTemplate';
 
 import { MENU_ITEMS } from '../config/menuItems';
 
 import { MobileDrawerMenu } from './MobileDrawerMenu';
 import { setConfirmationModalHelper } from './ConfirmationModal';
 
-const FETCH_NFT_METHOD_NAME = 'get_series_info';
-
 const COLUMNS: ColumnItem[] = [
   {
+    id: 'dropName',
     title: 'Drop name',
     selector: (drop) => drop.name,
     thProps: {
@@ -56,21 +48,25 @@ const COLUMNS: ColumnItem[] = [
     loadingElement: <Skeleton height="30px" />,
   },
   {
+    id: 'media',
     title: '',
     selector: (drop) => drop.media,
     loadingElement: <Skeleton height="30px" />,
   },
   {
+    id: 'dropType',
     title: 'Drop type',
     selector: (drop) => drop.type,
     loadingElement: <Skeleton height="30px" />,
   },
   {
+    id: 'claimStatus',
     title: 'Claimed',
     selector: (drop) => drop.claimed,
     loadingElement: <Skeleton height="30px" />,
   },
   {
+    id: 'action',
     title: '',
     selector: (drop) => drop.action,
     tdProps: {
@@ -82,17 +78,21 @@ const COLUMNS: ColumnItem[] = [
 ];
 
 export default function AllDrops() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const { setAppModal } = useAppContext();
 
-  const { viewCall } = getEnv();
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [isLoading, setIsLoading] = useState(true);
+  const popoverClicked = useRef(0);
 
   const [dataSize, setDataSize] = useState<number>(0);
   const [data, setData] = useState<Array<DataItem | null>>([]);
   const [wallet, setWallet] = useState({});
 
+  const { selector, accountId } = useAuthWalletContext();
+
   const {
+    setPagination,
     hasPagination,
     pagination,
     isFirstPage,
@@ -103,23 +103,31 @@ export default function AllDrops() {
   } = usePagination({
     dataSize,
     handlePrevApiCall: async () => {
+      const prevPageIndex = pagination.pageIndex - 1;
       await handleGetDrops({
-        start: (pagination.pageIndex - 1) * pagination.pageSize,
+        start: prevPageIndex * pagination.pageSize,
         limit: pagination.pageSize,
       });
+      const newQueryParams = new URLSearchParams({
+        [PAGE_QUERY_PARAM]: (prevPageIndex + 1).toString(),
+      });
+      setSearchParams(newQueryParams);
     },
     handleNextApiCall: async () => {
+      const nextPageIndex = pagination.pageIndex + 1;
       await handleGetDrops({
-        start: (pagination.pageIndex + 1) * pagination.pageSize,
+        start: nextPageIndex * pagination.pageSize,
         limit: pagination.pageSize,
       });
+      const newQueryParams = new URLSearchParams({
+        [PAGE_QUERY_PARAM]: (nextPageIndex + 1).toString(),
+      });
+      setSearchParams(newQueryParams);
     },
   });
 
-  const { selector, accountId } = useAuthWalletContext();
-
   const handleGetDropsSize = async () => {
-    const numDrops = await getDropSupplyForOwner({
+    const numDrops = await keypomInstance.getDropSupplyForOwner({
       accountId,
     });
 
@@ -127,70 +135,93 @@ export default function AllDrops() {
   };
 
   const setAllDropsData = async (drop: ProtocolReturnedDrop) => {
-    const { drop_id: id, fc, metadata, next_key_id } = drop;
-    const { dropName } = keypomInstance.getDropMetadata(metadata as string);
+    const { drop_id: id, metadata, next_key_id: totalKeys } = drop;
+    const claimedKeys = await keypomInstance.getAvailableKeys(id);
+    const claimedText = `${totalKeys - claimedKeys} / ${totalKeys}`;
+
+    const { dropName } = keypomInstance.getDropMetadata(metadata);
 
     let type: string | null = '';
     try {
       type = keypomInstance.getDropType(drop);
     } catch (_) {
-      return null;
+      type = DROP_TYPE.OTHER;
     }
-    if (type === undefined || type === null || type === '') return null; // don't show the drop if the type return is unexpected
 
-    let nftHref = '';
+    let nftHref: string | undefined;
     if (type === DROP_TYPE.NFT) {
-      const fcMethod = (fc as ProtocolReturnedFCData).methods[0]?.[0];
-      const { receiver_id } = fcMethod as ProtocolReturnedMethod;
+      let nftMetadata = {
+        media: '',
+        title: '',
+        description: '',
+      };
+      try {
+        const fcMethods = drop.fc?.methods;
+        if (
+          fcMethods === undefined ||
+          fcMethods.length === 0 ||
+          fcMethods[0] === undefined ||
+          fcMethods[0][0] === undefined
+        ) {
+          throw new Error('Unable to retrieve function calls.');
+        }
 
-      const nftData = await asyncWithTimeout(
-        viewCall({
-          contractId: receiver_id,
-          methodName: FETCH_NFT_METHOD_NAME,
-          args: {
-            mint_id: parseInt(id),
-          },
-        }),
-      ).catch((_) => {
-        console.error(); // eslint-disable-line no-console
-      });
+        const { nftData } = await keypomInstance.getNFTorTokensMetadata(
+          fcMethods[0][0],
+          drop.drop_id,
+        );
 
-      nftHref =
-        `${CLOUDFLARE_IPFS}/${nftData?.metadata?.media as string}` ??
-        'https://placekitten.com/200/300';
+        nftMetadata = {
+          media: `${CLOUDFLARE_IPFS}/${nftData?.metadata?.media}`, // eslint-disable-line
+          title: nftData?.metadata?.title,
+          description: nftData?.metadata?.description,
+        };
+
+        console.log(nftData);
+      } catch (e) {
+        console.error('failed to get nft metadata', e); // eslint-disable-line no-console
+      }
+      nftHref = nftMetadata?.media || 'assets/image-not-found.png';
     }
 
     return {
       id,
       name: truncateAddress(dropName, 'end', 48),
       type: type?.toLowerCase(),
-      media: type === DROP_TYPE.NFT ? nftHref : undefined,
-      claimed: `${next_key_id - (await getKeySupplyForDrop({ dropId: id }))} / ${next_key_id}`,
+      media: nftHref,
+      claimed: claimedText,
     };
   };
 
-  const handleGetDrops = async ({ start = 0, limit = pagination.pageSize }) => {
-    const drops = await getDrops({ accountId, start, limit });
+  const handleGetDrops = useCallback(
+    async ({ start = 0, limit = pagination.pageSize }) => {
+      const drops = await keypomInstance.getDrops({ accountId, start, limit });
 
-    setWallet(await selector.wallet());
+      setWallet(await selector.wallet());
 
-    setData(
-      await Promise.all(
-        drops.map(async (drop) => {
-          return await setAllDropsData(drop);
-        }),
-      ),
-    );
+      setData(
+        await Promise.all(
+          drops.map(async (drop) => {
+            return await setAllDropsData(drop);
+          }),
+        ),
+      );
 
-    setIsLoading(false);
-  };
+      setIsLoading(false);
+    },
+    [pagination],
+  );
 
   useEffect(() => {
     if (!accountId) return;
+
+    // page query param should be indexed from 1
+    const pageQuery = searchParams.get('page');
+    const currentPageIndex = pageQuery !== null ? parseInt(pageQuery) - 1 : 0;
+    setPagination((pagination) => ({ ...pagination, pageIndex: currentPageIndex }));
     handleGetDropsSize();
-    handleGetDrops({});
-    handleFinishNFTDrop();
-  }, [accountId]);
+    handleGetDrops({ start: currentPageIndex * pagination.pageSize });
+  }, [accountId, searchParams]);
 
   const dropMenuItems = MENU_ITEMS.map((item) => (
     <MenuItem key={item.label} {...item}>
@@ -204,7 +235,7 @@ export default function AllDrops() {
         wallet,
         dropIds: [dropId],
       });
-      handleGetDrops({});
+      window.location.reload();
     });
   };
 
@@ -213,6 +244,9 @@ export default function AllDrops() {
 
     return data.reduce((result: DataItem[], drop) => {
       if (drop !== null) {
+        // show token drop manager for other drops type
+        const dropType =
+          (drop.type as string).toUpperCase() === DROP_TYPE.OTHER ? DROP_TYPE.TOKEN : drop.type;
         const dataItem = {
           ...drop,
           name: <Text color="gray.800">{drop.name}</Text>,
@@ -235,71 +269,121 @@ export default function AllDrops() {
               <DeleteIcon color="red" />
             </Button>
           ),
-          href: `/drop/${(drop.type as string).toLowerCase()}/${drop.id}`,
+          href: `/drop/${(dropType as string).toLowerCase()}/${drop.id}`,
         };
-        result.push(dataItem);
+        return [...result, dataItem];
       }
       return result;
     }, []);
   };
 
+  const createADropPopover = (menuIsOpen: boolean) => ({
+    header: 'Click here to create a drop!',
+    shouldOpen:
+      !isLoading &&
+      popoverClicked.current === 0 &&
+      !hasPagination &&
+      data.length === 0 &&
+      !menuIsOpen,
+  });
+
+  const CreateADropButton = ({ isOpen }: { isOpen: boolean }) => (
+    <PopoverTemplate {...createADropPopover(isOpen)}>
+      <MenuButton
+        as={Button}
+        isActive={isOpen}
+        px="6"
+        py="3"
+        rightIcon={<ChevronDownIcon />}
+        variant="secondary-content-box"
+        onClick={() => (popoverClicked.current += 1)}
+      >
+        Create a drop
+      </MenuButton>
+    </PopoverTemplate>
+  );
+  const CreateADropMobileButton = () => (
+    <PopoverTemplate placement="bottom" {...createADropPopover(false)}>
+      <Button
+        px="6"
+        py="3"
+        rightIcon={<ChevronDownIcon />}
+        variant="secondary-content-box"
+        onClick={() => {
+          popoverClicked.current += 1;
+          onOpen();
+        }}
+      >
+        Create a drop
+      </Button>
+    </PopoverTemplate>
+  );
+
   return (
     <Box minH="100%" minW="100%">
       {/* Header Bar */}
-      <HStack alignItems="center" display="flex" spacing="auto">
-        <Heading>All drops</Heading>
-        {/* Desktop Dropdown Menu */}
-        <HStack>
-          {hasPagination && (
-            <PrevButton
-              id="all-drops"
-              isDisabled={!!isFirstPage}
-              isLoading={loading.previous}
-              onClick={handlePrevPage}
-            />
-          )}
-          <Show above="sm">
+      {/* Desktop Dropdown Menu */}
+      <Show above="sm">
+        <HStack alignItems="center" display="flex" spacing="auto">
+          <Heading>All drops</Heading>
+          <HStack>
+            {hasPagination && (
+              <PrevButton
+                id="all-drops"
+                isDisabled={!!isFirstPage}
+                isLoading={loading.previous}
+                onClick={handlePrevPage}
+              />
+            )}
             <Menu>
               {({ isOpen }) => (
                 <Box>
-                  <MenuButton
-                    as={Button}
-                    isActive={isOpen}
-                    px="6"
-                    py="3"
-                    rightIcon={<ChevronDownIcon />}
-                    variant="secondary"
-                  >
-                    Create a drop
-                  </MenuButton>
+                  <CreateADropButton isOpen={isOpen} />
                   <MenuList>{dropMenuItems}</MenuList>
                 </Box>
               )}
             </Menu>
-          </Show>
 
-          {/* Mobile Menu Button */}
-          <Show below="sm">
-            <Button
-              px="6"
-              py="3"
-              rightIcon={<ChevronDownIcon />}
-              variant="secondary"
-              onClick={onOpen}
-            >
-              Create a drop
-            </Button>
-          </Show>
-          {hasPagination && (
-            <NextButton
-              id="all-drops"
-              isDisabled={!!isLastPage}
-              isLoading={loading.next}
-              onClick={handleNextPage}
-            />
-          )}
+            {hasPagination && (
+              <NextButton
+                id="all-drops"
+                isDisabled={!!isLastPage}
+                isLoading={loading.next}
+                onClick={handleNextPage}
+              />
+            )}
+          </HStack>
         </HStack>
-      </HStack>
+      </Show>
+
+      {/* Mobile Menu Button */}
+      <Show below="sm">
+        <VStack spacing="20px">
+          <Heading size="2xl" textAlign="left" w="full">
+            All drops
+          </Heading>
+
+          <HStack justify="space-between" w="full">
+            <CreateADropMobileButton />
+            {hasPagination && (
+              <HStack>
+                <PrevButton
+                  id="all-drops"
+                  isDisabled={!!isFirstPage}
+                  isLoading={loading.previous}
+                  onClick={handlePrevPage}
+                />
+                <NextButton
+                  id="all-drops"
+                  isDisabled={!!isLastPage}
+                  isLoading={loading.next}
+                  onClick={handleNextPage}
+                />
+              </HStack>
+            )}
+          </HStack>
+        </VStack>
+      </Show>
 
       <DataTable
         columns={COLUMNS}

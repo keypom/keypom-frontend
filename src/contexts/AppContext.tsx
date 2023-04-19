@@ -61,7 +61,7 @@ export const useAppContext = () => {
 
 /// helpers
 
-export const setAppModalHelper = (setAppModal, confirm, cancel) => {
+export const openMasterKeyModal = (setAppModal, confirm, cancel) => {
   setAppModal({
     isOpen: true,
     header: 'Set your master key!',
@@ -78,6 +78,9 @@ export const setAppModalHelper = (setAppModal, confirm, cancel) => {
         label: 'Cancel',
         func: () => {
           if (cancel) cancel();
+        },
+        buttonProps: {
+          variant: 'outline',
         },
       },
       {

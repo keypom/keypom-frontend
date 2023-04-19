@@ -3,28 +3,22 @@ export const urlRegex = /(?:(?:https?:\/\/)?[\w.-]*\.[\w]{2,3})/;
 
 export const CLOUDFLARE_IPFS = 'https://cloudflare-ipfs.com/ipfs';
 
-// NEAR wallet is deprecating soon
-export const WALLET_OPTIONS = [
-  {
-    coin: 'MYNEAR',
-    walletName: 'My Near',
-    id: 'mynearwallet',
-  },
-  {
-    coin: 'HERE',
-    walletName: 'My HERE',
-    id: 'herewallet',
-  },
-];
-
 export const DROP_TYPE = {
   TOKEN: 'TOKEN',
   TICKET: 'TICKET',
   TRIAL: 'TRIAL',
   NFT: 'NFT',
   SIMPLE: 'SIMPLE',
-};
+  OTHER: 'OTHER',
+} as const;
+
+type DROP_TYPE_KEYS = keyof typeof DROP_TYPE;
+export type DROP_TYPES = (typeof DROP_TYPE)[DROP_TYPE_KEYS];
 
 export const MASTER_KEY = 'MASTER_KEY';
 
+export const MAX_FILE_SIZE = 10000000;
+
 export const PAGE_SIZE_LIMIT = 10;
+export const NFT_ATTEMPT_KEY = 'NFT_ATTEMPT';
+export const PAGE_QUERY_PARAM = 'page';

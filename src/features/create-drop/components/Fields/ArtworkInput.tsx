@@ -45,7 +45,7 @@ export const ArtworkInput = ({ name = FIELD_NAME }: ArtworkInputProps) => {
       control={control}
       name={name}
       render={(
-        { field: { onChange, value, ...props }, fieldState: { error } }, // value is unused to prevent `onChange` from updating it
+        { field: { onChange, value, ref, ...props }, fieldState: { error } }, // value is unused to prevent `onChange` from updating it
       ) => {
         if (value === null) {
           setSelectedFile(undefined);

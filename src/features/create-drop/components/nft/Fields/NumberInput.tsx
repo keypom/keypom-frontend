@@ -6,23 +6,24 @@ import { type CreateNftDropFormFieldTypes } from '../CreateNftDropForm';
 
 interface NumberInputProps {
   control: Control<CreateNftDropFormFieldTypes, any>;
+  label?: string;
 }
 
 const FIELD_NAME = 'number';
 
-export const NumberInput = ({ control }: NumberInputProps) => {
+export const NumberInput = ({ control, label = 'Number' }: NumberInputProps) => {
   return (
     <Controller
       control={control}
       name={FIELD_NAME}
-      render={({ field, fieldState: { error } }) => (
+      render={({ field: { ref, value, ...fieldProps }, fieldState: { error } }) => (
         <TextInput
-          defaultValue={1}
           errorMessage={error?.message}
           isInvalid={!!error?.message}
-          label="Number"
+          label={label}
           type="number"
-          {...field}
+          value={value || ''}
+          {...fieldProps}
         />
       )}
     />

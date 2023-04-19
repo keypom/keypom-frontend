@@ -1,20 +1,20 @@
 import { Text, useBoolean, VStack } from '@chakra-ui/react';
 
-import { WALLET_OPTIONS } from '@/constants/common';
 import keypomInstance from '@/lib/keypom';
 import { storeClaimDrop } from '@/utils/claimedDrops';
+import getConfig from '@/config/config';
 
 import { WalletOption } from './WalletOption';
 
 interface CreateWalletProps {
   onClick: () => void;
-  wallets: string[];
+  wallets?: string[];
   contractId: string;
   secretKey: string;
   redirectUrl?: string;
 }
 
-const defaultWallet = WALLET_OPTIONS[0];
+const { supportedWallets, defaultWallet } = getConfig();
 
 export const CreateWallet = ({
   contractId,
@@ -43,7 +43,7 @@ export const CreateWallet = ({
         }
       }, 20000);
 
-      wRef.location.href = url + '?redirectUrl=' + redirectUrl;
+      wRef.location.href = `${url}?redirectUrl=${redirectUrl}`;
     } catch (err) {
       // drop has been claimed
       // refresh to show error
@@ -51,18 +51,18 @@ export const CreateWallet = ({
     }
   };
 
-  const walletOptions = WALLET_OPTIONS
+  const walletOptions = supportedWallets
 
     // TODO replace with filter this is temporary
     // .filter((wallet) => wallets.includes(wallet.id))
-    .filter((wallet) => wallet.id === 'mynearwallet')
+    .filter((wallet) => wallet.name === 'mynearwallet')
 
     .map((options, index) => (
       <WalletOption
         key={index}
         handleWalletClick={() => {
-          const wRef = window.open()
-          handleWalletClick(options.id, wRef);
+          const wRef = window.open();
+          handleWalletClick(options.name, wRef);
         }}
         {...options}
       />
@@ -82,9 +82,9 @@ export const CreateWallet = ({
           walletOptions
         ) : (
           <WalletOption
-            handleWalletClick={() => {
-              const wRef = window.open()
-              handleWalletClick(defaultWallet.id, wRef);
+            handleWalletClick={async () => {
+              const wRef = window.open();
+              await handleWalletClick(defaultWallet.name, wRef);
             }}
             {...defaultWallet}
           />

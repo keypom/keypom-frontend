@@ -6,8 +6,10 @@
   "scripts": {
     "clean": "rm -rf dist .parcel-cache",
     "dev": "yarn clean && yarn static && parcel src/index.html -p 3000",
+    "storybook": "yarn clean && yarn static && IS_STORYBOOK_VIEW=true parcel src/index.html -p 3000",
     "dev-mainnet": "yarn clean && yarn static && REACT_APP_CONTRACT_ID=v2.keypom.near REACT_APP_NETWORK_ID=mainnet parcel src/index.html -p 3000",
     "build": "yarn static && parcel build src/index.html --public-url ./ --no-cache --no-source-maps",
+    "build:analyze": "yarn static && parcel build src/index.html --public-url ./ --no-cache --reporter @parcel/reporter-bundle-analyzer",
     "static": "rm -rf dist && mkdir dist && cp -a ./public/* ./dist",
     "serve": "yarn build && npx serve dist -s",
     "check-types": "tsc --noEmit",
@@ -31,8 +33,9 @@
     "bn.js": "^5.2.1",
     "copy-to-clipboard": "^3.3.3",
     "framer-motion": "^8.5.5",
-    "keypom-js": "^1.4.0-rc.2",
-    "lodash": "^4.17.21",
+    "idb-keyval": "^6.2.0",
+    "ipfs-car": "^0.9.2",
+    "keypom-js": "^1.4.7",
     "mathjs": "^11.5.1",
     "near-api-js": "^1.1.0",
     "react": "^18.2.0",
@@ -47,8 +50,8 @@
     "zod": "^3.20.2"
   },
   "devDependencies": {
-    "@chakra-ui/icons": "^2.0.17",
     "@parcel/config-default": "^2.8.3",
+    "@parcel/reporter-bundle-analyzer": "^2.8.3",
     "@parcel/transformer-svg-react": "^2.8.3",
     "@parcel/transformer-typescript-tsc": "^2.8.3",
     "@parcel/validator-typescript": "^2.8.3",

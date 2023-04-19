@@ -20,9 +20,15 @@ import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
 import { SignedInButton } from '../SignedInButton';
 import { ConnectWalletButton } from '../ConnectWalletButton';
 
-import { MENU_ITEMS } from './Navbar';
-
-export const MobileMenu = () => {
+interface MobileMenuProps {
+  menuItems: Array<{
+    name: string;
+    href: string;
+    isExternal?: boolean;
+    isProtected?: boolean;
+  }>;
+}
+export const MobileMenu = ({ menuItems }: MobileMenuProps) => {
   const { isLoggedIn } = useAuthWalletContext();
   const { isOpen, onOpen, onClose } = useDisclosure();
 
@@ -42,9 +48,9 @@ export const MobileMenu = () => {
           </DrawerHeader>
           <DrawerBody>
             <VStack mt="10" spacing="4">
-              {MENU_ITEMS.map(({ name, href }) => {
+              {menuItems.map(({ name, href, isProtected }) => {
                 return (
-                  <Link key={name} href={href}>
+                  <Link key={name} hidden={isProtected} href={href}>
                     <Box fontSize={{ base: 'sm', md: 'md' }} fontWeight="medium">
                       {name}
                     </Box>

@@ -123,7 +123,7 @@ export const CreateTicketDropProvider = ({ children }: PropsWithChildren) => {
       additionalGift: {
         type: 'none',
         token: {
-          selectedFromWallet: null,
+          selectedToken: null,
           amountPerLink: '',
         },
         poapNft: { name: '', description: '', artwork: null },
@@ -152,7 +152,7 @@ export const CreateTicketDropProvider = ({ children }: PropsWithChildren) => {
       results.push({
         type: 'text',
         name: 'Tokens gifted per ticket',
-        value: `${additionalGift.token.amountPerLink} ${additionalGift?.token?.selectedFromWallet?.symbol}`,
+        value: `${additionalGift.token.amountPerLink} ${additionalGift?.token?.selectedToken?.symbol}`,
       });
     } else if (additionalGift.type === 'poapNft') {
       results.push({

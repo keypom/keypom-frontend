@@ -3,7 +3,6 @@ import {
   Button,
   Center,
   Flex,
-  Link,
   Menu,
   MenuButton,
   MenuItem,
@@ -12,14 +11,13 @@ import {
   Text,
   useBoolean,
 } from '@chakra-ui/react';
+import { formatNearAmount } from 'keypom-js';
 
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
-import { useAppContext, setAppModalHelper } from '@/contexts/AppContext';
-import { toYocto } from '@/utils/toYocto';
+import { useAppContext, openMasterKeyModal } from '@/contexts/AppContext';
 import { truncateAddress } from '@/utils/truncateAddress';
-import { formatAmount } from '@/utils/formatAmount';
 
-import { DropIcon, NearLogoIcon, SignOutIcon } from '../Icons';
+import { KeyIcon, NearIcon, SignOutIcon } from '../Icons';
 
 export const SignedInButton = () => {
   const [showAll, setShowAll] = useBoolean(false);
@@ -27,7 +25,6 @@ export const SignedInButton = () => {
   const { setAppModal } = useAppContext();
 
   const { account, selector } = useAuthWalletContext();
-  const amountInYocto = toYocto(account === null ? 0 : parseInt(account.amount));
 
   const handleSignOut = async () => {
     const wallet = await selector.wallet();
@@ -47,7 +44,20 @@ export const SignedInButton = () => {
   };
 
   const handleMasterKey = async () => {
-    setAppModalHelper(setAppModal);
+    openMasterKeyModal(setAppModal, null, null);
+  };
+
+  const getAccountBalance = () => {
+    if (account === null) return null;
+
+    const amountInNEAR = formatNearAmount(account.amount, 4);
+
+    if (amountInNEAR === null) {
+      console.error('Account amount is null');
+      return 0;
+    }
+
+    return amountInNEAR;
   };
 
   return (
@@ -93,31 +103,26 @@ export const SignedInButton = () => {
               borderBottom="1px solid"
               borderBottomColor="gray.100"
               closeOnSelect={false}
-              icon={<NearLogoIcon height="3.5" mt="-0.5" width="3.5" />}
+              icon={<NearIcon height="3.5" mt="-0.5" width="3.5" />}
               onClick={setShowNear.toggle}
             >
               <Flex>
                 <Text
                   fontWeight="medium"
+                  maxWidth={showNear ? 'initial' : '100'}
                   mr="1"
                   overflow="hidden"
                   textOverflow="ellipsis"
                   whiteSpace="nowrap"
                 >
-                  {showNear
-                    ? formatAmount(amountInYocto, { style: undefined, maximumFractionDigits: 3 })
-                    : formatAmount(amountInYocto, { style: undefined, maximumFractionDigits: 0 }) +
-                      '...'}
+                  {getAccountBalance()}
                 </Text>
               </Flex>
             </MenuItem>
 
-            <MenuItem icon={<SignOutIcon />} onClick={handleMasterKey}>
+            <MenuItem icon={<KeyIcon height="15px" width="14px" />} onClick={handleMasterKey}>
               Master Key
             </MenuItem>
-            <Link href="/drops">
-              <MenuItem icon={<DropIcon />}>My drops</MenuItem>
-            </Link>
             <MenuItem icon={<SignOutIcon />} onClick={handleSignOut}>
               Sign out
             </MenuItem>
