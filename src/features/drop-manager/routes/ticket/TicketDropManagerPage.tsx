@@ -132,7 +132,7 @@ export default function TicketDropManagerPage() {
         </Text>
       ),
       hasClaimed: getBadgeType(item.keyInfo?.cur_key_use as number),
-      ...(encryptedData && {
+      ...(encryptedData?.[item.publicKey] && {
         q1Ans: decrypt(encryptedData[item.publicKey][0], item.secretKey),
         q2Ans: decrypt(encryptedData[item.publicKey][1], item.secretKey),
       }),
