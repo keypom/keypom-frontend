@@ -407,6 +407,7 @@ class KeypomJS {
     }
 
     return {
+      dropId: drop.drop_id,
       dropName: dropMetadata.dropName,
       wallets: dropMetadata.wallets,
       ftMetadata,
@@ -479,6 +480,7 @@ class KeypomJS {
     );
 
     return {
+      dropId: drop.drop_id,
       type: nftData ? DROP_TYPE.NFT : DROP_TYPE.TOKEN,
       dropName: dropMetadata.dropName,
       wallets: dropMetadata.wallets,

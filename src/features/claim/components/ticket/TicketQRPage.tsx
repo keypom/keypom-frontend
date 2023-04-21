@@ -14,17 +14,25 @@ import { DropClaimMetadata } from '@/features/claim/components/DropClaimMetadata
 import { AvatarImage } from '@/components/AvatarImage';
 import { DropBox } from '@/components/DropBox';
 import { FormControl } from '@/components/FormControl';
+import { encrypt } from '@/utils/crypto';
+
+const storeToSmartContract = (dropId: string, publicKey: string, encryptedAnswers: string[]) => {
+  // call smart contract
+};
 
 export const TicketQRPage = () => {
   const { secretKey } = useClaimParams();
   const [claimAttempted, setClaimAttempted] = useState(false);
   const { handleClaim, qrValue, claimError, getDropMetadata } = useTicketClaim();
   const [isShowSummary, setShowSummary] = useState(false);
+  const [answers, setAnswers] = useState<string[]>([]);
+  const [publicKey, setPublicKey] = useState('');
 
-  const { giftType, title, tokens, nftImage, questions } = getDropMetadata();
+  const { giftType, title, tokens, nftImage, questions, dropId } = getDropMetadata();
 
   const checkClaim = async () => {
     const keyInfo = await getKeyInformation({ secretKey });
+    setPublicKey(keyInfo.public_key);
     console.log('claiming', claimAttempted, keyInfo.cur_key_use);
     if (!claimAttempted && keyInfo.cur_key_use === 1) {
       // do not await since it will only prevent user from seeing QR code, we can always show error after
@@ -37,10 +45,11 @@ export const TicketQRPage = () => {
     checkClaim();
   }, []);
 
-  console.log(questions);
-
   const handleShowTicketClick = () => {
     // encrypt data
+    const encryptedAns = answers.map((ans) => encrypt(ans, secretKey));
+    storeToSmartContract(dropId, publicKey, encryptedAns);
+
     setShowSummary(true);
   };
 
@@ -117,18 +126,20 @@ export const TicketQRPage = () => {
               <DropClaimMetadata nftImage={nftImage} title={title} type={giftType} />
               {questions?.map((question, index) => {
                 return (
+                  // TODO: use react hook form in future
                   <FormControl key={index} label={question.text}>
-                    <Input />
+                    <Input
+                      onChange={(e) => {
+                        setAnswers((ans) => {
+                          ans[index] = e.target.value;
+                          return ans;
+                        });
+                      }}
+                    />
                   </FormControl>
                 );
               })}
-              <Button
-                type="submit"
-                w="full"
-                onClick={() => {
-                  setShowSummary(true);
-                }}
-              >
+              <Button type="submit" w="full" onClick={handleShowTicketClick}>
                 Show my ticket!
               </Button>
             </Flex>

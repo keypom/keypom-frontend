@@ -5,10 +5,65 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { CopyIcon, DeleteIcon } from '@/components/Icons';
 import { DropManager, type GetDataFn } from '@/features/drop-manager/components/DropManager';
 import keypomInstance from '@/lib/keypom';
+import { decrypt, encrypt } from '@/utils/crypto';
 
 import { getClaimStatus } from '../../utils/getClaimStatus';
 import { getBadgeType } from '../../utils/getBadgeType';
-import { tableColumns } from '../../components/TableColumn';
+import { ticketTableColumns } from '../../components/TableColumn';
+
+// mock fetch function to fetch from smart contract
+const fetchAttendeeInformation = async (
+  dropId: string,
+  publicKeys: string[], // temporary
+  secretKeys: string[], // temporary - this would be encrypted in smart contract already
+) => {
+  return await new Promise((resolve) => {
+    setTimeout(() => {
+      const randomAnswers1 = [
+        'Andre Hadianto Lesmana',
+        'Eric',
+        'Matt',
+        'Ben',
+        'Wahyu',
+        'Elon Musk',
+      ];
+      const randomAnswers2 = [
+        'This is awesome',
+        'I love Keypom, NEAR and Airfoil!',
+        'This event is super cool, i just had to join and experience it',
+        'This event is super cool, i love the onboarding process',
+        'Onboarding on this app is so smooth and easy',
+        'Came to the event to see Keypom and NEAR getting lit!',
+        'I love Keypom, NEAR and Airfoil! Onboarding on this app is so smooth and easy',
+      ];
+
+      // structure of response
+      // resolve({
+      //   publicKey1: ["ans1", "ans2"]
+      //   publicKey2: ["ans1", "ans2"]
+      // });
+
+      const response = publicKeys.reduce((allPKs, currPK, index) => {
+        // When user generated their QR, they would have entered their info
+        const randomAnswer1 = randomAnswers1[Math.floor(Math.random() * randomAnswers1.length)];
+        const randomAnswer2 = randomAnswers2[Math.floor(Math.random() * randomAnswers2.length)];
+
+        console.log({ randomAnswer1, randomAnswer2, secretKeys });
+        // data is symmetrically encrypted with their secret key and stored in a smart contract
+        const encrypted1 = encrypt(randomAnswer1, secretKeys[index]);
+        const encrypted2 = encrypt(randomAnswer2, secretKeys[index]);
+
+        // smart contract would return a list of publicKey -> encryptedInfo based on drop id
+        return {
+          ...allPKs,
+          [currPK]: [encrypted1, encrypted2],
+        };
+      }, {});
+
+      resolve(response);
+    }, 2000);
+  });
+};
 
 export default function TicketDropManagerPage() {
   const navigate = useNavigate();
@@ -17,15 +72,11 @@ export default function TicketDropManagerPage() {
 
   const [scannedAndClaimed, setScannedAndClaimed] = useState<number>(0);
 
-  useEffect(() => {
-    if (dropId === '') navigate('/drops');
-  }, [dropId]);
-
   const getScannedKeys = async () => {
     const keysSupply = await keypomInstance.getAvailableKeys(dropId);
-    const getScannedInner = async (scanned = 0, index = 0) => {
-      const drop = await keypomInstance.getDropInfo({ dropId });
+    const drop = await keypomInstance.getDropInfo({ dropId });
 
+    const getScannedInner = async (scanned = 0, index = 0) => {
       const size = 200; // max limit is 306
 
       if (index * size >= drop.next_key_id) return;
@@ -49,11 +100,24 @@ export default function TicketDropManagerPage() {
 
   // set Scanned item
   useEffect(() => {
-    getScannedKeys();
-  }, []);
+    if (dropId === '') navigate('/drops');
 
-  const getTableRows: GetDataFn = (data, handleDeleteClick, handleCopyClick) => {
+    getScannedKeys();
+  }, [dropId]);
+
+  const getTableRows: GetDataFn = async (data, handleDeleteClick, handleCopyClick) => {
     if (data === undefined) return [];
+
+    const drop = await keypomInstance.getDropInfo({ dropId });
+    const dropMetadata = keypomInstance.getDropMetadata(drop.metadata);
+
+    const allSecretKeys = data.map((item) => item.secretKey);
+    const allPublicKeys = data.map((item) => item.publicKey);
+
+    let encryptedData;
+    if (dropMetadata.questions) {
+      encryptedData = await fetchAttendeeInformation(drop.drop_id, allPublicKeys, allSecretKeys);
+    }
 
     return data.map((item) => ({
       id: item.id,
@@ -68,6 +132,10 @@ export default function TicketDropManagerPage() {
         </Text>
       ),
       hasClaimed: getBadgeType(item.keyInfo?.cur_key_use as number),
+      ...(encryptedData && {
+        q1Ans: decrypt(encryptedData[item.publicKey][0], item.secretKey),
+        q2Ans: decrypt(encryptedData[item.publicKey][1], item.secretKey),
+      }),
       action: (
         <>
           <Button
@@ -102,7 +170,7 @@ export default function TicketDropManagerPage() {
       getClaimedText={(dropSize) => `${dropSize - scannedAndClaimed} / ${dropSize}`}
       getData={getTableRows}
       showColumns={false}
-      tableColumns={tableColumns}
+      tableColumns={ticketTableColumns}
     />
   );
 }

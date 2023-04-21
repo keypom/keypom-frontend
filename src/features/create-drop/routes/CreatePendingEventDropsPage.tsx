@@ -13,7 +13,7 @@ import {
 import { useEffect, useMemo, useState } from 'react';
 import { CheckCircleIcon } from '@chakra-ui/icons';
 import { useNavigate } from 'react-router-dom';
-import { createDrop, parseNearAmount } from 'keypom-js';
+import { createDrop, createNFTSeries, parseNearAmount } from 'keypom-js';
 
 import { PENDING_EVENT_TICKETS } from '@/constants/common';
 import { del, get } from '@/utils/localStorage';
@@ -38,7 +38,7 @@ const CreatePendingEventDropsPage = () => {
           dropId,
           useBalance: true,
           wallet: await window.selector.wallet(),
-          numKeys: parseInt(ticket.numberOfTickets.toString()),
+          numKeys: 0,
           metadata: JSON.stringify({
             eventId: eventName.replace(' ', '_'),
             eventName,

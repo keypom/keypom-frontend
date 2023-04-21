@@ -9,7 +9,7 @@ import {
   Skeleton,
   useToast,
 } from '@chakra-ui/react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { type ProtocolReturnedKeyInfo } from 'keypom-js';
 
@@ -28,8 +28,6 @@ import getConfig from '@/config/config';
 import { share } from '@/utils/share';
 import { setMasterKeyValidityModal } from '@/features/drop-manager/components/MasterKeyValidityModal';
 
-import { INITIAL_SAMPLE_DATA } from '../constants/common';
-
 import { setConfirmationModalHelper } from './ConfirmationModal';
 import { setMissingDropModal } from './MissingDropModal';
 
@@ -40,13 +38,15 @@ export interface DropKeyItem {
   slug: string;
   hasClaimed: boolean;
   keyInfo?: ProtocolReturnedKeyInfo;
+  secretKey: string;
+  [key: string]: any;
 }
 
 export type GetDataFn = (
   data: DropKeyItem[],
   handleDelete: (pubKey: string) => Promise<void>,
   handleCopy: (link: string) => void,
-) => DataItem[];
+) => Promise<DataItem[]>;
 
 interface DropManagerProps {
   claimedHeaderText: string;
@@ -58,6 +58,8 @@ interface DropManagerProps {
   loading?: boolean;
 }
 
+// TODO: might want to reconsider refactoring this into a context instead
+// there's a lot of data passing back and forth between child and parent component
 export const DropManager = ({
   claimedHeaderText,
   getClaimedText,
@@ -76,7 +78,8 @@ export const DropManager = ({
   const [loading, setLoading] = useState(true);
 
   const [name, setName] = useState('Untitled');
-  const [dropKeys, setDropKeys] = useState<DropKeyItem[]>([INITIAL_SAMPLE_DATA[0]]);
+  const [data, setData] = useState<DataItem[]>([]);
+  const [dropKeys, setDropKeys] = useState<DropKeyItem[]>([]);
   const [totalKeys, setTotalKeys] = useState<number>(0);
   const [deleting, setDeleting] = useState<boolean>(false);
   const [exporting, setExporting] = useState<boolean>(false);
@@ -166,20 +169,20 @@ export const DropManager = ({
       setTotalKeys(dropSize);
       setName(dropName);
 
-      setDropKeys(
-        secretKeys.map((key: string, i) => ({
-          id: i,
-          publicKey: publicKeys[i],
-          link: `${window.location.origin}/claim/${getConfig().contractId}#${key.replace(
-            'ed25519:',
-            '',
-          )}`,
-          slug: key.substring(8, 16),
-          hasClaimed: keyInfo[i] === null,
-          keyInfo: keyInfo[i],
-        })),
-      );
+      const dropKeys = secretKeys.map((key: string, i) => ({
+        id: i,
+        publicKey: publicKeys[i],
+        link: `${window.location.origin}/claim/${getConfig().contractId}#${key.replace(
+          'ed25519:',
+          '',
+        )}`,
+        slug: key.substring(8, 16),
+        hasClaimed: keyInfo[i] === null,
+        keyInfo: keyInfo[i],
+        secretKey: key,
+      }));
 
+      setData(await getData(dropKeys, handleDeleteClick, handleCopyClick));
       setLoading(false);
     },
     [pagination],
@@ -204,6 +207,26 @@ export const DropManager = ({
       href: '',
     },
   ];
+
+  const handleCopyClick = (link: string) => {
+    share(link);
+    toast({ title: 'Copied!', status: 'success', duration: 1000, isClosable: true });
+  };
+
+  const handleDeleteClick = async (pubKey: string) => {
+    setConfirmationModalHelper(
+      setAppModal,
+      async () => {
+        await keypomInstance.deleteKeys({
+          wallet: await selector?.wallet(),
+          dropId,
+          publicKeys: pubKey,
+        });
+        window.location.reload();
+      },
+      'key',
+    );
+  };
 
   const handleExportCSVClick = async () => {
     if (data.length > 0) {
@@ -241,31 +264,6 @@ export const DropManager = ({
       setDeleting(false);
     }
   };
-
-  const handleCopyClick = (link: string) => {
-    share(link);
-    toast({ title: 'Copied!', status: 'success', duration: 1000, isClosable: true });
-  };
-
-  const handleDeleteClick = async (pubKey: string) => {
-    setConfirmationModalHelper(
-      setAppModal,
-      async () => {
-        await keypomInstance.deleteKeys({
-          wallet: await selector?.wallet(),
-          dropId,
-          publicKeys: pubKey,
-        });
-        window.location.reload();
-      },
-      'key',
-    );
-  };
-
-  const data = useMemo(
-    () => getData(dropKeys, handleDeleteClick, handleCopyClick),
-    [getData, dropKeys, dropKeys.length, handleCopyClick, handleDeleteClick],
-  );
 
   const allowAction = data.length > 0;
 

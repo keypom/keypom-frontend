@@ -38,6 +38,7 @@ interface ITicketQuestion {
 
 export interface TicketClaimContextTypes {
   getDropMetadata: () => {
+    dropId: string;
     title: string;
     description: string;
     nftImage: string;
@@ -80,13 +81,14 @@ export const TicketClaimContextProvider = ({ children }: PropsWithChildren) => {
   const [claimError, setClaimError] = useState(null);
 
   const [currentKeyUse, setCurrentKeyUse] = useState<number | null>(null);
+  const [dropId, setDropId] = useState<string>('');
   const [tokens, setTokens] = useState<TokenAsset[]>([]);
   const [giftType, setGiftType] = useState<DROP_TYPES>(DROP_TYPE.NFT);
   const [questions, setQuestions] = useState<ITicketQuestion[]>([]);
 
   const loadTokenClaimInfo = async () => {
     try {
-      const { ftMetadata, amountNEAR, amountTokens } =
+      const { ftMetadata, amountNEAR, amountTokens, dropId } =
         await keypomInstance.getTokenClaimInformation(contractId, secretKey);
       const tokens: TokenAsset[] = [
         {
@@ -106,6 +108,7 @@ export const TicketClaimContextProvider = ({ children }: PropsWithChildren) => {
           : {}),
       });
       setGiftType(DROP_TYPE.TOKEN);
+      setDropId(dropId);
     } catch (err) {
       setClaimInfoError(err.message);
     }
@@ -114,6 +117,7 @@ export const TicketClaimContextProvider = ({ children }: PropsWithChildren) => {
   const loadNFTClaimInfo = async () => {
     const claimInfo = await keypomInstance.getTicketNftInformation(contractId, secretKey);
 
+    setDropId(claimInfo.dropId);
     setTitle(claimInfo.title);
     setDescription(claimInfo.description);
     setNftImage(claimInfo.media);
@@ -164,6 +168,7 @@ export const TicketClaimContextProvider = ({ children }: PropsWithChildren) => {
 
   const getDropMetadata = () => {
     return {
+      dropId,
       title,
       description,
       nftImage,
