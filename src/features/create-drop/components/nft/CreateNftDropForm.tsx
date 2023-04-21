@@ -8,6 +8,9 @@ import { LinkIcon } from '@/components/Icons';
 import { IconBox } from '@/components/IconBox';
 import { useDropFlowContext } from '@/features/create-drop/contexts/DropFlowContext';
 import getConfig from '@/config/config';
+import { get } from '@/utils/localStorage';
+import { openMasterKeyModal, useAppContext } from '@/contexts/AppContext';
+import { MASTER_KEY } from '@/constants/common';
 
 import { ArtworkInput } from '../Fields/ArtworkInput';
 import { WALLET_CHECKBOXES } from '../WalletComponent';
@@ -28,6 +31,7 @@ export interface CreateNftDropFormFieldTypes {
 const { defaultWallet } = getConfig();
 
 export const CreateNftDropForm = () => {
+  const { setAppModal } = useAppContext();
   const { onNext } = useDropFlowContext();
   const {
     setValue,
@@ -44,6 +48,15 @@ export const CreateNftDropForm = () => {
   );
 
   const handleSubmitClick = () => {
+    const masterKey = get(MASTER_KEY);
+    if (masterKey === undefined) {
+      openMasterKeyModal(setAppModal, onNext?.(), () => {
+        // eslint-disable-next-line no-console
+        console.log('user cancelled');
+        window.location.reload();
+      });
+      return;
+    }
     onNext?.();
   };
 

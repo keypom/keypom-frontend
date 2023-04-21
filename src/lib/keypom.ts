@@ -125,7 +125,7 @@ class KeypomJS {
       throw new Error("Linkdrop is invalid and isn't officially supported by Keypom contract.");
     }
 
-    await updateKeypomContractId({ keypomContractId: contractId });
+    updateKeypomContractId({ keypomContractId: contractId });
   };
 
   getCurrentKeyUse = async (contractId: string, secretKey: string) => {
