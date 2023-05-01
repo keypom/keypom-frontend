@@ -27,7 +27,7 @@ import { share } from '@/utils/share';
 import { DataTable } from '@/components/Table';
 
 const PendingPurchasePage = () => {
-  const { publicKeys, dropIds, dropPrices } = get(PENDING_TICKET_PURCHASE) || '{}';
+  const { publicKeys, secretKeys, dropIds, dropPrices } = get(PENDING_TICKET_PURCHASE) || '{}';
 
   const [cart, setCart] = useState<Array<{ id: string; link: string[]; dropName: string }>>([]);
   const [ticketStatus, setTicketStatus] = useState<Record<string, boolean>>({});
@@ -58,7 +58,7 @@ const PendingPurchasePage = () => {
         return {
           id: dropIds[i],
           dropName: await getDropName(dropIds[i]),
-          link: publicKeys[i],
+          link: secretKeys[i],
         };
       }),
     );
