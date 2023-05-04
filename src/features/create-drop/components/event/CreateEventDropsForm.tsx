@@ -30,7 +30,6 @@ import { CreateTicketDrawer } from './CreateTicketDrawer';
 export const CreateEventDropsForm = () => {
   const [totalCost, setTotalCost] = useState(0);
   const [totalLinks, setTotalLinks] = useState(0);
-  const [modalTicketIndex, setTicketIndex] = useState<number>(0);
   const [modalAction, setModalAction] = useState('create');
   const { onNext } = useDropFlowContext();
   const { account } = useAuthWalletContext();
@@ -119,16 +118,7 @@ export const CreateEventDropsForm = () => {
           leftIcon={<AddIcon />}
           w="full"
           onClick={() => {
-            appendTicket({
-              name: 'Test ticket ',
-              description: 'this is an awesome event',
-              salesStartDate: '2023-04-01T00:00',
-              salesEndDate: '2023-04-28T00:00',
-              nearPricePerTicket: '1.5',
-              numberOfTickets: '10',
-            });
             setModalAction('create');
-            setTicketIndex(ticketFields.length);
             onOpen();
           }}
         >
@@ -185,7 +175,6 @@ export const CreateEventDropsForm = () => {
               id={ticketFields?.[index]?.id}
               ticket={ticket}
               onEditClick={() => {
-                setTicketIndex(index);
                 setModalAction('update');
                 onOpen();
               }}
@@ -198,7 +187,7 @@ export const CreateEventDropsForm = () => {
 
         <Flex justifyContent="flex-end">
           <Button
-            disabled={ticketFields.length === 0 || !isDirty || !isValid}
+            isDisabled={ticketFields.length === 0 || !isDirty || !isValid}
             mt="10"
             type="submit"
           >
@@ -208,11 +197,12 @@ export const CreateEventDropsForm = () => {
       </form>
 
       <CreateTicketDrawer
+        appendTicket={appendTicket}
         isOpen={isOpen}
-        ticketIndex={modalTicketIndex}
+        ticketIndex={ticketFields.length}
         onCancel={() => {
           if (modalAction === 'create') {
-            removeTicket(modalTicketIndex);
+            removeTicket(ticketFields.length);
           }
           window.setTimeout(() => {
             onClose();
@@ -237,12 +227,12 @@ const EditableControls = () => {
 
   return isEditing ? (
     <ButtonGroup alignItems="center" justifyContent="center" size="sm">
-      <IconButton icon={<CheckIcon />} {...getSubmitButtonProps()} />
-      <IconButton icon={<CloseIcon />} {...getCancelButtonProps()} />
+      <IconButton aria-label="submit" icon={<CheckIcon />} {...getSubmitButtonProps()} />
+      <IconButton aria-label="cancel" icon={<CloseIcon />} {...getCancelButtonProps()} />
     </ButtonGroup>
   ) : (
     <Flex justifyContent="center">
-      <IconButton icon={<EditIcon />} size="sm" {...getEditButtonProps()} />
+      <IconButton aria-label="edit" icon={<EditIcon />} size="sm" {...getEditButtonProps()} />
     </Flex>
   );
 };
