@@ -37,7 +37,7 @@ export const TicketCard = ({
     },
   });
 
-  const amountInNEAR = ticketPrice ? '0' : formatNearAmount(ticketPrice as string, 4);
+  const amountInNEAR = ticketPrice ? formatNearAmount(ticketPrice, 4) : 0;
 
   return (
     <FormControl>
