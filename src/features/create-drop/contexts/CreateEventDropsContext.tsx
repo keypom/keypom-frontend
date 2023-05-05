@@ -57,7 +57,7 @@ const schema = z.object({
   ),
 });
 
-export type TicketSchema = z.infer<typeof ticketSchema>
+export type TicketSchema = z.infer<typeof ticketSchema>;
 export type Schema = z.infer<typeof schema>;
 
 /**
