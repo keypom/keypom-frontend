@@ -33,24 +33,22 @@ const CreateEventDropsContext = createContext<CreateEventDropsContextProps>({
   },
 });
 
+export const ticketSchema = z.object({
+  name: z.string(),
+  description: z.string().optional(),
+  salesStartDate: z.string(), // challenging to use z.string().datetime() to work with datetime-local
+  salesEndDate: z.string(),
+  nearPricePerTicket: z.coerce.number(),
+  numberOfTickets: z.coerce
+    .number({ invalid_type_error: 'Number of tickets required' })
+    .positive()
+    .min(1, 'Required')
+    .max(50, 'Currently tickets are limited to 50 links. This will be increased very soon!'),
+});
+
 const schema = z.object({
   eventName: z.string().min(1, 'Event name required'),
-  tickets: z
-    .array(
-      z.object({
-        name: z.string(),
-        description: z.string().optional(),
-        salesStartDate: z.string(), // challenging to use z.string().datetime() to work with datetime-local
-        salesEndDate: z.string(),
-        nearPricePerTicket: z.coerce.number(),
-        numberOfTickets: z.coerce
-          .number({ invalid_type_error: 'Number of tickets required' })
-          .positive()
-          .min(1, 'Required')
-          .max(50, 'Currently tickets are limited to 50 links. This will be increased very soon!'),
-      }),
-    )
-    .min(1),
+  tickets: z.array(ticketSchema).min(1),
   questions: z.array(
     z.object({
       text: z.string(),
@@ -59,7 +57,8 @@ const schema = z.object({
   ),
 });
 
-type Schema = z.infer<typeof schema>;
+export type TicketSchema = z.infer<typeof ticketSchema>
+export type Schema = z.infer<typeof schema>;
 
 /**
  *
