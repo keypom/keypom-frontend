@@ -10,25 +10,53 @@ import {
   DrawerOverlay,
   Textarea,
 } from '@chakra-ui/react';
-import { Controller, useFormContext } from 'react-hook-form';
+import { Controller, type UseFieldArrayAppend, useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useEffect } from 'react';
 
 import { FormControl } from '@/components/FormControl';
 import { TokenInput } from '@/components/TokenInputMenu';
 
+import {
+  type Schema,
+  ticketSchema,
+  type TicketSchema,
+} from '../../contexts/CreateEventDropsContext';
+
 interface CreateTicketDrawerProps {
   isOpen: boolean;
   onClose: () => void;
-  ticketIndex: number;
   onCancel: () => void;
+  appendTicket: UseFieldArrayAppend<Schema, 'tickets'>;
 }
 
 export const CreateTicketDrawer = ({
   isOpen,
   onClose,
   onCancel,
-  ticketIndex,
+  appendTicket,
 }: CreateTicketDrawerProps) => {
-  const { control } = useFormContext();
+  const {
+    control,
+    getValues,
+    reset,
+    formState: { isDirty, isValid },
+  } = useForm<TicketSchema>({
+    mode: 'onChange',
+    defaultValues: {
+      name: '',
+      description: '',
+      salesStartDate: '',
+      salesEndDate: '',
+      nearPricePerTicket: undefined,
+      numberOfTickets: undefined,
+    },
+    resolver: zodResolver(ticketSchema),
+  });
+
+  useEffect(() => {
+    reset();
+  }, [isOpen]);
 
   return (
     <Drawer
@@ -46,7 +74,7 @@ export const CreateTicketDrawer = ({
         <DrawerBody>
           <Controller
             control={control}
-            name={`tickets.${ticketIndex}.name`}
+            name="name"
             render={({ field, fieldState: { error } }) => {
               return (
                 <FormControl errorText={error?.message} label="Ticket name">
@@ -62,7 +90,7 @@ export const CreateTicketDrawer = ({
           />
           <Controller
             control={control}
-            name={`tickets.${ticketIndex}.numberOfTickets`}
+            name="numberOfTickets"
             render={({ field, fieldState: { error } }) => {
               return (
                 <FormControl
@@ -82,7 +110,7 @@ export const CreateTicketDrawer = ({
           />
           <Controller
             control={control}
-            name={`tickets.${ticketIndex}.nearPricePerTicket`}
+            name="nearPricePerTicket"
             render={({ field: { value, onChange, name }, fieldState: { error } }) => (
               <FormControl
                 errorText={error?.message}
@@ -105,7 +133,7 @@ export const CreateTicketDrawer = ({
           />
           <Controller
             control={control}
-            name={`tickets.${ticketIndex}.description`}
+            name="description"
             render={({ field }) => {
               return (
                 <FormControl
@@ -124,7 +152,7 @@ export const CreateTicketDrawer = ({
           />
           <Controller
             control={control}
-            name={`tickets.${ticketIndex}.salesStartDate`}
+            name="salesStartDate"
             render={({ field, fieldState: { error } }) => {
               return (
                 <FormControl
@@ -146,7 +174,7 @@ export const CreateTicketDrawer = ({
 
           <Controller
             control={control}
-            name={`tickets.${ticketIndex}.salesEndDate`}
+            name="salesEndDate"
             render={({ field, fieldState: { error } }) => {
               return (
                 <FormControl
@@ -165,7 +193,15 @@ export const CreateTicketDrawer = ({
           <Button mr={3} variant="outline" onClick={onCancel}>
             Cancel
           </Button>
-          <Button onClick={onClose}>Add</Button>
+          <Button
+            isDisabled={!isDirty || !isValid}
+            onClick={() => {
+              appendTicket(getValues());
+              onClose();
+            }}
+          >
+            Add
+          </Button>
         </DrawerFooter>
       </DrawerContent>
     </Drawer>

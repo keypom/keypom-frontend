@@ -13,7 +13,7 @@ import {
 import { useEffect, useMemo, useState } from 'react';
 import { CheckCircleIcon } from '@chakra-ui/icons';
 import { useNavigate } from 'react-router-dom';
-import { createDrop, parseNearAmount } from 'keypom-js';
+import { createDrop, createNFTSeries, parseNearAmount } from 'keypom-js';
 
 import { PENDING_EVENT_TICKETS } from '@/constants/common';
 import { del, get } from '@/utils/localStorage';
@@ -26,9 +26,10 @@ const CreatePendingEventDropsPage = () => {
   const { account, accountId } = useAuthWalletContext();
   const [ticketsStatuses, setTicketsStatuses] = useState<Record<string, boolean>>({});
   const [tickets, setTickets] = useState<ITicketData[]>([]);
+  const [questions, setQuestions] = useState();
   const [error, setError] = useState('');
 
-  const createTicketDrops = async (tickets: ITicketData[], eventName: string) => {
+  const createTicketDrops = async (tickets: ITicketData[], eventName: string, questions) => {
     await keypomInstance.init();
     await Promise.all(
       tickets.map(async (ticket, index) => {
@@ -37,12 +38,13 @@ const CreatePendingEventDropsPage = () => {
           dropId,
           useBalance: true,
           wallet: await window.selector.wallet(),
-          numKeys: parseInt(ticket.numberOfTickets.toString()),
+          numKeys: 0,
           metadata: JSON.stringify({
             eventId: eventName.replace(' ', '_'),
             eventName,
             dropName: `${eventName} - ${ticket.name}`,
             wallets: ['mynearwallet', 'herewallet'],
+            questions,
           }),
           config: {
             usesPerKey: 3,
@@ -72,6 +74,15 @@ const CreatePendingEventDropsPage = () => {
             ],
           },
         });
+        // await createNFTSeries({
+        //   dropId,
+        //   wallet: await window.selector.wallet(),
+        //   metadata: {
+        //     title: 'Keypom NFT',
+        //     description: 'This is a super awesome event',
+        //     media: 'bafybeibwhlfvlytmttpcofahkukuzh24ckcamklia3vimzd4vkgnydy7nq',
+        //   },
+        // });
         setTicketsStatuses((statuses) => ({ ...statuses, [ticket.name]: true }));
       }),
     );
@@ -88,7 +99,7 @@ const CreatePendingEventDropsPage = () => {
       return;
     }
 
-    const { tickets: ticketsData, eventName } = pendingEventTickets;
+    const { tickets: ticketsData, eventName, questions } = pendingEventTickets;
     if (!eventName || !ticketsData) {
       setError('Event name and tickets not found');
       return;
@@ -103,8 +114,9 @@ const CreatePendingEventDropsPage = () => {
 
     setTickets(ticketsData);
     setTicketsStatuses(allTicketsStatuses);
+    setQuestions(questions);
 
-    createTicketDrops(ticketsData, eventName);
+    createTicketDrops(ticketsData, eventName, questions);
   }, [account]);
 
   const isAllTicketsCreated = useMemo(

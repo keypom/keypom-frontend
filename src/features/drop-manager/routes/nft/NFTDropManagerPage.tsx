@@ -25,7 +25,7 @@ export default function NFTDropManagerPage() {
     getAvailableKeys();
   }, [dropId]);
 
-  const getTableRows: GetDataFn = (data, handleDeleteClick, handleCopyClick) => {
+  const getTableRows: GetDataFn = async (data, handleDeleteClick, handleCopyClick) => {
     if (data === undefined) return [];
 
     return data.map((item) => ({

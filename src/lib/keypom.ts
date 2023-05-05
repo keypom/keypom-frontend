@@ -125,7 +125,7 @@ class KeypomJS {
       throw new Error("Linkdrop is invalid and isn't officially supported by Keypom contract.");
     }
 
-    await updateKeypomContractId({ keypomContractId: contractId });
+    updateKeypomContractId({ keypomContractId: contractId });
   };
 
   getCurrentKeyUse = async (contractId: string, secretKey: string) => {
@@ -407,6 +407,7 @@ class KeypomJS {
     }
 
     return {
+      dropId: drop.drop_id,
       dropName: dropMetadata.dropName,
       wallets: dropMetadata.wallets,
       ftMetadata,
@@ -479,6 +480,7 @@ class KeypomJS {
     );
 
     return {
+      dropId: drop.drop_id,
       type: nftData ? DROP_TYPE.NFT : DROP_TYPE.TOKEN,
       dropName: dropMetadata.dropName,
       wallets: dropMetadata.wallets,
@@ -527,6 +529,7 @@ class KeypomJS {
       type: nftData ? DROP_TYPE.NFT : DROP_TYPE.TOKEN,
       dropName: dropMetadata.dropName,
       wallets: dropMetadata.wallets,
+      questions: dropMetadata.questions,
       ...(nftData
         ? {
             media: `${CLOUDFLARE_IPFS}/${nftData.metadata.media}`, // eslint-disable-line

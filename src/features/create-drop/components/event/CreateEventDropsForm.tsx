@@ -1,6 +1,19 @@
-import { Box, Button, Flex, Input, useDisclosure } from '@chakra-ui/react';
+import {
+  Box,
+  Button,
+  ButtonGroup,
+  Editable,
+  EditableInput,
+  EditablePreview,
+  Flex,
+  IconButton,
+  Input,
+  Text,
+  useDisclosure,
+  useEditableControls,
+} from '@chakra-ui/react';
 import { Controller, useFieldArray, useFormContext } from 'react-hook-form';
-import { AddIcon } from '@chakra-ui/icons';
+import { AddIcon, CheckIcon, CloseIcon, EditIcon } from '@chakra-ui/icons';
 import { useEffect, useState } from 'react';
 
 import { IconBox } from '@/components/IconBox';
@@ -17,7 +30,6 @@ import { CreateTicketDrawer } from './CreateTicketDrawer';
 export const CreateEventDropsForm = () => {
   const [totalCost, setTotalCost] = useState(0);
   const [totalLinks, setTotalLinks] = useState(0);
-  const [modalTicketIndex, setTicketIndex] = useState<number>(0);
   const [modalAction, setModalAction] = useState('create');
   const { onNext } = useDropFlowContext();
   const { account } = useAuthWalletContext();
@@ -31,15 +43,24 @@ export const CreateEventDropsForm = () => {
   } = useFormContext();
 
   const {
-    fields,
-    append,
+    fields: ticketFields,
+    append: appendTicket,
     remove: removeTicket,
   } = useFieldArray({
     control,
     name: 'tickets',
   });
 
-  const tickets = watch('tickets');
+  const {
+    fields: questionsFields,
+    append: appendQuestion,
+    remove: removeQuestion,
+  } = useFieldArray({
+    control,
+    name: 'questions',
+  });
+
+  const [tickets, questions] = watch(['tickets', 'questions']);
 
   const { isOpen, onClose, onOpen } = useDisclosure();
 
@@ -97,30 +118,63 @@ export const CreateEventDropsForm = () => {
           leftIcon={<AddIcon />}
           w="full"
           onClick={() => {
-            append({
-              name: 'Test ticket ',
-              description: 'this is an awesome event',
-              salesStartDate: '2023-04-01T00:00',
-              salesEndDate: '2023-04-28T00:00',
-              nearPricePerTicket: '1.5',
-              numberOfTickets: '10',
-            });
             setModalAction('create');
-            setTicketIndex(fields.length);
             onOpen();
           }}
         >
           Add a ticket
         </Button>
 
+        <FormControl
+          helperText="add questions to your ticket to collect information from attendees"
+          label="Collect attendees info"
+        >
+          {questions.map((question, index: number) => {
+            const id = ticketFields?.[index]?.id;
+            return (
+              <Flex key={id} alignItems="center" id={id} justifyContent="center" mb="2" w="full">
+                <Text w="20px">{index + 1}.</Text>
+                <Editable
+                  // defaultValue="Enter your email"
+                  // fontSize="sm"
+                  isPreviewFocusable={false}
+                  value={question.text}
+                  width="full"
+                >
+                  <Flex alignContent="center" justifyContent="space-between">
+                    <Box>
+                      <EditablePreview />
+                      <Controller
+                        control={control}
+                        name={`questions.${index}.text`}
+                        render={({ field, fieldState: { error } }) => {
+                          return (
+                            <Input
+                              as={EditableInput}
+                              isInvalid={Boolean(error?.message)}
+                              placeholder="Enter your name"
+                              type="text"
+                              {...field}
+                            />
+                          );
+                        }}
+                      />
+                    </Box>
+                    <EditableControls />
+                  </Flex>
+                </Editable>
+              </Flex>
+            );
+          })}
+        </FormControl>
+
         <Box mt="10">
           {tickets.map((ticket, index) => (
             <TicketCard
-              key={fields?.[index]?.id}
-              id={fields?.[index]?.id}
+              key={ticketFields?.[index]?.id}
+              id={ticketFields?.[index]?.id}
               ticket={ticket}
               onEditClick={() => {
-                setTicketIndex(index);
                 setModalAction('update');
                 onOpen();
               }}
@@ -132,19 +186,23 @@ export const CreateEventDropsForm = () => {
         </Box>
 
         <Flex justifyContent="flex-end">
-          <Button disabled={fields.length === 0 || !isDirty || !isValid} mt="10" type="submit">
+          <Button
+            isDisabled={ticketFields.length === 0 || !isDirty || !isValid}
+            mt="10"
+            type="submit"
+          >
             Continue to summary
           </Button>
         </Flex>
       </form>
 
       <CreateTicketDrawer
+        appendTicket={appendTicket}
         isOpen={isOpen}
-        ticketIndex={modalTicketIndex}
+        ticketIndex={ticketFields.length}
         onCancel={() => {
-          console.log(modalAction);
           if (modalAction === 'create') {
-            removeTicket(modalTicketIndex);
+            removeTicket(ticketFields.length);
           }
           window.setTimeout(() => {
             onClose();
@@ -162,3 +220,19 @@ export const CreateEventDropsForm = () => {
  * event id, event name, drop name, wallets
  * event id: 'drop name - event id'
  */
+
+const EditableControls = () => {
+  const { isEditing, getSubmitButtonProps, getCancelButtonProps, getEditButtonProps } =
+    useEditableControls();
+
+  return isEditing ? (
+    <ButtonGroup alignItems="center" justifyContent="center" size="sm">
+      <IconButton aria-label="submit" icon={<CheckIcon />} {...getSubmitButtonProps()} />
+      <IconButton aria-label="cancel" icon={<CloseIcon />} {...getCancelButtonProps()} />
+    </ButtonGroup>
+  ) : (
+    <Flex justifyContent="center">
+      <IconButton aria-label="edit" icon={<EditIcon />} size="sm" {...getEditButtonProps()} />
+    </Flex>
+  );
+};

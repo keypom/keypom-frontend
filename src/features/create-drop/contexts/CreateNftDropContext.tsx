@@ -165,7 +165,7 @@ export const CreateNftDropProvider = ({ children }: PropsWithChildren) => {
 
     const totalLinkCost = parseFloat(formatNearAmount(requiredDeposit, 4));
     const totalStorageCost = parseFloat(formatNearAmount(requiredDeposit2, 4));
-    const totalCost = totalLinkCost + totalStorageCost;
+    const totalCost = Number(totalLinkCost + totalStorageCost).toFixed(4);
     const costsData: PaymentItem[] = [
       {
         name: 'Link cost',

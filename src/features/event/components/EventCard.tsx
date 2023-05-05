@@ -1,7 +1,6 @@
 import { Box, Button, Flex, Heading, Show, SimpleGrid, Text } from '@chakra-ui/react';
 import { Controller, useFieldArray, useForm } from 'react-hook-form';
 import { addKeys, addToBalance, formatNearAmount, generateKeys, getUserBalance } from 'keypom-js';
-import { DateTime } from 'luxon';
 import { useEffect } from 'react';
 import BN from 'bn.js';
 
@@ -9,6 +8,7 @@ import { IconBox } from '@/components/IconBox';
 import { set } from '@/utils/localStorage';
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
 import { PENDING_TICKET_PURCHASE } from '@/constants/common';
+import { formatSaleDate } from '@/utils/formatSaleDate';
 
 import { type EventMetadata } from '../types/common';
 
@@ -34,12 +34,7 @@ export const EventCard = ({ ticketArray = [] }: EventCardProps) => {
   const eventId = `${ticketArray[0].eventId}`;
   const { config: { sale: { start = undefined, end = undefined } } = { sale: {} } } =
     ticketArray[0];
-  const time =
-    !start || !end
-      ? `undefined date`
-      : `${DateTime.fromMillis(start).toLocaleString(DateTime.DATETIME_SHORT)}
-   - 
-   ${DateTime.fromMillis(end).toLocaleString(DateTime.DATETIME_SHORT)}`;
+  const time = !start || !end ? `undefined date` : formatSaleDate(start, end);
 
   const { handleSubmit, control, getValues } = useForm({
     defaultValues: {
@@ -61,24 +56,33 @@ export const EventCard = ({ ticketArray = [] }: EventCardProps) => {
     const wallet = await window.selector.wallet();
 
     let totalAmount = new BN(0);
+    const currentDropPrice: string[] = [];
     const currentPk: string[][] = [];
+    const currentSk: string[][] = [];
     const currentDropId: string[] = [];
     await Promise.all(
       getValues(eventId).map(async (field) => {
-        const { value, dropId, next_key_id } = field;
+        const { value, dropId, next_key_id, config: { sale: { price_per_key } } = {} } = field;
+
         if (!value || value === 0) return {};
 
-        const { publicKeys } = await generateKeys({
+        const { publicKeys, secretKeys } = await generateKeys({
           numKeys: value,
           rootEntropy: `${dropId as string}`,
           autoMetaNonceStart: next_key_id,
         });
+
+        const totalPrice = new BN(price_per_key).mul(new BN(value));
+
         return {
           publicKeys,
+          secretKeys,
+          totalPrice,
           ...(await addKeys({
             wallet,
             publicKeys,
             dropId,
+            extraDepositYocto: totalPrice,
             numKeys: publicKeys.length,
             returnTransactions: true,
           })),
@@ -87,11 +91,19 @@ export const EventCard = ({ ticketArray = [] }: EventCardProps) => {
     ).then(async (transactions) => {
       console.log('transactions', transactions);
       transactions.forEach((tx) => {
-        const { requiredDeposit = 0, publicKeys = [], dropId = '' } = tx;
-        if (requiredDeposit !== 0 && publicKeys.length > 0 && dropId) {
+        const {
+          requiredDeposit = 0,
+          publicKeys = [],
+          secretKeys = [],
+          dropId = '',
+          totalPrice = new BN(0),
+        } = tx;
+        if (requiredDeposit !== 0 && publicKeys.length > 0 && secretKeys.length > 0 && dropId) {
           totalAmount = totalAmount.add(new BN(requiredDeposit));
 
+          currentDropPrice.push(formatNearAmount(totalPrice.toString(), 4));
           currentPk.push(publicKeys);
+          currentSk.push(secretKeys);
           currentDropId.push(dropId);
         }
       });
@@ -99,7 +111,9 @@ export const EventCard = ({ ticketArray = [] }: EventCardProps) => {
       console.log('totalAmount', totalAmount, totalAmount.toString());
       const pendingTicketPurchase = {
         publicKeys: currentPk,
+        secretKeys: currentSk,
         dropIds: currentDropId,
+        dropPrices: currentDropPrice,
       };
       set(PENDING_TICKET_PURCHASE, pendingTicketPurchase);
       await addToBalance({
@@ -167,7 +181,7 @@ export const EventCard = ({ ticketArray = [] }: EventCardProps) => {
                       fieldState={fieldState}
                       name={FIELD_NAME}
                       ticketName={item.ticketName}
-                      ticketPrice={item.config.sale.price_per_key}
+                      ticketPrice={item?.config?.sale?.price_per_key}
                     />
                   )}
                 />

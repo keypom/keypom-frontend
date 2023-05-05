@@ -10,23 +10,16 @@ import {
   VStack,
 } from '@chakra-ui/react';
 import { type ControllerFieldState, type ControllerRenderProps } from 'react-hook-form';
-import { formatNearAmount } from 'keypom-js';
+import { formatNearAmount, type ProtocolReturnedPublicSaleConfig } from 'keypom-js';
+
+import { type EventMetadata } from '../types/common';
 
 interface TicketCardProps {
   name: string;
-  field: ControllerRenderProps<
-    Record<
-      string,
-      Array<{
-        ticketId: string;
-        value: number;
-      }>
-    >,
-    `${string}.${number}.value`
-  >;
+  field: ControllerRenderProps<Record<string, EventMetadata>, `${string}.${number}.value`>;
   fieldState: ControllerFieldState;
   ticketName: string;
-  ticketPrice: string;
+  ticketPrice: ProtocolReturnedPublicSaleConfig['price_per_key'];
 }
 
 export const TicketCard = ({
@@ -44,7 +37,7 @@ export const TicketCard = ({
     },
   });
 
-  const amountInNEAR = formatNearAmount(ticketPrice, 4);
+  const amountInNEAR = ticketPrice ? formatNearAmount(ticketPrice, 4) : 0;
 
   return (
     <FormControl>
