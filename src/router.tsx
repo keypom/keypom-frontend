@@ -10,6 +10,8 @@ const CreatePendingEventDropsPage = React.lazy(
 
 const LandingPage = React.lazy(async () => await import('@/features/landing/routes/LandingPage'));
 
+const PortalPage = React.lazy(async () => await import('@/features/portal/routes/PortalPage'));
+
 const EventPage = React.lazy(async () => await import('@/features/event/routes/EventPage'));
 const PendingPurchasePage = React.lazy(
   async () => await import('@/features/event/routes/PendingPurchasePage'),
@@ -102,6 +104,20 @@ export const router = createBrowserRouter([
                   {
                     path: 'pending',
                     element: <PendingPurchasePage />,
+                  },
+                ],
+              },
+            ],
+          },
+          {
+            path: 'portal',
+            children: [
+              {
+                path: ':accountId',
+                children: [
+                  {
+                    index: true,
+                    element: <PortalPage />,
                   },
                 ],
               },
