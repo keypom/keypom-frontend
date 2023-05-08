@@ -6,21 +6,25 @@ import {
   InputGroup,
   type InputProps,
   Text,
+  Box,
 } from '@chakra-ui/react';
 
 interface TextInputProps extends InputProps {
   label: string;
   topLeftHelperMessage?: string;
+  bottomRightHelperMessage?: string;
   errorMessage?: string;
 }
 
 export const TextInput = ({
   label,
   topLeftHelperMessage,
+  bottomRightHelperMessage,
   errorMessage,
   ...props
 }: TextInputProps) => {
   const haveTopHelperText = !!topLeftHelperMessage;
+  const haveBottomRightHelperText = !!bottomRightHelperMessage;
   return (
     <FormControl>
       <Flex alignItems="center" justifyContent="flex-start" w="full">
@@ -28,7 +32,7 @@ export const TextInput = ({
           {label}
         </FormLabel>
       </Flex>
-      {topLeftHelperMessage && (
+      {haveTopHelperText && (
         <Flex alignItems="center" justifyContent="flex-start" w="full">
           <Text color="gray.600" mb="2">
             {topLeftHelperMessage}
@@ -38,11 +42,22 @@ export const TextInput = ({
       <InputGroup>
         <Input isInvalid={!!errorMessage} type="text" {...props} />
       </InputGroup>
-      {errorMessage && (
-        <Text fontSize={{ base: 'xs', md: 'sm' }} mt="6px" textAlign="left" variant="error">
-          {errorMessage}
-        </Text>
-      )}
+      <Flex direction={{ base: 'column', md: 'row' }} gap="1" justifyContent="space-between">
+        <Box>
+          {errorMessage && (
+            <Text fontSize={{ base: 'xs', md: 'sm' }} mt="6px" textAlign="left" variant="error">
+              {errorMessage}
+            </Text>
+          )}
+        </Box>
+        <Box>
+          {haveBottomRightHelperText && (
+            <Text fontSize={{ base: 'xs', md: 'sm' }} mt="6px" textAlign="right">
+              {bottomRightHelperMessage}
+            </Text>
+          )}
+        </Box>
+      </Flex>
     </FormControl>
   );
 };
