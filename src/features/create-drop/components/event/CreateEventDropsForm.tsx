@@ -60,14 +60,6 @@ export const CreateEventDropsForm = () => {
     name: 'questions',
   });
 
-  useEffect(() => {
-    console.log(watch());
-    console.log({ questionsFields });
-    console.log({ isDirty, isValid, errors });
-  }, [isDirty, isValid]);
-
-  const [tickets, questions] = watch(['tickets', 'questions']);
-
   const { isOpen, onClose, onOpen } = useDisclosure();
 
   const calcTotalCost = async () => {
@@ -140,13 +132,7 @@ export const CreateEventDropsForm = () => {
             return (
               <Flex key={id} alignItems="center" id={id} justifyContent="center" mb="2" w="full">
                 <Text w="20px">{index + 1}.</Text>
-                <Editable
-                  // defaultValue="Enter your email"
-                  // fontSize="sm"
-                  isPreviewFocusable={false}
-                  value={question.text}
-                  width="full"
-                >
+                <Editable isPreviewFocusable={false} value={question.text} width="full">
                   <Flex alignContent="center" justifyContent="space-between">
                     <Box>
                       <EditablePreview />
@@ -183,7 +169,7 @@ export const CreateEventDropsForm = () => {
           variant="outline"
           width="full"
           onClick={() => {
-            appendQuestion({ text: 'new question' });
+            appendQuestion({ text: 'new question', type: 'TEXT' });
           }}
         >
           Add questions
