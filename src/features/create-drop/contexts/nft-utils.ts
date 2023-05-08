@@ -20,6 +20,9 @@ export const getNFTAttempt = async () => {
 };
 
 export const createDropsForNFT = async (dropId, returnTransactions, data, setAppModal) => {
+  const { networkId } = getEnv();
+  const networkSuffix = networkId === 'testnet' ? networkId : 'main'
+
   const file = await data?.media?.arrayBuffer();
 
   let { media = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' } = data;
@@ -53,7 +56,7 @@ export const createDropsForNFT = async (dropId, returnTransactions, data, setApp
           methods: [
             [
               {
-                receiverId: 'nft-v2.keypom.testnet',
+                receiverId: 'nft-v2.keypom.' + networkSuffix,
                 methodName: 'create_series',
                 args: JSON.stringify({
                   mint_id: parseInt(dropId),
@@ -178,7 +181,7 @@ export const createDropsForNFT = async (dropId, returnTransactions, data, setApp
         methods: [
           [
             {
-              receiverId: 'nft-v2.keypom.testnet',
+              receiverId: 'nft-v2.keypom.' + networkSuffix,
               methodName: 'nft_mint',
               args: '',
               dropIdField: 'mint_id',
