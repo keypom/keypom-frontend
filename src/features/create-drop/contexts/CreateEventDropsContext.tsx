@@ -49,11 +49,13 @@ export const ticketSchema = z.object({
 const schema = z.object({
   eventName: z.string().min(1, 'Event name required'),
   tickets: z.array(ticketSchema).min(1),
-  questions: z.array(
-    z.object({
-      text: z.string(),
-      type: z.enum(['TEXT', 'RADIO']),
-    }),
+  questions: z.optional(
+    z.array(
+      z.object({
+        text: z.string(),
+        type: z.enum(['TEXT', 'RADIO']),
+      }),
+    ),
   ),
 });
 

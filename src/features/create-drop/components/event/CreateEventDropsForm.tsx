@@ -18,7 +18,7 @@ import { useEffect, useState } from 'react';
 
 import { IconBox } from '@/components/IconBox';
 import { FormControl } from '@/components/FormControl';
-import { LinkIcon } from '@/components/Icons';
+import { DeleteIcon, LinkIcon } from '@/components/Icons';
 import { useDropFlowContext } from '@/features/create-drop/contexts';
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
 import { TicketCard } from '@/features/create-drop/components/TicketCard/TicketCard';
@@ -39,7 +39,7 @@ export const CreateEventDropsForm = () => {
     control,
     watch,
     getValues,
-    formState: { isDirty, isValid },
+    formState: { isDirty, isValid, errors },
   } = useFormContext();
 
   const {
@@ -59,6 +59,12 @@ export const CreateEventDropsForm = () => {
     control,
     name: 'questions',
   });
+
+  useEffect(() => {
+    console.log(watch());
+    console.log({ questionsFields });
+    console.log({ isDirty, isValid, errors });
+  }, [isDirty, isValid]);
 
   const [tickets, questions] = watch(['tickets', 'questions']);
 
@@ -129,7 +135,7 @@ export const CreateEventDropsForm = () => {
           helperText="add questions to your ticket to collect information from attendees"
           label="Collect attendees info"
         >
-          {questions.map((question, index: number) => {
+          {questionsFields.map((question, index: number) => {
             const id = ticketFields?.[index]?.id;
             return (
               <Flex key={id} alignItems="center" id={id} justifyContent="center" mb="2" w="full">
@@ -160,16 +166,31 @@ export const CreateEventDropsForm = () => {
                         }}
                       />
                     </Box>
-                    <EditableControls />
+                    <EditableControls
+                      removeQuestion={() => {
+                        removeQuestion(index);
+                      }}
+                    />
                   </Flex>
                 </Editable>
               </Flex>
             );
           })}
         </FormControl>
+        <Button
+          leftIcon={<AddIcon />}
+          mt="2"
+          variant="outline"
+          width="full"
+          onClick={() => {
+            appendQuestion({ text: 'new question' });
+          }}
+        >
+          Add questions
+        </Button>
 
         <Box mt="10">
-          {tickets.map((ticket, index) => (
+          {ticketFields.map((ticket, index) => (
             <TicketCard
               key={ticketFields?.[index]?.id}
               id={ticketFields?.[index]?.id}
@@ -221,7 +242,7 @@ export const CreateEventDropsForm = () => {
  * event id: 'drop name - event id'
  */
 
-const EditableControls = () => {
+const EditableControls = ({ removeQuestion }: { removeQuestion: (i: number) => void }) => {
   const { isEditing, getSubmitButtonProps, getCancelButtonProps, getEditButtonProps } =
     useEditableControls();
 
@@ -231,8 +252,9 @@ const EditableControls = () => {
       <IconButton aria-label="cancel" icon={<CloseIcon />} {...getCancelButtonProps()} />
     </ButtonGroup>
   ) : (
-    <Flex justifyContent="center">
+    <Flex gap="2" justifyContent="center">
       <IconButton aria-label="edit" icon={<EditIcon />} size="sm" {...getEditButtonProps()} />
+      <IconButton aria-label="edit" icon={<DeleteIcon />} size="sm" onClick={removeQuestion} />
     </Flex>
   );
 };
