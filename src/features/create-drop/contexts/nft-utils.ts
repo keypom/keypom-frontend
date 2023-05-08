@@ -21,7 +21,7 @@ export const getNFTAttempt = async () => {
 
 export const createDropsForNFT = async (dropId, returnTransactions, data, setAppModal) => {
   const { networkId } = getEnv();
-  const networkSuffix = networkId === 'testnet' ? networkId : 'main'
+  const networkSuffix = networkId === 'testnet' ? networkId : 'main';
 
   const file = await data?.media?.arrayBuffer();
 
