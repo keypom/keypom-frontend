@@ -17,6 +17,7 @@ import { useEffect } from 'react';
 
 import { FormControl } from '@/components/FormControl';
 import { TokenInput } from '@/components/TokenInputMenu';
+import { DatetimeRangePicker } from '@/components/DatetimeRangePicker/DatetimeRangePicker';
 
 import { ticketSchema, type TicketSchema } from '../../contexts/CreateEventDropsContext';
 
@@ -43,6 +44,7 @@ export const CreateTicketDrawer = ({
     getValues,
     setValue,
     reset,
+    watch,
     formState: { isDirty, isValid },
   } = useForm<TicketSchema>({
     mode: 'onChange',
@@ -53,6 +55,11 @@ export const CreateTicketDrawer = ({
   useEffect(() => {
     reset(values);
   }, [isOpen]);
+
+  const [salesStartDate, salesEndDate] = watch(['salesStartDate', 'salesEndDate']);
+  // const [dateRange, setDateRange] = useState([null, null]);
+  // const [startDate, endDate] = dateRange;
+  // console.log(dateRange);
 
   return (
     <Drawer
@@ -212,6 +219,14 @@ export const CreateTicketDrawer = ({
               );
             }}
           />
+          <FormControl label="Sales period">
+            <DatetimeRangePicker
+              onChange={(datetimes) => {
+                console.log({ datetimes });
+                console.log(JSON.stringify(datetimes));
+              }}
+            />
+          </FormControl>
         </DrawerBody>
 
         <DrawerFooter>
