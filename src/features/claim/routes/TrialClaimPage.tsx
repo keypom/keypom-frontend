@@ -1,4 +1,4 @@
-import { Box, Button, Center, Heading, useBoolean, VStack } from '@chakra-ui/react';
+import { Box, Button, Center, Flex, Heading, Text, useBoolean, VStack } from '@chakra-ui/react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { claimTrialAccountDrop, accountExists } from 'keypom-js';
@@ -6,13 +6,12 @@ import { claimTrialAccountDrop, accountExists } from 'keypom-js';
 import { IconBox } from '@/components/IconBox';
 import { BoxWithShape } from '@/components/BoxWithShape';
 import { StarIcon } from '@/components/Icons';
-import { DropBox } from '@/components/DropBox/DropBox';
 import keypomInstance from '@/lib/keypom';
 import { useAppContext } from '@/contexts/AppContext';
 import { ErrorBox } from '@/components/ErrorBox';
 import { useClaimParams } from '@/hooks/useClaimParams';
-
-import { ExistingWallet } from '../components/ExistingWallet';
+import { GradientSpan } from '@/components/GradientSpan';
+import { TextInput } from '@/components/TextInput';
 
 interface TokenAsset {
   icon: string;
@@ -176,12 +175,12 @@ const TrialClaimPage = () => {
         {/** the additional gap is to accommodate for the absolute roundIcon size */}
         <VStack gap={{ base: 'calc(24px + 8px)', md: 'calc(32px + 10px)' }}>
           {/** Prompt text */}
-          <Heading textAlign="center">{`You've received a Trial Account Drop!`}</Heading>
+          <Heading textAlign="center">{`Welcome to NEAR`}</Heading>
 
           {/** Claim token component */}
           <IconBox
             icon={<StarIcon height={{ base: '8', md: '10' }} width={{ base: '8', md: '10' }} />}
-            minW={{ base: 'inherit', md: '345px' }}
+            minW={{ base: 'inherit', md: '584px' }}
             p="0"
             pb="0"
             w={{ base: '345px', md: '30rem' }}
@@ -197,9 +196,28 @@ const TrialClaimPage = () => {
             >
               <VStack>
                 {/** div placeholder */}
-                {tokens.map(({ icon, value, symbol }, index) => (
-                  <DropBox key={index} icon={icon} symbol={symbol} value={value} />
-                ))}
+                <>
+                  <Box
+                    background="linear-gradient(129.59deg, rgba(255, 255, 255, 0.2) 30.89%, rgba(115, 214, 243, 0.2) 98.74%), #FFFFFF"
+                    height="180px"
+                    mb="7"
+                    width="full"
+                  />
+                  <VStack spacing="2">
+                    <Text
+                      color="gray.800"
+                      fontWeight="500"
+                      size={{ base: 'xl', md: '2xl' }}
+                      textAlign="center"
+                    >
+                      You've been gifted a trial account!
+                    </Text>
+                    <Text color="gray.600" textAlign="center">
+                      <GradientSpan>Earn [$50 USD] worth of NEAR</GradientSpan> when you create a
+                      trial account.
+                    </Text>
+                  </VStack>
+                </>
               </VStack>
             </BoxWithShape>
             <VStack
@@ -209,16 +227,17 @@ const TrialClaimPage = () => {
               spacing={{ base: '4', md: '5' }}
               w="full"
             >
-              <ExistingWallet
-                claimErrorText={claimError}
-                handleSubmit={handleClaim}
-                isLoading={isClaimLoading}
-                isSuccess={isClaimSuccessful}
-                label={`Your Account Name`}
-                message={`Create Your Account`}
-                noBackIcon={true}
-                onBack={showInputWallet.off}
-              />
+              <>
+                <Flex mb="1.5" w="full">
+                  <TextInput
+                    bottomRightHelperMessage="0/50"
+                    label="Account name"
+                    placeholder="yourname.near"
+                    topLeftHelperMessage="Must be unique, and use no special characters."
+                  />
+                </Flex>
+                <Button w="full">Create trial account</Button>
+              </>
             </VStack>
           </IconBox>
         </VStack>

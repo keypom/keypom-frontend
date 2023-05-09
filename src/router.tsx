@@ -10,6 +10,8 @@ const CreatePendingEventDropsPage = React.lazy(
 
 const LandingPage = React.lazy(async () => await import('@/features/landing/routes/LandingPage'));
 
+const PortalPage = React.lazy(async () => await import('@/features/portal/routes/PortalPage'));
+
 const EventPage = React.lazy(async () => await import('@/features/event/routes/EventPage'));
 const PendingPurchasePage = React.lazy(
   async () => await import('@/features/event/routes/PendingPurchasePage'),
@@ -62,6 +64,9 @@ const NFTDropManagerPage = React.lazy(
 const TicketDropManagerPage = React.lazy(
   async () => await import('@/features/drop-manager/routes/ticket/TicketDropManagerPage'),
 );
+const TrialDropManagerPage = React.lazy(
+  async () => await import('@/features/drop-manager/routes/trial/TrialDropManagerPage'),
+);
 const EthDenverLandingPage = React.lazy(async () => await import('@/pages/EthDenver'));
 
 const ScannerPage = React.lazy(async () => await import('@/features/scanner/routes/ScannerPage'));
@@ -99,6 +104,20 @@ export const router = createBrowserRouter([
                   {
                     path: 'pending',
                     element: <PendingPurchasePage />,
+                  },
+                ],
+              },
+            ],
+          },
+          {
+            path: 'portal',
+            children: [
+              {
+                path: ':accountId',
+                children: [
+                  {
+                    index: true,
+                    element: <PortalPage />,
                   },
                 ],
               },
@@ -170,6 +189,15 @@ export const router = createBrowserRouter([
                   //   path: ':id',
                   //   element: <TicketDropManagerPage />,
                   // },
+                ],
+              },
+              {
+                path: 'trial',
+                children: [
+                  {
+                    path: ':id',
+                    element: <TrialDropManagerPage />,
+                  },
                 ],
               },
             ],
