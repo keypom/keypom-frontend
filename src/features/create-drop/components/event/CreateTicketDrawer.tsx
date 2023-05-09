@@ -9,6 +9,7 @@ import {
   DrawerHeader,
   DrawerOverlay,
   Textarea,
+  ButtonGroup,
 } from '@chakra-ui/react';
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -18,6 +19,9 @@ import { FormControl } from '@/components/FormControl';
 import { TokenInput } from '@/components/TokenInputMenu';
 
 import { ticketSchema, type TicketSchema } from '../../contexts/CreateEventDropsContext';
+
+const quickPrices = ['0.5', '1.5', '3.0', '5.0', '10.0'];
+const quickNumberOfTickets = ['10', '30', '50'];
 
 interface CreateTicketDrawerProps {
   isOpen: boolean;
@@ -37,19 +41,12 @@ export const CreateTicketDrawer = ({
   const {
     control,
     getValues,
+    setValue,
     reset,
-    handleSubmit,
     formState: { isDirty, isValid },
   } = useForm<TicketSchema>({
     mode: 'onChange',
-    defaultValues: {
-      name: '',
-      description: '',
-      salesStartDate: '',
-      salesEndDate: '',
-      nearPricePerTicket: undefined,
-      numberOfTickets: undefined,
-    },
+    defaultValues: values,
     resolver: zodResolver(ticketSchema),
   });
 
@@ -107,6 +104,21 @@ export const CreateTicketDrawer = ({
               );
             }}
           />
+          <ButtonGroup spacing="2">
+            {quickNumberOfTickets.map((val) => (
+              <Button
+                key={`quickNumOfTicket-${val}`}
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  console.log(val);
+                  setValue('numberOfTickets', val);
+                }}
+              >
+                {val}
+              </Button>
+            ))}
+          </ButtonGroup>
           <Controller
             control={control}
             name="nearPricePerTicket"
@@ -130,6 +142,20 @@ export const CreateTicketDrawer = ({
               </FormControl>
             )}
           />
+          <ButtonGroup spacing="2">
+            {quickPrices.map((val) => (
+              <Button
+                key={`quickPrices-${val}`}
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  setValue('nearPricePerTicket', val);
+                }}
+              >
+                {val}
+              </Button>
+            ))}
+          </ButtonGroup>
           <Controller
             control={control}
             name="description"
@@ -193,7 +219,7 @@ export const CreateTicketDrawer = ({
             Cancel
           </Button>
           <Button
-            isDisabled={!isDirty || !isValid}
+            isDisabled={!isValid}
             onClick={() => {
               console.log(getValues());
               onConfirm(getValues());
