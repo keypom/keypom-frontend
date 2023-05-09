@@ -22,14 +22,25 @@ import { DeleteIcon, LinkIcon } from '@/components/Icons';
 import { useDropFlowContext } from '@/features/create-drop/contexts';
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
 import { TicketCard } from '@/features/create-drop/components/TicketCard/TicketCard';
+import { type TicketSchema } from '@/features/create-drop/contexts/CreateEventDropsContext';
 
 import { CreateTicketDrawer } from './CreateTicketDrawer';
 
 // const { defaultWallet } = getConfig();
 
+const defaultTicketValues: TicketSchema = {
+  name: '',
+  description: '',
+  salesStartDate: '',
+  salesEndDate: '',
+  nearPricePerTicket: undefined,
+  numberOfTickets: undefined,
+};
+
 export const CreateEventDropsForm = () => {
   const [totalCost, setTotalCost] = useState(0);
   const [totalLinks, setTotalLinks] = useState(0);
+  const [currentTicketIndex, setCurrentTicketIndex] = useState(0);
   const [modalAction, setModalAction] = useState('create');
   const { onNext } = useDropFlowContext();
   const { account } = useAuthWalletContext();
@@ -45,6 +56,7 @@ export const CreateEventDropsForm = () => {
   const {
     fields: ticketFields,
     append: appendTicket,
+    update: updateTicket,
     remove: removeTicket,
   } = useFieldArray({
     control,
@@ -73,6 +85,15 @@ export const CreateEventDropsForm = () => {
 
   const handleSubmitClick = (data) => {
     onNext?.();
+  };
+
+  const handleConfirmTicket = (ticketData) => {
+    if (modalAction === 'create') {
+      appendTicket(ticketData);
+      return;
+    }
+
+    updateTicket(currentTicketIndex, ticketData);
   };
 
   // const getEstimatedCost = async () => {
@@ -128,7 +149,7 @@ export const CreateEventDropsForm = () => {
           label="Collect attendees info"
         >
           {questionsFields.map((question, index: number) => {
-            const id = ticketFields?.[index]?.id;
+            const id = questionsFields?.[index]?.id;
             return (
               <Flex key={id} alignItems="center" id={id} justifyContent="center" mb="2" w="full">
                 <Text w="20px">{index + 1}.</Text>
@@ -183,7 +204,10 @@ export const CreateEventDropsForm = () => {
               ticket={ticket}
               onEditClick={() => {
                 setModalAction('update');
-                onOpen();
+                setCurrentTicketIndex(index);
+                window.setTimeout(() => {
+                  onOpen();
+                }, 0);
               }}
               onRemoveClick={() => {
                 removeTicket(index);
@@ -204,9 +228,8 @@ export const CreateEventDropsForm = () => {
       </form>
 
       <CreateTicketDrawer
-        appendTicket={appendTicket}
         isOpen={isOpen}
-        ticketIndex={ticketFields.length}
+        values={modalAction === 'create' ? defaultTicketValues : ticketFields[currentTicketIndex]}
         onCancel={() => {
           if (modalAction === 'create') {
             removeTicket(ticketFields.length);
@@ -216,6 +239,7 @@ export const CreateEventDropsForm = () => {
           }, 0);
         }}
         onClose={onClose}
+        onConfirm={handleConfirmTicket}
       />
     </IconBox>
   );

@@ -10,36 +10,35 @@ import {
   DrawerOverlay,
   Textarea,
 } from '@chakra-ui/react';
-import { Controller, type UseFieldArrayAppend, useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect } from 'react';
 
 import { FormControl } from '@/components/FormControl';
 import { TokenInput } from '@/components/TokenInputMenu';
 
-import {
-  type Schema,
-  ticketSchema,
-  type TicketSchema,
-} from '../../contexts/CreateEventDropsContext';
+import { ticketSchema, type TicketSchema } from '../../contexts/CreateEventDropsContext';
 
 interface CreateTicketDrawerProps {
   isOpen: boolean;
   onClose: () => void;
   onCancel: () => void;
-  appendTicket: UseFieldArrayAppend<Schema, 'tickets'>;
+  onConfirm: (ticketData: TicketSchema) => void;
+  values: TicketSchema;
 }
 
 export const CreateTicketDrawer = ({
+  values,
   isOpen,
   onClose,
   onCancel,
-  appendTicket,
+  onConfirm,
 }: CreateTicketDrawerProps) => {
   const {
     control,
     getValues,
     reset,
+    handleSubmit,
     formState: { isDirty, isValid },
   } = useForm<TicketSchema>({
     mode: 'onChange',
@@ -55,7 +54,7 @@ export const CreateTicketDrawer = ({
   });
 
   useEffect(() => {
-    reset();
+    reset(values);
   }, [isOpen]);
 
   return (
@@ -196,11 +195,12 @@ export const CreateTicketDrawer = ({
           <Button
             isDisabled={!isDirty || !isValid}
             onClick={() => {
-              appendTicket(getValues());
+              console.log(getValues());
+              onConfirm(getValues());
               onClose();
             }}
           >
-            Add
+            Confirm
           </Button>
         </DrawerFooter>
       </DrawerContent>

@@ -38,7 +38,7 @@ export const TicketCard = ({ ticket, id, onRemoveClick, onEditClick }: TicketCar
         <Text>Number of tickets: {ticket.numberOfTickets}</Text>
         {ticket.description && <Text>Description: {ticket.description}</Text>}
         <Text>
-          Sales period: {ticket.salesStartDate} - {ticket.salesStartDate}
+          Sales period: {ticket.salesStartDate} - {ticket.salesEndDate}
         </Text>
         <Text>Price: {ticket.nearPricePerTicket} NEAR</Text>
       </CardBody>
@@ -47,9 +47,9 @@ export const TicketCard = ({ ticket, id, onRemoveClick, onEditClick }: TicketCar
           <Divider />
           <CardFooter>
             <Stack direction="row" justify="flex-end" w="full">
-              {/* <Button variant="secondary" onClick={onEditClick}>
-            Edit - temporarily disable
-          </Button> */}
+              <Button variant="secondary" onClick={onEditClick}>
+                Edit
+              </Button>
               <Button colorScheme="red" ml="3" variant="outline" onClick={onRemoveClick}>
                 Remove
               </Button>
