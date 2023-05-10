@@ -12,13 +12,26 @@ import {
 } from '@/features/create-drop/types/types';
 import { set } from '@/utils/localStorage';
 import { PENDING_EVENT_TICKETS } from '@/constants/common';
+import { EventInfoForm } from '@/features/create-drop/components/event/form-steps/EventInfoForm';
+import { type StepItem } from '@/components/Step';
+import { EventQuestionsForm } from '@/features/create-drop/components/event/form-steps/EventQuestionsForm';
+import { EventTicketsForm } from '@/features/create-drop/components/event/form-steps/EventTicketsForm';
+import { useSteps } from '@/hooks/useSteps';
 
 // import { type PaymentData, type SummaryItem } from '../types/types';
 
+interface FormStep extends StepItem {
+  isSkipable: boolean;
+  schema: typeof TicketsSchema | typeof EventInfoSchema | typeof QuestionsSchema;
+}
 interface CreateEventDropsContextProps {
   getSummaryData: () => SummaryItem[];
   getPaymentData: () => Promise<PaymentData>;
   handleCreateDrops: () => void;
+  onNextStep: () => void;
+  onPreviousStep: () => void;
+  currentIndex: number;
+  formSteps: FormStep[];
 }
 
 const CreateEventDropsContext = createContext<CreateEventDropsContextProps>({
@@ -31,6 +44,14 @@ const CreateEventDropsContext = createContext<CreateEventDropsContextProps>({
   getSummaryData: () => {
     throw new Error('Function not implemented');
   },
+  formSteps: [],
+  onNextStep: function (): void {
+    throw new Error('Function not implemented.');
+  },
+  onPreviousStep: function (): void {
+    throw new Error('Function not implemented.');
+  },
+  currentIndex: 0,
 });
 
 export const ticketSchema = z.object({
@@ -46,9 +67,15 @@ export const ticketSchema = z.object({
     .max(50, 'Currently tickets are limited to 50 links. This will be increased very soon!'),
 });
 
-const schema = z.object({
+const EventInfoSchema = z.object({
   eventName: z.string().min(1, 'Event name required'),
+});
+
+const TicketsSchema = z.object({
   tickets: z.array(ticketSchema).min(1),
+});
+
+const QuestionsSchema = z.object({
   questions: z.optional(
     z.array(
       z.object({
@@ -60,7 +87,33 @@ const schema = z.object({
 });
 
 export type TicketSchema = z.infer<typeof ticketSchema>;
-export type Schema = z.infer<typeof schema>;
+export type CreateEventFieldsSchema = z.infer<
+  typeof EventInfoSchema & typeof QuestionsSchema & typeof TicketsSchema
+>;
+
+const formSteps: FormStep[] = [
+  {
+    name: 'eventInfo',
+    title: 'Event info',
+    component: <EventInfoForm />,
+    isSkipable: false,
+    schema: EventInfoSchema,
+  },
+  {
+    name: 'collectInfo',
+    title: 'Collect info',
+    component: <EventQuestionsForm />,
+    isSkipable: true,
+    schema: QuestionsSchema,
+  },
+  {
+    name: 'tickets',
+    title: 'Tickets',
+    component: <EventTicketsForm />,
+    isSkipable: false,
+    schema: TicketsSchema,
+  },
+];
 
 /**
  *
@@ -68,9 +121,14 @@ export type Schema = z.infer<typeof schema>;
  */
 export const CreateEventDropsProvider = ({ children }: PropsWithChildren) => {
   // const { account } = useAuthWalletContext();
+  const {
+    onNext: onNextStep,
+    onPrevious: onPreviousStep,
+    currentIndex,
+  } = useSteps({ maxSteps: formSteps.length });
   const [totalRequiredDeposits, setTotalDeposits] = useState('0');
 
-  const methods = useForm<Schema>({
+  const methods = useForm<CreateEventFieldsSchema>({
     mode: 'onChange',
     defaultValues: {
       eventName: '',
@@ -80,7 +138,7 @@ export const CreateEventDropsProvider = ({ children }: PropsWithChildren) => {
         { text: 'How did you find this event?', type: 'TEXT' },
       ],
     },
-    resolver: zodResolver(schema),
+    resolver: zodResolver(formSteps[currentIndex].schema),
   });
 
   // get total deposits
@@ -172,7 +230,17 @@ export const CreateEventDropsProvider = ({ children }: PropsWithChildren) => {
   };
 
   return (
-    <CreateEventDropsContext.Provider value={{ handleCreateDrops, getPaymentData, getSummaryData }}>
+    <CreateEventDropsContext.Provider
+      value={{
+        handleCreateDrops,
+        getPaymentData,
+        getSummaryData,
+        onNextStep,
+        onPreviousStep,
+        currentIndex,
+        formSteps,
+      }}
+    >
       <FormProvider {...methods}>{children}</FormProvider>
     </CreateEventDropsContext.Provider>
   );

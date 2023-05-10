@@ -6,6 +6,7 @@ import {
   EditableInput,
   EditablePreview,
   Flex,
+  HStack,
   IconButton,
   Input,
   Text,
@@ -20,10 +21,13 @@ import { IconBox } from '@/components/IconBox';
 import { FormControl } from '@/components/FormControl';
 import { DeleteIcon, EventIcon } from '@/components/Icons';
 import { useDropFlowContext } from '@/features/create-drop/contexts';
-import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
 import { TicketCard } from '@/features/create-drop/components/TicketCard/TicketCard';
-import { type TicketSchema } from '@/features/create-drop/contexts/CreateEventDropsContext';
+import {
+  useCreateEventDropsContext,
+  type TicketSchema,
+} from '@/features/create-drop/contexts/CreateEventDropsContext';
 import { CreateTicketModal } from '@/features/create-drop/components/event/CreateTicketModal';
+import { Step } from '@/components/Step';
 
 // const { defaultWallet } = getConfig();
 
@@ -42,7 +46,7 @@ export const CreateEventDropsForm = () => {
   const [currentTicketIndex, setCurrentTicketIndex] = useState(0);
   const [modalAction, setModalAction] = useState('create');
   const { onNext } = useDropFlowContext();
-  const { account } = useAuthWalletContext();
+  const { currentIndex, onNextStep, onPreviousStep, formSteps } = useCreateEventDropsContext();
   const {
     setValue,
     handleSubmit,
@@ -51,6 +55,11 @@ export const CreateEventDropsForm = () => {
     getValues,
     formState: { isDirty, isValid, errors },
   } = useFormContext();
+  const currentStep = formSteps[currentIndex];
+
+  const stepsDisplay = formSteps.map((step, index) => (
+    <Step key={step.name} index={index + 1} isActive={currentIndex === index} stepItem={step} />
+  ));
 
   const {
     fields: ticketFields,
@@ -95,21 +104,23 @@ export const CreateEventDropsForm = () => {
     updateTicket(currentTicketIndex, ticketData);
   };
 
-  // const getEstimatedCost = async () => {
-  //   await Promise.all(
-  //     tickets.map(async () => {
-  //       const { requiredDeposit } = await createDrop({
-  //         wallet: await window.selector.wallet(),
-  //         depositPerUseNEAR: amountPerLink,
-  //         numKeys: totalLinks,
-  //         returnTransactions: true,
-  //       });
-  //     }),
-  //   );
-  // };
-
   return (
     <IconBox icon={<EventIcon />} maxW={{ base: '21.5rem', md: '36rem' }} mx="auto">
+      <HStack
+        flexWrap="nowrap"
+        justifyContent={{ base: 'flex-start', md: 'center' }}
+        mt={{ base: '8', md: '0' }}
+        overflowX={{ base: 'scroll', md: 'visible' }}
+        spacing={{ base: '2', md: '4' }}
+        sx={{
+          '&::-webkit-scrollbar': {
+            display: 'none',
+          },
+          scrollbarWidth: 'none',
+        }}
+      >
+        {stepsDisplay}
+      </HStack>
       <form onSubmit={handleSubmit(handleSubmitClick)}>
         <Controller
           control={control}
