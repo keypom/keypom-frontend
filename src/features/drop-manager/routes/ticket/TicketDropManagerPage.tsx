@@ -119,49 +119,67 @@ export default function TicketDropManagerPage() {
       encryptedData = await fetchAttendeeInformation(drop.drop_id, allPublicKeys, allSecretKeys);
     }
 
-    return data.map((item) => ({
-      id: item.id,
-      dropId,
-      dropLink: item.link,
-      link: (
-        <Text color="gray.400" display="flex">
-          {window.location.hostname}/
-          <Text as="span" color="gray.800">
-            {item.slug}
+    return data.map((item) => {
+      // qnaStats only exists if ticket has questions
+      let qnaStats;
+      if (dropMetadata.questions) {
+        const answeredQuestionsLength = encryptedData[item.publicKey].filter(
+          (answer) => answer !== undefined,
+        ).length as number;
+        const questionsLength = dropMetadata.questions.length as number;
+        qnaStats = `${answeredQuestionsLength} / ${questionsLength}`;
+      }
+
+      return {
+        id: item.id,
+        dropId,
+        dropLink: item.link,
+        link: (
+          <Text color="gray.400" display="flex">
+            {window.location.hostname}/
+            <Text as="span" color="gray.800">
+              {item.slug}
+            </Text>
           </Text>
-        </Text>
-      ),
-      hasClaimed: getBadgeType(item.keyInfo?.cur_key_use as number),
-      ...(encryptedData?.[item.publicKey] && {
-        q1Ans: decrypt(encryptedData[item.publicKey][0], item.secretKey),
-        q2Ans: decrypt(encryptedData[item.publicKey][1], item.secretKey),
-      }),
-      action: (
-        <>
-          <Button
-            mr="1"
-            size="sm"
-            variant="icon"
-            onClick={() => {
-              handleCopyClick(item.link);
-            }}
-          >
-            <CopyIcon />
-          </Button>
-          {!item.hasClaimed && (
+        ),
+        hasClaimed: getBadgeType(item.keyInfo?.cur_key_use as number),
+        qnaStats,
+        rowPanel:
+          encryptedData?.[item.publicKey] &&
+          encryptedData[item.publicKey].map((ans, i) => ({
+            id: i,
+            questions: dropMetadata.questions[i].text,
+            answers: decrypt(ans, item.secretKey),
+          })),
+        action: (
+          <>
             <Button
+              mr="1"
               size="sm"
               variant="icon"
-              onClick={async () => {
-                await handleDeleteClick(item.publicKey);
+              onClick={(e) => {
+                e.preventDefault();
+                handleCopyClick(item.link);
               }}
             >
-              <DeleteIcon color="red" />
+              <CopyIcon />
             </Button>
-          )}
-        </>
-      ),
-    }));
+            {!item.hasClaimed && (
+              <Button
+                size="sm"
+                variant="icon"
+                onClick={async (e) => {
+                  e.preventDefault();
+                  await handleDeleteClick(item.publicKey);
+                }}
+              >
+                <DeleteIcon color="red" />
+              </Button>
+            )}
+          </>
+        ),
+      };
+    });
   };
 
   return (
