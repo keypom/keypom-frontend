@@ -13,7 +13,7 @@ import { CreateEventDropsProvider } from '../contexts/CreateEventDropsContext';
 const flowPages: IFlowPage[] = [
   {
     name: 'form',
-    description: 'Enter the details for your new Token Drop',
+    description: 'Enter the details for your new Event Drop',
     component: <CreateEventDropsForm />,
   },
   {
