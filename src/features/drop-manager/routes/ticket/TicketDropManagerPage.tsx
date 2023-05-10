@@ -132,17 +132,24 @@ export default function TicketDropManagerPage() {
         </Text>
       ),
       hasClaimed: getBadgeType(item.keyInfo?.cur_key_use as number),
-      ...(encryptedData?.[item.publicKey] && {
-        q1Ans: decrypt(encryptedData[item.publicKey][0], item.secretKey),
-        q2Ans: decrypt(encryptedData[item.publicKey][1], item.secretKey),
-      }),
+      qnaStats: `${
+        encryptedData[item.publicKey].filter((answer) => answer !== undefined).length ?? 0
+      } / ${dropMetadata.questions.length ?? 0}`,
+      rowPanel:
+        encryptedData?.[item.publicKey] &&
+        encryptedData[item.publicKey].map((ans, i) => ({
+          id: i,
+          questions: dropMetadata.questions[i].text,
+          answers: decrypt(ans, item.secretKey),
+        })),
       action: (
         <>
           <Button
             mr="1"
             size="sm"
             variant="icon"
-            onClick={() => {
+            onClick={(e) => {
+              e.preventDefault();
               handleCopyClick(item.link);
             }}
           >
@@ -152,7 +159,8 @@ export default function TicketDropManagerPage() {
             <Button
               size="sm"
               variant="icon"
-              onClick={async () => {
+              onClick={async (e) => {
+                e.preventDefault();
                 await handleDeleteClick(item.publicKey);
               }}
             >
