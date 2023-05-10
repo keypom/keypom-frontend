@@ -70,7 +70,7 @@ export const DataTable = ({
       ));
     }
 
-    if (data && !data[0].rowPanel)
+    if (data.length > 0 && data[0].rowPanel === undefined)
       return data.map((drop) => (
         <Tr
           key={drop.id}
@@ -99,14 +99,15 @@ export const DataTable = ({
       ));
 
     return data.map((drop) => {
+      const panelContent = (drop.rowPanel as any[]) ?? [];
       const getRowPanel = () => (
         <TableContainer p="0" whiteSpace="inherit">
           <Table bg="unset">
             <Tbody>
-              {drop.rowPanel.map((item, i) => (
+              {panelContent.map((item, i) => (
                 <Tr key={i}>
                   {QnaTableColumns.map((column, i) => (
-                    <Td key={`${column.id}-$${drop.rowPanel.id}-${i}`} {...column.tdProps}>
+                    <Td key={`${column.id}-$${item.id}-${i}`} {...column.tdProps}>
                       {column.selector(item)}
                     </Td>
                   ))}
