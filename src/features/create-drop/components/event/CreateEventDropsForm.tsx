@@ -18,13 +18,12 @@ import { useEffect, useState } from 'react';
 
 import { IconBox } from '@/components/IconBox';
 import { FormControl } from '@/components/FormControl';
-import { DeleteIcon, LinkIcon } from '@/components/Icons';
+import { DeleteIcon, EventIcon } from '@/components/Icons';
 import { useDropFlowContext } from '@/features/create-drop/contexts';
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
 import { TicketCard } from '@/features/create-drop/components/TicketCard/TicketCard';
 import { type TicketSchema } from '@/features/create-drop/contexts/CreateEventDropsContext';
-
-import { CreateTicketDrawer } from './CreateTicketDrawer';
+import { CreateTicketModal } from '@/features/create-drop/components/event/CreateTicketModal';
 
 // const { defaultWallet } = getConfig();
 
@@ -110,11 +109,7 @@ export const CreateEventDropsForm = () => {
   // };
 
   return (
-    <IconBox
-      icon={<LinkIcon h={{ base: '7', md: '9' }} />}
-      maxW={{ base: '21.5rem', md: '36rem' }}
-      mx="auto"
-    >
+    <IconBox icon={<EventIcon />} maxW={{ base: '21.5rem', md: '36rem' }} mx="auto">
       <form onSubmit={handleSubmit(handleSubmitClick)}>
         <Controller
           control={control}
@@ -227,7 +222,8 @@ export const CreateEventDropsForm = () => {
         </Flex>
       </form>
 
-      <CreateTicketDrawer
+      <CreateTicketModal
+        confirmText={modalAction === 'create' ? 'Add ticket' : 'Save changes'}
         isOpen={isOpen}
         values={modalAction === 'create' ? defaultTicketValues : ticketFields[currentTicketIndex]}
         onCancel={() => {

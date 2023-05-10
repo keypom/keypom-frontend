@@ -3,6 +3,7 @@ export * from './ChevronLeftIcon';
 export * from './CopyIcon';
 export * from './DeleteIcon';
 export * from './DropIcon';
+export * from './EventIcon';
 export * from './ImageIcon';
 export * from './KeyIcon';
 export * from './LinkIcon';

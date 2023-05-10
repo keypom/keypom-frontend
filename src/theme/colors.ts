@@ -6,6 +6,7 @@ export const colors: RecursiveObject<string> = {
     round:
       'linear-gradient(0deg, #B6E8F7, #B6E8F7), linear-gradient(344.12deg, #EFFAFD 10.78%, #DDF4FA 88.63%)',
     landing: {
+      100: 'linear-gradient(#EFFAFD, #EFFAFD) padding-box, linear-gradient(0deg, #FFA9DC 0%, #73D6F3 100%) border-box',
       800: 'linear-gradient(#1e293b, #1e293b) padding-box, linear-gradient(0deg, #FFA9DC 0%, #73D6F3 100%) border-box',
 
       900: 'linear-gradient(#0f172a, #0f172a) padding-box, linear-gradient(0deg, #FFA9DC 0%, #73D6F3 100%) border-box',

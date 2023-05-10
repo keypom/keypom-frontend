@@ -53,6 +53,25 @@ export const ButtonTheme = defineStyleConfig({
         pointerEvents: 'none',
       },
     },
+    colorful: {
+      border: '2px solid transparent',
+      color: 'blue.400',
+      bg: 'border.landing.100',
+      _hover: {
+        bgColor: 'border.landing.900',
+        _disabled: {
+          bgColor: 'border.landing.900',
+        },
+      },
+      _focus: {
+        bgColor: 'border.landing.900',
+        border: '2px solid',
+        borderColor: 'blue.400',
+      },
+      _disabled: {
+        pointerEvents: 'none',
+      },
+    },
     secondary: {
       border: '2px solid',
       borderColor: 'gray.200',
@@ -103,6 +122,16 @@ export const ButtonTheme = defineStyleConfig({
       borderRadius: '52px',
       bg: 'border.box',
       border: '1px solid transparent',
+    },
+    'quick-select': {
+      bgColor: 'gray.50',
+      color: 'gray.600',
+      minW: '16',
+      variant: 'solid',
+      _active: {
+        border: '2px solid',
+        borderColor: 'blue.400',
+      },
     },
   },
   defaultProps: {
