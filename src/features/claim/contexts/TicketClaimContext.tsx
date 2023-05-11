@@ -34,6 +34,7 @@ const TICKET_FLOW_KEY_USE = {
 interface ITicketQuestion {
   text: string;
   type: 'TEXT' | 'RADIO';
+  isRequired?: boolean;
 }
 
 export interface TicketClaimContextTypes {

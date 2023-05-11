@@ -1,6 +1,9 @@
 import { Box, Button, Center, Flex, Heading, Hide, Input, Text, VStack } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
 import { getKeyInformation } from 'keypom-js';
+import { Controller, useForm } from 'react-hook-form';
+import * as z from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
 
 import { IconBox } from '@/components/IconBox';
 import { TicketIcon } from '@/components/Icons';
@@ -14,11 +17,35 @@ import { DropClaimMetadata } from '@/features/claim/components/DropClaimMetadata
 import { AvatarImage } from '@/components/AvatarImage';
 import { DropBox } from '@/components/DropBox';
 import { FormControl } from '@/components/FormControl';
-import { encrypt } from '@/utils/crypto';
 
 const storeToSmartContract = (dropId: string, publicKey: string, encryptedAnswers: string[]) => {
   // call smart contract
 };
+
+const schema = z.object({
+  qna: z.array(
+    z
+      .object({
+        isRequired: z.boolean(),
+        type: z.enum(['TEXT', 'RADIO']),
+        value: z.string(),
+      })
+      .superRefine(({ isRequired, value }, ctx) => {
+        if (isRequired && !value) {
+          ctx.addIssue({
+            path: ['value'],
+            code: z.ZodIssueCode.custom,
+            message: 'This field is required.',
+            fatal: true,
+          });
+          return z.NEVER;
+        }
+        return true;
+      }),
+  ),
+});
+
+type Schema = z.infer<typeof schema>;
 
 export const TicketQRPage = () => {
   const { secretKey } = useClaimParams();
@@ -29,6 +56,17 @@ export const TicketQRPage = () => {
   const [publicKey, setPublicKey] = useState('');
 
   const { giftType, title, tokens, nftImage, questions, dropId } = getDropMetadata();
+
+  const { handleSubmit, control } = useForm<Schema>({
+    mode: 'onChange',
+    defaultValues: {
+      qna: questions.map(({ type }, i) => ({
+        type,
+        value: '',
+      })),
+    },
+    resolver: zodResolver(schema),
+  });
 
   const checkClaim = async () => {
     const keyInfo = await getKeyInformation({ secretKey });
@@ -90,7 +128,7 @@ export const TicketQRPage = () => {
 
                 {giftType === DROP_TYPE.NFT ? (
                   <>
-                    <AvatarImage altName={title} imageSrc={nftImage} />
+                    {nftImage && <AvatarImage altName={title} imageSrc={nftImage} />}
                     <Hide above="md">
                       <Text
                         color="gray.600"
@@ -124,22 +162,26 @@ export const TicketQRPage = () => {
               pt={{ base: '12', md: '16' }}
             >
               <DropClaimMetadata nftImage={nftImage} title={title} type={giftType} />
-              {questions?.map((question, index) => {
+              {questions?.map(({ text, isRequired }, index) => {
                 return (
-                  // TODO: use react hook form in future
-                  <FormControl key={index} label={question.text}>
-                    <Input
-                      onChange={(e) => {
-                        setAnswers((ans) => {
-                          ans[index] = e.target.value;
-                          return ans;
-                        });
-                      }}
-                    />
-                  </FormControl>
+                  <Controller
+                    key={index}
+                    control={control}
+                    name={`qna.${index}.value`}
+                    render={({ field, fieldState: { error } }) => (
+                      <FormControl
+                        key={index}
+                        errorText={error?.message}
+                        isRequired={isRequired}
+                        label={text}
+                      >
+                        <Input isInvalid={Boolean(error?.message)} {...field} />
+                      </FormControl>
+                    )}
+                  />
                 );
               })}
-              <Button type="submit" w="full" onClick={handleShowTicketClick}>
+              <Button type="submit" w="full" onClick={handleSubmit(handleShowTicketClick)}>
                 Show my ticket!
               </Button>
             </Flex>
