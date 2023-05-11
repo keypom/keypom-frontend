@@ -26,8 +26,13 @@ export const CreateEventDropsForm = () => {
     <Step key={step.name} index={index + 1} isActive={currentIndex === index} stepItem={step} />
   ));
 
-  const handleSubmitClick = (data) => {
-    onNext?.();
+  const handleNextStepClick = () => {
+    if (currentIndex === formSteps.length - 1) {
+      onNext?.();
+      return;
+    }
+
+    onNextStep();
   };
 
   return (
@@ -48,32 +53,22 @@ export const CreateEventDropsForm = () => {
         {stepsDisplay}
       </HStack>
 
-      <form onSubmit={handleSubmit(handleSubmitClick)}>
-        {currentStep.component}
-        <HStack>
-          <Button w="full">Next</Button>
-          {currentIndex > 0 && (
-            <Button
-              fontSize={{ base: 'sm', md: 'base' }}
-              variant="secondary"
-              w="full"
-              onClick={onPreviousStep}
-            >
-              Go back
-            </Button>
-          )}
-        </HStack>
-
-        {/* <Flex justifyContent="flex-end">
+      {currentStep.component}
+      <HStack mt="4">
+        <Button isDisabled={!isValid} w="full" onClick={handleNextStepClick}>
+          Next
+        </Button>
+        {currentIndex > 0 && (
           <Button
-            isDisabled={ticketFields.length === 0 || !isDirty || !isValid}
-            mt="10"
-            type="submit"
+            fontSize={{ base: 'sm', md: 'base' }}
+            variant="secondary"
+            w="full"
+            onClick={onPreviousStep}
           >
-            Continue to summary
+            Go back
           </Button>
-        </Flex> */}
-      </form>
+        )}
+      </HStack>
     </IconBox>
   );
 };

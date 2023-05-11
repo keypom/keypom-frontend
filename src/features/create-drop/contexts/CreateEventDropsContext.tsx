@@ -81,6 +81,8 @@ const QuestionsSchema = z.object({
       z.object({
         text: z.string(),
         type: z.enum(['TEXT', 'RADIO']),
+        isRequired: z.boolean(),
+        isSelected: z.boolean(),
       }),
     ),
   ),

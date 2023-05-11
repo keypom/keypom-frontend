@@ -2,8 +2,6 @@ import { Box, Checkbox, useCheckboxGroup, VStack } from '@chakra-ui/react';
 import type React from 'react';
 import { useEffect } from 'react';
 
-import { CheckedIcon, UncheckedIcon } from '../Icons';
-
 export interface CheckboxItem {
   name: string;
   value: string;
@@ -34,15 +32,7 @@ export const Checkboxes = ({ items = [], defaultValues = [], onChange }: Checkbo
         border="1px solid"
         borderColor={isChecked ? 'blue.400' : 'gray.200'}
         borderRadius="6xl"
-        icon={
-          isChecked ? <CheckedIcon height="5" width="5" /> : <UncheckedIcon height="5" width="5" />
-        }
-        iconColor="blue.400"
-        iconSize="1.375rem"
-        p={{ base: '2', md: '4' }}
-        pl={{ base: '3' }}
-        value={item.value}
-        w="full"
+        isChecked={isChecked}
         {...getCheckboxProps({ value: item.value })}
       >
         <Box alignItems="center" display="flex">

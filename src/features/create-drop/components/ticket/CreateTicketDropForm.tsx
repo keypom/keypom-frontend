@@ -84,8 +84,8 @@ export const CreateTicketDropForm = () => {
           </Button>
         ) : (
           <Button
-            disabled={!isValid}
             fontSize={{ base: 'sm', md: 'base' }}
+            isDisabled={!isValid}
             onClick={handleNextStepClick}
           >
             Continue
