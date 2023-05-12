@@ -1,5 +1,10 @@
 import { createContext, type PropsWithChildren, useContext, useState } from 'react';
-import { type ButtonProps } from '@chakra-ui/react';
+import {
+  type ModalContentProps,
+  type ButtonProps,
+  type ModalHeaderProps,
+  type ModalBodyProps,
+} from '@chakra-ui/react';
 
 import { set } from '@/utils/localStorage';
 
@@ -27,6 +32,9 @@ interface AppModalValues {
   isLoading?: boolean;
   isSuccess?: boolean;
   isError?: boolean;
+  contentProps?: ModalContentProps;
+  headerProps?: ModalHeaderProps;
+  bodyProps?: ModalBodyProps;
 }
 
 interface AppContextValues {
