@@ -1,8 +1,6 @@
 import { Divider, HStack, Text, VStack } from '@chakra-ui/react';
 
 export const setAttendeesDetailsModal = (setAppModal, link, status, questions, answers) => {
-  console.log({ link, status, questions, answers });
-
   const renderQnaComponent = () =>
     questions.map((_, i) => (
       <VStack key={i} align="flex-start" spacing="0">
