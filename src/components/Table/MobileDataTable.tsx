@@ -63,7 +63,7 @@ export const MobileDataTable = ({
         <Td>
           <VStack align="flex-start" spacing="2">
             {columns
-              .filter((column) => actionColumn.title !== column.title) // exclude action column
+              .filter((column) => actionColumn.id !== column.id) // exclude action column
               .map((column) => (
                 <Box key={`${drop.id}-${column.id}`}>{column.selector(drop)}</Box>
               ))}
