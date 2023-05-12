@@ -72,6 +72,7 @@ export default function TicketDropManagerPage() {
   const { id: dropId = '' } = useParams();
 
   const [scannedAndClaimed, setScannedAndClaimed] = useState<number>(0);
+  const [qnaArray, setQnaArray] = useState<number[]>([]);
 
   const { setAppModal } = useAppContext();
 
@@ -120,72 +121,80 @@ export default function TicketDropManagerPage() {
     let encryptedData;
     if (dropMetadata.questions) {
       encryptedData = await fetchAttendeeInformation(drop.drop_id, allPublicKeys, allSecretKeys);
+
+      const answeredQuestionsLength = encryptedData[data[0].publicKey].filter(
+        (answer) => answer !== undefined,
+      ).length as number;
+      const questionsLength = dropMetadata.questions.length as number;
+      setQnaArray([questionsLength, answeredQuestionsLength]);
     }
 
-    return data.map((item) => ({
-      id: item.id,
-      dropId,
-      dropLink: item.link,
-      link: (
-        <Text color="gray.400" display="flex">
-          {window.location.hostname}/
-          <Text as="span" color="gray.800">
-            {item.slug}
+    return data.map((item) => {
+      return {
+        id: item.id,
+        dropId,
+        dropLink: item.link,
+        link: (
+          <Text color="gray.400" display="flex">
+            {window.location.hostname}/
+            <Text as="span" color="gray.800">
+              {item.slug}
+            </Text>
           </Text>
-        </Text>
-      ),
-      hasClaimed: getBadgeType(item.keyInfo?.cur_key_use as number),
-      viewDetails: (
-        <Button
-          colorScheme="blue"
-          mr="1"
-          size="sm"
-          variant="link"
-          onClick={(e) => {
-            e.preventDefault();
-            setAttendeesDetailsModal(
-              setAppModal,
-              `${window.location.hostname}/${item.slug}`,
-              getBadgeType(item.keyInfo?.cur_key_use as number),
-              dropMetadata.questions,
-              encryptedData?.[item.publicKey] &&
-                encryptedData[item.publicKey].map((ans) => decrypt(ans, item.secretKey)),
-            );
-          }}
-        >
-          View details
-        </Button>
-      ),
-      action: (
-        <>
-          {!item.hasClaimed && (
-            <Button
-              borderRadius="xl"
-              size="md"
-              variant="icon"
-              onClick={async (e) => {
-                e.preventDefault();
-                await handleDeleteClick(item.publicKey);
-              }}
-            >
-              <DeleteIcon color="red" />
-            </Button>
-          )}
+        ),
+        hasClaimed: getBadgeType(item.keyInfo?.cur_key_use as number),
+        viewDetails: (
           <Button
-            borderRadius="xl"
+            colorScheme="blue"
             mr="1"
-            size="md"
-            variant="icon"
+            size="sm"
+            variant="link"
             onClick={(e) => {
               e.preventDefault();
-              handleCopyClick(item.link);
+              setAttendeesDetailsModal(
+                setAppModal,
+                `${window.location.hostname}/${item.slug}`,
+                getBadgeType(item.keyInfo?.cur_key_use as number),
+                dropMetadata.questions,
+                encryptedData?.[item.publicKey] &&
+                  encryptedData[item.publicKey].map((ans) => decrypt(ans, item.secretKey)),
+              );
             }}
           >
-            <CopyIcon />
+            View details
           </Button>
-        </>
-      ),
-    }));
+        ),
+        action: (
+          <>
+            {!item.hasClaimed && (
+              <Button
+                borderRadius="xl"
+                size="md"
+                variant="icon"
+                onClick={async (e) => {
+                  e.preventDefault();
+                  await handleDeleteClick(item.publicKey);
+                }}
+              >
+                <DeleteIcon color="red" />
+              </Button>
+            )}
+            <Button
+              borderRadius="xl"
+              mr="1"
+              size="md"
+              variant="icon"
+              onClick={(e) => {
+                e.preventDefault();
+                handleCopyClick(item.link);
+              }}
+            >
+              <CopyIcon />
+            </Button>
+          </>
+        ),
+      };
+    });
   };
 
   return (
@@ -193,6 +202,7 @@ export default function TicketDropManagerPage() {
       claimedHeaderText="Scanned"
       getClaimedText={(dropSize) => `${dropSize - scannedAndClaimed} / ${dropSize}`}
       getData={getTableRows}
+      getQnaText={qnaArray}
       showColumns={true}
       tableColumns={ticketTableColumns}
     />

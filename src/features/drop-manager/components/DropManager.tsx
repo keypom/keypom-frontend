@@ -51,6 +51,7 @@ export type GetDataFn = (
 interface DropManagerProps {
   claimedHeaderText: string;
   getClaimedText: (dropSize: number) => string;
+  getQnaText?: number[];
   tableColumns: ColumnItem[];
   showColumns?: boolean;
   getData: GetDataFn;
@@ -63,6 +64,7 @@ interface DropManagerProps {
 export const DropManager = ({
   claimedHeaderText,
   getClaimedText,
+  getQnaText,
   tableColumns = [],
   getData,
   showColumns = true,
@@ -274,25 +276,47 @@ export const DropManager = ({
         {/* Left Section */}
         <Box flexGrow="1">
           <Stack
-            direction={{ base: 'column', md: 'row' }}
+            direction="column"
             pb={{ base: '4', md: '6' }}
             pt={{ base: '4', md: '10' }}
-            spacing={{ base: '4', md: '3.125rem' }}
+            spacing={{ base: '4', md: '6' }}
           >
             {/* Drop name */}
-            <Stack maxW={{ base: 'full', md: '22.5rem' }}>
+            <Stack>
               <Text color="gray.800">Drop name</Text>
               <Skeleton isLoaded={!loading}>
                 <Heading>{name}</Heading>
               </Skeleton>
             </Stack>
 
-            {/* Drops claimed */}
-            <Stack maxW={{ base: 'full', md: '22.5rem' }}>
-              <Text color="gray.800">{claimedHeaderText}</Text>
-              <Skeleton isLoaded={!loading}>
-                <Heading>{getClaimedText(totalKeys)}</Heading>
-              </Skeleton>
+            <Stack direction={{ base: 'column', md: 'row' }} gap="10px 100px">
+              {/* Drops claimed */}
+              <Stack maxW={{ base: 'full', md: '22.5rem' }}>
+                <Text color="gray.800">{claimedHeaderText}</Text>
+                <Skeleton isLoaded={!loading}>
+                  <Heading>{getClaimedText(totalKeys)}</Heading>
+                </Skeleton>
+              </Stack>
+
+              {getQnaText && getQnaText.length > 0 && (
+                <>
+                  {/* Questions text */}
+                  <Stack maxW={{ base: 'full', md: '22.5rem' }}>
+                    <Text color="gray.800">Attendee questions</Text>
+                    <Skeleton isLoaded={!loading}>
+                      <Heading>{getQnaText[0]}</Heading>
+                    </Skeleton>
+                  </Stack>
+
+                  {/* Response text */}
+                  <Stack maxW={{ base: 'full', md: '22.5rem' }}>
+                    <Text color="gray.800">Attendee responses</Text>
+                    <Skeleton isLoaded={!loading}>
+                      <Heading>{getQnaText[1]}</Heading>
+                    </Skeleton>
+                  </Stack>
+                </>
+              )}
             </Stack>
           </Stack>
           <Text>Track link status and export them to CSV for use in email campaigns here.</Text>
