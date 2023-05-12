@@ -13,15 +13,8 @@ import {
   Text,
   Heading,
   VStack,
-  AccordionPanel,
-  Accordion,
-  AccordionButton,
-  AccordionItem,
 } from '@chakra-ui/react';
 import { useNavigate } from 'react-router-dom';
-import { Fragment } from 'react';
-
-import { QnaTableColumns } from '@/features/drop-manager/components/TableColumn';
 
 import { IconBox } from '../IconBox';
 
@@ -70,79 +63,32 @@ export const DataTable = ({
       ));
     }
 
-    if (data.length > 0 && data[0].rowPanel === undefined)
-      return data.map((drop) => (
-        <Tr
-          key={drop.id}
-          _hover={
-            (drop.href as string | undefined)
-              ? {
-                  cursor: 'pointer',
-                  background: 'gray.50',
-                }
-              : {}
-          }
-          onClick={
-            (drop.href as string | undefined)
-              ? () => {
-                  navigate(drop.href as string);
-                }
-              : undefined
-          }
-        >
-          {columns.map((column, i) => (
-            <Td key={`${column.id}-${drop.id}-${i}`} {...column.tdProps}>
-              {column.selector(drop)}
-            </Td>
-          ))}
-        </Tr>
-      ));
-
-    return data.map((drop) => {
-      const panelContent = (drop.rowPanel as any[]) ?? [];
-      const getRowPanel = () => (
-        <TableContainer p="0" whiteSpace="inherit">
-          <Table bg="unset">
-            <Tbody>
-              {panelContent.map((item, i) => (
-                <Tr key={i}>
-                  {QnaTableColumns.map((column, i) => (
-                    <Td key={`${column.id}-$${item.id}-${i}`} {...column.tdProps}>
-                      {column.selector(item)}
-                    </Td>
-                  ))}
-                </Tr>
-              ))}
-            </Tbody>
-          </Table>
-        </TableContainer>
-      );
-
-      return (
-        <AccordionItem key={drop.id} as={Fragment}>
-          <AccordionButton
-            _hover={{
-              cursor: 'pointer',
-              background: 'gray.50',
-            }}
-            as={Tr}
-            display="auto"
-            width="auto"
-          >
-            {columns.map((column, i) => (
-              <Td key={`${column.id}-${drop.id}-${i}`} {...column.tdProps}>
-                {column.selector(drop)}
-              </Td>
-            ))}
-          </AccordionButton>
-          <Tr h="0">
-            <Td colSpan={4} p="0 !important">
-              <AccordionPanel p="0">{getRowPanel()}</AccordionPanel>
-            </Td>
-          </Tr>
-        </AccordionItem>
-      );
-    });
+    return data.map((drop) => (
+      <Tr
+        key={drop.id}
+        _hover={
+          (drop.href as string | undefined)
+            ? {
+                cursor: 'pointer',
+                background: 'gray.50',
+              }
+            : {}
+        }
+        onClick={
+          (drop.href as string | undefined)
+            ? () => {
+                navigate(drop.href as string);
+              }
+            : undefined
+        }
+      >
+        {columns.map((column, i) => (
+          <Td key={`${column.id}-${drop.id}-${i}`} {...column.tdProps}>
+            {column.selector(drop)}
+          </Td>
+        ))}
+      </Tr>
+    ));
   };
 
   return (
@@ -151,24 +97,22 @@ export const DataTable = ({
         <>
           {/* Desktop Table */}
           <Show above="md">
-            <Accordion allowToggle>
-              <TableContainer>
-                <Table {...props}>
-                  {showColumns && (
-                    <Thead>
-                      <Tr>
-                        {columns.map((col) => (
-                          <Th key={col.id} fontFamily="body" {...col.thProps}>
-                            {col.title}
-                          </Th>
-                        ))}
-                      </Tr>
-                    </Thead>
-                  )}
-                  <Tbody>{getDesktopTableBody()}</Tbody>
-                </Table>
-              </TableContainer>
-            </Accordion>
+            <TableContainer>
+              <Table {...props}>
+                {showColumns && (
+                  <Thead>
+                    <Tr>
+                      {columns.map((col) => (
+                        <Th key={col.id} fontFamily="body" {...col.thProps}>
+                          {col.title}
+                        </Th>
+                      ))}
+                    </Tr>
+                  </Thead>
+                )}
+                <Tbody>{getDesktopTableBody()}</Tbody>
+              </Table>
+            </TableContainer>
           </Show>
 
           {/* Mobile table */}

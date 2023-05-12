@@ -36,47 +36,29 @@ export const ticketTableColumns: ColumnItem[] = [
     loadingElement: <Skeleton height="30px" />,
   },
   {
-    id: 'qna' /** THIS IS FOR THE QNA */,
-    title: 'QnA',
-    selector: (row) => row.qnaStats,
-    loadingElement: <Skeleton height="30px" />,
-  },
-  {
     id: 'claimStatus',
-    title: 'Claim Status',
+    title: 'Status',
     selector: (row) => row.hasClaimed,
     loadingElement: <Skeleton height="30px" />,
   },
   {
+    id: 'view-details',
+    title: '',
+    selector: (row) => row.viewDetails,
+    loadingElement: <Skeleton height="30px" />,
+    tdProps: {
+      textAlign: 'right',
+    },
+  },
+  {
     id: 'action',
-    title: 'Action',
+    title: '',
     selector: (row) => row.action,
+    loadingElement: <Skeleton height="30px" />,
     tdProps: {
       display: 'flex',
-      justifyContent: 'right',
-      verticalAlign: 'middle',
-    },
-    loadingElement: <Skeleton height="30px" />,
-  },
-];
-
-export const QnaTableColumns: ColumnItem[] = [
-  {
-    id: 'questions',
-    title: 'Questions',
-    selector: (row) => row.questions,
-    loadingElement: <Skeleton height="30px" />,
-    tdProps: {
-      width: '30%',
-    },
-  },
-  {
-    id: 'answers',
-    title: 'Answers',
-    selector: (row) => row.answers,
-    loadingElement: <Skeleton height="30px" />,
-    tdProps: {
-      whiteSpace: 'break-spaces',
+      justifyContent: 'flex-end',
+      gap: '2',
     },
   },
 ];

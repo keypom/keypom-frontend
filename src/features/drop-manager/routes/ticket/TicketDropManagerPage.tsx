@@ -6,10 +6,12 @@ import { CopyIcon, DeleteIcon } from '@/components/Icons';
 import { DropManager, type GetDataFn } from '@/features/drop-manager/components/DropManager';
 import keypomInstance from '@/lib/keypom';
 import { decrypt, encrypt } from '@/utils/crypto';
+import { useAppContext } from '@/contexts/AppContext';
 
 import { getClaimStatus } from '../../utils/getClaimStatus';
 import { getBadgeType } from '../../utils/getBadgeType';
 import { ticketTableColumns } from '../../components/TableColumn';
+import { setAttendeesDetailsModal } from '../../components/AttendeesDetailsModal';
 
 // mock fetch function to fetch from smart contract
 const fetchAttendeeInformation = async (
@@ -48,7 +50,6 @@ const fetchAttendeeInformation = async (
         const randomAnswer1 = randomAnswers1[Math.floor(Math.random() * randomAnswers1.length)];
         const randomAnswer2 = randomAnswers2[Math.floor(Math.random() * randomAnswers2.length)];
 
-        console.log({ randomAnswer1, randomAnswer2, secretKeys });
         // data is symmetrically encrypted with their secret key and stored in a smart contract
         const encrypted1 = encrypt(randomAnswer1, secretKeys[index]);
         const encrypted2 = encrypt(randomAnswer2, secretKeys[index]);
@@ -71,6 +72,9 @@ export default function TicketDropManagerPage() {
   const { id: dropId = '' } = useParams();
 
   const [scannedAndClaimed, setScannedAndClaimed] = useState<number>(0);
+  const [qnaArray, setQnaArray] = useState<number[]>([]);
+
+  const { setAppModal } = useAppContext();
 
   const getScannedKeys = async () => {
     const keysSupply = await keypomInstance.getAvailableKeys(dropId);
@@ -117,19 +121,15 @@ export default function TicketDropManagerPage() {
     let encryptedData;
     if (dropMetadata.questions) {
       encryptedData = await fetchAttendeeInformation(drop.drop_id, allPublicKeys, allSecretKeys);
+
+      const answeredQuestionsLength = encryptedData[data[0].publicKey].filter(
+        (answer) => answer !== undefined,
+      ).length as number;
+      const questionsLength = dropMetadata.questions.length as number;
+      setQnaArray([questionsLength, answeredQuestionsLength]);
     }
 
     return data.map((item) => {
-      // qnaStats only exists if ticket has questions
-      let qnaStats;
-      if (dropMetadata.questions) {
-        const answeredQuestionsLength = encryptedData[item.publicKey].filter(
-          (answer) => answer !== undefined,
-        ).length as number;
-        const questionsLength = dropMetadata.questions.length as number;
-        qnaStats = `${answeredQuestionsLength} / ${questionsLength}`;
-      }
-
       return {
         id: item.id,
         dropId,
@@ -143,30 +143,33 @@ export default function TicketDropManagerPage() {
           </Text>
         ),
         hasClaimed: getBadgeType(item.keyInfo?.cur_key_use as number),
-        qnaStats,
-        rowPanel:
-          encryptedData?.[item.publicKey] &&
-          encryptedData[item.publicKey].map((ans, i) => ({
-            id: i,
-            questions: dropMetadata.questions[i].text,
-            answers: decrypt(ans, item.secretKey),
-          })),
+        viewDetails: (
+          <Button
+            colorScheme="blue"
+            mr="1"
+            size="sm"
+            variant="link"
+            onClick={(e) => {
+              e.preventDefault();
+              setAttendeesDetailsModal(
+                setAppModal,
+                `${window.location.hostname}/${item.slug}`,
+                getBadgeType(item.keyInfo?.cur_key_use as number),
+                dropMetadata.questions,
+                encryptedData?.[item.publicKey] &&
+                  encryptedData[item.publicKey].map((ans) => decrypt(ans, item.secretKey)),
+              );
+            }}
+          >
+            View details
+          </Button>
+        ),
         action: (
           <>
-            <Button
-              mr="1"
-              size="sm"
-              variant="icon"
-              onClick={(e) => {
-                e.preventDefault();
-                handleCopyClick(item.link);
-              }}
-            >
-              <CopyIcon />
-            </Button>
             {!item.hasClaimed && (
               <Button
-                size="sm"
+                borderRadius="xl"
+                size="md"
                 variant="icon"
                 onClick={async (e) => {
                   e.preventDefault();
@@ -176,6 +179,18 @@ export default function TicketDropManagerPage() {
                 <DeleteIcon color="red" />
               </Button>
             )}
+            <Button
+              borderRadius="xl"
+              mr="1"
+              size="md"
+              variant="icon"
+              onClick={(e) => {
+                e.preventDefault();
+                handleCopyClick(item.link);
+              }}
+            >
+              <CopyIcon />
+            </Button>
           </>
         ),
       };
@@ -187,7 +202,8 @@ export default function TicketDropManagerPage() {
       claimedHeaderText="Scanned"
       getClaimedText={(dropSize) => `${dropSize - scannedAndClaimed} / ${dropSize}`}
       getData={getTableRows}
-      showColumns={false}
+      getQnaText={qnaArray}
+      showColumns={true}
       tableColumns={ticketTableColumns}
     />
   );

@@ -40,18 +40,24 @@ export const AppModal = () => {
       }}
     >
       <ModalOverlay />
-      <ModalContent p={{ base: '8', md: '16' }} textAlign="center" top={'-10rem'}>
+      <ModalContent
+        p={{ base: '8', md: '16' }}
+        textAlign="center"
+        top={'-10rem'}
+        {...appModal.contentProps}
+      >
         <ModalHeader
           alignItems="center"
           display="flex"
           flexDir="column"
           fontSize={{ base: 'xl', md: '2xl' }}
           pb="0"
+          {...appModal.headerProps}
         >
           {appModal.header && <h4>{appModal.header}</h4>}
         </ModalHeader>
         {appModal.closeButtonVisible && <ModalCloseButton />}
-        <ModalBody>
+        <ModalBody {...appModal.bodyProps}>
           {appModal.isLoading && (
             <Center>
               <Spinner
