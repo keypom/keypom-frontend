@@ -75,7 +75,7 @@ const TicketsSchema = z.object({
   tickets: z.array(ticketSchema).min(1),
 });
 
-const QuestionsSchema = z.object({
+export const QuestionsSchema = z.object({
   questions: z.optional(
     z.array(
       z.object({
@@ -136,8 +136,8 @@ export const CreateEventDropsProvider = ({ children }: PropsWithChildren) => {
       eventName: '',
       tickets: [],
       questions: [
-        { text: 'Email address', type: 'TEXT' },
-        { text: 'How did you find this event?', type: 'TEXT' },
+        { text: 'Email address', type: 'TEXT', isRequired: true, isSelected: true },
+        { text: 'How did you find this event?', type: 'TEXT', isSelected: true, isRequired: true },
       ],
     },
     resolver: zodResolver(formSteps[currentIndex].schema),

@@ -1,29 +1,28 @@
-import { AddIcon, CheckIcon, CloseIcon, DeleteIcon, EditIcon } from '@chakra-ui/icons';
+import { AddIcon } from '@chakra-ui/icons';
 import {
   Box,
   Button,
-  ButtonGroup,
   Flex,
   FormLabel,
-  IconButton,
+  Input,
+  Modal,
+  ModalBody,
+  ModalContent,
+  ModalFooter,
+  ModalOverlay,
   Switch,
   Text,
-  useEditableControls,
+  useDisclosure,
 } from '@chakra-ui/react';
-import { useFieldArray, useFormContext } from 'react-hook-form';
+import { Controller, useFieldArray, useFormContext } from 'react-hook-form';
+import { useEffect, useState } from 'react';
 
 import { FormControl } from '@/components/FormControl';
 import { Checkbox } from '@/components/Checkbox/Checkbox';
 
 export const EventQuestionsForm = () => {
-  const {
-    setValue,
-    handleSubmit,
-    control,
-    watch,
-    getValues,
-    formState: { isDirty, isValid, errors },
-  } = useFormContext();
+  const { control, watch } = useFormContext();
+  const { isOpen, onClose, onOpen } = useDisclosure();
 
   const {
     fields: questionsFields,
@@ -33,6 +32,8 @@ export const EventQuestionsForm = () => {
     control,
     name: 'questions',
   });
+
+  console.log(watch());
 
   return (
     <>
@@ -48,25 +49,34 @@ export const EventQuestionsForm = () => {
           {questionsFields.map((question, index: number) => {
             const id = questionsFields?.[index]?.id;
             return (
-              // <Flex
-              //   key={id}
-              //   alignItems="center"
-              //   id={id}
-              //   justifyContent="space-between"
-              //   mb="2"
-              //   w="full"
-              // >
-              //   <Box>
-              //     <Checkbox />
-              //     {question.text}
-              //   </Box>
-              //   <Switch />
-              // </Flex>
               <Flex key={id} alignItems="center" justifyContent="space-between">
-                <Checkbox isChecked={false} p="0" pl="0" py="2" value={false}>
-                  <Text ml="2">{question.text}</Text>
-                </Checkbox>
-                <Switch />
+                <Controller
+                  control={control}
+                  name={`questions.${index}.isSelected`}
+                  render={({ field, fieldState: { error } }) => {
+                    return (
+                      <Checkbox
+                        isChecked={field.value}
+                        p="0"
+                        pl="0"
+                        py="2"
+                        value={field.value}
+                        onChange={(e) => {
+                          field.onChange(e.target.checked);
+                        }}
+                      >
+                        <Text ml="2">{question.text}</Text>
+                      </Checkbox>
+                    );
+                  }}
+                />
+                <Controller
+                  control={control}
+                  name={`questions.${index}.isRequired`}
+                  render={({ field, fieldState: { error } }) => {
+                    return <Switch isChecked={field.value} onChange={field.onChange} />;
+                  }}
+                />
               </Flex>
             );
           })}
@@ -78,30 +88,67 @@ export const EventQuestionsForm = () => {
           leftIcon={<AddIcon h="3" />}
           mt="2"
           variant="outline"
-          onClick={() => {
-            appendQuestion({ text: 'new question', type: 'TEXT' });
-          }}
+          onClick={onOpen}
         >
           Add question
         </Button>
       </Box>
+      <AddQuestionModal
+        isOpen={isOpen}
+        onClose={onClose}
+        onConfirm={(questionText) => {
+          appendQuestion({
+            text: questionText,
+            type: 'TEXT',
+            isRequired: true,
+            selected: true,
+          });
+          onClose();
+        }}
+      />
     </>
   );
 };
 
-const EditableControls = ({ removeQuestion }: { removeQuestion: (i: number) => void }) => {
-  const { isEditing, getSubmitButtonProps, getCancelButtonProps, getEditButtonProps } =
-    useEditableControls();
+const AddQuestionModal = ({ isOpen, onClose, onConfirm }) => {
+  const [question, setQuestion] = useState('');
 
-  return isEditing ? (
-    <ButtonGroup alignItems="center" justifyContent="center" size="sm">
-      <IconButton aria-label="submit" icon={<CheckIcon />} {...getSubmitButtonProps()} />
-      <IconButton aria-label="cancel" icon={<CloseIcon />} {...getCancelButtonProps()} />
-    </ButtonGroup>
-  ) : (
-    <Flex gap="2" justifyContent="center">
-      <IconButton aria-label="edit" icon={<EditIcon />} size="sm" {...getEditButtonProps()} />
-      <IconButton aria-label="edit" icon={<DeleteIcon />} size="sm" onClick={removeQuestion} />
-    </Flex>
+  useEffect(() => {
+    setQuestion('');
+  }, [isOpen]);
+
+  return (
+    <Modal isOpen={isOpen} onClose={onClose}>
+      <ModalOverlay />
+      <ModalContent>
+        <ModalBody>
+          <FormControl
+            helperText="Add a question you'd like attendees to fill out for this event"
+            label="Question"
+          >
+            <Input
+              value={question}
+              onChange={(e) => {
+                setQuestion(e.target.value);
+              }}
+            />
+          </FormControl>
+        </ModalBody>
+
+        <ModalFooter>
+          <Button
+            w="full"
+            onClick={() => {
+              onConfirm(question);
+            }}
+          >
+            Add question
+          </Button>
+          <Button variant="secondary" w="full" onClick={onClose}>
+            Cancel
+          </Button>
+        </ModalFooter>
+      </ModalContent>
+    </Modal>
   );
 };

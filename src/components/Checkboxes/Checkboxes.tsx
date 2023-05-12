@@ -1,6 +1,8 @@
-import { Box, Checkbox, useCheckboxGroup, VStack } from '@chakra-ui/react';
+import { Box, useCheckboxGroup, VStack } from '@chakra-ui/react';
 import type React from 'react';
 import { useEffect } from 'react';
+
+import { Checkbox } from '@/components/Checkbox/Checkbox';
 
 export interface CheckboxItem {
   name: string;
@@ -33,6 +35,7 @@ export const Checkboxes = ({ items = [], defaultValues = [], onChange }: Checkbo
         borderColor={isChecked ? 'blue.400' : 'gray.200'}
         borderRadius="6xl"
         isChecked={isChecked}
+        value={item.value}
         {...getCheckboxProps({ value: item.value })}
       >
         <Box alignItems="center" display="flex">
