@@ -117,9 +117,11 @@ export const CreateTicketModal = ({
           />
           <FormControl label="Date range">
             <DatetimeRangePicker
-              onChange={(datetimes) => {
-                console.log({ datetimes });
-                console.log(JSON.stringify(datetimes));
+              value={[new Date(salesStartDate), new Date(salesEndDate)]}
+              onChange={(datetimes: Date[]) => {
+                const [start, end] = datetimes;
+                setValue('salesStartDate', start.toString(), { shouldValidate: true });
+                setValue('salesEndDate', end.toString(), { shouldValidate: true });
               }}
             />
           </FormControl>
@@ -135,7 +137,7 @@ export const CreateTicketModal = ({
                 >
                   <Input
                     isInvalid={Boolean(error?.message)}
-                    placeholder="50"
+                    placeholder="Number of tickets"
                     type="number"
                     value={field.value}
                     onChange={(e) => {

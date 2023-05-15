@@ -11,6 +11,7 @@ import {
 } from '@chakra-ui/react';
 
 import { type ITicketData } from '@/types/common';
+import { FormControl } from '@/components/FormControl';
 
 interface TicketCardProps {
   ticket: ITicketData;
@@ -35,12 +36,24 @@ export const TicketCard = ({ ticket, id, onRemoveClick, onEditClick }: TicketCar
         <Heading size="sm">{ticket.name}</Heading>
       </CardHeader>
       <CardBody>
-        <Text>Number of tickets: {ticket.numberOfTickets}</Text>
-        {ticket.description && <Text>Description: {ticket.description}</Text>}
-        <Text>
-          Sales period: {ticket.salesStartDate} - {ticket.salesEndDate}
-        </Text>
-        <Text>Price: {ticket.nearPricePerTicket} NEAR</Text>
+        <FormControl label="Number of tickets">
+          <Text>{ticket.numberOfTickets}</Text>
+        </FormControl>
+
+        {ticket.description && (
+          <FormControl label="Description">
+            <Text>{ticket.description}</Text>
+          </FormControl>
+        )}
+        <FormControl label="Date range">
+          <Text>
+            {new Date(ticket.salesStartDate).toLocaleString()} -{' '}
+            {new Date(ticket.salesEndDate).toLocaleString()}
+          </Text>
+        </FormControl>
+        <FormControl label="Price">
+          <Text>{ticket.nearPricePerTicket} NEAR</Text>
+        </FormControl>
       </CardBody>
       {onRemoveClick && onEditClick && (
         <>

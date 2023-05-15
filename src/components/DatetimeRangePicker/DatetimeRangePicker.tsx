@@ -5,12 +5,12 @@ import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 
 // onchange will send back an array of 2 datetimes
-export const DatetimeRangePicker = ({ onChange }) => {
+export const DatetimeRangePicker = ({ onChange, value }) => {
   const [startDate, setStartDate] = useState(new Date());
   const [endDate, setEndDate] = useState(new Date());
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
-  const [datetimes, setDatetimes] = useState([new Date(), new Date()]);
+  const [datetimes, setDatetimes] = useState(value || [new Date(), new Date()]);
 
   const handleDateChange = (update: Date[]) => {
     const [start, end] = update;
@@ -26,6 +26,10 @@ export const DatetimeRangePicker = ({ onChange }) => {
     setDatetimes(datetimes);
     onChange(datetimes);
   }, [startDate, endDate, startTime, endTime]);
+
+  useEffect(() => {
+    setDatetimes(value || [new Date(), new Date()]);
+  }, [value]);
 
   const datetimeRangeString = `${datetimes[0].toLocaleString()} - ${datetimes[1].toLocaleString()}`;
 

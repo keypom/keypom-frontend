@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Box, Spinner } from '@chakra-ui/react';
+import { Box, FormLabel, ListItem, OrderedList, Spinner } from '@chakra-ui/react';
 import { useFormContext } from 'react-hook-form';
 
 import { DropSummary } from '@/features/create-drop/components/DropSummary';
@@ -31,7 +31,9 @@ export const CreateEventDropsSummary = () => {
       </Box>
     );
 
-  const tickets = getValues('tickets');
+  const [tickets, questions] = getValues(['tickets', 'questions']);
+
+  console.log(getValues());
 
   return (
     <DropSummary
@@ -40,9 +42,22 @@ export const CreateEventDropsSummary = () => {
       summaryData={summaryData}
       onConfirmClick={handleCreateDrops}
     >
+      <FormLabel>Your tickets</FormLabel>
       {tickets.map((ticket, index) => (
         <TicketCard key={index} id={index} ticket={ticket} />
       ))}
+      {questions.length > 0 && (
+        <>
+          <FormLabel mt="10">Your Questions</FormLabel>
+          <OrderedList textAlign="left">
+            {questions
+              .filter((q) => q.isSelected)
+              .map((q) => (
+                <ListItem key={q.id}>{q.text}</ListItem>
+              ))}
+          </OrderedList>
+        </>
+      )}
     </DropSummary>
   );
 };
