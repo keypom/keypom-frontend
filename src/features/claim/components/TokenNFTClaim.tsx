@@ -24,6 +24,7 @@ interface TokenNFTClaimProps {
 
   type: DROP_TYPES;
   wallets?: string[];
+  redirectUrl?: string;
   metadata: {
     title?: string;
     nftImage?: string;
@@ -46,6 +47,7 @@ export const TokenNFTClaim = ({
   type,
   metadata,
   wallets,
+  redirectUrl,
 }: TokenNFTClaimProps) => {
   const { setAppModal } = useAppContext();
   const [haveWallet, showInputWallet] = useBoolean(false);
@@ -160,6 +162,7 @@ export const TokenNFTClaim = ({
               {!haveWallet ? (
                 <CreateWallet
                   contractId={contractId}
+                  redirectUrl={redirectUrl}
                   secretKey={secretKey}
                   wallets={wallets}
                   onClick={showInputWallet.on}
