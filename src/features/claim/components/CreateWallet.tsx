@@ -43,7 +43,7 @@ export const CreateWallet = ({
         }
       }, 20000);
 
-      wRef.location.href = `${url}?redirectUrl=${redirectUrl}`;
+      wRef.location.href = `${url}`; // ?redirectUrl=${redirectUrl}`;
     } catch (err) {
       // drop has been claimed
       // refresh to show error
