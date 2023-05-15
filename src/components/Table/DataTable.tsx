@@ -38,6 +38,7 @@ interface DataTableProps extends TableProps {
   columns: ColumnItem[];
   data: DataItem[];
   loading?: boolean;
+  emptyText?: string;
 }
 
 export const DataTable = ({
@@ -46,6 +47,7 @@ export const DataTable = ({
   columns = [],
   data = [],
   loading = false,
+  emptyText,
   ...props
 }: DataTableProps) => {
   const navigate = useNavigate();
@@ -63,11 +65,11 @@ export const DataTable = ({
       ));
     }
 
-    return data.map((drop) => (
+    return data.map((val) => (
       <Tr
-        key={drop.id}
+        key={val.id}
         _hover={
-          (drop.href as string | undefined)
+          (val.href as string | undefined)
             ? {
                 cursor: 'pointer',
                 background: 'gray.50',
@@ -75,16 +77,16 @@ export const DataTable = ({
             : {}
         }
         onClick={
-          (drop.href as string | undefined)
+          (val.href as string | undefined)
             ? () => {
-                navigate(drop.href as string);
+                navigate(val.href as string);
               }
             : undefined
         }
       >
         {columns.map((column, i) => (
-          <Td key={`${column.id}-${drop.id}-${i}`} {...column.tdProps}>
-            {column.selector(drop)}
+          <Td key={`${column.id}-${val.id}-${i}`} {...column.tdProps}>
+            {column.selector(val)}
           </Td>
         ))}
       </Tr>
@@ -125,7 +127,7 @@ export const DataTable = ({
           <Center>
             <VStack>
               <Heading fontSize={{ base: 'xl', md: '2xl' }} fontWeight="600">
-                {EMPTY_TABLE_TEXT_MAP[type].heading}
+                {emptyText || EMPTY_TABLE_TEXT_MAP[type].heading}
               </Heading>
               <Text>{EMPTY_TABLE_TEXT_MAP[type].text}</Text>
             </VStack>

@@ -8,20 +8,21 @@ import {
   Modal,
   ModalBody,
   ModalContent,
-  ModalFooter,
   ModalOverlay,
   Switch,
   Text,
   useDisclosure,
+  VStack,
 } from '@chakra-ui/react';
 import { Controller, useFieldArray, useFormContext } from 'react-hook-form';
 import { useEffect, useState } from 'react';
 
 import { FormControl } from '@/components/FormControl';
 import { Checkbox } from '@/components/Checkbox/Checkbox';
+import { type CreateEventFieldsSchema } from '@/features/create-drop/contexts/CreateEventDropsContext';
 
 export const EventQuestionsForm = () => {
-  const { control, watch } = useFormContext();
+  const { control } = useFormContext<CreateEventFieldsSchema>();
   const { isOpen, onClose, onOpen } = useDisclosure();
 
   const {
@@ -32,8 +33,6 @@ export const EventQuestionsForm = () => {
     control,
     name: 'questions',
   });
-
-  console.log(watch());
 
   return (
     <>
@@ -101,7 +100,7 @@ export const EventQuestionsForm = () => {
             text: questionText,
             type: 'TEXT',
             isRequired: true,
-            selected: true,
+            isSelected: true,
           });
           onClose();
         }}
@@ -120,34 +119,36 @@ const AddQuestionModal = ({ isOpen, onClose, onConfirm }) => {
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
       <ModalOverlay />
-      <ModalContent>
-        <ModalBody>
+      <ModalContent px="8" py="4">
+        <ModalBody mt="0">
           <FormControl
             helperText="Add a question you'd like attendees to fill out for this event"
             label="Question"
+            mt="0"
           >
             <Input
+              fontSize="sm"
+              placeholder="Enter a question"
               value={question}
               onChange={(e) => {
                 setQuestion(e.target.value);
               }}
             />
           </FormControl>
+          <VStack w="full">
+            <Button
+              w="full"
+              onClick={() => {
+                onConfirm(question);
+              }}
+            >
+              Add question
+            </Button>
+            <Button variant="secondary" w="full" onClick={onClose}>
+              Cancel
+            </Button>
+          </VStack>
         </ModalBody>
-
-        <ModalFooter>
-          <Button
-            w="full"
-            onClick={() => {
-              onConfirm(question);
-            }}
-          >
-            Add question
-          </Button>
-          <Button variant="secondary" w="full" onClick={onClose}>
-            Cancel
-          </Button>
-        </ModalFooter>
       </ModalContent>
     </Modal>
   );

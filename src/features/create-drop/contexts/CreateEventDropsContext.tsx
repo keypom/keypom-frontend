@@ -64,7 +64,8 @@ export const ticketSchema = z.object({
     .number({ invalid_type_error: 'Number of tickets required' })
     .positive()
     .min(1, 'Required')
-    .max(50, 'Currently tickets are limited to 50 links. This will be increased very soon!'),
+    .max(50, 'Currently tickets are limited to 50 links. This will be increased very soon!')
+    .optional(),
 });
 
 const EventInfoSchema = z.object({

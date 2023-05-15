@@ -46,7 +46,7 @@ export const CreateTicketModal = ({
     setValue,
     reset,
     watch,
-    formState: { isDirty, isValid },
+    formState: { isDirty, isValid, errors },
   } = useForm<TicketSchema>({
     mode: 'onChange',
     defaultValues: values,
@@ -66,6 +66,8 @@ export const CreateTicketModal = ({
   // const [dateRange, setDateRange] = useState([null, null]);
   // const [startDate, endDate] = dateRange;
   // console.log(dateRange);
+
+  console.log(watch());
 
   return (
     <Modal
@@ -135,7 +137,10 @@ export const CreateTicketModal = ({
                     isInvalid={Boolean(error?.message)}
                     placeholder="50"
                     type="number"
-                    {...field}
+                    value={field.value}
+                    onChange={(e) => {
+                      field.onChange(parseInt(e.target.value));
+                    }}
                   />
                 </FormControl>
               );
@@ -238,7 +243,7 @@ export const CreateTicketModal = ({
               isDisabled={!isValid}
               w="full"
               onClick={() => {
-                onConfirm(getValues());
+                onConfirm(watch());
                 onClose();
               }}
             >

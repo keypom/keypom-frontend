@@ -19,10 +19,10 @@ export const EventInfoForm = () => {
       name="eventName"
       render={({ field, fieldState: { error } }) => {
         return (
-          <FormControl errorText={error?.message} label="Event name">
+          <FormControl errorText={error?.message} label="Event name*">
             <Input
               isInvalid={Boolean(error?.message)}
-              placeholder="NEARCon 2023"
+              placeholder="Enter the name of your event"
               type="text"
               {...field}
             />

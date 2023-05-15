@@ -1,17 +1,47 @@
 import { useFieldArray, useFormContext } from 'react-hook-form';
-import { Box, Button, useDisclosure } from '@chakra-ui/react';
-import { AddIcon } from '@chakra-ui/icons';
+import { Box, Button, Flex, FormLabel, Text, useDisclosure } from '@chakra-ui/react';
+import { AddIcon, EditIcon } from '@chakra-ui/icons';
 import { useState } from 'react';
 
 import { type TicketSchema } from '@/features/create-drop/contexts/CreateEventDropsContext';
 import { CreateTicketModal } from '@/features/create-drop/components/event/CreateTicketModal';
-import { TicketCard } from '@/features/create-drop/components/TicketCard/TicketCard';
+import { DataTable } from '@/components/Table';
+import { type ColumnItem } from '@/components/Table/types';
+import { DeleteIcon } from '@/components/Icons';
+
+const COLUMNS: ColumnItem[] = [
+  {
+    id: 'name',
+    title: 'Name',
+    selector: (row) => row.name,
+  },
+  {
+    id: 'count',
+    title: 'Count',
+    selector: (row) => row.numberOfTickets,
+  },
+  {
+    id: 'price',
+    title: 'Price (NEAR)',
+    selector: (row) => row.nearPricePerTicket,
+  },
+  {
+    id: 'action',
+    title: 'Action',
+    selector: (row) => row.action,
+    tdProps: {
+      display: 'flex',
+      justifyContent: 'right',
+      verticalAlign: 'middle',
+    },
+  },
+];
 
 const defaultTicketValues: TicketSchema = {
   name: '',
   description: '',
-  salesStartDate: '',
-  salesEndDate: '',
+  salesStartDate: new Date().toISOString(),
+  salesEndDate: new Date().toISOString(),
   nearPricePerTicket: undefined,
   numberOfTickets: undefined,
 };
@@ -28,6 +58,8 @@ export const EventTicketsForm = () => {
     getValues,
     formState: { isDirty, isValid, errors },
   } = useFormContext();
+
+  const { eventName } = getValues();
 
   const {
     fields: ticketFields,
@@ -48,36 +80,82 @@ export const EventTicketsForm = () => {
     updateTicket(currentTicketIndex, ticketData);
   };
 
-  return (
-    <>
-      <Button
-        leftIcon={<AddIcon />}
-        w="full"
-        onClick={() => {
-          setModalAction('create');
-          onOpen();
-        }}
-      >
-        Add a ticket
-      </Button>
-      <Box mt="10">
-        {ticketFields.map((ticket, index) => (
-          <TicketCard
-            key={ticketFields?.[index]?.id}
-            id={ticketFields?.[index]?.id}
-            ticket={ticket}
-            onEditClick={() => {
-              setModalAction('update');
-              setCurrentTicketIndex(index);
-              window.setTimeout(() => {
-                onOpen();
-              }, 0);
-            }}
-            onRemoveClick={() => {
+  const ticketsData = ticketFields.map((ticket, index) => {
+    console.log(ticket);
+    return {
+      id: ticket.id,
+      name: (
+        <Text color="gray.400" display="flex">
+          {ticket.name}
+        </Text>
+      ),
+      numberOfTickets: ticket.numberOfTickets,
+      nearPricePerTicket: ticket.nearPricePerTicket,
+      action: (
+        <>
+          <Button
+            mr="1"
+            size="sm"
+            variant="icon"
+            onClick={() => {
               removeTicket(index);
             }}
-          />
-        ))}
+          >
+            <DeleteIcon color="red" />
+          </Button>
+          <Button
+            size="sm"
+            variant="icon"
+            onClick={async () => {
+              // edit
+            }}
+          >
+            <EditIcon />
+          </Button>
+        </>
+      ),
+    };
+  });
+
+  return (
+    <Box mt="8">
+      <Flex alignItems="center" justifyContent="space-between">
+        <Box>
+          <FormLabel>Create tickets*</FormLabel>
+          <Text textAlign="left">Create custom tickets for {eventName}.</Text>
+        </Box>
+        <Button
+          leftIcon={<AddIcon h="3" />}
+          onClick={() => {
+            setModalAction('create');
+            onOpen();
+          }}
+        >
+          Create ticket
+        </Button>
+      </Flex>
+      <Box mt="3">
+        <FormLabel>Your tickets</FormLabel>
+        {ticketsData.length > 0 && <DataTable showColumns columns={COLUMNS} data={ticketsData} />}
+        {/* <Box mt="10">
+          {ticketFields.map((ticket, index) => (
+            <TicketCard
+              key={ticketFields?.[index]?.id}
+              id={ticketFields?.[index]?.id}
+              ticket={ticket}
+              onEditClick={() => {
+                setModalAction('update');
+                setCurrentTicketIndex(index);
+                window.setTimeout(() => {
+                  onOpen();
+                }, 0);
+              }}
+              onRemoveClick={() => {
+                removeTicket(index);
+              }}
+            />
+          ))}
+        </Box> */}
       </Box>
       <CreateTicketModal
         confirmText={modalAction === 'create' ? 'Add ticket' : 'Save changes'}
@@ -94,6 +172,6 @@ export const EventTicketsForm = () => {
         onClose={onClose}
         onConfirm={handleConfirmTicket}
       />
-    </>
+    </Box>
   );
 };
