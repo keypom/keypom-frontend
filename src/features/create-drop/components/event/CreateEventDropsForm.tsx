@@ -1,4 +1,4 @@
-import { Button, HStack } from '@chakra-ui/react';
+import { Button, HStack, VStack } from '@chakra-ui/react';
 import { useFormContext } from 'react-hook-form';
 
 import { IconBox } from '@/components/IconBox';
@@ -36,7 +36,14 @@ export const CreateEventDropsForm = () => {
   };
 
   return (
-    <IconBox icon={<EventIcon />} maxW={{ base: '21.5rem', md: '36rem' }} mx="auto">
+    <IconBox
+      icon={<EventIcon />}
+      maxW={{ base: '21.5rem', md: '38rem' }}
+      minW={{ base: '21.5rem', md: '38rem' }}
+      mx="auto"
+      p={{ base: '3', md: '6' }}
+      pt={{ base: '6', md: '12' }}
+    >
       <HStack
         flexWrap="nowrap"
         justifyContent={{ base: 'flex-start', md: 'center' }}
@@ -54,7 +61,7 @@ export const CreateEventDropsForm = () => {
       </HStack>
 
       {currentStep.component}
-      <HStack mt="4">
+      <VStack mt="6">
         <Button isDisabled={!isValid} w="full" onClick={handleNextStepClick}>
           Next
         </Button>
@@ -68,7 +75,7 @@ export const CreateEventDropsForm = () => {
             Go back
           </Button>
         )}
-      </HStack>
+      </VStack>
     </IconBox>
   );
 };

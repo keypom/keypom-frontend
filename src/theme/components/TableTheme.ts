@@ -14,18 +14,6 @@ export const TableTheme = helpers.defineMultiStyleConfig({
       borderSpacing: 0,
       overflow: 'hidden',
     },
-    th: {
-      textTransform: 'capitalize',
-      _first: {
-        borderTopLeftRadius: '26px',
-      },
-      _last: {
-        borderTopRightRadius: '26px',
-      },
-    },
-    td: {
-      pl: '4',
-    },
     tr: {
       borderBottom: '1px solid',
       borderBottomColor: 'gray.100',
@@ -34,9 +22,28 @@ export const TableTheme = helpers.defineMultiStyleConfig({
   },
   sizes: {
     sm: {
+      table: {
+        borderRadius: '6xl',
+      },
       tr: {
         borderBottom: '2px solid',
         borderBottomColor: 'gray.100',
+        height: '80px',
+      },
+      th: {
+        fontSize: 'sm',
+        height: '44px',
+        textTransform: 'capitalize',
+        _first: {
+          borderTopLeftRadius: '4px',
+        },
+        _last: {
+          borderTopRightRadius: '4px',
+        },
+        p: '0',
+      },
+      td: {
+        fontSize: 'sm',
       },
     },
     md: {
@@ -49,6 +56,13 @@ export const TableTheme = helpers.defineMultiStyleConfig({
         fontSize: 'md',
         py: '5',
         pl: '8',
+        textTransform: 'capitalize',
+        _first: {
+          borderTopLeftRadius: '26px',
+        },
+        _last: {
+          borderTopRightRadius: '26px',
+        },
       },
     },
   },
@@ -68,6 +82,14 @@ export const TableTheme = helpers.defineMultiStyleConfig({
         fontWeight: 'semibold',
         overflow: 'hidden',
         height: '88px',
+      },
+    },
+    tertiary: {
+      th: {
+        bg: 'gray.100',
+        color: 'gray.900',
+        fontWeight: 'medium',
+        overflow: 'hidden',
       },
     },
   },

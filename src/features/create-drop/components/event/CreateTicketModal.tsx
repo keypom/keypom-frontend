@@ -156,7 +156,7 @@ export const CreateTicketModal = ({
                   variant="quick-select"
                   onClick={() => {
                     setIsPriceCustom(false);
-                    setValue('nearPricePerTicket', val);
+                    setValue('nearPricePerTicket', val, { shouldValidate: true });
                   }}
                 >
                   {val}

@@ -1,5 +1,5 @@
 import { useFieldArray, useFormContext } from 'react-hook-form';
-import { Box, Button, Flex, FormLabel, Text, useDisclosure } from '@chakra-ui/react';
+import { Box, Button, Flex, FormLabel, Text, useDisclosure, VStack } from '@chakra-ui/react';
 import { AddIcon, EditIcon } from '@chakra-ui/icons';
 import { useState } from 'react';
 
@@ -14,24 +14,41 @@ const COLUMNS: ColumnItem[] = [
     id: 'name',
     title: 'Name',
     selector: (row) => row.name,
+    thProps: {
+      width: '47%',
+      pl: '4',
+    },
   },
   {
     id: 'count',
     title: 'Count',
     selector: (row) => row.numberOfTickets,
+    tdProps: {
+      textAlign: 'center',
+    },
+    thProps: {
+      textAlign: 'center',
+      width: '12%',
+    },
   },
   {
     id: 'price',
     title: 'Price (NEAR)',
     selector: (row) => row.nearPricePerTicket,
+    thProps: {
+      width: '18%',
+      textAlign: 'center',
+    },
+    tdProps: {
+      textAlign: 'center',
+    },
   },
   {
     id: 'action',
-    title: 'Action',
+    title: '',
     selector: (row) => row.action,
     tdProps: {
-      display: 'flex',
-      justifyContent: 'right',
+      display: 'table-cell',
       verticalAlign: 'middle',
     },
   },
@@ -81,20 +98,37 @@ export const EventTicketsForm = () => {
   };
 
   const ticketsData = ticketFields.map((ticket, index) => {
-    console.log(ticket);
     return {
       id: ticket.id,
       name: (
-        <Text color="gray.400" display="flex">
-          {ticket.name}
-        </Text>
+        <VStack alignItems="left">
+          <Text
+            color="gray.900"
+            fontWeight="medium"
+            overflow="hidden"
+            textOverflow="ellipsis"
+            whiteSpace="nowrap"
+          >
+            {ticket.name}
+          </Text>
+          <Text fontSize="sm" overflow="hidden" textOverflow="ellipsis" whiteSpace="nowrap">
+            {ticket.description}
+          </Text>
+          <Text color="gray.400" fontSize="xs">
+            {new Date(ticket.salesStartDate).toLocaleDateString()} -{' '}
+            {new Date(ticket.salesEndDate).toLocaleDateString()}
+          </Text>
+        </VStack>
       ),
       numberOfTickets: ticket.numberOfTickets,
       nearPricePerTicket: ticket.nearPricePerTicket,
       action: (
-        <>
+        <Box>
           <Button
+            borderRadius="5xl"
+            height="40px"
             mr="1"
+            p="14px"
             size="sm"
             variant="icon"
             onClick={() => {
@@ -104,15 +138,21 @@ export const EventTicketsForm = () => {
             <DeleteIcon color="red" />
           </Button>
           <Button
+            borderRadius="5xl"
+            height="40px"
+            mr="1"
+            p="14px"
             size="sm"
             variant="icon"
             onClick={async () => {
-              // edit
+              setCurrentTicketIndex(index);
+              setModalAction('edit');
+              onOpen();
             }}
           >
             <EditIcon />
           </Button>
-        </>
+        </Box>
       ),
     };
   });
@@ -134,29 +174,19 @@ export const EventTicketsForm = () => {
           Create ticket
         </Button>
       </Flex>
-      <Box mt="3">
-        <FormLabel>Your tickets</FormLabel>
-        {ticketsData.length > 0 && <DataTable showColumns columns={COLUMNS} data={ticketsData} />}
-        {/* <Box mt="10">
-          {ticketFields.map((ticket, index) => (
-            <TicketCard
-              key={ticketFields?.[index]?.id}
-              id={ticketFields?.[index]?.id}
-              ticket={ticket}
-              onEditClick={() => {
-                setModalAction('update');
-                setCurrentTicketIndex(index);
-                window.setTimeout(() => {
-                  onOpen();
-                }, 0);
-              }}
-              onRemoveClick={() => {
-                removeTicket(index);
-              }}
-            />
-          ))}
-        </Box> */}
-      </Box>
+      {ticketsData.length > 0 && (
+        <Box mt="5">
+          <FormLabel>Your tickets</FormLabel>
+          <DataTable
+            showColumns
+            columns={COLUMNS}
+            data={ticketsData}
+            layout="fixed"
+            size="sm"
+            variant="tertiary"
+          />
+        </Box>
+      )}
       <CreateTicketModal
         confirmText={modalAction === 'create' ? 'Add ticket' : 'Save changes'}
         isOpen={isOpen}
