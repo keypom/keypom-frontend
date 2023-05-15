@@ -35,9 +35,9 @@ export const TicketCard = ({ ticket, id, onRemoveClick, onEditClick }: TicketCar
       <CardHeader>
         <Heading size="sm">{ticket.name}</Heading>
       </CardHeader>
-      <CardBody>
+      <CardBody pt="0">
         <FormControl label="Number of tickets">
-          <Text>{ticket.numberOfTickets}</Text>
+          <Text>{ticket.numberOfTickets || 'Unlimited'}</Text>
         </FormControl>
 
         {ticket.description && (

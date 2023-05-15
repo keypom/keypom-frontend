@@ -120,7 +120,7 @@ export const EventTicketsForm = () => {
           </Text>
         </VStack>
       ),
-      numberOfTickets: ticket.numberOfTickets,
+      numberOfTickets: ticket.numberOfTickets || 'Unlimited',
       nearPricePerTicket: ticket.nearPricePerTicket,
       action: (
         <Box>

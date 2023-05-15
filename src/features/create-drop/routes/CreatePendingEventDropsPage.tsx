@@ -13,7 +13,7 @@ import {
 import { useEffect, useMemo, useState } from 'react';
 import { CheckCircleIcon } from '@chakra-ui/icons';
 import { useNavigate } from 'react-router-dom';
-import { createDrop, createNFTSeries, parseNearAmount } from 'keypom-js';
+import { createDrop, parseNearAmount } from 'keypom-js';
 
 import { PENDING_EVENT_TICKETS } from '@/constants/common';
 import { del, get } from '@/utils/localStorage';
@@ -49,7 +49,9 @@ const CreatePendingEventDropsPage = () => {
           config: {
             usesPerKey: 3,
             sale: {
-              maxNumKeys: parseInt(ticket.numberOfTickets.toString()),
+              ...(ticket.numberOfTickets && {
+                maxNumKeys: parseInt(ticket.numberOfTickets.toString()),
+              }),
               pricePerKeyNEAR: parseFloat(ticket.nearPricePerTicket.toString()),
               blocklist: ['satoshi.testnet'],
               autoWithdrawFunds: true,
@@ -74,6 +76,7 @@ const CreatePendingEventDropsPage = () => {
             ],
           },
         });
+        // Not working at the moment
         // await createNFTSeries({
         //   dropId,
         //   wallet: await window.selector.wallet(),
