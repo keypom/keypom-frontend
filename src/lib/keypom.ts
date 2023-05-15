@@ -401,6 +401,7 @@ class KeypomJS {
     return {
       dropName: dropMetadata.dropName,
       wallets: dropMetadata.wallets,
+      redirectUrl: dropMetadata.redirectUrl,
       ftMetadata,
       amountTokens: drop.ft?.balance_per_use, // TODO: format correctly with FT metadata
       amountNEAR: formatNearAmount(drop.deposit_per_use, 4),
@@ -474,6 +475,7 @@ class KeypomJS {
       type: nftData ? DROP_TYPE.NFT : DROP_TYPE.TOKEN,
       dropName: dropMetadata.dropName,
       wallets: dropMetadata.wallets,
+      redirectUrl: dropMetadata.redirectUrl,
       ...(nftData
         ? {
             media: `${CLOUDFLARE_IPFS}/${nftData.metadata.media}`, // eslint-disable-line
@@ -519,6 +521,7 @@ class KeypomJS {
       type: nftData ? DROP_TYPE.NFT : DROP_TYPE.TOKEN,
       dropName: dropMetadata.dropName,
       wallets: dropMetadata.wallets,
+      redirectUrl: dropMetadata.redirectUrl,
       ...(nftData
         ? {
             media: `${CLOUDFLARE_IPFS}/${nftData.metadata.media}`, // eslint-disable-line

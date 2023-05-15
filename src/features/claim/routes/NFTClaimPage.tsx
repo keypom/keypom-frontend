@@ -19,6 +19,7 @@ const NFTClaimPage = () => {
   const [description, setDescription] = useState('');
   const [nftImage, setNftImage] = useState('');
   const [wallets, setWallets] = useState([]);
+  const [redirectUrl, setRedirectUrl] = useState(undefined);
   const [tokens, setTokens] = useState<TokenAsset[]>([]);
 
   // claim info
@@ -57,6 +58,7 @@ const NFTClaimPage = () => {
       }
 
       setWallets(data.wallets);
+      setRedirectUrl(data.redirectUrl);
     } catch (err) {
       setClaimInfoError(err.message);
     }
@@ -94,6 +96,7 @@ const NFTClaimPage = () => {
       pageHeadingText={
         type === DROP_TYPE.NFT ? "You've received an NFT!" : "You've received a Keypom drop!"
       }
+      redirectUrl={redirectUrl}
       secretKey={secretKey}
       type={type}
       wallets={wallets}
