@@ -166,6 +166,18 @@ export default function TicketDropManagerPage() {
         ),
         action: (
           <>
+            <Button
+              borderRadius="xl"
+              mr="1"
+              size="md"
+              variant="icon"
+              onClick={(e) => {
+                e.preventDefault();
+                handleCopyClick(item.link);
+              }}
+            >
+              <CopyIcon />
+            </Button>
             {!item.hasClaimed && (
               <Button
                 borderRadius="xl"
@@ -179,18 +191,6 @@ export default function TicketDropManagerPage() {
                 <DeleteIcon color="red" />
               </Button>
             )}
-            <Button
-              borderRadius="xl"
-              mr="1"
-              size="md"
-              variant="icon"
-              onClick={(e) => {
-                e.preventDefault();
-                handleCopyClick(item.link);
-              }}
-            >
-              <CopyIcon />
-            </Button>
           </>
         ),
       };

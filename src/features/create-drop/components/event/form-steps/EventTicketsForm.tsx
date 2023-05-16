@@ -123,20 +123,7 @@ export const EventTicketsForm = () => {
       numberOfTickets: ticket.numberOfTickets || 'Unlimited',
       nearPricePerTicket: ticket.nearPricePerTicket,
       action: (
-        <Box>
-          <Button
-            borderRadius="5xl"
-            height="40px"
-            mr="1"
-            p="14px"
-            size="sm"
-            variant="icon"
-            onClick={() => {
-              removeTicket(index);
-            }}
-          >
-            <DeleteIcon color="red" />
-          </Button>
+        <Flex>
           <Button
             borderRadius="5xl"
             height="40px"
@@ -152,20 +139,38 @@ export const EventTicketsForm = () => {
           >
             <EditIcon />
           </Button>
-        </Box>
+          <Button
+            borderRadius="5xl"
+            height="40px"
+            mr="1"
+            p="14px"
+            size="sm"
+            variant="icon"
+            onClick={() => {
+              removeTicket(index);
+            }}
+          >
+            <DeleteIcon color="red" />
+          </Button>
+        </Flex>
       ),
     };
   });
 
   return (
     <Box mt="8">
-      <Flex alignItems="center" justifyContent="space-between">
+      <Flex
+        alignItems={{ base: 'start', md: 'center' }}
+        direction={{ base: 'column', md: 'row' }}
+        justifyContent="space-between"
+      >
         <Box>
           <FormLabel>Create tickets*</FormLabel>
           <Text textAlign="left">Create custom tickets for {eventName}.</Text>
         </Box>
         <Button
           leftIcon={<AddIcon h="3" />}
+          mt={{ base: '5', md: '0' }}
           onClick={() => {
             setModalAction('create');
             onOpen();

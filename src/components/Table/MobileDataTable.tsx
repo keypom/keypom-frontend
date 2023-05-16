@@ -60,16 +60,20 @@ export const MobileDataTable = ({
             : undefined
         }
       >
-        <Td>
-          <VStack align="flex-start" spacing="2">
+        <Td width="63%">
+          <VStack align="flex-start" overflow="hidden" spacing="2" width="100%">
             {columns
               .filter((column) => actionColumn.id !== column.id) // exclude action column
               .map((column) => (
-                <Box key={`${drop.id}-${column.id}`}>{column.selector(drop)}</Box>
+                <Box key={`${drop.id}-${column.id}`} width="100%">
+                  {column.selector(drop)}
+                </Box>
               ))}
           </VStack>
         </Td>
-        <Td verticalAlign="middle">{actionColumn.selector(drop)}</Td>
+        <Td textAlign="right" verticalAlign="middle" width="37%">
+          {actionColumn.selector(drop)}
+        </Td>
       </Tr>
     ));
   };

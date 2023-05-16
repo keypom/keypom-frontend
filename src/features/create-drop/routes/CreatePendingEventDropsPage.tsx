@@ -76,7 +76,7 @@ const CreatePendingEventDropsPage = () => {
             ],
           },
         });
-        // Not working at the moment
+        // NOTE: Not working at the moment
         // await createNFTSeries({
         //   dropId,
         //   wallet: await window.selector.wallet(),

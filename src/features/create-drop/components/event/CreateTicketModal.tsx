@@ -63,11 +63,6 @@ export const CreateTicketModal = ({
     'salesEndDate',
     'nearPricePerTicket',
   ]);
-  // const [dateRange, setDateRange] = useState([null, null]);
-  // const [startDate, endDate] = dateRange;
-  // console.log(dateRange);
-
-  console.log(watch());
 
   return (
     <Modal
@@ -149,11 +144,12 @@ export const CreateTicketModal = ({
             }}
           />
           <FormControl label="Price per ticket (NEAR)*">
-            <Flex justifyContent="space-between" w="full">
+            <Flex alignItems="center" flexFlow="wrap" justifyContent="space-between" w="full">
               {quickPrices.map((val) => (
                 <Button
                   key={`quickPrices-${val}`}
                   isActive={nearPricePerTicket === val}
+                  my="2"
                   size="sm"
                   variant="quick-select"
                   onClick={() => {
