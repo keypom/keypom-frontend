@@ -1,12 +1,13 @@
 import { Button, Flex, Heading, Text } from '@chakra-ui/react';
 import { Controller, useFieldArray, useForm } from 'react-hook-form';
-import { addKeys, addToBalance, formatNearAmount, generateKeys } from 'keypom-js';
+import { addKeys, addToBalance, canUserAddKeys, formatNearAmount, generateKeys } from 'keypom-js';
 import BN from 'bn.js';
 
 import { set } from '@/utils/localStorage';
 import { PENDING_TICKET_PURCHASE } from '@/constants/common';
 import { formatSaleDate } from '@/utils/formatSaleDate';
 import { DataTable } from '@/components/Table';
+import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
 
 import { type EventMetadata } from '../types/common';
 
@@ -18,6 +19,7 @@ interface EventCardProps {
 }
 
 export const EventCard = ({ ticketArray = [] }: EventCardProps) => {
+  const { accountId } = useAuthWalletContext();
   // event details
   const eventId = `${ticketArray[0].eventId}`;
 
@@ -49,8 +51,8 @@ export const EventCard = ({ ticketArray = [] }: EventCardProps) => {
       getValues(eventId).map(async (field) => {
         const { value, dropId, next_key_id, config: { sale: { price_per_key } } = {} } = field;
 
+        console.log(await canUserAddKeys({ accountId, dropId }));
         if (!value || value === 0) return {};
-
         const { publicKeys, secretKeys } = await generateKeys({
           numKeys: value,
           rootEntropy: `${dropId as string}`,
@@ -119,6 +121,7 @@ export const EventCard = ({ ticketArray = [] }: EventCardProps) => {
         },
       } = item;
       const time = !start || !end ? 'Available now' : formatSaleDate(start, end);
+      const isWithinTimeRange = Date.now() > start && Date.now() < end;
 
       const FIELD_NAME = `${eventId}.${index}.value` as const;
 
@@ -133,7 +136,7 @@ export const EventCard = ({ ticketArray = [] }: EventCardProps) => {
           </>
         ),
         date: time,
-        quantity: max_num_keys || 'Infinite',
+        quantity: isWithinTimeRange ? max_num_keys || 'Infinite' : '-',
         price: formatNearAmount(price_per_key, 4),
         action: (
           <Controller
@@ -144,6 +147,8 @@ export const EventCard = ({ ticketArray = [] }: EventCardProps) => {
               <TicketCard
                 field={field}
                 fieldState={fieldState}
+                isDisabled={!isWithinTimeRange}
+                maxValue={max_num_keys}
                 name={FIELD_NAME}
                 ticketName={item.ticketName}
                 ticketPrice={item?.config?.sale?.price_per_key}
