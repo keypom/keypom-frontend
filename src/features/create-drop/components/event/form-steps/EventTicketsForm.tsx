@@ -23,6 +23,7 @@ const COLUMNS: ColumnItem[] = [
     id: 'count',
     title: 'Count',
     selector: (row) => row.numberOfTickets,
+    mobileSelector: (row) => `${row.numberOfTickets} Tickets`,
     tdProps: {
       textAlign: 'center',
     },
@@ -35,6 +36,7 @@ const COLUMNS: ColumnItem[] = [
     id: 'price',
     title: 'Price (NEAR)',
     selector: (row) => row.nearPricePerTicket,
+    mobileSelector: (row) => `${row.nearPricePerTicket} NEAR`,
     thProps: {
       width: '18%',
       textAlign: 'center',
@@ -111,16 +113,21 @@ export const EventTicketsForm = () => {
           >
             {ticket.name}
           </Text>
-          <Text fontSize="sm" overflow="hidden" textOverflow="ellipsis" whiteSpace="nowrap">
+          <Text
+            fontSize={{ md: 'sm' }}
+            overflow="hidden"
+            textOverflow="ellipsis"
+            whiteSpace="nowrap"
+          >
             {ticket.description}
           </Text>
-          <Text color="gray.400" fontSize="xs">
+          <Text color="gray.400" fontSize={{ md: 'xs' }}>
             {new Date(ticket.salesStartDate).toLocaleDateString()} -{' '}
             {new Date(ticket.salesEndDate).toLocaleDateString()}
           </Text>
         </VStack>
       ),
-      numberOfTickets: ticket.numberOfTickets || 'Unlimited',
+      numberOfTickets: ticket.numberOfTickets || 'Infinite',
       nearPricePerTicket: ticket.nearPricePerTicket,
       action: (
         <Flex>

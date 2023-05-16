@@ -66,7 +66,7 @@ export const MobileDataTable = ({
               .filter((column) => actionColumn?.id !== column.id) // exclude action column
               .map((column) => (
                 <Box key={`${drop.id}-${column.id}`} width="100%">
-                  {column.selector(drop)}
+                  {column.mobileSelector ? column.mobileSelector(drop) : column.selector(drop)}
                 </Box>
               ))}
           </VStack>
