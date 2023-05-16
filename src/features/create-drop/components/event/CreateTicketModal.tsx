@@ -148,7 +148,7 @@ export const CreateTicketModal = ({
               {quickPrices.map((val) => (
                 <Button
                   key={`quickPrices-${val}`}
-                  isActive={nearPricePerTicket === val}
+                  isActive={!isPriceCustom && nearPricePerTicket === val}
                   my="2"
                   size="sm"
                   variant="quick-select"
@@ -161,8 +161,9 @@ export const CreateTicketModal = ({
                 </Button>
               ))}
               <Button
+                isActive={isPriceCustom}
                 size="sm"
-                variant="colorful"
+                variant="quick-select"
                 onClick={() => {
                   setIsPriceCustom(true);
                 }}
