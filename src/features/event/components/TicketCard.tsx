@@ -23,7 +23,7 @@ export const TicketCard = ({ name, maxValue, isDisabled, field }: TicketCardProp
   return (
     <FormControl>
       <HStack justify="center">
-        <Button h="12" isDisabled={isDisabled} variant="outline" {...getDecrementButtonProps()}>
+        <Button h="12" hidden={isDisabled} variant="outline" {...getDecrementButtonProps()}>
           -
         </Button>
         <Input
@@ -34,7 +34,7 @@ export const TicketCard = ({ name, maxValue, isDisabled, field }: TicketCardProp
           bg="white"
           name={name}
         />
-        <Button h="12" isDisabled={isDisabled} variant="outline" {...getIncrementButtonProps()}>
+        <Button h="12" hidden={isDisabled} variant="outline" {...getIncrementButtonProps()}>
           +
         </Button>
       </HStack>
