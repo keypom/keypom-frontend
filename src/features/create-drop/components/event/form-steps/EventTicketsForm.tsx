@@ -199,21 +199,23 @@ export const EventTicketsForm = () => {
           />
         </Box>
       )}
-      <CreateTicketModal
-        confirmText={modalAction === 'create' ? 'Add ticket' : 'Save changes'}
-        isOpen={isOpen}
-        values={modalAction === 'create' ? defaultTicketValues : ticketFields[currentTicketIndex]}
-        onCancel={() => {
-          if (modalAction === 'create') {
-            removeTicket(ticketFields.length);
-          }
-          window.setTimeout(() => {
-            onClose();
-          }, 0);
-        }}
-        onClose={onClose}
-        onConfirm={handleConfirmTicket}
-      />
+      {isOpen && (
+        <CreateTicketModal
+          confirmText={modalAction === 'create' ? 'Add ticket' : 'Save changes'}
+          isOpen={isOpen}
+          values={modalAction === 'create' ? defaultTicketValues : ticketFields[currentTicketIndex]}
+          onCancel={() => {
+            if (modalAction === 'create') {
+              removeTicket(ticketFields.length);
+            }
+            window.setTimeout(() => {
+              onClose();
+            }, 0);
+          }}
+          onClose={onClose}
+          onConfirm={handleConfirmTicket}
+        />
+      )}
     </Box>
   );
 };
