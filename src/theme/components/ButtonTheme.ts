@@ -129,8 +129,9 @@ export const ButtonTheme = defineStyleConfig({
       minW: '16',
       variant: 'solid',
       _active: {
-        border: '2px solid',
-        borderColor: 'blue.400',
+        border: '2px solid transparent',
+        color: 'blue.400',
+        bg: 'border.landing.100',
       },
     },
   },
