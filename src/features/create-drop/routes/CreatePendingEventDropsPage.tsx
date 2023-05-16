@@ -45,6 +45,7 @@ const CreatePendingEventDropsPage = () => {
             dropName: `${eventName} - ${ticket.name}`,
             wallets: ['mynearwallet', 'herewallet'],
             questions,
+            description: ticket.description,
           }),
           config: {
             usesPerKey: 3,

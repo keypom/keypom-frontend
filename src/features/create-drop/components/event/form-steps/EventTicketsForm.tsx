@@ -15,7 +15,7 @@ const COLUMNS: ColumnItem[] = [
     title: 'Name',
     selector: (row) => row.name,
     thProps: {
-      width: '47%',
+      width: '44%',
       pl: '4',
     },
   },
@@ -28,7 +28,7 @@ const COLUMNS: ColumnItem[] = [
     },
     thProps: {
       textAlign: 'center',
-      width: '12%',
+      width: '15%',
     },
   },
   {
