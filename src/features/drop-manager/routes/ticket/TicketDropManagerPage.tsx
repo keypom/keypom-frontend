@@ -143,7 +143,7 @@ export default function TicketDropManagerPage() {
           </Text>
         ),
         hasClaimed: getBadgeType(item.keyInfo?.cur_key_use as number),
-        viewDetails: (
+        viewDetails: dropMetadata.questions && (
           <Button
             colorScheme="blue"
             mr="1"
