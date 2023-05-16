@@ -5,12 +5,12 @@ import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 
 // onchange will send back an array of 2 datetimes
-export const DatetimeRangePicker = ({ onChange, value }) => {
+export const DatetimeRangePicker = ({ onChange, value }: { value: Date[] | undefined }) => {
   const [startDate, setStartDate] = useState(new Date());
   const [endDate, setEndDate] = useState(new Date());
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
-  const [datetimes, setDatetimes] = useState(value || [new Date(), new Date()]);
+  const [datetimes, setDatetimes] = useState(value || []);
 
   const handleDateChange = (update: Date[]) => {
     const [start, end] = update;
@@ -28,10 +28,18 @@ export const DatetimeRangePicker = ({ onChange, value }) => {
   }, [startDate, endDate, startTime, endTime]);
 
   useEffect(() => {
+    const [start, end] = value;
+    setStartDate(start);
+    setEndDate(end);
+    setStartTime(`${start.getHours()}:${end.getMinutes()}`);
     setDatetimes(value || [new Date(), new Date()]);
-  }, [value]);
+  }, []);
 
-  const datetimeRangeString = `${datetimes[0].toLocaleString()} - ${datetimes[1].toLocaleString()}`;
+  // useEffect(() => {
+  //   onChange(datetimes);
+  // }, [datetimes]);
+
+  const datetimeRangeString = `${datetimes?.[0].toLocaleString()} - ${datetimes?.[1].toLocaleString()}`;
 
   return (
     <DatePicker
@@ -51,6 +59,7 @@ export const DatetimeRangePicker = ({ onChange, value }) => {
       />
       <FormLabel fontSize="sm">End time</FormLabel>
       <Input
+        placeholder="Date range"
         type="time"
         onChange={(e) => {
           setEndTime(e.target.value);
