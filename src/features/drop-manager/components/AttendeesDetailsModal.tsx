@@ -21,7 +21,9 @@ export const setAttendeesDetailsModal = (setAppModal, link, status, questions, a
             <Text fontWeight="500" size="sm">
               Link
             </Text>
-            <Text size="sm">{link}</Text>
+            <Text size="sm" textAlign="left">
+              {link}
+            </Text>
           </VStack>
           {status}
         </HStack>
