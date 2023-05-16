@@ -36,6 +36,7 @@ export const TableTheme = helpers.defineMultiStyleConfig({
         textTransform: 'capitalize',
         _first: {
           borderTopLeftRadius: '4px',
+          pl: '4',
         },
         _last: {
           borderTopRightRadius: '4px',

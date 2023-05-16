@@ -24,7 +24,7 @@ const EventPage = () => {
 
     const events: Record<string, EventCardMetadata> = {};
     filteredDrops.forEach((drop) => {
-      const { eventId, eventName, dropName, wallets } = keypomInstance.getDropMetadata(
+      const { eventId, eventName, dropName, wallets, description } = keypomInstance.getDropMetadata(
         drop.metadata,
       );
 
@@ -34,6 +34,7 @@ const EventPage = () => {
         eventName,
         dropName,
         wallets,
+        description,
         ...drop,
       });
     });
@@ -55,7 +56,7 @@ const EventPage = () => {
     <Box mb={{ base: '5', md: '14' }} minH="100%" minW="100%" mt={{ base: '52px', md: '100px' }}>
       <EventHeader headerText="My Events" />
       {!loading && (
-        <VStack maxW="995px" mx="auto" spacing="6">
+        <VStack maxW="1200px" mx="auto" spacing="6">
           {data.map((event) => (
             <EventCard key={event[0].eventId} ticketArray={event} />
           ))}

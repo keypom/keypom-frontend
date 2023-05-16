@@ -27,7 +27,7 @@ export const MobileDataTable = ({
 }: MobileDataTableProps) => {
   const navigate = useNavigate();
 
-  const actionColumn = columns[columns.length - 1];
+  const actionColumn = columns.find((col) => col.id === 'action');
   const getMobileTableBody = () => {
     if (loading) {
       return Array.from([1, 2, 3]).map((_, index) => (
@@ -63,7 +63,7 @@ export const MobileDataTable = ({
         <Td width="63%">
           <VStack align="flex-start" overflow="hidden" spacing="2" width="100%">
             {columns
-              .filter((column) => actionColumn.id !== column.id) // exclude action column
+              .filter((column) => actionColumn?.id !== column.id) // exclude action column
               .map((column) => (
                 <Box key={`${drop.id}-${column.id}`} width="100%">
                   {column.selector(drop)}
@@ -71,9 +71,11 @@ export const MobileDataTable = ({
               ))}
           </VStack>
         </Td>
-        <Td textAlign="right" verticalAlign="middle" width="37%">
-          {actionColumn.selector(drop)}
-        </Td>
+        {actionColumn && (
+          <Td textAlign="right" verticalAlign="middle" width="37%">
+            {actionColumn?.selector(drop)}
+          </Td>
+        )}
       </Tr>
     ));
   };

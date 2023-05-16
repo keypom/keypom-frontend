@@ -1,42 +1,27 @@
-import { Box, Button, Flex, Heading, Show, SimpleGrid, Text } from '@chakra-ui/react';
+import { Button, Flex, Heading, Text } from '@chakra-ui/react';
 import { Controller, useFieldArray, useForm } from 'react-hook-form';
-import { addKeys, addToBalance, formatNearAmount, generateKeys, getUserBalance } from 'keypom-js';
-import { useEffect } from 'react';
+import { addKeys, addToBalance, formatNearAmount, generateKeys } from 'keypom-js';
 import BN from 'bn.js';
 
-import { IconBox } from '@/components/IconBox';
 import { set } from '@/utils/localStorage';
-import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
 import { PENDING_TICKET_PURCHASE } from '@/constants/common';
 import { formatSaleDate } from '@/utils/formatSaleDate';
+import { DataTable } from '@/components/Table';
 
 import { type EventMetadata } from '../types/common';
 
 import { TicketCard } from './TicketCard';
+import { eventTableColumn } from './TableColumn';
 
 interface EventCardProps {
   ticketArray: EventMetadata[];
 }
 
 export const EventCard = ({ ticketArray = [] }: EventCardProps) => {
-  /** to delete */
-  const { accountId } = useAuthWalletContext();
-
-  useEffect(() => {
-    const getBalance = async () => {
-      console.log('userbalance:', formatNearAmount(await getUserBalance({ accountId }), 4));
-    };
-    getBalance();
-  }, []);
-  /** ** */
-
   // event details
   const eventId = `${ticketArray[0].eventId}`;
-  const { config: { sale: { start = undefined, end = undefined } } = { sale: {} } } =
-    ticketArray[0];
-  const time = !start || !end ? `undefined date` : formatSaleDate(start, end);
 
-  const { handleSubmit, control, getValues } = useForm({
+  const { handleSubmit, control, getValues, watch } = useForm({
     defaultValues: {
       [eventId]: ticketArray.map((ticket) => ({
         dropId: ticket.drop_id,
@@ -89,7 +74,6 @@ export const EventCard = ({ ticketArray = [] }: EventCardProps) => {
         };
       }),
     ).then(async (transactions) => {
-      console.log('transactions', transactions);
       transactions.forEach((tx) => {
         const {
           requiredDeposit = 0,
@@ -108,7 +92,6 @@ export const EventCard = ({ ticketArray = [] }: EventCardProps) => {
         }
       });
 
-      console.log('totalAmount', totalAmount, totalAmount.toString());
       const pendingTicketPurchase = {
         publicKeys: currentPk,
         secretKeys: currentSk,
@@ -124,77 +107,82 @@ export const EventCard = ({ ticketArray = [] }: EventCardProps) => {
     });
   };
 
+  const getTableRows = (data) => {
+    if (data === undefined) return [];
+
+    return fields.map((item, index) => {
+      const {
+        config: {
+          sale: { price_per_key = 0, max_num_keys = undefined, start = undefined, end = undefined },
+        } = {
+          sale: {},
+        },
+      } = item;
+      const time = !start || !end ? 'Available now' : formatSaleDate(start, end);
+
+      const FIELD_NAME = `${eventId}.${index}.value` as const;
+
+      return {
+        id: item.id,
+        ticket: (
+          <>
+            <Text fontWeight="500">{item.ticketName}</Text>
+            <Text overflow="hidden" textOverflow="ellipsis" whiteSpace="nowrap">
+              {item.description || ''}
+            </Text>
+          </>
+        ),
+        date: time,
+        quantity: max_num_keys || 'Infinite',
+        price: formatNearAmount(price_per_key, 4),
+        action: (
+          <Controller
+            key={item.id}
+            control={control}
+            name={FIELD_NAME}
+            render={({ field, fieldState }) => (
+              <TicketCard
+                field={field}
+                fieldState={fieldState}
+                name={FIELD_NAME}
+                ticketName={item.ticketName}
+                ticketPrice={item?.config?.sale?.price_per_key}
+              />
+            )}
+          />
+        ),
+      };
+    });
+  };
+
+  const totalTicketsPrice = watch()[eventId].reduce((acc, currentItem) => {
+    const {
+      config: {
+        sale: { price_per_key = '0' },
+      },
+      value,
+    } = currentItem;
+
+    const ticketsPrice = (formatNearAmount(price_per_key, 4) as number) * value;
+
+    return acc + ticketsPrice;
+  }, 0);
+
   return (
     <form onSubmit={handleSubmit(handleOnSubmit)}>
-      <IconBox
-        borderRadius={{ base: '1rem', md: '8xl' }}
-        overflow="hidden"
-        p="0"
-        pb="0"
-        position="relative"
-        w="full"
-      >
-        <Show above="md">
-          <Box
-            bg="linear-gradient(180deg, rgba(255, 207, 234, 0) 0%, #30c9f34b 100%)"
-            bottom="-123px"
-            filter="blur(100px)"
-            h="793px"
-            overflow="hidden"
-            position="absolute"
-            right="-123px"
-            transform="rotate(30deg)"
-            w="606px"
-            zIndex="1"
-          />
-        </Show>
-        <Flex
-          flexDir="column"
-          position="relative"
-          px={{ base: '8', md: '16' }}
-          py={{ base: '8', md: 'auto' }}
-          zIndex="2"
-        >
-          <Flex
-            flex={{ base: 'auto', md: '1' }}
-            flexDir="column"
-            justify="center"
-            mb="8"
-            overflow="hidden"
-            position="relative"
-            textAlign="left"
-          >
-            <Heading>{ticketArray[0].eventName}</Heading>
-            <Text>{time}</Text>
-          </Flex>
-          <SimpleGrid columns={3} mb="4" spacingX="40px" spacingY="40px">
-            {fields.map((item, index) => {
-              const FIELD_NAME = `${eventId}.${index}.value` as const;
-              return (
-                <Controller
-                  key={item.id}
-                  control={control}
-                  name={FIELD_NAME}
-                  render={({ field, fieldState }) => (
-                    <TicketCard
-                      field={field}
-                      fieldState={fieldState}
-                      name={FIELD_NAME}
-                      ticketName={item.ticketName}
-                      ticketPrice={item?.config?.sale?.price_per_key}
-                    />
-                  )}
-                />
-              );
-            })}
-          </SimpleGrid>
-          <Flex justify="center" mt="12">
-            <Button type="submit" w="full">
-              Buy
-            </Button>
-          </Flex>
-        </Flex>
-      </IconBox>
+      <Heading mb="4">{ticketArray[0].eventName}</Heading>
+
+      <DataTable
+        columns={eventTableColumn}
+        data={getTableRows(ticketArray)}
+        layout="fixed"
+        showColumns={true}
+        size="sm"
+        variant="tertiary"
+      />
+      <Flex justify="flex-end" mt="4">
+        <Button type="submit">{`Buy ${totalTicketsPrice.toPrecision(3)} NEAR`}</Button>
+      </Flex>
     </form>
   );
 };
