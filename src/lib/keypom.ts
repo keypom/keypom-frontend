@@ -268,6 +268,7 @@ class KeypomJS {
     try {
       drop = await getDropInformation({ dropId, secretKey });
     } catch (err) {
+      console.log(err);
       throw new Error('Unable to claim. This drop may have been claimed before.');
     }
 

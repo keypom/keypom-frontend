@@ -17,6 +17,7 @@ import { DropClaimMetadata } from '@/features/claim/components/DropClaimMetadata
 import { AvatarImage } from '@/components/AvatarImage';
 import { DropBox } from '@/components/DropBox';
 import { FormControl } from '@/components/FormControl';
+import { encrypt } from '@/utils/crypto';
 
 const storeToSmartContract = (dropId: string, publicKey: string, encryptedAnswers: string[]) => {
   // call smart contract
@@ -27,7 +28,7 @@ const schema = z.object({
     z
       .object({
         isRequired: z.boolean(),
-        type: z.enum(['TEXT', 'RADIO']),
+        // type: z.enum(['TEXT', 'RADIO']).optional(),
         value: z.string(),
       })
       .superRefine(({ isRequired, value }, ctx) => {
@@ -57,12 +58,17 @@ export const TicketQRPage = () => {
 
   const { giftType, title, tokens, nftImage, questions, dropId } = getDropMetadata();
 
-  const { handleSubmit, control } = useForm<Schema>({
+  const {
+    handleSubmit,
+    control,
+    formState: { isValid, errors },
+  } = useForm<Schema>({
     mode: 'onChange',
     defaultValues: {
-      qna: questions.map(({ type }, i) => ({
+      qna: questions.map(({ type, isRequired }, i) => ({
         type,
         value: '',
+        isRequired,
       })),
     },
     resolver: zodResolver(schema),
@@ -87,7 +93,6 @@ export const TicketQRPage = () => {
     // encrypt data
     const encryptedAns = answers.map((ans) => encrypt(ans, secretKey));
     storeToSmartContract(dropId, publicKey, encryptedAns);
-
     setShowSummary(true);
   };
 
@@ -181,7 +186,12 @@ export const TicketQRPage = () => {
                   />
                 );
               })}
-              <Button type="submit" w="full" onClick={handleSubmit(handleShowTicketClick)}>
+              <Button
+                isDisabled={!isValid}
+                type="submit"
+                w="full"
+                onClick={handleSubmit(handleShowTicketClick)}
+              >
                 Show my ticket!
               </Button>
             </Flex>
