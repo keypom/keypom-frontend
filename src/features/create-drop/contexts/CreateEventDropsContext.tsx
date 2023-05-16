@@ -149,7 +149,11 @@ export const CreateEventDropsProvider = ({ children }: PropsWithChildren) => {
   // reduct user balance from creating drops
   const handleCreateDrops = async () => {
     const { getValues } = methods;
-    set(PENDING_EVENT_TICKETS, JSON.stringify(getValues()));
+    const { questions, ...rest } = getValues();
+    set(
+      PENDING_EVENT_TICKETS,
+      JSON.stringify({ ...rest, questions: questions?.filter((q) => q.isSelected) }),
+    );
     await addToBalance({
       amountYocto: totalRequiredDeposits,
       wallet: await window.selector.wallet(),
