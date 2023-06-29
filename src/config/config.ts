@@ -10,6 +10,10 @@ const SUPPORTED_WALLET_OPTIONS: IWalletOption[] = [
     name: 'mynearwallet',
     title: 'My Near Wallet',
   },
+  {
+    name: 'trial-account',
+    title: 'Blockchain Operating System',
+  },
   // support only mynearwallet for now
   // https://docs.keypom.xyz/docs/next/keypom-sdk/modules#supportedlinkdropclaimpages
   // {
@@ -19,7 +23,7 @@ const SUPPORTED_WALLET_OPTIONS: IWalletOption[] = [
   // },
 ];
 
-const DEFAULT_WALLET = SUPPORTED_WALLET_OPTIONS[0];
+const DEFAULT_WALLET = SUPPORTED_WALLET_OPTIONS[1];
 
 // used in create drops
 const DEFAULT_TOKEN: IToken = {

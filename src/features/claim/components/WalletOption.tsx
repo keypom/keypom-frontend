@@ -9,6 +9,8 @@ export interface WalletOptionProps extends CenterProps {
 }
 
 export const WalletOption = ({ name, title, handleWalletClick, ...props }: WalletOptionProps) => {
+  console.log(`title: ${JSON.stringify(title)}`);
+  console.log('name: ', name);
   return (
     <Center
       _hover={{

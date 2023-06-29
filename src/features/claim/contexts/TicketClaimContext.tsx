@@ -55,6 +55,8 @@ const TicketClaimContext = createContext<TicketClaimContextTypes | null>(null);
  * Context to manage whole ticket claim flow for each key uses
  */
 export const TicketClaimContextProvider = ({ children }: PropsWithChildren) => {
+  console.log('children: ', children);
+
   const navigate = useNavigate();
   const { secretKey, contractId } = useClaimParams();
 
@@ -169,7 +171,7 @@ export const TicketClaimContextProvider = ({ children }: PropsWithChildren) => {
     // Only allow claiming when there are 3 remaining uses
     if (currentKeyUse === 1) {
       try {
-        await keypomInstance.claim(secretKey, 'foo', true);
+        await keypomInstance.rsvpTicket(secretKey, 'foo', true);
       } catch (err) {
         setClaimError(err);
       }

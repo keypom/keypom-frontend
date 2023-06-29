@@ -147,7 +147,7 @@ export const CreateTokenDropProvider = ({ children }: PropsWithChildren) => {
     const totalLinkCost = format(evaluate(`${totalLinks} * ${amountPerLink}`), {
       precision: 14,
     });
-    const totalCost = parseFloat(formatNearAmount(requiredDeposit!, 4));
+    const totalCost = parseFloat(formatNearAmount(requiredDeposit, 4));
     const costsData: PaymentItem[] = [
       {
         name: 'Link cost',

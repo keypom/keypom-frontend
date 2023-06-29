@@ -8,6 +8,7 @@ interface WalletIconProps extends IconProps {
 
 export const WalletIcon = ({ name, ...iconProps }: WalletIconProps) => {
   switch (name.toLowerCase()) {
+    case 'trial-account':
     case 'near':
       return <NearIcon {...iconProps} />;
     case 'here':

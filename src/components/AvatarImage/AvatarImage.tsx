@@ -19,7 +19,7 @@ export const AvatarImage = ({ altName, imageSrc, ...props }: AvatarImageProps) =
       {...props}
     >
       <ChakraImage
-        alt={replaceSpace(altName)}
+        alt={replaceSpace(altName || '')}
         borderRadius={{ base: '5xl', md: '6xl' }}
         fallback={<Skeleton borderRadius={{ base: '5xl', md: '6xl' }} height="100%" />}
         objectFit="cover"

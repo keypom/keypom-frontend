@@ -25,6 +25,7 @@ const TicketClaimPage = () => {
   }
 
   if (claimInfoError) {
+    console.log('claimInfoError: ', claimInfoError);
     return <ErrorBox message={claimInfoError} />;
   }
 

@@ -9,12 +9,12 @@ import {
   getKeyInformation,
   hashPassword,
   getPubFromSecret,
-  formatNearAmount,
   formatLinkdropUrl,
   generateKeys,
   getKeyInformationBatch,
   getKeySupplyForDrop,
   deleteKeys,
+  formatNearAmount,
   getKeysForDrop,
   deleteDrops,
   getDropSupplyForOwner,
@@ -151,12 +151,14 @@ class KeypomJS {
   claimTicket = async (secretKey: string, password: string) => {
     let keyInfo = await getKeyInformation({ secretKey });
     const publicKey: string = getPubFromSecret(secretKey);
+    console.log('publicKey: ', publicKey);
     const passwordForClaim = await hashPassword(
       password + publicKey + keyInfo.cur_key_use.toString(),
     );
+    console.log('passwordForClaim: ', passwordForClaim);
 
     try {
-      await claim({ secretKey, password: passwordForClaim, accountId: 'foo' });
+      await this.rsvpTicket(secretKey, passwordForClaim);
     } catch (e) {
       console.warn(e);
     }
@@ -373,6 +375,9 @@ class KeypomJS {
       throw new Error('This drop has been claimed.');
     }
 
+    const { contractId } = getEnv();
+    return `https://near.org/#trial-url/${contractId}/${secretKey}`;
+
     // generate the link to navigate to
     const urls = formatLinkdropUrl({
       claimPage: walletName,
@@ -417,6 +422,7 @@ class KeypomJS {
     let nftData;
     let tokensData;
 
+    console.log('fcMethod: ', fcMethod);
     const { receiver_id: receiverId } = fcMethod;
     const { viewCall } = getEnv();
 
@@ -426,6 +432,7 @@ class KeypomJS {
         methodName: 'get_series_info',
         args: { mint_id: parseFloat(dropId) },
       });
+      console.log('nftData: ', nftData);
     } catch (err) {
       console.error('NFT series not found');
       // throw new Error('NFT series not found');
@@ -455,17 +462,25 @@ class KeypomJS {
     const dropMetadata = this.getDropMetadata(drop.metadata);
 
     const fcMethods = drop.fc?.methods;
-    if (
-      fcMethods === undefined ||
-      fcMethods.length === 0 ||
-      fcMethods[0] === undefined ||
-      fcMethods[0][0] === undefined
-    ) {
-      throw new Error('Unable to retrieve function calls.');
-    }
+    const nonNullfcMethod = fcMethods?.filter((method) => method != null);
+    console.log('nonNullfcMethod: ', nonNullfcMethod);
+
+    const fcMethodWithNft = nonNullfcMethod[0]?.filter((m) => {
+      return m.method_name == 'nft_mint';
+    });
+    console.log('fcMethodWithNft: ', fcMethodWithNft);
+
+    // if (
+    //   fcMethods === undefined ||
+    //   fcMethods.length === 0 ||
+    //   fcMethods[0] === undefined ||
+    //   fcMethods[0][0] === undefined
+    // ) {
+    //   throw new Error('Unable to retrieve function calls.');
+    // }
 
     const { nftData, tokensData } = await this.getNFTorTokensMetadata(
-      fcMethods[0][0],
+      fcMethodWithNft[0],
       drop.drop_id,
       secretKey,
       contractId,
@@ -499,19 +514,25 @@ class KeypomJS {
     const dropMetadata = this.getDropMetadata(drop.metadata);
 
     const fcMethods = drop.fc?.methods;
-    if (
-      fcMethods === undefined ||
-      fcMethods.length < 3 ||
-      fcMethods[2] === undefined ||
-      fcMethods[2][0] === undefined
-    ) {
-      throw new Error('Unable to retrieve function calls.');
-    }
+    const nonNullfcMethod = fcMethods?.filter((method) => method != null);
+    console.log('nonNullfcMethod: ', nonNullfcMethod);
 
-    const fcMethod = fcMethods[2][0];
+    const fcMethodWithNft = nonNullfcMethod[0]?.filter((m) => {
+      return m.method_name == 'nft_mint';
+    });
+    console.log('fcMethodWithNft: ', fcMethodWithNft);
+
+    // if (
+    //   fcMethods === undefined ||
+    //   fcMethods.length === 0 ||
+    //   fcMethods[0] === undefined ||
+    //   fcMethods[0][0] === undefined
+    // ) {
+    //   throw new Error('Unable to retrieve function calls.');
+    // }
 
     const { nftData, tokensData } = await this.getNFTorTokensMetadata(
-      fcMethod,
+      fcMethodWithNft[0],
       drop.drop_id,
       secretKey,
       contractId,
@@ -538,6 +559,22 @@ class KeypomJS {
       await this.validateAccountId(walletAddress);
     }
     await claim({ secretKey, accountId: walletAddress });
+  };
+
+  rsvpTicket = async (secretKey: string, password: string) => {
+    const { contractId, networkId } = getEnv();
+    await myKeyStore.setKey(networkId!, contractId, secretKey);
+
+    const dropInfo = await getDropInformation({ secretKey });
+    console.log('dropInfo: ', dropInfo);
+
+    const keypomAccount = await this.nearConnection.account(contractId);
+    await keypomAccount.functionCall({
+      contractId,
+      methodName: 'claim',
+      args: { account_id: 'foo', password },
+      gas: dropInfo.required_gas,
+    });
   };
 }
 

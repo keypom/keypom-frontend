@@ -2,12 +2,13 @@ import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 
 import { DROP_TYPE, type DROP_TYPES } from '@/constants/common';
-import { TokenNFTClaim } from '@/features/claim/components/TokenNFTClaim';
 import { useClaimParams } from '@/hooks/useClaimParams';
 import keypomInstance from '@/lib/keypom';
 import { checkClaimedDrop } from '@/utils/claimedDrops';
 import { TicketIcon } from '@/components/Icons';
 import { type TokenAsset } from '@/types/common';
+
+import { TrialAccountClaim } from '../TrialAccountClaim';
 
 const TicketGiftPage = () => {
   const navigate = useNavigate();
@@ -79,7 +80,7 @@ const TicketGiftPage = () => {
   }, []);
 
   return (
-    <TokenNFTClaim
+    <TrialAccountClaim
       claimInfoError={claimInfoError}
       claimSuccessfulText="Gifts claimed!"
       contractId={contractId}
@@ -91,7 +92,7 @@ const TicketGiftPage = () => {
         nftImage,
         tokens,
       }}
-      pageHeadingText="Collect your gifts"
+      pageHeadingText="Get Started on NEAR"
       secretKey={secretKey}
       type={type}
       wallets={wallets}
