@@ -11,7 +11,7 @@ import {
 } from '@chakra-ui/react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { type ProtocolReturnedKeyInfo } from 'keypom-js';
+import { type ProtocolReturnedKeyInfo } from '@keypom/core';
 
 import { type ColumnItem, type DataItem } from '@/components/Table/types';
 import { DataTable } from '@/components/Table';

@@ -16,7 +16,7 @@ import {
   VStack,
 } from '@chakra-ui/react';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { type ProtocolReturnedDrop } from 'keypom-js';
+import { type ProtocolReturnedDrop } from '@keypom/core';
 import { ChevronDownIcon } from '@chakra-ui/icons';
 import { useSearchParams } from 'react-router-dom';
 

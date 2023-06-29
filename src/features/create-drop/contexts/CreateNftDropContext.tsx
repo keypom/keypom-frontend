@@ -4,7 +4,7 @@ import useSWRMutation from 'swr/mutation';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import BN from 'bn.js';
-import { formatNearAmount, addToBalance } from 'keypom-js';
+import { formatNearAmount, addToBalance } from '@keypom/core';
 import { set, update } from 'idb-keyval';
 
 import { urlRegex, MAX_FILE_SIZE, NFT_ATTEMPT_KEY } from '@/constants/common';

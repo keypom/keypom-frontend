@@ -1,6 +1,6 @@
 import { Box, Button, Center, Flex, Heading, Hide, Text, VStack } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
-import { getKeyInformation } from 'keypom-js';
+import { getKeyInformation } from '@keypom/core';
 
 import { IconBox } from '@/components/IconBox';
 import { TicketIcon } from '@/components/Icons';

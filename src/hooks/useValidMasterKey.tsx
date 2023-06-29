@@ -1,4 +1,4 @@
-import { generateKeys, getKeysForDrop } from 'keypom-js';
+import { generateKeys, getKeysForDrop } from '@keypom/core';
 import { useEffect, useState } from 'react';
 
 import { MASTER_KEY } from '@/constants/common';

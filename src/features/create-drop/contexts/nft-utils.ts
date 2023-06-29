@@ -1,4 +1,4 @@
-import { getEnv, generateKeys, createDrop, parseNearAmount } from 'keypom-js';
+import { getEnv, generateKeys, createDrop, parseNearAmount } from '@keypom/core';
 import { get, update, del } from 'idb-keyval';
 import { pack } from 'ipfs-car/dist/esm/pack';
 import { MemoryBlockStore } from 'ipfs-car/dist/esm/blockstore/memory';

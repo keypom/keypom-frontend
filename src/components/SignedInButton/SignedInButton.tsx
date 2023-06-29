@@ -11,7 +11,7 @@ import {
   Text,
   useBoolean,
 } from '@chakra-ui/react';
-import { formatNearAmount } from 'keypom-js';
+import { formatNearAmount } from '@keypom/core';
 
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
 import { useAppContext, openMasterKeyModal } from '@/contexts/AppContext';

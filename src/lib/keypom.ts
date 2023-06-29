@@ -19,7 +19,7 @@ import {
   deleteDrops,
   getDropSupplyForOwner,
   getDrops,
-} from 'keypom-js';
+} from '@keypom/core';
 import * as nearAPI from 'near-api-js';
 
 import { CLOUDFLARE_IPFS, DROP_TYPE, MASTER_KEY } from '@/constants/common';
@@ -131,6 +131,7 @@ class KeypomJS {
     await this.verifyDrop(contractId, secretKey);
 
     const keyInfo = await getKeyInformation({ secretKey });
+    console.log('keyInfo: ', keyInfo);
 
     if (keyInfo === null || keyInfo === undefined) {
       throw new Error('Drop has been deleted or has already been claimed');
@@ -193,7 +194,7 @@ class KeypomJS {
         return DROP_TYPE.TRIAL;
       }
 
-      if (drop.fc.methods.length === 3) {
+      if (drop.fc.methods.length === 3 || drop.fc.methods.length === 2) {
         return DROP_TYPE.TICKET;
       }
 
@@ -499,19 +500,26 @@ class KeypomJS {
     const dropMetadata = this.getDropMetadata(drop.metadata);
 
     const fcMethods = drop.fc?.methods;
-    if (
-      fcMethods === undefined ||
-      fcMethods.length < 3 ||
-      fcMethods[2] === undefined ||
-      fcMethods[2][0] === undefined
-    ) {
-      throw new Error('Unable to retrieve function calls.');
-    }
+    console.log('fcMethods: ', fcMethods);
+    // if (
+    //   fcMethods === undefined ||
+    //   fcMethods.length < 3 ||
+    //   fcMethods[2] === undefined ||
+    //   fcMethods[2][0] === undefined
+    // ) {
+    //   throw new Error('Unable to retrieve function calls.');
+    // }
 
-    const fcMethod = fcMethods[2][0];
+    const nonNullfcMethod = fcMethods?.filter((method) => method != null);
+    console.log('nonNullfcMethod: ', nonNullfcMethod);
+
+    const fcMethodWithNft = nonNullfcMethod[0]?.filter((m) => {
+      return m.method_name == 'nft_mint';
+    });
+    console.log('fcMethodWithNft: ', fcMethodWithNft);
 
     const { nftData, tokensData } = await this.getNFTorTokensMetadata(
-      fcMethod,
+      fcMethodWithNft[0],
       drop.drop_id,
       secretKey,
       contractId,

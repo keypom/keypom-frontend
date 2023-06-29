@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { Controller, useFormContext } from 'react-hook-form';
 import { evaluate, format } from 'mathjs';
-import { formatNearAmount } from 'keypom-js';
+import { formatNearAmount } from '@keypom/core';
 
 import { FormControl } from '@/components/FormControl';
 import { TokenInput } from '@/components/TokenInputMenu';

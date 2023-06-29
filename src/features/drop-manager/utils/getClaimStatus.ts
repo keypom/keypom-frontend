@@ -1,4 +1,4 @@
-import { type ProtocolReturnedKeyInfo } from 'keypom-js';
+import { type ProtocolReturnedKeyInfo } from '@keypom/core';
 
 import { type TicketClaimStatus } from '../types/types';
 
