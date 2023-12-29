@@ -10,7 +10,7 @@ export const WalletIcon = ({ name, ...iconProps }: WalletIconProps) => {
   switch (name.toLowerCase()) {
     case 'near':
       return <NearIcon {...iconProps} />;
-    case 'here':
+    case 'herewallet':
       return <HereWalletIcon {...iconProps} />;
     case 'mynearwallet':
     default:

@@ -7,6 +7,7 @@ import {
 import { setupModal, type WalletSelectorModal } from '@near-wallet-selector/modal-ui';
 import { setupNearWallet } from '@near-wallet-selector/near-wallet';
 import { setupMyNearWallet } from '@near-wallet-selector/my-near-wallet';
+import { setupHereWallet } from '@near-wallet-selector/here-wallet';
 
 const NETWORK_ID = process.env.REACT_APP_NETWORK_ID ?? 'testnet';
 const CONTRACT_ID = process.env.REACT_APP_CONTRACT_ID ?? 'v2.keypom.testnet';
@@ -20,7 +21,7 @@ export class NearWalletSelector {
     const _selector = await setupWalletSelector({
       network: NETWORK_ID as NetworkId,
       debug: true,
-      modules: [setupNearWallet(), setupMyNearWallet()],
+      modules: [setupNearWallet(), setupMyNearWallet(), setupHereWallet()],
     });
     const _modal = setupModal(_selector, { contractId: CONTRACT_ID, theme: 'light' });
     const state = _selector.store.getState();
