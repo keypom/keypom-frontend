@@ -198,10 +198,10 @@ export const CreateNftDropProvider = ({ children }: PropsWithChildren) => {
     const totalRequired = paymentData.costsData[3].total;
 
     await update(NFT_ATTEMPT_KEY, (val) => ({ ...val, confirmed: true }));
-    let wallet = await window.selector.wallet();
+    const wallet = await window.selector.wallet();
     
     // Injected wallets return promises
-    if(wallet.type == "injected"){
+    if(wallet.type === "injected"){
       try{
         await addToBalance({
           wallet: await window.selector.wallet(),

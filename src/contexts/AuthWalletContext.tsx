@@ -101,7 +101,7 @@ export const AuthWalletContextProvider = ({ children }: PropsWithChildren) => {
   }, [accountId, getAccount]);
 
   selector?.on('signedIn', () => {
-    let newAccountState: AccountState[] = selector.store.getState().accounts
+    const newAccountState: AccountState[] = selector.store.getState().accounts
     setAccounts(newAccountState)
     getAccount()
       .then((nextAccount) => {
