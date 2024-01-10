@@ -27,7 +27,7 @@ export const CreateWallet = ({
 
   const handleWalletClick = async (walletName: string, wRef: any) => {
     try {
-      var url = ""
+      let url = ""
       if(walletName === `herewallet`){
         url = `https://my.herewallet.app/linkdrop/${contractId}/${secretKey}`
       }else{

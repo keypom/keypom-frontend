@@ -4,7 +4,7 @@ import useSWRMutation from 'swr/mutation';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import BN from 'bn.js';
-import { formatNearAmount, addToBalance, getUserBalance } from 'keypom-js';
+import { formatNearAmount, addToBalance } from 'keypom-js';
 import { set, update } from 'idb-keyval';
 
 import { urlRegex, MAX_FILE_SIZE, NFT_ATTEMPT_KEY } from '@/constants/common';
@@ -15,7 +15,6 @@ import {
 } from '@/features/create-drop/types/types';
 
 import { createDropsForNFT } from './nft-utils';
-import { typeOf } from 'mathjs';
 
 const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/gif', 'image/png', 'image/webp'];
 
@@ -68,13 +67,11 @@ const CreateNftDropContext = createContext<CreateNftDropContextType>({
     confirmationText: '',
   }),
   handleDropConfirmation: function (): void {
-    console.log("createLinksSWR")
     throw new Error('Function not implemented.');
   },
   createLinksSWR: {
     data: { success: false },
     handleDropConfirmation: function (): void {
-      console.log("createLinksSWR")
       throw new Error('Function not implemented.');
     },
   },
@@ -202,26 +199,29 @@ export const CreateNftDropProvider = ({ children }: PropsWithChildren) => {
 
     await update(NFT_ATTEMPT_KEY, (val) => ({ ...val, confirmed: true }));
     let wallet = await window.selector.wallet();
-
-    let preAdd: string = await getUserBalance({accountId: wallet.accountId});
-
-    await addToBalance({
-      wallet: await window.selector.wallet(),
-      amountYocto: totalRequired.toString(),
-      successUrl: window.location.origin + '/drop/nft/new',
-    });
-
-    let postAdd: string = await getUserBalance({accountId: wallet.accountId});
     
-    if(wallet.id == "here-wallet" || wallet.type == "injected"){
-      let balChange = BigInt(postAdd) - BigInt(preAdd);
-      const balChangeString = balChange.toString();
-      if(balChangeString == totalRequired.toString()){
+    // Injected wallets return promises
+    if(wallet.type == "injected"){
+      try{
+        await addToBalance({
+          wallet: await window.selector.wallet(),
+          amountYocto: totalRequired.toString(),
+          successUrl: window.location.origin + '/drop/nft/new',
+        });
+        
         window.location.assign(window.location.origin + '/drop/nft/new');
-      }else{
+      }catch(e){
         alert("Something went wrong. Please try again.");
       }
     }
+    else{
+      await addToBalance({
+        wallet: await window.selector.wallet(),
+        amountYocto: totalRequired.toString(),
+        successUrl: window.location.origin + '/drop/nft/new',
+      });
+    }
+
   };
 
   const createLinksSWR = {

@@ -26,6 +26,7 @@
     "@emotion/react": "^11.10.5",
     "@emotion/styled": "^11.10.5",
     "@hookform/resolvers": "^2.9.10",
+    "@near-js/transactions": "^1.0.1",
     "@near-wallet-selector/core": "^8.9.1",
     "@near-wallet-selector/here-wallet": "^8.6.1",
     "@near-wallet-selector/modal-ui": "^8.6.1",

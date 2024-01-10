@@ -100,6 +100,21 @@ export const AuthWalletContextProvider = ({ children }: PropsWithChildren) => {
       .catch(console.error); // eslint-disable-line no-console
   }, [accountId, getAccount]);
 
+  selector?.on('signedIn', () => {
+    let newAccountState: AccountState[] = selector.store.getState().accounts
+    setAccounts(newAccountState)
+    getAccount()
+      .then((nextAccount) => {
+        console.log(nextAccount)
+        sessionStorage.setItem('account', JSON.stringify(nextAccount));
+        setAccount(nextAccount);
+      })
+  })
+
+  selector?.on('signedOut', () => {
+    sessionStorage.removeItem('account');
+  })
+
   const value = {
     modal: modal as WalletSelectorModal,
     selector: selector as WalletSelector,
