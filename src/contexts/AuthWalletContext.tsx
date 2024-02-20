@@ -2,6 +2,7 @@ import { type AccountState, type WalletSelector } from '@near-wallet-selector/co
 import { providers } from 'near-api-js';
 import { type AccountView } from 'near-api-js/lib/providers/provider';
 import { type WalletSelectorModal } from '@near-wallet-selector/modal-ui';
+import { useInitNear } from 'near-social-vm';
 import {
   createContext,
   type PropsWithChildren,
@@ -36,6 +37,7 @@ interface AuthWalletContextValues {
 const AuthWalletContext = createContext<AuthWalletContextValues | null>(null);
 
 export const AuthWalletContextProvider = ({ children }: PropsWithChildren) => {
+  const { initNear } = useInitNear();
   const [selector, setSelector] = useState<WalletSelector | null>(null);
   const [modal, setModal] = useState<WalletSelectorModal | null>(null);
   const [accounts, setAccounts] = useState<AccountState[]>([]);
@@ -67,6 +69,11 @@ export const AuthWalletContextProvider = ({ children }: PropsWithChildren) => {
   useEffect(() => {
     const initWalletSelector = async () => {
       const walletSelector = new NearWalletSelector();
+      initNear &&
+        (await initNear({
+          networkId: 'mainnet',
+          selector: walletSelector,
+        }));
       await walletSelector.init();
 
       setModal(walletSelector.modal);
@@ -80,7 +87,7 @@ export const AuthWalletContextProvider = ({ children }: PropsWithChildren) => {
     };
 
     initWalletSelector().catch(console.error); // eslint-disable-line no-console
-  }, []);
+  }, [initNear]);
 
   // set account
   useEffect(() => {

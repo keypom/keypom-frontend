@@ -46,12 +46,12 @@ export const DropsSection = () => {
       icon: <TicketIcon height={{ base: '6', md: '7' }} width={{ base: '6', md: '7' }} />,
       content: (
         <DropsTemplate
-          ctaDisabled={true}
+          ctaDisabled={false}
           ctaOnClick={() => {
-            // dropCta('ticket');
+            dropCta('ticket');
           }}
-          ctaText="Coming soon"
-          description="Generate QRs for each guest, set them up with a wallet and optionally drop attendance proof NFTs."
+          ctaText="Create Tickets"
+          description="Create tickets to your event that can be bought and resold with optional credit card payments enabled."
           headingText="Ticket your next event."
           imageNumber={1}
           subHeadingText="Ticket Drops"

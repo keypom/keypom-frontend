@@ -1,0 +1,110 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap');
+
+:root {
+  --slate-dark-1: #151718;
+  --slate-dark-5: #2b2f31;
+  --slate-dark-6: #313538;
+  --slate-dark-8: #4c5155;
+  --slate-dark-9: #697177;
+  --slate-dark-11: #9ba1a6;
+  --slate-dark-12: #ecedee;
+  --blue-light-9: #0091ff;
+
+  --font-weight-medium: 500;
+  --font-weight-bold: 600;
+
+  /* For web3 onboard */
+  --account-center-z-index: 999;
+  --account-center-position-top: 64px;
+  --account-center-position-right: -10px;
+}
+
+* {
+  font-family: 'Inter', sans-serif;
+
+  box-sizing: border-box;
+  padding: 0px;
+  margin: 0px;
+}
+
+/* Archia */
+@font-face {
+  font-family: 'Archia';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('../../../../../public/assets/fonts/archia/archia-regular-webfont.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Archia';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('../../../../../public/assets/fonts/archia/archia-medium-webfont.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Archia';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('../../../../../public/assets/fonts/archia/archia-semibold-webfont.woff2')
+    format('woff2');
+}
+
+/* Inter */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('../../../../../public/assets/fonts/inter/Inter-Regular.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('../../../../../public/assets/fonts/inter/Inter-Medium.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('../../../../../public/assets/fonts/inter/Inter-SemiBold.woff2') format('woff2');
+}
+
+.containerCSS {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.containerCSS .contentCSS {
+  width: 100%;
+  max-width: 1250px;
+  padding-inline: 16px;
+
+  height: 100%;
+
+  display: flex;
+  flex-direction: column;
+
+  align-items: flex-start;
+  justify-content: flex-start;
+}
+.containerCSS .contentCSS > div {
+  width: 100%;
+}
+
+.gradient-hero-text {
+  /* Gradient3 */
+  background: linear-gradient(97.7deg, rgb(251, 80, 191) 14%, rgb(0, 174, 223) 49.33%);
+
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-fill-color: transparent;
+}

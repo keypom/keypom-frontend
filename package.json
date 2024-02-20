@@ -38,6 +38,7 @@
     "keypom-js": "^1.4.7",
     "mathjs": "^11.5.1",
     "near-api-js": "^1.1.0",
+    "near-social-vm": "git+https://github.com/NearSocial/VM.git#dev",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-hook-form": "^7.43.0",
@@ -52,6 +53,7 @@
   "devDependencies": {
     "@parcel/config-default": "^2.8.3",
     "@parcel/reporter-bundle-analyzer": "^2.8.3",
+    "@parcel/transformer-sass": "2.11.0",
     "@parcel/transformer-svg-react": "^2.8.3",
     "@parcel/transformer-typescript-tsc": "^2.8.3",
     "@parcel/validator-typescript": "^2.8.3",
