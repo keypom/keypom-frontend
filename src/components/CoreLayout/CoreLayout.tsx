@@ -14,7 +14,7 @@ const AppModal = React.lazy(
 
 export const CoreLayout = () => {
   const layoutBg =
-    'none, linear-gradient(180deg, rgba(239, 250, 253, 0.4) 0%, rgba(239, 250, 253, 0.6) 27.41%), #FFFFFF;';
+    'linear-gradient(0deg,rgba(220,244,251,1) 0%,rgba(251,254,255,1) 95%,rgba(255,255,255,1) 100%)';
   return (
     <Flex
       alignItems="flex-start"

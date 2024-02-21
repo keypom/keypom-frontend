@@ -1,8 +1,10 @@
 import { type AccountState, type WalletSelector } from '@near-wallet-selector/core';
+import { Heading } from '@chakra-ui/react';
 import { providers } from 'near-api-js';
 import { type AccountView } from 'near-api-js/lib/providers/provider';
 import { type WalletSelectorModal } from '@near-wallet-selector/modal-ui';
 import { useInitNear } from 'near-social-vm';
+import { Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material';
 import {
   createContext,
   type PropsWithChildren,
@@ -73,6 +75,13 @@ export const AuthWalletContextProvider = ({ children }: PropsWithChildren) => {
         (await initNear({
           networkId: 'mainnet',
           selector: walletSelector,
+          customElements: {
+            Heading: () => <Heading />,
+            MUIDialog: (props) => <Dialog {...props} />,
+            MUIDialogTitle: () => <DialogTitle />,
+            MUIDialogContent: () => <DialogContent />,
+            MUIDialogActions: () => <DialogActions />,
+          },
         }));
       await walletSelector.init();
 
