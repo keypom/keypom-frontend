@@ -102,6 +102,7 @@ export default function AllDrops() {
     search: string;
     status: string;
   }>({ type: DROP_TYPE_OPTIONS.ANY, search: '', status: DROP_CLAIM_STATUS_OPTIONS.ANY });
+  const [searchTerm, setSearchTerm] = useState<string>('');
   const [allOwnedDrops, setAllOwnedDrops] = useState<Array<DataItem | null>>([]);
   const [filteredDrops, setFilteredDrops] = useState<Array<DataItem | null>>([]);
   const [wallet, setWallet] = useState({});
@@ -117,10 +118,7 @@ export default function AllDrops() {
 
   const handleSearchChange = (event) => {
     const { value } = event.target;
-    setSelectedFilters((prevFilters) => ({
-      ...prevFilters,
-      search: value,
-    }));
+    setSearchTerm(value);
   };
 
   const handleDropStatusSelect = (item) => {
@@ -136,6 +134,15 @@ export default function AllDrops() {
 
   const handlePrevPage = () => {
     setCurPage((prev) => prev - 1);
+  };
+
+  const handleKeyDown = (event) => {
+    if (event.key === 'Enter') {
+      setSelectedFilters((prevFilters) => ({
+        ...prevFilters,
+        search: searchTerm,
+      }));
+    }
   };
 
   const setAllDropsData = async (drop: ProtocolReturnedDrop) => {
@@ -462,8 +469,9 @@ export default function AllDrops() {
                     color: 'gray.400', // Placeholder text color
                   },
                 }}
-                value={selectedFilters.search}
+                value={searchTerm}
                 onChange={handleSearchChange}
+                onKeyDown={handleKeyDown}
               />
             </InputGroup>
             <Menu>
