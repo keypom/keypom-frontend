@@ -1,7 +1,11 @@
 import {
+  Input,
+  InputGroup,
+  InputLeftElement,
+  Icon,
+  Button,
   Badge,
   Box,
-  Button,
   HStack,
   Menu,
   MenuButton,
@@ -17,9 +21,9 @@ import {
 } from '@chakra-ui/react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { type ProtocolReturnedDrop } from 'keypom-js';
-import { ChevronDownIcon } from '@chakra-ui/icons';
-import { useSearchParams } from 'react-router-dom';
+import { SearchIcon, ChevronDownIcon } from '@chakra-ui/icons';
 
+import { PAGE_SIZE_LIMIT, CLOUDFLARE_IPFS, DROP_TYPE } from '@/constants/common';
 import { useAppContext } from '@/contexts/AppContext';
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
 import { type ColumnItem, type DataItem } from '@/components/Table/types';
@@ -27,12 +31,16 @@ import { DataTable } from '@/components/Table';
 import { DeleteIcon } from '@/components/Icons';
 import { truncateAddress } from '@/utils/truncateAddress';
 import { NextButton, PrevButton } from '@/components/Pagination';
-import { usePagination } from '@/hooks/usePagination';
-import { CLOUDFLARE_IPFS, DROP_TYPE, PAGE_QUERY_PARAM } from '@/constants/common';
 import keypomInstance from '@/lib/keypom';
 import { PopoverTemplate } from '@/components/PopoverTemplate';
 
-import { MENU_ITEMS } from '../config/menuItems';
+import {
+  DROP_TYPE_OPTIONS,
+  DROP_CLAIM_STATUS_OPTIONS,
+  DROP_CLAIM_STATUS_ITEMS,
+  DROP_TYPE_ITEMS,
+  CREATE_DROP_ITEMS,
+} from '../config/menuItems';
 
 import { MobileDrawerMenu } from './MobileDrawerMenu';
 import { setConfirmationModalHelper } from './ConfirmationModal';
@@ -78,60 +86,56 @@ const COLUMNS: ColumnItem[] = [
 ];
 
 export default function AllDrops() {
-  const [searchParams, setSearchParams] = useSearchParams();
   const { setAppModal } = useAppContext();
+
+  const [hasPagination, setHasPagination] = useState<boolean>(false);
+  const [numPages, setNumPages] = useState<number>(0);
+  const [curPage, setCurPage] = useState<number>(0);
+  const pageSize = PAGE_SIZE_LIMIT;
 
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [isLoading, setIsLoading] = useState(true);
   const popoverClicked = useRef(0);
 
-  const [dataSize, setDataSize] = useState<number>(0);
-  const [data, setData] = useState<Array<DataItem | null>>([]);
+  const [selectedFilters, setSelectedFilters] = useState<{
+    type: string;
+    search: string;
+    status: string;
+  }>({ type: DROP_TYPE_OPTIONS.ANY, search: '', status: DROP_CLAIM_STATUS_OPTIONS.ANY });
+  const [allOwnedDrops, setAllOwnedDrops] = useState<Array<DataItem | null>>([]);
+  const [filteredDrops, setFilteredDrops] = useState<Array<DataItem | null>>([]);
   const [wallet, setWallet] = useState({});
 
   const { selector, accountId } = useAuthWalletContext();
 
-  const {
-    setPagination,
-    hasPagination,
-    pagination,
-    isFirstPage,
-    isLastPage,
-    loading,
-    handleNextPage,
-    handlePrevPage,
-  } = usePagination({
-    dataSize,
-    handlePrevApiCall: async () => {
-      const prevPageIndex = pagination.pageIndex - 1;
-      await handleGetDrops({
-        start: prevPageIndex * pagination.pageSize,
-        limit: pagination.pageSize,
-      });
-      const newQueryParams = new URLSearchParams({
-        [PAGE_QUERY_PARAM]: (prevPageIndex + 1).toString(),
-      });
-      setSearchParams(newQueryParams);
-    },
-    handleNextApiCall: async () => {
-      const nextPageIndex = pagination.pageIndex + 1;
-      await handleGetDrops({
-        start: nextPageIndex * pagination.pageSize,
-        limit: pagination.pageSize,
-      });
-      const newQueryParams = new URLSearchParams({
-        [PAGE_QUERY_PARAM]: (nextPageIndex + 1).toString(),
-      });
-      setSearchParams(newQueryParams);
-    },
-  });
+  const handleDropTypeSelect = (item) => {
+    setSelectedFilters((prevFilters) => ({
+      ...prevFilters,
+      type: item.label,
+    }));
+  };
 
-  const handleGetDropsSize = async () => {
-    const numDrops = await keypomInstance.getDropSupplyForOwner({
-      accountId,
-    });
+  const handleSearchChange = (event) => {
+    const { value } = event.target;
+    setSelectedFilters((prevFilters) => ({
+      ...prevFilters,
+      search: value,
+    }));
+  };
 
-    setDataSize(numDrops);
+  const handleDropStatusSelect = (item) => {
+    setSelectedFilters((prevFilters) => ({
+      ...prevFilters,
+      status: item.label,
+    }));
+  };
+
+  const handleNextPage = () => {
+    setCurPage((prev) => prev + 1);
+  };
+
+  const handlePrevPage = () => {
+    setCurPage((prev) => prev - 1);
   };
 
   const setAllDropsData = async (drop: ProtocolReturnedDrop) => {
@@ -176,8 +180,6 @@ export default function AllDrops() {
           title: nftData?.metadata?.title,
           description: nftData?.metadata?.description,
         };
-
-        console.log(nftData);
       } catch (e) {
         console.error('failed to get nft metadata', e); // eslint-disable-line no-console
       }
@@ -193,38 +195,117 @@ export default function AllDrops() {
     };
   };
 
-  const handleGetDrops = useCallback(
-    async ({ start = 0, limit = pagination.pageSize }) => {
-      const drops = await keypomInstance.getDrops({ accountId, start, limit });
+  const handleGetDrops = useCallback(async () => {
+    setIsLoading(true);
 
+    let drops = allOwnedDrops;
+    if (allOwnedDrops.length === 0) {
+      console.log('fetching all drops (prev: )', allOwnedDrops); // eslint-disable-line no-console
+      // First, determine the total number of drops
+      const totalDrops = await keypomInstance.getDropSupplyForOwner({
+        accountId,
+      });
+      const totalPages = Math.ceil(totalDrops / pageSize);
+      setHasPagination(totalPages > 1);
+      setNumPages(totalPages);
       setWallet(await selector.wallet());
 
-      setData(
-        await Promise.all(
-          drops.map(async (drop) => {
-            return await setAllDropsData(drop);
+      // Create an array of page indices [0, 1, ..., totalPages - 1]
+      const pageIndices = Array.from({ length: totalPages }, (_, index) => index);
+
+      // Map each page index to a fetch promise
+      const fetchPromises = pageIndices.map(
+        async (pageIndex) =>
+          await keypomInstance.getDrops({
+            accountId: accountId!,
+            start: pageIndex * pageSize,
+            limit: pageSize,
+            withKeys: false,
           }),
-        ),
       );
 
-      setIsLoading(false);
-    },
-    [pagination],
-  );
+      // Wait for all fetches to complete
+      const allPagesDrops = await Promise.all(fetchPromises);
+      // Flatten the array of pages into a single array of drops
+      drops = allPagesDrops.flat();
+      setAllOwnedDrops(drops);
+    }
+
+    // Apply the selected filters
+    if (selectedFilters.type !== DROP_TYPE_OPTIONS.ANY) {
+      drops = drops.filter(
+        (drop) =>
+          keypomInstance.getDropType(drop).toLowerCase() === selectedFilters.type.toLowerCase(),
+      );
+    }
+
+    if (selectedFilters.status !== DROP_CLAIM_STATUS_OPTIONS.ANY) {
+      // Convert each drop to a promise that resolves to either the drop or null
+      const dropsPromises = drops.map(async (drop) => {
+        const keysLeft = await keypomInstance.getAvailableKeys(drop.drop_id);
+        const isFullyClaimed = keysLeft === 0;
+        const isPartiallyClaimed = keysLeft > 0 && keysLeft < drop.next_key_id;
+        const isUnclaimed = keysLeft === drop.next_key_id;
+
+        if (
+          (isFullyClaimed && selectedFilters.status === DROP_CLAIM_STATUS_OPTIONS.FULLY) ||
+          (isPartiallyClaimed && selectedFilters.status === DROP_CLAIM_STATUS_OPTIONS.PARTIALLY) ||
+          (isUnclaimed && selectedFilters.status === DROP_CLAIM_STATUS_OPTIONS.UNCLAIMED)
+        ) {
+          return drop;
+        }
+        return null;
+      });
+
+      // Wait for all promises to resolve, then filter out the nulls
+      const resolvedDrops = await Promise.all(dropsPromises);
+      drops = resolvedDrops.filter((drop) => drop !== null);
+    }
+
+    if (selectedFilters.search.trim() !== '') {
+      drops = drops.filter((drop) => {
+        const { dropName } = keypomInstance.getDropMetadata(drop.metadata);
+        return dropName.toLowerCase().includes(selectedFilters.search.toLowerCase());
+      });
+    }
+    // Now, map over the filtered drops and set the data
+    const dropData = await Promise.all(drops.map(setAllDropsData));
+    setFilteredDrops(dropData);
+    setIsLoading(false);
+  }, [accountId, selectedFilters, keypomInstance]);
 
   useEffect(() => {
     if (!accountId) return;
 
-    // page query param should be indexed from 1
-    const pageQuery = searchParams.get('page');
-    const currentPageIndex = pageQuery !== null ? parseInt(pageQuery) - 1 : 0;
-    setPagination((pagination) => ({ ...pagination, pageIndex: currentPageIndex }));
-    handleGetDropsSize();
-    handleGetDrops({ start: currentPageIndex * pagination.pageSize });
-  }, [accountId, searchParams]);
+    handleGetDrops();
+  }, [accountId, selectedFilters]);
 
-  const dropMenuItems = MENU_ITEMS.map((item) => (
+  const createDropMenuItems = CREATE_DROP_ITEMS.map((item) => (
     <MenuItem key={item.label} {...item}>
+      {item.label}
+    </MenuItem>
+  ));
+
+  const filterDropMenuItems = DROP_TYPE_ITEMS.map((item) => (
+    <MenuItem
+      key={item.label}
+      onClick={() => {
+        handleDropTypeSelect(item);
+      }}
+      {...item}
+    >
+      {item.label}
+    </MenuItem>
+  ));
+
+  const dropStatusMenuItems = DROP_CLAIM_STATUS_ITEMS.map((item) => (
+    <MenuItem
+      key={item.label}
+      onClick={() => {
+        handleDropStatusSelect(item);
+      }}
+      {...item}
+    >
       {item.label}
     </MenuItem>
   ));
@@ -240,65 +321,74 @@ export default function AllDrops() {
   };
 
   const getTableRows = (): DataItem[] => {
-    if (data === undefined || data.length === 0) return [];
+    if (filteredDrops === undefined || filteredDrops.length === 0) return [];
 
-    return data.reduce((result: DataItem[], drop) => {
-      if (drop !== null) {
-        // show token drop manager for other drops type
-        const dropType =
-          (drop.type as string).toUpperCase() === DROP_TYPE.OTHER ? DROP_TYPE.TOKEN : drop.type;
-        const dataItem = {
-          ...drop,
-          name: <Text color="gray.800">{drop.name}</Text>,
-          type: (
-            <Text fontWeight="normal" mt="0.5" textTransform="capitalize">
-              {drop.type}
-            </Text>
-          ),
-          media: drop.media !== undefined && <Avatar src={drop.media as string} />,
-          claimed: <Badge variant="lightgreen">{drop.claimed} Claimed</Badge>,
-          action: (
-            <Button
-              size="sm"
-              variant="icon"
-              onClick={async (e) => {
-                e.stopPropagation();
-                handleDeleteClick(drop.id);
-              }}
-            >
-              <DeleteIcon color="red" />
-            </Button>
-          ),
-          href: `/drop/${(dropType as string).toLowerCase()}/${drop.id}`,
-        };
-        return [...result, dataItem];
-      }
-      return result;
-    }, []);
+    return filteredDrops
+      .slice(curPage * pageSize, (curPage + 1) * pageSize)
+      .reduce((result: DataItem[], drop) => {
+        if (drop !== null) {
+          // show token drop manager for other drops type
+          const dropType =
+            (drop.type as string).toUpperCase() === DROP_TYPE.OTHER ? DROP_TYPE.TOKEN : drop.type;
+          const dataItem = {
+            ...drop,
+            name: <Text color="gray.800">{drop.name}</Text>,
+            type: (
+              <Text fontWeight="normal" mt="0.5" textTransform="capitalize">
+                {drop.type}
+              </Text>
+            ),
+            media: drop.media !== undefined && <Avatar src={drop.media as string} />,
+            claimed: <Badge variant="lightgreen">{drop.claimed} Claimed</Badge>,
+            action: (
+              <Button
+                size="sm"
+                variant="icon"
+                onClick={async (e) => {
+                  e.stopPropagation();
+                  handleDeleteClick(drop.id);
+                }}
+              >
+                <DeleteIcon color="red" />
+              </Button>
+            ),
+            href: `/drop/${(dropType as string).toLowerCase()}/${drop.id}`,
+          };
+          return [...result, dataItem];
+        }
+        return result;
+      }, []);
   };
 
   const createADropPopover = (menuIsOpen: boolean) => ({
     header: 'Click here to create a drop!',
     shouldOpen:
-      !isLoading &&
-      popoverClicked.current === 0 &&
-      !hasPagination &&
-      data.length === 0 &&
-      !menuIsOpen,
+      !isLoading && popoverClicked.current === 0 && filteredDrops.length === 0 && !menuIsOpen,
   });
 
-  const CreateADropButton = ({ isOpen }: { isOpen: boolean }) => (
+  const DropDownButton = ({
+    isOpen,
+    placeholder,
+    variant,
+  }: {
+    isOpen: boolean;
+    placeholder: string;
+    variant: 'primary' | 'secondary';
+  }) => (
     <PopoverTemplate {...createADropPopover(isOpen)}>
       <MenuButton
         as={Button}
+        color={variant === 'primary' ? 'white' : 'gray.400'}
+        height="auto"
         isActive={isOpen}
+        lineHeight=""
         px="6"
         py="3"
-        rightIcon={<ChevronDownIcon />}
-        variant="secondary-content-box"
+        rightIcon={<ChevronDownIcon color={variant === 'secondary' ? 'gray.800' : ''} />}
+        variant={variant}
         onClick={() => (popoverClicked.current += 1)}
       >
-        Create a drop
+        {placeholder}
       </MenuButton>
     </PopoverTemplate>
   );
@@ -327,31 +417,63 @@ export default function AllDrops() {
         <HStack alignItems="center" display="flex" spacing="auto">
           <Heading>All drops</Heading>
           <HStack>
-            {hasPagination && (
-              <PrevButton
-                id="all-drops"
-                isDisabled={!!isFirstPage}
-                isLoading={loading.previous}
-                onClick={handlePrevPage}
-              />
-            )}
             <Menu>
               {({ isOpen }) => (
                 <Box>
-                  <CreateADropButton isOpen={isOpen} />
-                  <MenuList>{dropMenuItems}</MenuList>
+                  <DropDownButton
+                    isOpen={isOpen}
+                    placeholder={`Type: ${selectedFilters.type}`}
+                    variant="secondary"
+                  />
+                  <MenuList minWidth="auto">{filterDropMenuItems}</MenuList>
                 </Box>
               )}
             </Menu>
-
-            {hasPagination && (
-              <NextButton
-                id="all-drops"
-                isDisabled={!!isLastPage}
-                isLoading={loading.next}
-                onClick={handleNextPage}
+            <Menu>
+              {({ isOpen }) => (
+                <Box>
+                  <DropDownButton
+                    isOpen={isOpen}
+                    placeholder={`Status: ${selectedFilters.status}`}
+                    variant="secondary"
+                  />
+                  <MenuList minWidth="auto">{dropStatusMenuItems}</MenuList>
+                </Box>
+              )}
+            </Menu>
+            <InputGroup>
+              <InputLeftElement
+                children={<Icon as={SearchIcon} color="gray.400" />}
+                pointerEvents="none"
               />
-            )}
+              <Input
+                backgroundColor="white"
+                border="2px solid"
+                borderColor="gray.200"
+                color="gray.400"
+                fontSize="md"
+                fontWeight="medium"
+                height="auto"
+                placeholder="Search..."
+                px="6"
+                py="3"
+                sx={{
+                  '::placeholder': {
+                    color: 'gray.400', // Placeholder text color
+                  },
+                }}
+                value={selectedFilters.search}
+                onChange={handleSearchChange}
+              />
+            </InputGroup>
+            <Menu>
+              {({ isOpen }) => (
+                <Box>
+                  <DropDownButton isOpen={isOpen} placeholder="Create drop" variant="primary" />
+                  <MenuList minWidth="auto">{createDropMenuItems}</MenuList>
+                </Box>
+              )}
+            </Menu>
           </HStack>
         </HStack>
       </Show>
@@ -367,16 +489,10 @@ export default function AllDrops() {
             <CreateADropMobileButton />
             {hasPagination && (
               <HStack>
-                <PrevButton
-                  id="all-drops"
-                  isDisabled={!!isFirstPage}
-                  isLoading={loading.previous}
-                  onClick={handlePrevPage}
-                />
+                <PrevButton id="all-drops" isDisabled={curPage === 0} onClick={handlePrevPage} />
                 <NextButton
                   id="all-drops"
-                  isDisabled={!!isLastPage}
-                  isLoading={loading.next}
+                  isDisabled={curPage === numPages - 1}
                   onClick={handleNextPage}
                 />
               </HStack>
@@ -389,9 +505,15 @@ export default function AllDrops() {
         columns={COLUMNS}
         data={getTableRows()}
         loading={isLoading}
-        mt={{ base: '6', md: '7' }}
+        mt={{ base: '6', md: '4' }}
         type="all-drops"
       />
+      {hasPagination && (
+        <PrevButton id="all-drops" isDisabled={curPage === 0} onClick={handlePrevPage} />
+      )}
+      {hasPagination && (
+        <NextButton id="all-drops" isDisabled={curPage === numPages - 1} onClick={handleNextPage} />
+      )}
 
       {/* Mobile Menu For Creating Drop */}
       <Show below="sm">
