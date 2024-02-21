@@ -73,3 +73,26 @@ export const DROP_CLAIM_STATUS_ITEMS: MenuItemProps[] = [
     color: 'gray.600',
   },
 ];
+
+export const PAGE_SIZE_ITEMS: MenuItemProps[] = [
+  {
+    label: '5',
+    color: 'gray.600',
+  },
+  {
+    label: '10',
+    color: 'gray.600',
+  },
+  {
+    label: '15',
+    color: 'gray.600',
+  },
+  {
+    label: '20',
+    color: 'gray.600',
+  },
+  {
+    label: '50',
+    color: 'gray.600',
+  },
+];

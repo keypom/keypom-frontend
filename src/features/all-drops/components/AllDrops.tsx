@@ -38,6 +38,7 @@ import {
   DROP_TYPE_OPTIONS,
   DROP_CLAIM_STATUS_OPTIONS,
   DROP_CLAIM_STATUS_ITEMS,
+  PAGE_SIZE_ITEMS,
   DROP_TYPE_ITEMS,
   CREATE_DROP_ITEMS,
 } from '../config/menuItems';
@@ -91,7 +92,6 @@ export default function AllDrops() {
   const [hasPagination, setHasPagination] = useState<boolean>(false);
   const [numPages, setNumPages] = useState<number>(0);
   const [curPage, setCurPage] = useState<number>(0);
-  const pageSize = PAGE_SIZE_LIMIT;
 
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [isLoading, setIsLoading] = useState(true);
@@ -101,13 +101,21 @@ export default function AllDrops() {
     type: string;
     search: string;
     status: string;
-  }>({ type: DROP_TYPE_OPTIONS.ANY, search: '', status: DROP_CLAIM_STATUS_OPTIONS.ANY });
+    pageSize: number;
+  }>({ type: DROP_TYPE_OPTIONS.ANY, search: '', status: DROP_CLAIM_STATUS_OPTIONS.ANY, pageSize: PAGE_SIZE_LIMIT )
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [allOwnedDrops, setAllOwnedDrops] = useState<Array<DataItem | null>>([]);
   const [filteredDrops, setFilteredDrops] = useState<Array<DataItem | null>>([]);
   const [wallet, setWallet] = useState({});
 
   const { selector, accountId } = useAuthWalletContext();
+
+  const handlePageSizeSelect = (item) => {
+    setSelectedFilters((prevFilters) => ({
+      ...prevFilters,
+      pageSize: parseInt(item.label),
+    }));
+  };
 
   const handleDropTypeSelect = (item) => {
     setSelectedFilters((prevFilters) => ({
@@ -212,7 +220,7 @@ export default function AllDrops() {
       const totalDrops = await keypomInstance.getDropSupplyForOwner({
         accountId,
       });
-      const totalPages = Math.ceil(totalDrops / pageSize);
+      const totalPages = Math.ceil(totalDrops / selectedFilters.pageSize);
       setHasPagination(totalPages > 1);
       setNumPages(totalPages);
       setWallet(await selector.wallet());
@@ -225,8 +233,8 @@ export default function AllDrops() {
         async (pageIndex) =>
           await keypomInstance.getDrops({
             accountId: accountId!,
-            start: pageIndex * pageSize,
-            limit: pageSize,
+            start: pageIndex * selectedFilters.pageSize,
+            limit: selectedFilters.pageSize,
             withKeys: false,
           }),
       );
@@ -293,6 +301,18 @@ export default function AllDrops() {
     </MenuItem>
   ));
 
+  const pageSizeMenuItems = PAGE_SIZE_ITEMS.map((item) => (
+    <MenuItem
+      key={item.label}
+      onClick={() => {
+        handlePageSizeSelect(item);
+      }}
+      {...item}
+    >
+      {item.label}
+    </MenuItem>
+  ));
+
   const filterDropMenuItems = DROP_TYPE_ITEMS.map((item) => (
     <MenuItem
       key={item.label}
@@ -331,7 +351,7 @@ export default function AllDrops() {
     if (filteredDrops === undefined || filteredDrops.length === 0) return [];
 
     return filteredDrops
-      .slice(curPage * pageSize, (curPage + 1) * pageSize)
+      .slice(curPage * selectedFilters.pageSize, (curPage + 1) * selectedFilters.pageSize)
       .reduce((result: DataItem[], drop) => {
         if (drop !== null) {
           // show token drop manager for other drops type
@@ -421,33 +441,9 @@ export default function AllDrops() {
       {/* Header Bar */}
       {/* Desktop Dropdown Menu */}
       <Show above="sm">
+        <Heading py="4">All drops</Heading>
         <HStack alignItems="center" display="flex" spacing="auto">
-          <Heading>All drops</Heading>
-          <HStack>
-            <Menu>
-              {({ isOpen }) => (
-                <Box>
-                  <DropDownButton
-                    isOpen={isOpen}
-                    placeholder={`Type: ${selectedFilters.type}`}
-                    variant="secondary"
-                  />
-                  <MenuList minWidth="auto">{filterDropMenuItems}</MenuList>
-                </Box>
-              )}
-            </Menu>
-            <Menu>
-              {({ isOpen }) => (
-                <Box>
-                  <DropDownButton
-                    isOpen={isOpen}
-                    placeholder={`Status: ${selectedFilters.status}`}
-                    variant="secondary"
-                  />
-                  <MenuList minWidth="auto">{dropStatusMenuItems}</MenuList>
-                </Box>
-              )}
-            </Menu>
+          <HStack justify="space-between" w="full">
             <InputGroup>
               <InputLeftElement
                 children={<Icon as={SearchIcon} color="gray.400" />}
@@ -470,18 +466,45 @@ export default function AllDrops() {
                   },
                 }}
                 value={searchTerm}
+                width="50%"
                 onChange={handleSearchChange}
                 onKeyDown={handleKeyDown}
               />
             </InputGroup>
-            <Menu>
-              {({ isOpen }) => (
-                <Box>
-                  <DropDownButton isOpen={isOpen} placeholder="Create drop" variant="primary" />
-                  <MenuList minWidth="auto">{createDropMenuItems}</MenuList>
-                </Box>
-              )}
-            </Menu>
+            <HStack>
+              <Menu>
+                {({ isOpen }) => (
+                  <Box>
+                    <DropDownButton
+                      isOpen={isOpen}
+                      placeholder={`Type: ${selectedFilters.type}`}
+                      variant="secondary"
+                    />
+                    <MenuList minWidth="auto">{filterDropMenuItems}</MenuList>
+                  </Box>
+                )}
+              </Menu>
+              <Menu>
+                {({ isOpen }) => (
+                  <Box>
+                    <DropDownButton
+                      isOpen={isOpen}
+                      placeholder={`Status: ${selectedFilters.status}`}
+                      variant="secondary"
+                    />
+                    <MenuList minWidth="auto">{dropStatusMenuItems}</MenuList>
+                  </Box>
+                )}
+              </Menu>
+              <Menu>
+                {({ isOpen }) => (
+                  <Box>
+                    <DropDownButton isOpen={isOpen} placeholder="Create drop" variant="primary" />
+                    <MenuList minWidth="auto">{createDropMenuItems}</MenuList>
+                  </Box>
+                )}
+              </Menu>
+            </HStack>
           </HStack>
         </HStack>
       </Show>
@@ -509,6 +532,7 @@ export default function AllDrops() {
         </VStack>
       </Show>
 
+
       <DataTable
         columns={COLUMNS}
         data={getTableRows()}
@@ -516,13 +540,41 @@ export default function AllDrops() {
         mt={{ base: '6', md: '4' }}
         type="all-drops"
       />
-      {hasPagination && (
-        <PrevButton id="all-drops" isDisabled={curPage === 0} onClick={handlePrevPage} />
-      )}
-      {hasPagination && (
-        <NextButton id="all-drops" isDisabled={curPage === numPages - 1} onClick={handleNextPage} />
-      )}
 
+      {hasPagination && 
+        <HStack justify="space-between" w="full" py="4">
+          <HStack>
+            <Heading color="gray.500" fontWeight="normal" size="sm">
+              Show rows per page
+            </Heading>
+            <Menu>
+              {({ isOpen }) => (
+                <Box>
+                  <DropDownButton
+                    isOpen={isOpen}
+                    placeholder={selectedFilters.pageSize.toString()}
+                    variant="secondary"
+                  />
+                  <MenuList minWidth="auto">{pageSizeMenuItems}</MenuList>
+                </Box>
+              )}
+            </Menu>
+          </HStack>
+          <HStack>
+            <Heading color="gray.500" fontWeight="normal" size="sm">
+            {curPage + 1} of {numPages == 0 ? 1 : numPages}
+            </Heading>
+              <PrevButton lineHeight="" variant="secondary" id="all-drops" isDisabled={curPage === 0} onClick={handlePrevPage} />
+              <NextButton
+                id="all-drops"
+                lineHeight=""
+                variant="secondary"
+                isDisabled={curPage === numPages - 1}
+                onClick={handleNextPage}
+              />
+          </HStack>
+        </HStack>
+      }
       {/* Mobile Menu For Creating Drop */}
       <Show below="sm">
         <MobileDrawerMenu isOpen={isOpen} onClose={onClose} />
