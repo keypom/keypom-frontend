@@ -289,6 +289,7 @@ export default function AllDrops() {
     // Now, map over the filtered drops and set the data
     const dropData = await Promise.all(drops.map(setAllDropsData));
     setFilteredDrops(dropData);
+    setCurPage(0);
     setIsLoading(false);
   }, [accountId, selectedFilters, keypomInstance]);
 
