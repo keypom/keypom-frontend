@@ -22,7 +22,7 @@ interface MobileDrawerMenuProps {
   onClose: () => void;
   searchTerm: string;
   handleSearchChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  handleKeyDown: () => void; // This might be triggered by a specific button if not using the Enter key
+  handleKeyDown: (event: any) => void; // This might be triggered by a specific button if not using the Enter key
   selectedFilters: {
     type: string;
     search: string;

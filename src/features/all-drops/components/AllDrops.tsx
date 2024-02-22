@@ -101,10 +101,15 @@ export default function AllDrops() {
     search: string;
     status: string;
     pageSize: number;
-  }>({ type: DROP_TYPE_OPTIONS.ANY, search: '', status: DROP_CLAIM_STATUS_OPTIONS.ANY, pageSize: PAGE_SIZE_LIMIT )
+  }>({
+    type: DROP_TYPE_OPTIONS.ANY,
+    search: '',
+    status: DROP_CLAIM_STATUS_OPTIONS.ANY,
+    pageSize: PAGE_SIZE_LIMIT,
+  });
   const [searchTerm, setSearchTerm] = useState<string>('');
-  const [allOwnedDrops, setAllOwnedDrops] = useState<Array<DataItem | null>>([]);
-  const [filteredDrops, setFilteredDrops] = useState<Array<DataItem | null>>([]);
+  const [allOwnedDrops, setAllOwnedDrops] = useState<ProtocolReturnedDrop[]>([]);
+  const [filteredDataItems, setFilteredDataItems] = useState<DataItem[]>([]);
   const [wallet, setWallet] = useState({});
 
   const { selector, accountId } = useAuthWalletContext();
@@ -203,7 +208,7 @@ export default function AllDrops() {
     return {
       id,
       name: truncateAddress(dropName, 'end', 48),
-      type: (type != "NFT" || type != "OTHER") ? type?.toLowerCase() : type,
+      type: type !== 'NFT' ? type?.toLowerCase() : type,
       media: nftHref,
       claimed: claimedText,
     };
@@ -214,7 +219,6 @@ export default function AllDrops() {
 
     let drops = allOwnedDrops;
     if (allOwnedDrops.length === 0) {
-      console.log('fetching all drops (prev: )', allOwnedDrops); // eslint-disable-line no-console
       // First, determine the total number of drops
       const totalDrops = await keypomInstance.getDropSupplyForOwner({
         accountId,
@@ -273,7 +277,7 @@ export default function AllDrops() {
 
       // Wait for all promises to resolve, then filter out the nulls
       const resolvedDrops = await Promise.all(dropsPromises);
-      drops = resolvedDrops.filter((drop) => drop !== null);
+      drops = resolvedDrops.filter((drop): drop is ProtocolReturnedDrop => drop !== null);
     }
 
     if (selectedFilters.search.trim() !== '') {
@@ -288,7 +292,7 @@ export default function AllDrops() {
 
     // Now, map over the filtered drops and set the data
     const dropData = await Promise.all(drops.map(setAllDropsData));
-    setFilteredDrops(dropData);
+    setFilteredDataItems(dropData);
     setCurPage(0);
     setIsLoading(false);
   }, [accountId, selectedFilters, keypomInstance]);
@@ -341,7 +345,7 @@ export default function AllDrops() {
     </MenuItem>
   ));
 
-  const handleDeleteClick = (dropId) => {
+  const handleDeleteClick = (dropId: string | number) => {
     setConfirmationModalHelper(setAppModal, async () => {
       await keypomInstance.deleteDrops({
         wallet,
@@ -352,9 +356,9 @@ export default function AllDrops() {
   };
 
   const getTableRows = (): DataItem[] => {
-    if (filteredDrops === undefined || filteredDrops.length === 0) return [];
+    if (filteredDataItems === undefined || filteredDataItems.length === 0) return [];
 
-    return filteredDrops
+    return filteredDataItems
       .slice(curPage * selectedFilters.pageSize, (curPage + 1) * selectedFilters.pageSize)
       .reduce((result: DataItem[], drop) => {
         if (drop !== null) {
@@ -363,7 +367,11 @@ export default function AllDrops() {
             (drop.type as string).toUpperCase() === DROP_TYPE.OTHER ? DROP_TYPE.TOKEN : drop.type;
           const dataItem = {
             ...drop,
-            name: <Text color="gray.800" fontWeight="medium">{drop.name}</Text>,
+            name: (
+              <Text color="gray.800" fontWeight="medium">
+                {drop.name}
+              </Text>
+            ),
             type: (
               <Text fontWeight="normal" mt="0.5" textTransform="capitalize">
                 {drop.type}
@@ -373,9 +381,9 @@ export default function AllDrops() {
             claimed: <Badge variant="lightgreen">{drop.claimed} Claimed</Badge>,
             action: (
               <Button
+                borderRadius="6xl"
                 size="md"
                 variant="icon"
-                borderRadius="6xl"
                 onClick={async (e) => {
                   e.stopPropagation();
                   handleDeleteClick(drop.id);
@@ -401,42 +409,42 @@ export default function AllDrops() {
     placeholder: string;
     variant: 'primary' | 'secondary';
   }) => (
-      <MenuButton
-        as={Button}
-        color={variant === 'primary' ? 'white' : 'gray.400'}
-        height="auto"
-        isActive={isOpen}
-        lineHeight=""
-        px="6"
-        py="3"
-        rightIcon={<ChevronDownIcon color={variant === 'secondary' ? 'gray.800' : ''} />}
-        variant={variant}
-        onClick={() => (popoverClicked.current += 1)}
-      >
-        {placeholder}
-      </MenuButton>
+    <MenuButton
+      as={Button}
+      color={variant === 'primary' ? 'white' : 'gray.400'}
+      height="auto"
+      isActive={isOpen}
+      lineHeight=""
+      px="6"
+      py="3"
+      rightIcon={<ChevronDownIcon color={variant === 'secondary' ? 'gray.800' : ''} />}
+      variant={variant}
+      onClick={() => (popoverClicked.current += 1)}
+    >
+      {placeholder}
+    </MenuButton>
   );
   const CreateADropMobileButton = () => (
-      <Button
-        px="6"
-        py="3"
-        rightIcon={<ChevronDownIcon />}
-        variant="secondary-content-box"
-        onClick={() => {
-          popoverClicked.current += 1;
-          onOpen();
-        }}
-      >
-        Filter Options
-      </Button>
+    <Button
+      px="6"
+      py="3"
+      rightIcon={<ChevronDownIcon />}
+      variant="secondary-content-box"
+      onClick={() => {
+        popoverClicked.current += 1;
+        onOpen();
+      }}
+    >
+      Filter Options
+    </Button>
   );
 
   const getTableType = () => {
-    if (filteredDrops.length === 0 && allOwnedDrops.length === 0) {
-        return 'all-drops';
+    if (filteredDataItems.length === 0 && allOwnedDrops.length === 0) {
+      return 'all-drops';
     }
-      return 'no-filtered-drops'
-  }
+    return 'no-filtered-drops';
+  };
 
   return (
     <Box minH="100%" minW="100%">
@@ -447,10 +455,9 @@ export default function AllDrops() {
         <HStack alignItems="center" display="flex" spacing="auto">
           <HStack justify="space-between" w="full">
             <InputGroup width="300px">
-              <InputLeftElement
-                children={<Icon as={SearchIcon} color="gray.400" />}
-                pointerEvents="none"
-              />
+              <InputLeftElement pointerEvents="none">
+                <Icon as={SearchIcon} color="gray.400" />
+              </InputLeftElement>
               <Input
                 backgroundColor="white"
                 border="2px solid"
@@ -498,14 +505,14 @@ export default function AllDrops() {
                 )}
               </Menu>
               <Show above="md">
-              <Menu>
-                {({ isOpen }) => (
-                  <Box>
-                    <DropDownButton isOpen={isOpen} placeholder="Create drop" variant="primary" />
-                    <MenuList minWidth="auto">{createDropMenuItems}</MenuList>
-                  </Box>
-                )}
-              </Menu>
+                <Menu>
+                  {({ isOpen }) => (
+                    <Box>
+                      <DropDownButton isOpen={isOpen} placeholder="Create drop" variant="primary" />
+                      <MenuList minWidth="auto">{createDropMenuItems}</MenuList>
+                    </Box>
+                  )}
+                </Menu>
               </Show>
             </HStack>
           </HStack>
@@ -525,7 +532,6 @@ export default function AllDrops() {
         </VStack>
       </Show>
 
-
       <DataTable
         columns={COLUMNS}
         data={getTableRows()}
@@ -534,8 +540,8 @@ export default function AllDrops() {
         type={getTableType()}
       />
 
-      {hasPagination && 
-        <HStack justify="space-between" w="full" py="4">
+      {hasPagination && (
+        <HStack justify="space-between" py="4" w="full">
           <HStack>
             <Show above="sm">
               <Heading color="gray.500" fontWeight="normal" size="sm">
@@ -562,22 +568,39 @@ export default function AllDrops() {
           </HStack>
           <HStack>
             <Heading color="gray.500" fontWeight="normal" size="sm">
-            {curPage + 1} of {numPages == 0 ? 1 : numPages}
+              {curPage + 1} of {numPages === 0 ? 1 : numPages}
             </Heading>
-              <PrevButton lineHeight="" variant="secondary" id="all-drops" isDisabled={curPage === 0} onClick={handlePrevPage} />
-              <NextButton
-                id="all-drops"
-                lineHeight=""
-                variant="secondary"
-                isDisabled={curPage === numPages - 1}
-                onClick={handleNextPage}
-              />
+            <PrevButton
+              id="all-drops"
+              isDisabled={curPage === 0}
+              lineHeight=""
+              variant="secondary"
+              onClick={handlePrevPage}
+            />
+            <NextButton
+              id="all-drops"
+              isDisabled={curPage === numPages - 1}
+              lineHeight=""
+              variant="secondary"
+              onClick={handleNextPage}
+            />
           </HStack>
         </HStack>
-      }
+      )}
       {/* Mobile Menu For Creating Drop */}
       <Show below="sm">
-        <MobileDrawerMenu handleSearchChange={handleSearchChange} handleKeyDown={handleKeyDown} selectedFilters={selectedFilters} handleDropTypeSelect={handleDropTypeSelect} handleDropStatusSelect={handleDropStatusSelect} filterDropMenuItems={filterDropMenuItems} dropStatusMenuItems={dropStatusMenuItems} dropStatusMenuItems={dropStatusMenuItems} isOpen={isOpen} onClose={onClose} searchTerm={searchTerm} />
+        <MobileDrawerMenu
+          dropStatusMenuItems={dropStatusMenuItems}
+          filterDropMenuItems={filterDropMenuItems}
+          handleDropStatusSelect={handleDropStatusSelect}
+          handleDropTypeSelect={handleDropTypeSelect}
+          handleKeyDown={handleKeyDown}
+          handleSearchChange={handleSearchChange}
+          isOpen={isOpen}
+          searchTerm={searchTerm}
+          selectedFilters={selectedFilters}
+          onClose={onClose}
+        />
       </Show>
     </Box>
   );

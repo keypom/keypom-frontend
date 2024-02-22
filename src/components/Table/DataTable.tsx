@@ -38,7 +38,6 @@ interface DataTableProps extends TableProps {
   columns: ColumnItem[];
   data: DataItem[];
   loading?: boolean;
-  hasDrops: boolean;
 }
 
 export const DataTable = ({
