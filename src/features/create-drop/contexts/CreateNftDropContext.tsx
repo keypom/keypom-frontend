@@ -61,18 +61,19 @@ interface CreateNftDropContextType {
 
 const CreateNftDropContext = createContext<CreateNftDropContextType>({
   getSummaryData: () => [{ type: 'text', name: '', value: '' }] as SummaryItem[],
-getPaymentData: async () => Promise.resolve({
-    costsData: [{ name: '', total: 0 }],
-    totalCost: 0,
-    confirmationText: '',
-  }) as Promise<PaymentData>,
-  handleDropConfirmation: function (): void {
-    throw new Error('Function not implemented.');
+  getPaymentData: async () =>
+    await (Promise.resolve({
+      costsData: [{ name: '', total: 0 }],
+      totalCost: 0,
+      confirmationText: '',
+    }) as Promise<PaymentData>),
+  handleDropConfirmation: async function (): Promise<void> {
+    await Promise.resolve();
   },
   createLinksSWR: {
     data: { success: false },
-    handleDropConfirmation: function (): void {
-      throw new Error('Function not implemented.');
+    handleDropConfirmation: async function (): Promise<void> {
+      await Promise.resolve();
     },
   },
 });
