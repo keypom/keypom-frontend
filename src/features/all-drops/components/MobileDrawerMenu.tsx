@@ -87,7 +87,7 @@ export const MobileDrawerMenu = ({
             {/* Dynamically generated menu for status selection */}
             <Menu>
               <MenuButton as={Button} w="full">
-                Status: {selectedFilters.status}
+                Claimed: {selectedFilters.status}
               </MenuButton>
               <MenuList>{dropStatusMenuItems}</MenuList>
             </Menu>

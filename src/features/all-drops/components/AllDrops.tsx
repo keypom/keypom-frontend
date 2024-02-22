@@ -489,7 +489,7 @@ export default function AllDrops() {
                   <Box>
                     <DropDownButton
                       isOpen={isOpen}
-                      placeholder={`Status: ${selectedFilters.status}`}
+                      placeholder={`Claimed: ${selectedFilters.status}`}
                       variant="secondary"
                     />
                     <MenuList minWidth="auto">{dropStatusMenuItems}</MenuList>
