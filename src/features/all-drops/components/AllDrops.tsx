@@ -283,6 +283,10 @@ export default function AllDrops() {
         return dropName.toLowerCase().includes(selectedFilters.search.toLowerCase());
       });
     }
+    const totalPages = Math.ceil(drops.length / selectedFilters.pageSize);
+    setHasPagination(totalPages > 1);
+    setNumPages(totalPages);
+
     // Now, map over the filtered drops and set the data
     const dropData = await Promise.all(drops.map(setAllDropsData));
     setFilteredDrops(dropData);
