@@ -33,11 +33,12 @@ import { type ColumnItem, type DataItem } from './types';
  */
 
 interface DataTableProps extends TableProps {
-  type?: 'all-drops' | 'drop-manager';
+  type?: 'all-drops' | 'drop-manager' | 'no-filtered-drops';
   showColumns?: boolean;
   columns: ColumnItem[];
   data: DataItem[];
   loading?: boolean;
+  hasDrops: boolean;
 }
 
 export const DataTable = ({

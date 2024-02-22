@@ -32,7 +32,6 @@ import { DeleteIcon } from '@/components/Icons';
 import { truncateAddress } from '@/utils/truncateAddress';
 import { NextButton, PrevButton } from '@/components/Pagination';
 import keypomInstance from '@/lib/keypom';
-import { PopoverTemplate } from '@/components/PopoverTemplate';
 
 import {
   DROP_TYPE_OPTIONS,
@@ -204,7 +203,7 @@ export default function AllDrops() {
     return {
       id,
       name: truncateAddress(dropName, 'end', 48),
-      type: type == "NFT"type?.toLowerCase(),
+      type: (type != "NFT" || type != "OTHER") ? type?.toLowerCase() : type,
       media: nftHref,
       claimed: claimedText,
     };
@@ -392,12 +391,6 @@ export default function AllDrops() {
       }, []);
   };
 
-  const createADropPopover = (menuIsOpen: boolean) => ({
-    header: 'Click here to create a drop!',
-    shouldOpen:
-      !isLoading && popoverClicked.current === 0 && filteredDrops.length === 0 && !menuIsOpen,
-  });
-
   const DropDownButton = ({
     isOpen,
     placeholder,
@@ -407,7 +400,6 @@ export default function AllDrops() {
     placeholder: string;
     variant: 'primary' | 'secondary';
   }) => (
-    <PopoverTemplate {...createADropPopover(isOpen)}>
       <MenuButton
         as={Button}
         color={variant === 'primary' ? 'white' : 'gray.400'}
@@ -422,10 +414,8 @@ export default function AllDrops() {
       >
         {placeholder}
       </MenuButton>
-    </PopoverTemplate>
   );
   const CreateADropMobileButton = () => (
-    <PopoverTemplate placement="bottom" {...createADropPopover(false)}>
       <Button
         px="6"
         py="3"
@@ -438,8 +428,14 @@ export default function AllDrops() {
       >
         Filter Options
       </Button>
-    </PopoverTemplate>
   );
+
+  const getTableType = () => {
+    if (filteredDrops.length === 0 && allOwnedDrops.length === 0) {
+        return 'all-drops';
+    }
+      return 'no-filtered-drops'
+  }
 
   return (
     <Box minH="100%" minW="100%">
@@ -534,7 +530,7 @@ export default function AllDrops() {
         data={getTableRows()}
         loading={isLoading}
         mt={{ base: '6', md: '4' }}
-        type="all-drops"
+        type={getTableType()}
       />
 
       {hasPagination && 
