@@ -49,7 +49,7 @@ import { setConfirmationModalHelper } from './ConfirmationModal';
 const COLUMNS: ColumnItem[] = [
   {
     id: 'dropName',
-    title: 'Drop name',
+    title: 'Name',
     selector: (drop) => drop.name,
     thProps: {
       minW: '240px',
@@ -64,7 +64,7 @@ const COLUMNS: ColumnItem[] = [
   },
   {
     id: 'dropType',
-    title: 'Drop type',
+    title: 'Type',
     selector: (drop) => drop.type,
     loadingElement: <Skeleton height="30px" />,
   },
@@ -204,7 +204,7 @@ export default function AllDrops() {
     return {
       id,
       name: truncateAddress(dropName, 'end', 48),
-      type: type?.toLowerCase(),
+      type: type == "NFT"type?.toLowerCase(),
       media: nftHref,
       claimed: claimedText,
     };
@@ -359,7 +359,7 @@ export default function AllDrops() {
             (drop.type as string).toUpperCase() === DROP_TYPE.OTHER ? DROP_TYPE.TOKEN : drop.type;
           const dataItem = {
             ...drop,
-            name: <Text color="gray.800">{drop.name}</Text>,
+            name: <Text color="gray.800" fontWeight="medium">{drop.name}</Text>,
             type: (
               <Text fontWeight="normal" mt="0.5" textTransform="capitalize">
                 {drop.type}
@@ -369,8 +369,9 @@ export default function AllDrops() {
             claimed: <Badge variant="lightgreen">{drop.claimed} Claimed</Badge>,
             action: (
               <Button
-                size="sm"
+                size="md"
                 variant="icon"
+                borderRadius="6xl"
                 onClick={async (e) => {
                   e.stopPropagation();
                   handleDeleteClick(drop.id);
@@ -431,7 +432,7 @@ export default function AllDrops() {
           onOpen();
         }}
       >
-        Create a drop
+        Filter Options
       </Button>
     </PopoverTemplate>
   );
@@ -444,7 +445,7 @@ export default function AllDrops() {
         <Heading py="4">All drops</Heading>
         <HStack alignItems="center" display="flex" spacing="auto">
           <HStack justify="space-between" w="full">
-            <InputGroup>
+            <InputGroup width="300px">
               <InputLeftElement
                 children={<Icon as={SearchIcon} color="gray.400" />}
                 pointerEvents="none"
@@ -466,7 +467,6 @@ export default function AllDrops() {
                   },
                 }}
                 value={searchTerm}
-                width="50%"
                 onChange={handleSearchChange}
                 onKeyDown={handleKeyDown}
               />
@@ -496,6 +496,7 @@ export default function AllDrops() {
                   </Box>
                 )}
               </Menu>
+              <Show above="md">
               <Menu>
                 {({ isOpen }) => (
                   <Box>
@@ -504,6 +505,7 @@ export default function AllDrops() {
                   </Box>
                 )}
               </Menu>
+              </Show>
             </HStack>
           </HStack>
         </HStack>
@@ -518,16 +520,6 @@ export default function AllDrops() {
 
           <HStack justify="space-between" w="full">
             <CreateADropMobileButton />
-            {hasPagination && (
-              <HStack>
-                <PrevButton id="all-drops" isDisabled={curPage === 0} onClick={handlePrevPage} />
-                <NextButton
-                  id="all-drops"
-                  isDisabled={curPage === numPages - 1}
-                  onClick={handleNextPage}
-                />
-              </HStack>
-            )}
           </HStack>
         </VStack>
       </Show>
@@ -544,9 +536,16 @@ export default function AllDrops() {
       {hasPagination && 
         <HStack justify="space-between" w="full" py="4">
           <HStack>
-            <Heading color="gray.500" fontWeight="normal" size="sm">
-              Show rows per page
-            </Heading>
+            <Show above="sm">
+              <Heading color="gray.500" fontWeight="normal" size="sm">
+                Rows per page
+              </Heading>
+            </Show>
+            <Show below="sm">
+              <Heading color="gray.500" fontWeight="normal" size="sm">
+                Rows
+              </Heading>
+            </Show>
             <Menu>
               {({ isOpen }) => (
                 <Box>
@@ -577,7 +576,7 @@ export default function AllDrops() {
       }
       {/* Mobile Menu For Creating Drop */}
       <Show below="sm">
-        <MobileDrawerMenu isOpen={isOpen} onClose={onClose} />
+        <MobileDrawerMenu handleSearchChange={handleSearchChange} handleKeyDown={handleKeyDown} selectedFilters={selectedFilters} handleDropTypeSelect={handleDropTypeSelect} handleDropStatusSelect={handleDropStatusSelect} filterDropMenuItems={filterDropMenuItems} dropStatusMenuItems={dropStatusMenuItems} dropStatusMenuItems={dropStatusMenuItems} isOpen={isOpen} onClose={onClose} searchTerm={searchTerm} />
       </Show>
     </Box>
   );
