@@ -24,7 +24,7 @@ export const CreateTokenDropSummary = () => {
     <DropSummary
       confirmButtonText="Create links"
       data={data}
-      paymentData={paymentData}
+      paymentData={paymentData!}
       summaryData={summaryData}
       onConfirmClick={() => {
         handleDropConfirmation(navigate);

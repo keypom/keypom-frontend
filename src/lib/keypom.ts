@@ -189,10 +189,6 @@ class KeypomJS {
     }
 
     if (drop.fc !== undefined) {
-      if (drop.fc.methods[0]?.length === 2) {
-        return DROP_TYPE.TRIAL;
-      }
-
       if (drop.fc.methods.length === 3) {
         return DROP_TYPE.TICKET;
       }
@@ -200,6 +196,7 @@ class KeypomJS {
       if (
         drop.fc.methods.length === 1 &&
         drop.fc.methods[0] !== undefined &&
+        drop.fc.methods[0] !== null &&
         drop.fc.methods[0][0].method_name === 'nft_mint'
       ) {
         return DROP_TYPE.NFT;
