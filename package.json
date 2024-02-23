@@ -6,6 +6,7 @@
   "scripts": {
     "clean": "rm -rf dist .parcel-cache",
     "dev": "yarn clean && yarn static && parcel src/index.html -p 3000",
+    "devwindows": "del dist && xcopy .\\public .\\dist /s /e /h /I && parcel src/index.html -p 3000",
     "storybook": "yarn clean && yarn static && IS_STORYBOOK_VIEW=true parcel src/index.html -p 3000",
     "dev-mainnet": "yarn clean && yarn static && REACT_APP_CONTRACT_ID=v2.keypom.near REACT_APP_NETWORK_ID=mainnet parcel src/index.html -p 3000",
     "build": "yarn static && parcel build src/index.html --public-url ./ --no-cache --no-source-maps",
