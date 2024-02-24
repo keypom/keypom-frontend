@@ -102,8 +102,17 @@ export const DataTable = ({
                 {showColumns && (
                   <Thead>
                     <Tr>
-                      {columns.map((col) => (
-                        <Th key={col.id} fontFamily="body" {...col.thProps}>
+                      {columns.map((col, index) => (
+                        <Th
+                          key={col.id}
+                          fontFamily="body"
+                          {...col.thProps}
+                          // Apply a border radius of 12px to the first and last Th elements
+                          borderTopLeftRadius={index === 0 ? '12px !important' : undefined}
+                          borderTopRightRadius={
+                            index === columns.length - 1 ? '12px !important' : undefined
+                          }
+                        >
                           {col.title}
                         </Th>
                       ))}

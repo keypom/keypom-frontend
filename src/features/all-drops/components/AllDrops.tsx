@@ -1,5 +1,6 @@
 import {
   Input,
+  Hide,
   InputGroup,
   InputLeftElement,
   Icon,
@@ -304,8 +305,10 @@ export default function AllDrops() {
       }, []);
   };
 
-  const CreateADropMobileButton = () => (
+  const FilterOptionsMobileButton = () => (
     <Button
+      height="auto"
+      lineHeight=""
       px="6"
       py="3"
       rightIcon={<ChevronDownIcon />}
@@ -328,9 +331,8 @@ export default function AllDrops() {
 
   return (
     <Box minH="100%" minW="100%">
-      {/* Header Bar */}
-      {/* Desktop Dropdown Menu */}
-      <Show above="sm">
+      {/* Desktop Menu */}
+      <Show above="md">
         <Heading py="4">All drops</Heading>
         <HStack alignItems="center" display="flex" spacing="auto">
           <HStack justify="space-between" w="full">
@@ -386,38 +388,49 @@ export default function AllDrops() {
                   </Box>
                 )}
               </Menu>
-              <Show above="md">
-                <Menu>
-                  {({ isOpen }) => (
-                    <Box>
-                      <DropDownButton
-                        isOpen={isOpen}
-                        placeholder="Create drop"
-                        variant="primary"
-                        onClick={() => (popoverClicked.current += 1)}
-                      />
-                      <MenuList minWidth="auto">{createDropMenuItems}</MenuList>
-                    </Box>
-                  )}
-                </Menu>
-              </Show>
+              <Menu>
+                {({ isOpen }) => (
+                  <Box>
+                    <DropDownButton
+                      isOpen={isOpen}
+                      placeholder="Create drop"
+                      variant="primary"
+                      onClick={() => (popoverClicked.current += 1)}
+                    />
+                    <MenuList minWidth="auto">{createDropMenuItems}</MenuList>
+                  </Box>
+                )}
+              </Menu>
             </HStack>
           </HStack>
         </HStack>
       </Show>
 
-      {/* Mobile Menu Button */}
-      <Show below="sm">
+      {/* Mobile Menu */}
+      <Hide above="md">
         <VStack spacing="20px">
           <Heading size="2xl" textAlign="left" w="full">
             All drops
           </Heading>
 
           <HStack justify="space-between" w="full">
-            <CreateADropMobileButton />
+            <FilterOptionsMobileButton />
+            <Menu>
+              {({ isOpen }) => (
+                <Box>
+                  <DropDownButton
+                    isOpen={isOpen}
+                    placeholder="Create drop"
+                    variant="primary"
+                    onClick={() => (popoverClicked.current += 1)}
+                  />
+                  <MenuList minWidth="auto">{createDropMenuItems}</MenuList>
+                </Box>
+              )}
+            </Menu>
           </HStack>
         </VStack>
-      </Show>
+      </Hide>
 
       <DataTable
         columns={COLUMNS}
@@ -437,21 +450,20 @@ export default function AllDrops() {
         rowsSelectPlaceholder={selectedFilters.pageSize.toString()}
         onClickRowsSelect={() => (popoverClicked.current += 1)}
       />
-      {/* Mobile Menu For Creating Drop */}
-      <Show below="sm">
-        <MobileDrawerMenu
-          dropStatusMenuItems={dropStatusMenuItems}
-          filterDropMenuItems={filterDropMenuItems}
-          handleDropStatusSelect={handleDropStatusSelect}
-          handleDropTypeSelect={handleDropTypeSelect}
-          handleKeyDown={handleKeyDown}
-          handleSearchChange={handleSearchChange}
-          isOpen={isOpen}
-          searchTerm={searchTerm}
-          selectedFilters={selectedFilters}
-          onClose={onClose}
-        />
-      </Show>
+
+      {/* Mobile Popup Menu For Filtering */}
+      <MobileDrawerMenu
+        dropStatusMenuItems={dropStatusMenuItems}
+        filterDropMenuItems={filterDropMenuItems}
+        handleDropStatusSelect={handleDropStatusSelect}
+        handleDropTypeSelect={handleDropTypeSelect}
+        handleKeyDown={handleKeyDown}
+        handleSearchChange={handleSearchChange}
+        isOpen={isOpen}
+        searchTerm={searchTerm}
+        selectedFilters={selectedFilters}
+        onClose={onClose}
+      />
     </Box>
   );
 }

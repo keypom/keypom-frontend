@@ -41,7 +41,7 @@ export const MobileDataTable = ({
       ));
     }
 
-    return data.map((drop) => (
+    return data.map((drop, idx) => (
       <Tr
         key={drop.id}
         _hover={
@@ -69,14 +69,16 @@ export const MobileDataTable = ({
               ))}
           </VStack>
         </Td>
-        <Td verticalAlign="middle">{actionColumn.selector(drop)}</Td>
+        <Td textAlign="end" verticalAlign="middle">
+          {actionColumn.selector(drop)}
+        </Td>
       </Tr>
     ));
   };
 
   return (
     <TableContainer whiteSpace="normal">
-      <Table {...props}>
+      <Table {...props} borderRadius="12px">
         <Tbody>{getMobileTableBody()}</Tbody>
       </Table>
     </TableContainer>

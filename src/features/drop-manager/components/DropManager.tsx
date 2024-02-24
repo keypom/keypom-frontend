@@ -54,7 +54,6 @@ export type GetDataFn = (
 ) => DataItem[];
 
 interface DropManagerProps {
-  claimedHeaderText: string;
   getClaimedText: (dropSize: number) => string;
   tableColumns: ColumnItem[];
   showColumns?: boolean;
@@ -64,7 +63,6 @@ interface DropManagerProps {
 }
 
 export const DropManager = ({
-  claimedHeaderText,
   getClaimedText,
   tableColumns = [],
   getData,
