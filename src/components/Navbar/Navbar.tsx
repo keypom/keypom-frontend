@@ -28,6 +28,14 @@ export const Navbar = (props: NavbarProps) => {
 
   const MENU_ITEMS = [
     {
+      name: 'Gallery',
+      href: '/gallery',
+    },
+    {
+      name: 'Secondary Market',
+      href: '/secondary-market',
+    },
+    {
       name: 'Docs',
       href: 'https://docs.keypom.xyz',
       isExternal: true,

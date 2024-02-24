@@ -1,6 +1,8 @@
 import React from 'react';
 import { createBrowserRouter } from 'react-router-dom';
 
+import { eventsLoader } from './pages/Gallery';
+
 const LandingPage = React.lazy(async () => await import('@/features/landing/routes/LandingPage'));
 
 const NotFound404 = React.lazy(
@@ -52,6 +54,10 @@ const TicketDropManagerPage = React.lazy(
 );
 const EthDenverLandingPage = React.lazy(async () => await import('@/pages/EthDenver'));
 
+const Gallery = React.lazy(async () => await import('@/pages/Gallery'));
+
+const Event = React.lazy(async () => await import('@/pages/Event'));
+
 const ScannerPage = React.lazy(async () => await import('@/features/scanner/routes/ScannerPage'));
 
 export const router = createBrowserRouter([
@@ -65,6 +71,26 @@ export const router = createBrowserRouter([
       {
         path: 'ethdenver',
         element: <EthDenverLandingPage />,
+      },
+      {
+        path: 'gallery',
+        element: <Gallery />,
+        loader: eventsLoader,
+      },
+      {
+        path: 'secondary-market',
+        element: <Gallery isSecondary={true} />,
+        loader: eventsLoader,
+      },
+      {
+        path: 'gallery/:eventID',
+        element: <Event />,
+        loader: eventsLoader,
+      },
+      {
+        path: 'secondary-market/:eventID',
+        element: <Event isSecondary={true} />,
+        loader: eventsLoader,
       },
       {
         loader: () => {
