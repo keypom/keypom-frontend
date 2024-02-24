@@ -17,19 +17,8 @@ export const tableColumns: ColumnItem[] = [
   },
   {
     id: 'action',
+    title: 'Action',
     selector: (row) => row.action,
-    tdProps: {
-      display: 'flex',
-      justifyContent: 'right',
-      verticalAlign: 'middle',
-    },
-    loadingElement: <Skeleton height="30px" />,
-  },
-];
-
-export const claimedKeysTableColumns: ColumnItem[] = [
-  {
-    id: 'claimed',
     tdProps: {
       display: 'flex',
       justifyContent: 'right',
