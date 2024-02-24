@@ -11,13 +11,12 @@ export const tableColumns: ColumnItem[] = [
   },
   {
     id: 'claimStatus',
-    title: 'Claim Status',
+    title: 'Status',
     selector: (row) => row.hasClaimed,
     loadingElement: <Skeleton height="30px" />,
   },
   {
     id: 'action',
-    title: 'Action',
     selector: (row) => row.action,
     tdProps: {
       display: 'flex',

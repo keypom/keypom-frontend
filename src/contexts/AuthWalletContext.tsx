@@ -105,7 +105,7 @@ export const AuthWalletContextProvider = ({ children }: PropsWithChildren) => {
     selector: selector as WalletSelector,
     accounts,
     accountId,
-    isLoggedIn: Boolean(sessionStorage.getItem('account')), // selector?.isSignedIn(), with null, cant login. with undefined, cant signout properly
+    isLoggedIn: Boolean(selector ? selector.isSignedIn() : true), // selector?.isSignedIn(), with null, cant login. with undefined, cant signout properly
     account: account as Account,
   };
 

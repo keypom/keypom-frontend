@@ -49,7 +49,7 @@ export const createDropsForNFT = async (dropId, returnTransactions, data, setApp
         wallet,
         numKeys: 1,
         metadata: JSON.stringify({
-          name: title,
+          dropName: title,
         }),
         depositPerUseNEAR: 0.1,
         fcData: {
@@ -102,6 +102,7 @@ export const createDropsForNFT = async (dropId, returnTransactions, data, setApp
     }`;
     let res;
     try {
+      console.log('uploading to worker', url);
       res = await fetch(url, {
         method: 'POST',
         body: file,
@@ -110,6 +111,8 @@ export const createDropsForNFT = async (dropId, returnTransactions, data, setApp
       console.warn('cfw error', error);
       res = { error };
     }
+
+    console.log('response from worker', res);
 
     if (res.error) {
       console.warn('cfw error', res.error);
@@ -141,10 +144,6 @@ export const createDropsForNFT = async (dropId, returnTransactions, data, setApp
             },
           ],
         });
-
-      if (/Invalid drop/.test(res.error.toString())) {
-        return mediaErrorModal();
-      }
 
       if (/drop not claimed/.test(res.error.toString())) {
         return mediaErrorModal();

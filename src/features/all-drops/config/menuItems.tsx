@@ -1,3 +1,5 @@
+import { MenuItem } from '@chakra-ui/react';
+
 import { LinkIcon, NFTIcon, TicketIcon, CheckedIcon } from '@/components/Icons';
 import { type MenuItemProps } from '@/components/Menu';
 
@@ -15,17 +17,28 @@ export const DROP_CLAIM_STATUS_OPTIONS = {
   UNCLAIMED: 'Unclaimed',
 };
 
+export const KEY_CLAIM_STATUS_OPTIONS = {
+  ANY: 'Any',
+  CLAIMED: 'Claimed',
+  UNCLAIMED: 'Unclaimed',
+};
+
+export const createMenuItems = ({ menuItems, onClick }) => {
+  return menuItems.map((item) => (
+    <MenuItem key={item.label} onClick={() => onClick(item)} {...item}>
+      {item.label}
+    </MenuItem>
+  ));
+};
 export const CREATE_DROP_ITEMS: MenuItemProps[] = [
   {
     label: 'Token Drop',
     as: 'a',
-    href: '/drop/token/new',
     icon: <LinkIcon h="4" w="4" />,
   },
   {
     label: 'NFT Drop',
     as: 'a',
-    href: '/drop/nft/new',
     icon: <NFTIcon h="4" w="4" />,
   },
   // {
@@ -67,6 +80,21 @@ export const DROP_CLAIM_STATUS_ITEMS: MenuItemProps[] = [
   {
     label: 'Partially',
     color: 'yellow.600',
+  },
+  {
+    label: 'Unclaimed',
+    color: 'gray.600',
+  },
+];
+
+export const KEY_CLAIM_STATUS_ITEMS: MenuItemProps[] = [
+  {
+    label: 'Any',
+    icon: <CheckedIcon h="4" isChecked={false} w="4" />,
+  },
+  {
+    label: 'Claimed',
+    color: 'green.600',
   },
   {
     label: 'Unclaimed',

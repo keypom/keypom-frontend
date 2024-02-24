@@ -8,8 +8,6 @@ import {
   Box,
   HStack,
   Menu,
-  MenuButton,
-  MenuItem,
   MenuList,
   Show,
   Text,
@@ -22,6 +20,7 @@ import {
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { type ProtocolReturnedDrop } from 'keypom-js';
 import { SearchIcon, ChevronDownIcon } from '@chakra-ui/icons';
+import { useNavigate } from 'react-router-dom';
 
 import { PAGE_SIZE_LIMIT, CLOUDFLARE_IPFS, DROP_TYPE } from '@/constants/common';
 import { useAppContext } from '@/contexts/AppContext';
@@ -30,7 +29,6 @@ import { type ColumnItem, type DataItem } from '@/components/Table/types';
 import { DataTable } from '@/components/Table';
 import { DeleteIcon } from '@/components/Icons';
 import { truncateAddress } from '@/utils/truncateAddress';
-import { NextButton, PrevButton } from '@/components/Pagination';
 import keypomInstance from '@/lib/keypom';
 
 import {
@@ -40,10 +38,13 @@ import {
   PAGE_SIZE_ITEMS,
   DROP_TYPE_ITEMS,
   CREATE_DROP_ITEMS,
+  createMenuItems,
 } from '../config/menuItems';
 
+import { DropDownButton } from './DropDownButton';
 import { MobileDrawerMenu } from './MobileDrawerMenu';
 import { setConfirmationModalHelper } from './ConfirmationModal';
+import { DropManagerPagination } from './DropManagerPagination';
 
 const COLUMNS: ColumnItem[] = [
   {
@@ -87,6 +88,7 @@ const COLUMNS: ColumnItem[] = [
 
 export default function AllDrops() {
   const { setAppModal } = useAppContext();
+  const navigate = useNavigate();
 
   const [hasPagination, setHasPagination] = useState<boolean>(false);
   const [numPages, setNumPages] = useState<number>(0);
@@ -217,37 +219,9 @@ export default function AllDrops() {
   const handleGetDrops = useCallback(async () => {
     setIsLoading(true);
 
-    let drops = allOwnedDrops;
-    if (allOwnedDrops.length === 0) {
-      // First, determine the total number of drops
-      const totalDrops = await keypomInstance.getDropSupplyForOwner({
-        accountId,
-      });
-      const totalPages = Math.ceil(totalDrops / selectedFilters.pageSize);
-      setHasPagination(totalPages > 1);
-      setNumPages(totalPages);
-      setWallet(await selector.wallet());
-
-      // Create an array of page indices [0, 1, ..., totalPages - 1]
-      const pageIndices = Array.from({ length: totalPages }, (_, index) => index);
-
-      // Map each page index to a fetch promise
-      const fetchPromises = pageIndices.map(
-        async (pageIndex) =>
-          await keypomInstance.getDrops({
-            accountId: accountId!,
-            start: pageIndex * selectedFilters.pageSize,
-            limit: selectedFilters.pageSize,
-            withKeys: false,
-          }),
-      );
-
-      // Wait for all fetches to complete
-      const allPagesDrops = await Promise.all(fetchPromises);
-      // Flatten the array of pages into a single array of drops
-      drops = allPagesDrops.flat();
-      setAllOwnedDrops(drops);
-    }
+    let drops = await keypomInstance.getDrops({ accountId: accountId! });
+    setAllOwnedDrops(drops);
+    setWallet(await selector.wallet());
 
     // Apply the selected filters
     if (selectedFilters.type !== DROP_TYPE_OPTIONS.ANY) {
@@ -303,47 +277,33 @@ export default function AllDrops() {
     handleGetDrops();
   }, [accountId, selectedFilters]);
 
-  const createDropMenuItems = CREATE_DROP_ITEMS.map((item) => (
-    <MenuItem key={item.label} {...item}>
-      {item.label}
-    </MenuItem>
-  ));
+  const createDropMenuItems = createMenuItems({
+    menuItems: CREATE_DROP_ITEMS,
+    onClick: (item) => {
+      navigate(item.label.includes('NFT') ? '/drop/nft/new' : '/drop/token/new');
+    },
+  });
 
-  const pageSizeMenuItems = PAGE_SIZE_ITEMS.map((item) => (
-    <MenuItem
-      key={item.label}
-      onClick={() => {
-        handlePageSizeSelect(item);
-      }}
-      {...item}
-    >
-      {item.label}
-    </MenuItem>
-  ));
+  const pageSizeMenuItems = createMenuItems({
+    menuItems: PAGE_SIZE_ITEMS,
+    onClick: (item) => {
+      handlePageSizeSelect(item);
+    },
+  });
 
-  const filterDropMenuItems = DROP_TYPE_ITEMS.map((item) => (
-    <MenuItem
-      key={item.label}
-      onClick={() => {
-        handleDropTypeSelect(item);
-      }}
-      {...item}
-    >
-      {item.label}
-    </MenuItem>
-  ));
+  const filterDropMenuItems = createMenuItems({
+    menuItems: DROP_TYPE_ITEMS,
+    onClick: (item) => {
+      handleDropTypeSelect(item);
+    },
+  });
 
-  const dropStatusMenuItems = DROP_CLAIM_STATUS_ITEMS.map((item) => (
-    <MenuItem
-      key={item.label}
-      onClick={() => {
-        handleDropStatusSelect(item);
-      }}
-      {...item}
-    >
-      {item.label}
-    </MenuItem>
-  ));
+  const dropStatusMenuItems = createMenuItems({
+    menuItems: DROP_CLAIM_STATUS_ITEMS,
+    onClick: (item) => {
+      handleDropStatusSelect(item);
+    },
+  });
 
   const handleDeleteClick = (dropId: string | number) => {
     setConfirmationModalHelper(setAppModal, async () => {
@@ -400,30 +360,6 @@ export default function AllDrops() {
       }, []);
   };
 
-  const DropDownButton = ({
-    isOpen,
-    placeholder,
-    variant,
-  }: {
-    isOpen: boolean;
-    placeholder: string;
-    variant: 'primary' | 'secondary';
-  }) => (
-    <MenuButton
-      as={Button}
-      color={variant === 'primary' ? 'white' : 'gray.400'}
-      height="auto"
-      isActive={isOpen}
-      lineHeight=""
-      px="6"
-      py="3"
-      rightIcon={<ChevronDownIcon color={variant === 'secondary' ? 'gray.800' : ''} />}
-      variant={variant}
-      onClick={() => (popoverClicked.current += 1)}
-    >
-      {placeholder}
-    </MenuButton>
-  );
   const CreateADropMobileButton = () => (
     <Button
       px="6"
@@ -487,6 +423,7 @@ export default function AllDrops() {
                       isOpen={isOpen}
                       placeholder={`Type: ${selectedFilters.type}`}
                       variant="secondary"
+                      onClick={() => (popoverClicked.current += 1)}
                     />
                     <MenuList minWidth="auto">{filterDropMenuItems}</MenuList>
                   </Box>
@@ -499,6 +436,7 @@ export default function AllDrops() {
                       isOpen={isOpen}
                       placeholder={`Claimed: ${selectedFilters.status}`}
                       variant="secondary"
+                      onClick={() => (popoverClicked.current += 1)}
                     />
                     <MenuList minWidth="auto">{dropStatusMenuItems}</MenuList>
                   </Box>
@@ -508,7 +446,12 @@ export default function AllDrops() {
                 <Menu>
                   {({ isOpen }) => (
                     <Box>
-                      <DropDownButton isOpen={isOpen} placeholder="Create drop" variant="primary" />
+                      <DropDownButton
+                        isOpen={isOpen}
+                        placeholder="Create drop"
+                        variant="primary"
+                        onClick={() => (popoverClicked.current += 1)}
+                      />
                       <MenuList minWidth="auto">{createDropMenuItems}</MenuList>
                     </Box>
                   )}
@@ -534,59 +477,22 @@ export default function AllDrops() {
 
       <DataTable
         columns={COLUMNS}
-        data={getTableRows()}
+        data={data}
         loading={isLoading}
         mt={{ base: '6', md: '4' }}
         type={getTableType()}
       />
 
-      {hasPagination && (
-        <HStack justify="space-between" py="4" w="full">
-          <HStack>
-            <Show above="sm">
-              <Heading color="gray.500" fontWeight="normal" size="sm">
-                Rows per page
-              </Heading>
-            </Show>
-            <Show below="sm">
-              <Heading color="gray.500" fontWeight="normal" size="sm">
-                Rows
-              </Heading>
-            </Show>
-            <Menu>
-              {({ isOpen }) => (
-                <Box>
-                  <DropDownButton
-                    isOpen={isOpen}
-                    placeholder={selectedFilters.pageSize.toString()}
-                    variant="secondary"
-                  />
-                  <MenuList minWidth="auto">{pageSizeMenuItems}</MenuList>
-                </Box>
-              )}
-            </Menu>
-          </HStack>
-          <HStack>
-            <Heading color="gray.500" fontWeight="normal" size="sm">
-              {curPage + 1} of {numPages === 0 ? 1 : numPages}
-            </Heading>
-            <PrevButton
-              id="all-drops"
-              isDisabled={curPage === 0}
-              lineHeight=""
-              variant="secondary"
-              onClick={handlePrevPage}
-            />
-            <NextButton
-              id="all-drops"
-              isDisabled={curPage === numPages - 1}
-              lineHeight=""
-              variant="secondary"
-              onClick={handleNextPage}
-            />
-          </HStack>
-        </HStack>
-      )}
+      <DropManagerPagination
+        curPage={curPage}
+        handleNextPage={handleNextPage}
+        handlePrevPage={handlePrevPage}
+        hasPagination={hasPagination}
+        numPages={numPages}
+        pageSizeMenuItems={pageSizeMenuItems}
+        rowsSelectPlaceholder={selectedFilters.pageSize.toString()}
+        onClickRowsSelect={() => (popoverClicked.current += 1)}
+      />
       {/* Mobile Menu For Creating Drop */}
       <Show below="sm">
         <MobileDrawerMenu

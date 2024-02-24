@@ -19,6 +19,8 @@ interface AppModalValues {
   isOpen: boolean;
   closeOnOverlayClick?: boolean;
   closeButtonVisible?: boolean;
+  cancelButtonVisible?: boolean;
+  onCancel?: () => void;
   message?: string;
   header?: string;
   options?: AppModalOptions[];

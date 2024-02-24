@@ -48,6 +48,7 @@ export const DataTable = ({
   loading = false,
   ...props
 }: DataTableProps) => {
+  console.log('DataTable', data);
   const navigate = useNavigate();
 
   const getDesktopTableBody = () => {

@@ -19,6 +19,7 @@ import {
   deleteDrops,
   getDropSupplyForOwner,
   getDrops,
+  type ProtocolReturnedKeyInfo,
 } from 'keypom-js';
 import * as nearAPI from 'near-api-js';
 
@@ -42,30 +43,25 @@ const connectionConfig = {
   explorerUrl: config.explorerUrl,
 };
 
-const CACHE_MAX_AGE = 5000; // in ms
-class KeypomJS {
-  private static instance: KeypomJS;
-  nearConnection: nearAPI.Near;
-  test = 0;
+export interface DropKeyItem {
+  id: number;
+  publicKey: string;
+  link: string;
+  slug: string;
+  hasClaimed: boolean;
+  keyInfo?: ProtocolReturnedKeyInfo;
+}
 
-  dropStore: {
-    dropWithKeys: Record<
-      string,
-      Record<
-        number,
-        {
-          drop: ProtocolReturnedDrop;
-          cacheExpiryTime: number;
-          pk?: string[];
-          sk?: string[];
-        }
-      >
-    >;
-    paginatedMyDrops: Record<number, { drops: ProtocolReturnedDrop[]; cacheExpiryTime: number }>;
-  } = {
-    dropWithKeys: {}, // this is to cache the keys of each respective drops, mainly used in DropManager.tsx and [id].tsx
-    paginatedMyDrops: {}, // this is to cache the drops from My Drops, mainly used in AllDrops.tsx
-  };
+const DATA_ITEMS_PER_QUERY = 30;
+class KeypomJS {
+  static instance: KeypomJS;
+  nearConnection: nearAPI.Near;
+
+  dropStore: Record<string, ProtocolReturnedDrop[]> = {};
+  keyStore: Record<
+    string,
+    { dropName: string; publicKeys: string[]; secretKeys: string[]; dropKeyItems: DropKeyItem[] }
+  > = {};
 
   constructor() {
     if (instance !== undefined) {
@@ -73,19 +69,10 @@ class KeypomJS {
     }
   }
 
-  init = async () => {
-    initKeypom({ network: networkId })
-      .then(() => {
-        console.log('KeypomJS initialized');
-      })
-      .catch((err) => {
-        console.error('Failed to initialize KeypomJS', err);
-      });
-
-    const { connect } = nearAPI;
-
-    this.nearConnection = await connect(connectionConfig);
-  };
+  async init() {
+    await initKeypom({ network: networkId });
+    this.nearConnection = await nearAPI.connect(connectionConfig);
+  }
 
   public static getInstance(): KeypomJS {
     if (!KeypomJS.instance) {
@@ -208,35 +195,50 @@ class KeypomJS {
 
   getDrops = async ({
     accountId,
-    start,
+    start = 0,
     limit,
-    withKeys,
   }: {
     accountId: string;
-    start: number;
-    limit: number;
-    withKeys: boolean;
+    start?: number;
+    limit?: number;
   }) => {
-    /** Get Drops caching logic */
-    if (
-      !Object.prototype.hasOwnProperty.call(this.dropStore.paginatedMyDrops, start) ||
-      Date.now() > this.dropStore.paginatedMyDrops[start].cacheExpiryTime
-    ) {
-      const newDropsCacheExpiryTime = new Date(Date.now() + CACHE_MAX_AGE).getTime();
+    try {
+      if (!this.dropStore[accountId]) {
+        const totalDrops = await getDropSupplyForOwner({ accountId });
+        const totalQueries = Math.ceil(totalDrops / DATA_ITEMS_PER_QUERY);
+        const pageIndices = Array.from({ length: totalQueries }, (_, index) => index);
 
-      this.dropStore.paginatedMyDrops[start] = {
-        drops: await getDrops({ accountId, start, limit, withKeys }),
-        cacheExpiryTime: newDropsCacheExpiryTime,
-      };
+        const allPagesDrops = await Promise.all(
+          pageIndices.map(
+            async (pageIndex) =>
+              await getDrops({
+                accountId,
+                start: pageIndex * DATA_ITEMS_PER_QUERY,
+                limit: DATA_ITEMS_PER_QUERY,
+                withKeys: false,
+              }),
+          ),
+        );
+        this.dropStore[accountId] = allPagesDrops.flat();
+      }
+
+      const end = limit ? start + limit : this.dropStore[accountId].length;
+      return this.dropStore[accountId].slice(start, end);
+    } catch (error) {
+      console.error('Error fetching drops:', error);
+      // Handle or throw the error appropriately
+      throw new Error('Failed to fetch drops.');
     }
-
-    return this.dropStore.paginatedMyDrops[start].drops;
   };
 
   getDropSupplyForOwner = async ({ accountId }) => await getDropSupplyForOwner({ accountId });
 
   getDropMetadata = (metadata: string | undefined) => {
     const parsedObj = JSON.parse(metadata || '{}');
+    if (Object.hasOwn(parsedObj, 'drop_name')) {
+      parsedObj.dropName = parsedObj.drop_name;
+    }
+
     if (!Object.hasOwn(parsedObj, 'dropName')) {
       parsedObj.dropName = 'Untitled';
     }
@@ -291,69 +293,97 @@ class KeypomJS {
     return links;
   };
 
-  getKeysInfo = async (
-    dropId: string,
-    pageIndex: number,
-    pageSize: number,
-    getDropErrorCallback?: () => void,
-  ) => {
+  getKeysInfo = async ({
+    dropId,
+    start = 0,
+    limit,
+  }: {
+    dropId: string;
+    start?: number;
+    limit?: number;
+  }) => {
     try {
-      /** Get PaginatedDrops caching logic */
-      if (
-        !Object.prototype.hasOwnProperty.call(this.dropStore.dropWithKeys, dropId) ||
-        !Object.prototype.hasOwnProperty.call(this.dropStore.dropWithKeys[dropId], pageIndex) ||
-        Date.now() > this.dropStore.dropWithKeys[dropId][pageIndex].cacheExpiryTime
-      ) {
-        if (this.dropStore.dropWithKeys[dropId] === undefined)
-          this.dropStore.dropWithKeys[dropId] = {};
-        const newPaginatedDropsCacheExpiryTime = new Date(Date.now() + CACHE_MAX_AGE).getTime();
-
-        this.dropStore.dropWithKeys[dropId][pageIndex] = {
-          drop: await this.getDropInfo({ dropId }),
-          cacheExpiryTime: newPaginatedDropsCacheExpiryTime,
-          pk: undefined,
-          sk: undefined,
+      if (!this.keyStore[dropId]) {
+        this.keyStore[dropId] = {
+          dropName: '',
+          publicKeys: [],
+          secretKeys: [],
+          dropKeyItems: [],
         };
       }
+      // Calculate total keys needed if limit is defined, else get total from drop
+      const dropInfo = await this.getDropInfo({ dropId });
+      const dropName = this.getDropMetadata(dropInfo.metadata).dropName;
+      this.keyStore[dropId].dropName = dropName;
+      const totalKeys = dropInfo.next_key_id;
+      const end = limit ? Math.min(start + limit, totalKeys) : totalKeys;
+      const requiredKeys = end - start;
 
-      const dropSize = this.dropStore.dropWithKeys[dropId][pageIndex].drop.next_key_id;
-      const { dropName } = this.getDropMetadata(
-        this.dropStore.dropWithKeys[dropId][pageIndex].drop.metadata,
-      );
+      // Calculate total batches based on DATA_ITEMS_PER_QUERY
+      const totalBatches = Math.ceil(requiredKeys / DATA_ITEMS_PER_QUERY);
 
-      // Get PaginatedDrops PK SK caching logic
-      if (
-        this.dropStore.dropWithKeys[dropId][pageIndex].pk === undefined ||
-        this.dropStore.dropWithKeys[dropId][pageIndex].sk === undefined
-      ) {
-        const { publicKeys, secretKeys } = await generateKeys({
-          numKeys:
-            (pageIndex + 1) * pageSize > dropSize
-              ? dropSize - pageIndex * pageSize
-              : Math.min(dropSize, pageSize),
-          rootEntropy: `${get(MASTER_KEY) as string}-${dropId}`,
-          autoMetaNonceStart: pageIndex * pageSize,
-        });
-
-        this.dropStore.dropWithKeys[dropId][pageIndex].pk = publicKeys;
-        this.dropStore.dropWithKeys[dropId][pageIndex].sk = secretKeys;
-      }
-
-      const keyInfo = await getKeyInformationBatch({
-        publicKeys: this.dropStore.dropWithKeys[dropId][pageIndex].pk,
-        secretKeys: this.dropStore.dropWithKeys[dropId][pageIndex].sk,
+      // Generate all keys if they haven't been generated yet
+      const { publicKeys, secretKeys } = await generateKeys({
+        numKeys: requiredKeys,
+        rootEntropy: `${get(MASTER_KEY) as string}-${dropId}`,
+        autoMetaNonceStart: start,
       });
 
-      return {
-        dropSize,
-        dropName,
-        publicKeys: this.dropStore.dropWithKeys[dropId][pageIndex].pk,
-        secretKeys: this.dropStore.dropWithKeys[dropId][pageIndex].sk,
-        keyInfo,
-      };
+      // Temporarily store keys, ideally you'd want to cache these more efficiently
+      this.keyStore[dropId].dropKeyItems = publicKeys.map((pk, index) => ({
+        id: start + index,
+        link: `${window.location.origin}/claim/${getConfig().contractId}#${secretKeys[
+          index
+        ].replace('ed25519:', '')}`,
+        slug: secretKeys[index].substring(8, 16),
+        publicKey: pk,
+        hasClaimed: true,
+        keyInfo: undefined,
+      }));
+      this.keyStore[dropId].publicKeys = publicKeys;
+      this.keyStore[dropId].secretKeys = secretKeys;
+
+      // Create batches for parallel API calls
+      const batches: DropKeyItem[][] = []; // An array of arrays of DropKeyItem
+      for (let i = 0; i < totalBatches; i++) {
+        const batchStart = start + i * DATA_ITEMS_PER_QUERY;
+        const batchEnd = Math.min(batchStart + DATA_ITEMS_PER_QUERY, end);
+        const batchKeys = this.keyStore[dropId].dropKeyItems.slice(batchStart, batchEnd);
+
+        batches.push(batchKeys);
+      }
+
+      // Fetch key information in parallel for each batch
+      const batchPromises = batches.map(async (batch) => {
+        const publicKeys = batch.map((key) => key.publicKey);
+        return await getKeyInformationBatch({ publicKeys });
+      });
+
+      const keyInfos = await Promise.all(batchPromises);
+
+      // Flatten the results and map them back to your keyStore structure
+      const flattenedKeyInfos = keyInfos.flat();
+
+      // Assuming the structure of DropKeyItem and adjusting accordingly
+      flattenedKeyInfos.forEach((info, index) => {
+        const keyIndex = start + index;
+        console.log('keyIndex', keyIndex);
+        console.log('keyInfo', info);
+        if (this.keyStore[dropId][keyIndex]) {
+          this.keyStore[dropId][keyIndex].keyInfo = info;
+        }
+      });
+
+      // Return the slice of the keyStore array that matches the requested range
+      const sliced = this.keyStore[dropId];
+      sliced.dropKeyItems = sliced.dropKeyItems.slice(start, end);
+      sliced.publicKeys = sliced.publicKeys.slice(start, end);
+      sliced.secretKeys = sliced.secretKeys.slice(start, end);
+      return sliced;
     } catch (e) {
-      if (getDropErrorCallback) getDropErrorCallback();
-      return; // eslint-disable-line no-useless-return
+      console.error('Failed to get keys info:', e);
+      // Optionally call an error callback here
+      return []; // Return an empty array or appropriate error response
     }
   };
 

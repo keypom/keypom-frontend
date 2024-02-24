@@ -78,7 +78,7 @@ export default function NFTDropManagerPage() {
       claimedHeaderText="NFT editions claimed"
       getClaimedText={(dropSize) => `${dropSize - availableKeys} / ${dropSize}`}
       getData={getTableRows}
-      showColumns={false}
+      showColumns={true}
       tableColumns={tableColumns}
     />
   );
