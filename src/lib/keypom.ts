@@ -23,6 +23,7 @@ import {
 } from 'keypom-js';
 import * as nearAPI from 'near-api-js';
 
+import { truncateAddress } from '@/utils/truncateAddress';
 import { CLOUDFLARE_IPFS, DROP_TYPE, MASTER_KEY } from '@/constants/common';
 import getConfig from '@/config/config';
 import { get } from '@/utils/localStorage';
@@ -60,7 +61,11 @@ class KeypomJS {
   dropStore: Record<string, ProtocolReturnedDrop[]> = {};
   keyStore: Record<
     string,
-    { dropName: string; publicKeys: string[]; secretKeys: string[]; dropKeyItems: DropKeyItem[] }
+    {
+      dropName: string;
+      totalKeys: number;
+      dropKeyItems: DropKeyItem[];
+    }
   > = {};
 
   constructor() {
@@ -245,6 +250,74 @@ class KeypomJS {
     return parsedObj;
   };
 
+  getDropData = async ({
+    drop,
+    dropId,
+  }: {
+    drop?: ProtocolReturnedDrop;
+    dropId?: string | number;
+  }) => {
+    if (drop === undefined && dropId === undefined) {
+      throw new Error('drop or dropId must be provided.');
+    }
+
+    if (dropId !== undefined) {
+      drop = await this.getDropInfo({ dropId: dropId.toString() });
+    }
+    const { drop_id: id, metadata, next_key_id: totalKeys } = drop!;
+    console.log('drop', drop);
+    const claimedKeys = await this.getAvailableKeys(id);
+    const claimedText = `${totalKeys - claimedKeys} / ${totalKeys}`;
+
+    const { dropName } = this.getDropMetadata(metadata);
+
+    let type: string | null = '';
+    try {
+      type = this.getDropType(drop!);
+    } catch (_) {
+      type = DROP_TYPE.OTHER;
+    }
+
+    let nftHref: string | undefined;
+    if (type === DROP_TYPE.NFT) {
+      let nftMetadata = {
+        media: '',
+        title: '',
+        description: '',
+      };
+      try {
+        const fcMethods = drop!.fc?.methods;
+        if (
+          fcMethods === undefined ||
+          fcMethods.length === 0 ||
+          fcMethods[0] === undefined ||
+          fcMethods[0][0] === undefined
+        ) {
+          throw new Error('Unable to retrieve function calls.');
+        }
+
+        const { nftData } = await this.getNFTorTokensMetadata(fcMethods[0][0], drop!.drop_id);
+
+        nftMetadata = {
+          media: `${CLOUDFLARE_IPFS}/${nftData?.metadata?.media}`, // eslint-disable-line
+          title: nftData?.metadata?.title,
+          description: nftData?.metadata?.description,
+        };
+      } catch (e) {
+        console.error('failed to get nft metadata', e); // eslint-disable-line no-console
+      }
+      nftHref = nftMetadata?.media || 'assets/image-not-found.png';
+    }
+
+    return {
+      id,
+      name: truncateAddress(dropName, 'end', 48),
+      type: type !== 'NFT' ? type?.toLowerCase() : type,
+      media: nftHref,
+      claimed: claimedText,
+    };
+  };
+
   deleteDrops = async ({ wallet, dropIds }) => await deleteDrops({ wallet, dropIds });
 
   deleteKeys = async ({ wallet, dropId, publicKeys }) =>
@@ -306,84 +379,79 @@ class KeypomJS {
       if (!this.keyStore[dropId]) {
         this.keyStore[dropId] = {
           dropName: '',
-          publicKeys: [],
-          secretKeys: [],
           dropKeyItems: [],
+          totalKeys: 0,
         };
-      }
-      // Calculate total keys needed if limit is defined, else get total from drop
-      const dropInfo = await this.getDropInfo({ dropId });
-      const dropName = this.getDropMetadata(dropInfo.metadata).dropName;
-      this.keyStore[dropId].dropName = dropName;
-      const totalKeys = dropInfo.next_key_id;
-      const end = limit ? Math.min(start + limit, totalKeys) : totalKeys;
-      const requiredKeys = end - start;
+        // Calculate total keys needed if limit is defined, else get total from drop
+        const dropInfo = await this.getDropInfo({ dropId });
+        const dropName = this.getDropMetadata(dropInfo.metadata).dropName;
+        this.keyStore[dropId].dropName = dropName;
+        const totalKeys = dropInfo.next_key_id;
+        const end = limit ? Math.min(start + limit, totalKeys) : totalKeys;
+        const requiredKeys = end - start;
 
-      // Calculate total batches based on DATA_ITEMS_PER_QUERY
-      const totalBatches = Math.ceil(requiredKeys / DATA_ITEMS_PER_QUERY);
+        // Calculate total batches based on DATA_ITEMS_PER_QUERY
+        const totalBatches = Math.ceil(requiredKeys / DATA_ITEMS_PER_QUERY);
 
-      // Generate all keys if they haven't been generated yet
-      const { publicKeys, secretKeys } = await generateKeys({
-        numKeys: requiredKeys,
-        rootEntropy: `${get(MASTER_KEY) as string}-${dropId}`,
-        autoMetaNonceStart: start,
-      });
+        // Generate all keys if they haven't been generated yet
+        const { publicKeys, secretKeys } = await generateKeys({
+          numKeys: requiredKeys,
+          rootEntropy: `${get(MASTER_KEY) as string}-${dropId}`,
+          autoMetaNonceStart: start,
+        });
 
-      // Temporarily store keys, ideally you'd want to cache these more efficiently
-      this.keyStore[dropId].dropKeyItems = publicKeys.map((pk, index) => ({
-        id: start + index,
-        link: `${window.location.origin}/claim/${getConfig().contractId}#${secretKeys[
-          index
-        ].replace('ed25519:', '')}`,
-        slug: secretKeys[index].substring(8, 16),
-        publicKey: pk,
-        hasClaimed: true,
-        keyInfo: undefined,
-      }));
-      this.keyStore[dropId].publicKeys = publicKeys;
-      this.keyStore[dropId].secretKeys = secretKeys;
+        // Temporarily store keys, ideally you'd want to cache these more efficiently
+        this.keyStore[dropId].dropKeyItems = publicKeys.map((pk, index) => ({
+          id: start + index,
+          link: `${window.location.origin}/claim/${getConfig().contractId}#${secretKeys[
+            index
+          ].replace('ed25519:', '')}`,
+          slug: secretKeys[index].substring(8, 16),
+          publicKey: pk,
+          hasClaimed: true,
+          keyInfo: undefined,
+        }));
+        this.keyStore[dropId].totalKeys = totalKeys;
 
-      // Create batches for parallel API calls
-      const batches: DropKeyItem[][] = []; // An array of arrays of DropKeyItem
-      for (let i = 0; i < totalBatches; i++) {
-        const batchStart = start + i * DATA_ITEMS_PER_QUERY;
-        const batchEnd = Math.min(batchStart + DATA_ITEMS_PER_QUERY, end);
-        const batchKeys = this.keyStore[dropId].dropKeyItems.slice(batchStart, batchEnd);
+        // Create batches for parallel API calls
+        const batches: DropKeyItem[][] = []; // An array of arrays of DropKeyItem
+        for (let i = 0; i < totalBatches; i++) {
+          const batchStart = start + i * DATA_ITEMS_PER_QUERY;
+          const batchEnd = Math.min(batchStart + DATA_ITEMS_PER_QUERY, end);
+          const batchKeys = this.keyStore[dropId].dropKeyItems.slice(batchStart, batchEnd);
 
-        batches.push(batchKeys);
-      }
-
-      // Fetch key information in parallel for each batch
-      const batchPromises = batches.map(async (batch) => {
-        const publicKeys = batch.map((key) => key.publicKey);
-        return await getKeyInformationBatch({ publicKeys });
-      });
-
-      const keyInfos = await Promise.all(batchPromises);
-
-      // Flatten the results and map them back to your keyStore structure
-      const flattenedKeyInfos = keyInfos.flat();
-
-      // Assuming the structure of DropKeyItem and adjusting accordingly
-      flattenedKeyInfos.forEach((info, index) => {
-        const keyIndex = start + index;
-        console.log('keyIndex', keyIndex);
-        console.log('keyInfo', info);
-        if (this.keyStore[dropId][keyIndex]) {
-          this.keyStore[dropId][keyIndex].keyInfo = info;
+          batches.push(batchKeys);
         }
-      });
+
+        // Fetch key information in parallel for each batch
+        const batchPromises = batches.map(async (batch) => {
+          const publicKeys = batch.map((key) => key.publicKey);
+          return await getKeyInformationBatch({ publicKeys });
+        });
+
+        const keyInfos = await Promise.all(batchPromises);
+
+        // Flatten the results and map them back to your keyStore structure
+        const flattenedKeyInfos = keyInfos.flat();
+
+        // Assuming the structure of DropKeyItem and adjusting accordingly
+        flattenedKeyInfos.forEach((info, index) => {
+          const keyIndex = start + index;
+          if (info !== null && info !== undefined) {
+            this.keyStore[dropId].dropKeyItems[keyIndex].hasClaimed = false;
+            this.keyStore[dropId].dropKeyItems[keyIndex].keyInfo = info;
+          }
+        });
+      }
 
       // Return the slice of the keyStore array that matches the requested range
       const sliced = this.keyStore[dropId];
+      const end = limit ? Math.min(start + limit, sliced.totalKeys) : sliced.totalKeys;
       sliced.dropKeyItems = sliced.dropKeyItems.slice(start, end);
-      sliced.publicKeys = sliced.publicKeys.slice(start, end);
-      sliced.secretKeys = sliced.secretKeys.slice(start, end);
       return sliced;
     } catch (e) {
       console.error('Failed to get keys info:', e);
-      // Optionally call an error callback here
-      return []; // Return an empty array or appropriate error response
+      throw new Error('Failed to get keys info.');
     }
   };
 

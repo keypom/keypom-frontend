@@ -1,18 +1,18 @@
 import {
   Menu,
+  Text,
+  Image,
+  VStack,
   MenuList,
   Box,
   Button,
   Heading,
   HStack,
-  Stack,
   type TableProps,
-  Text,
-  Skeleton,
   useToast,
 } from '@chakra-ui/react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { type ProtocolReturnedKeyInfo } from 'keypom-js';
 
 import { type ColumnItem, type DataItem } from '@/components/Table/types';
@@ -27,6 +27,7 @@ import { share } from '@/utils/share';
 import { setMasterKeyValidityModal } from '@/features/drop-manager/components/MasterKeyValidityModal';
 import { PAGE_SIZE_LIMIT } from '@/constants/common';
 import { DropManagerPagination } from '@/features/all-drops/components/DropManagerPagination';
+import { DropDownButton } from '@/features/all-drops/components/DropDownButton';
 
 import {
   KEY_CLAIM_STATUS_OPTIONS,
@@ -36,35 +37,6 @@ import {
 } from '../../../features/all-drops/config/menuItems';
 
 import { setConfirmationModalHelper } from './ConfirmationModal';
-import { DropDownButton } from '@/features/all-drops/components/DropDownButton';
-
-const COLUMNS: ColumnItem[] = [
-  {
-    id: 'link',
-    title: 'Link',
-    selector: (drop) => drop.name,
-    thProps: {
-      minW: '240px',
-    },
-    loadingElement: <Skeleton height="30px" />,
-  },
-  {
-    id: 'claimStatus',
-    title: 'Claimed',
-    selector: (drop) => drop.claimed,
-    loadingElement: <Skeleton height="30px" />,
-  },
-  {
-    id: 'action',
-    title: '',
-    selector: (drop) => drop.action,
-    tdProps: {
-      display: 'flex',
-      justifyContent: 'right',
-    },
-    loadingElement: <Skeleton height="30px" />,
-  },
-];
 
 export interface DropKeyItem {
   id: number;
@@ -99,13 +71,25 @@ export const DropManager = ({
   showColumns = true,
   tableProps,
 }: DropManagerProps) => {
-  const [searchParams, setSearchParams] = useSearchParams();
   const { id: dropId = '' } = useParams();
   const navigate = useNavigate();
   const toast = useToast();
   const { setAppModal } = useAppContext();
   const [wallet, setWallet] = useState({});
   const { selector, accountId } = useAuthWalletContext();
+  const [dropData, setDropData] = useState<{
+    id: string;
+    name: string;
+    type: string;
+    media: string | undefined;
+    claimed: string;
+  }>({
+    id: '',
+    name: '',
+    type: '',
+    media: undefined,
+    claimed: '',
+  });
   const [loading, setLoading] = useState(true);
   const popoverClicked = useRef(0);
 
@@ -142,11 +126,29 @@ export const DropManager = ({
     }
   }, [masterKeyValidity]);
 
+  useEffect(() => {
+    if (!keypomInstance || !dropId) return;
+
+    handleDropData(dropId);
+  }, [keypomInstance, dropId]);
+
+  useEffect(() => {
+    if (!accountId) return;
+
+    handleGetKeys();
+  }, [accountId, selectedFilters]);
+
+  const handleDropData = async (dropId) => {
+    const dropData = await keypomInstance.getDropData({ dropId });
+    console.log('dropData', dropData);
+    setDropData(dropData);
+  };
+
   const handleGetKeys = useCallback(async () => {
     setLoading(true);
     const keyInfoReturn = await keypomInstance.getKeysInfo({ dropId });
-    const { dropName, publicKeys, secretKeys, dropKeyItems } = keyInfoReturn;
-    const dropSize = publicKeys.length;
+    const { dropName, dropKeyItems } = keyInfoReturn;
+    const dropSize = dropKeyItems.length;
     setWallet(await selector.wallet());
 
     setTotalKeys(dropSize);
@@ -170,12 +172,6 @@ export const DropManager = ({
     setCurPage(0);
     setLoading(false);
   }, [accountId, selectedFilters, keypomInstance]);
-
-  useEffect(() => {
-    if (!accountId) return;
-
-    handleGetKeys();
-  }, [accountId, selectedFilters]);
 
   const pageSizeMenuItems = createMenuItems({
     menuItems: PAGE_SIZE_ITEMS,
@@ -210,7 +206,6 @@ export const DropManager = ({
   };
 
   const handleKeyClaimStatusSelect = (item) => {
-    console.log('item', item);
     setSelectedFilters((prevFilters) => ({
       ...prevFilters,
       status: item.label,
@@ -300,34 +295,50 @@ export const DropManager = ({
   return (
     <Box px="1" py={{ base: '3.25rem', md: '5rem' }}>
       <Breadcrumbs items={breadcrumbItems} />
-      <Stack direction={{ base: 'column', md: 'row' }}>
-        {/* Left Section */}
-        <Box flexGrow="1">
-          <Stack
-            direction={{ base: 'column', md: 'row' }}
-            pb={{ base: '4', md: '6' }}
-            pt={{ base: '4', md: '10' }}
-            spacing={{ base: '4', md: '3.125rem' }}
+      {/* Left Section */}
+      {/* Drop info section */}
+      <VStack align="start" paddingTop="4" spacing="4">
+        <HStack>
+          <Image
+            alt={`Drop image for ${dropData.id}`}
+            borderRadius="md"
+            boxSize="150px"
+            objectFit="cover"
+            src={dropData.media} // You would dynamically set this
+          />
+          <VStack align="start">
+            <Heading fontFamily="" size="sm">
+              Drop name
+            </Heading>
+            <Heading size="lg">{dropData.name}</Heading>
+          </VStack>
+        </HStack>
+        <HStack w="50%">
+          <Box
+            bg="border.box"
+            border="2px solid transparent"
+            borderRadius="12"
+            borderWidth="2px"
+            p={4}
+            w="100%" // Adjust based on your layout, 'fit-content' makes the box to fit its content size
           >
-            {/* Drop name */}
-            <Stack maxW={{ base: 'full', md: '22.5rem' }}>
-              <Text color="gray.800">Drop name</Text>
-              <Skeleton isLoaded={!loading}>
-                <Heading>{name}</Heading>
-              </Skeleton>
-            </Stack>
+            <VStack align="start" spacing={1}>
+              {' '}
+              {/* Adjust spacing as needed */}
+              <Text color="gray.600" fontSize="sm" fontWeight="medium">
+                Claimed
+              </Text>
+              <Heading>{getClaimedText(totalKeys)}</Heading>
+            </VStack>
+          </Box>
+        </HStack>
+      </VStack>
 
-            {/* Drops claimed */}
-            <Stack maxW={{ base: 'full', md: '22.5rem' }}>
-              <Text color="gray.800">{claimedHeaderText}</Text>
-              <Skeleton isLoaded={!loading}>
-                <Heading>{getClaimedText(totalKeys)}</Heading>
-              </Skeleton>
-            </Stack>
-          </Stack>
-          <Text>Track link status and export them to CSV for use in email campaigns here.</Text>
-        </Box>
-
+      {/* Top Section */}
+      <HStack justify="space-between">
+        <Heading paddingBottom="0" paddingTop="4">
+          All Keys
+        </Heading>
         {/* Right Section */}
         <HStack alignItems="end" justify="end" mt="1rem !important">
           <Menu>
@@ -335,7 +346,7 @@ export const DropManager = ({
               <Box>
                 <DropDownButton
                   isOpen={isOpen}
-                  placeholder={`Claimed: ${selectedFilters.status}`}
+                  placeholder={`Status: ${selectedFilters.status}`}
                   variant="secondary"
                   onClick={() => (popoverClicked.current += 1)}
                 />
@@ -344,8 +355,13 @@ export const DropManager = ({
             )}
           </Menu>
           <Button
+            height="auto"
             isDisabled={!allowAction}
             isLoading={deleting}
+            lineHeight=""
+            px="6"
+            py="3"
+            textColor="red.500"
             variant="secondary"
             w={{ base: '100%', sm: 'initial' }}
             onClick={handleCancelAllClick}
@@ -353,21 +369,26 @@ export const DropManager = ({
             Cancel all
           </Button>
           <Button
+            height="auto"
             isDisabled={!allowAction}
             isLoading={exporting}
+            lineHeight=""
+            px="6"
+            py="3"
             variant="secondary"
             w={{ base: '100%', sm: 'initial' }}
             onClick={handleExportCSVClick}
           >
             Export .CSV
           </Button>
-      </Stack>
+        </HStack>
+      </HStack>
       <Box>
         <DataTable
           columns={tableColumns}
           data={data}
           loading={loading}
-          mt={{ base: '4', md: '6' }}
+          mt={{ base: '6', md: '4' }}
           showColumns={showColumns}
           {...tableProps}
         />

@@ -48,8 +48,9 @@ export default function NFTDropManagerPage() {
       action: (
         <>
           <Button
+            borderRadius="6xl"
             mr="1"
-            size="sm"
+            size="md"
             variant="icon"
             onClick={() => {
               handleCopyClick(item.link);
@@ -59,7 +60,8 @@ export default function NFTDropManagerPage() {
           </Button>
           {!item.hasClaimed && (
             <Button
-              size="sm"
+              borderRadius="6xl"
+              size="md"
               variant="icon"
               onClick={async () => {
                 await handleDeleteClick(item.publicKey);
@@ -76,7 +78,7 @@ export default function NFTDropManagerPage() {
   return (
     <DropManager
       claimedHeaderText="NFT editions claimed"
-      getClaimedText={(dropSize) => `${dropSize - availableKeys} / ${dropSize}`}
+      getClaimedText={(dropSize) => `${dropSize - availableKeys}/${dropSize}`}
       getData={getTableRows}
       showColumns={true}
       tableColumns={tableColumns}

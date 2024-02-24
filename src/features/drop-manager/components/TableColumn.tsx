@@ -26,3 +26,15 @@ export const tableColumns: ColumnItem[] = [
     loadingElement: <Skeleton height="30px" />,
   },
 ];
+
+export const claimedKeysTableColumns: ColumnItem[] = [
+  {
+    id: 'claimed',
+    tdProps: {
+      display: 'flex',
+      justifyContent: 'right',
+      verticalAlign: 'middle',
+    },
+    loadingElement: <Skeleton height="30px" />,
+  },
+];

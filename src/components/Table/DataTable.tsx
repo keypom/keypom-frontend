@@ -48,7 +48,6 @@ export const DataTable = ({
   loading = false,
   ...props
 }: DataTableProps) => {
-  console.log('DataTable', data);
   const navigate = useNavigate();
 
   const getDesktopTableBody = () => {
@@ -99,7 +98,7 @@ export const DataTable = ({
           {/* Desktop Table */}
           <Show above="md">
             <TableContainer>
-              <Table {...props}>
+              <Table {...props} borderRadius="12px">
                 {showColumns && (
                   <Thead>
                     <Tr>

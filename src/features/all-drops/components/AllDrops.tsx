@@ -22,13 +22,12 @@ import { type ProtocolReturnedDrop } from 'keypom-js';
 import { SearchIcon, ChevronDownIcon } from '@chakra-ui/icons';
 import { useNavigate } from 'react-router-dom';
 
-import { PAGE_SIZE_LIMIT, CLOUDFLARE_IPFS, DROP_TYPE } from '@/constants/common';
+import { PAGE_SIZE_LIMIT, DROP_TYPE } from '@/constants/common';
 import { useAppContext } from '@/contexts/AppContext';
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
 import { type ColumnItem, type DataItem } from '@/components/Table/types';
 import { DataTable } from '@/components/Table';
 import { DeleteIcon } from '@/components/Icons';
-import { truncateAddress } from '@/utils/truncateAddress';
 import keypomInstance from '@/lib/keypom';
 
 import {
@@ -159,63 +158,6 @@ export default function AllDrops() {
     }
   };
 
-  const setAllDropsData = async (drop: ProtocolReturnedDrop) => {
-    const { drop_id: id, metadata, next_key_id: totalKeys } = drop;
-    const claimedKeys = await keypomInstance.getAvailableKeys(id);
-    const claimedText = `${totalKeys - claimedKeys} / ${totalKeys}`;
-
-    const { dropName } = keypomInstance.getDropMetadata(metadata);
-
-    let type: string | null = '';
-    try {
-      type = keypomInstance.getDropType(drop);
-    } catch (_) {
-      type = DROP_TYPE.OTHER;
-    }
-
-    let nftHref: string | undefined;
-    if (type === DROP_TYPE.NFT) {
-      let nftMetadata = {
-        media: '',
-        title: '',
-        description: '',
-      };
-      try {
-        const fcMethods = drop.fc?.methods;
-        if (
-          fcMethods === undefined ||
-          fcMethods.length === 0 ||
-          fcMethods[0] === undefined ||
-          fcMethods[0][0] === undefined
-        ) {
-          throw new Error('Unable to retrieve function calls.');
-        }
-
-        const { nftData } = await keypomInstance.getNFTorTokensMetadata(
-          fcMethods[0][0],
-          drop.drop_id,
-        );
-
-        nftMetadata = {
-          media: `${CLOUDFLARE_IPFS}/${nftData?.metadata?.media}`, // eslint-disable-line
-          title: nftData?.metadata?.title,
-          description: nftData?.metadata?.description,
-        };
-      } catch (e) {
-        console.error('failed to get nft metadata', e); // eslint-disable-line no-console
-      }
-      nftHref = nftMetadata?.media || 'assets/image-not-found.png';
-    }
-
-    return {
-      id,
-      name: truncateAddress(dropName, 'end', 48),
-      type: type !== 'NFT' ? type?.toLowerCase() : type,
-      media: nftHref,
-      claimed: claimedText,
-    };
-  };
-
   const handleGetDrops = useCallback(async () => {
     setIsLoading(true);
 
@@ -265,7 +207,9 @@ export default function AllDrops() {
     setNumPages(totalPages);
 
     // Now, map over the filtered drops and set the data
-    const dropData = await Promise.all(drops.map(setAllDropsData));
+    const dropData = await Promise.all(
+      drops.map(async (drop) => await keypomInstance.getDropData({ drop })),
+    );
     setFilteredDataItems(dropData);
     setCurPage(0);
     setIsLoading(false);
@@ -477,7 +421,7 @@ export default function AllDrops() {
 
       <DataTable
         columns={COLUMNS}
-        data={data}
+        data={getTableRows()}
         loading={isLoading}
         mt={{ base: '6', md: '4' }}
         type={getTableType()}
