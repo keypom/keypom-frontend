@@ -96,6 +96,7 @@ export default function AllDrops() {
 
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [isLoading, setIsLoading] = useState(true);
+  const [isAllDropsLoading, setIsAllDropsLoading] = useState(true);
   const popoverClicked = useRef(0);
 
   const [selectedFilters, setSelectedFilters] = useState<{
@@ -110,7 +111,7 @@ export default function AllDrops() {
     pageSize: PAGE_SIZE_LIMIT,
   });
   const [searchTerm, setSearchTerm] = useState<string>('');
-  const [allOwnedDrops, setAllOwnedDrops] = useState<ProtocolReturnedDrop[]>([]);
+  const [numOwnedDrops, setNumOwnedDrops] = useState<number>(0);
   const [filteredDataItems, setFilteredDataItems] = useState<DataItem[]>([]);
   const [wallet, setWallet] = useState({});
 
@@ -159,13 +160,7 @@ export default function AllDrops() {
     }
   };
 
-  const handleGetDrops = useCallback(async () => {
-    setIsLoading(true);
-
-    let drops = await keypomInstance.getDrops({ accountId: accountId! });
-    setAllOwnedDrops(drops);
-    setWallet(await selector.wallet());
-
+  const handleFiltering = async (drops) => {
     // Apply the selected filters
     if (selectedFilters.type !== DROP_TYPE_OPTIONS.ANY) {
       drops = drops.filter(
@@ -203,13 +198,56 @@ export default function AllDrops() {
         return dropName.toLowerCase().includes(selectedFilters.search.toLowerCase());
       });
     }
-    const totalPages = Math.ceil(drops.length / selectedFilters.pageSize);
+
+    return drops;
+  };
+
+  const handleGetAllDrops = useCallback(async () => {
+    setIsAllDropsLoading(true);
+
+    const drops = await keypomInstance.getAllDrops({
+      accountId: accountId!,
+    });
+
+    const filteredDrops = await handleFiltering(drops);
+    const dropData = await Promise.all(
+      filteredDrops.map(async (drop) => await keypomInstance.getDropData({ drop })),
+    );
+    setFilteredDataItems(dropData);
+
+    const totalPages = Math.ceil(filteredDrops.length / selectedFilters.pageSize);
     setHasPagination(totalPages > 1);
     setNumPages(totalPages);
 
+    setCurPage(0);
+    setIsAllDropsLoading(false);
+  }, [accountId, selectedFilters, keypomInstance]);
+
+  const handleGetInitialDrops = useCallback(async () => {
+    setIsLoading(true);
+
+    // First get the total supply of drops so we know when to stop fetching
+    const totalSupply = await keypomInstance.getDropSupplyForOwner({ accountId: accountId! });
+    setNumOwnedDrops(totalSupply);
+
+    // Loop until we have enough filtered drops to fill the page size
+    let dropsFetched = 0;
+    let filteredDrops: ProtocolReturnedDrop[] = [];
+    while (dropsFetched < totalSupply && filteredDrops.length < selectedFilters.pageSize) {
+      const drops = await keypomInstance.getPaginatedDrops({
+        accountId: accountId!,
+        start: dropsFetched,
+        limit: selectedFilters.pageSize,
+      });
+      dropsFetched += drops.length;
+
+      const curFiltered = await handleFiltering(drops);
+      filteredDrops = filteredDrops.concat(curFiltered);
+    }
+
     // Now, map over the filtered drops and set the data
     const dropData = await Promise.all(
-      drops.map(async (drop) => await keypomInstance.getDropData({ drop })),
+      filteredDrops.map(async (drop) => await keypomInstance.getDropData({ drop })),
     );
     setFilteredDataItems(dropData);
     setCurPage(0);
@@ -217,9 +255,32 @@ export default function AllDrops() {
   }, [accountId, selectedFilters, keypomInstance]);
 
   useEffect(() => {
+    async function fetchWallet() {
+      if (!selector) return;
+      try {
+        const wallet = await selector.wallet();
+        setWallet(wallet);
+      } catch (error) {
+        console.error('Error fetching wallet:', error);
+        // Handle the error appropriately
+      }
+    }
+
+    fetchWallet();
+  }, [selector]);
+
+  useEffect(() => {
     if (!accountId) return;
 
-    handleGetDrops();
+    // First get enough data with the current filters to fill the page size
+    handleGetInitialDrops();
+  }, [accountId]);
+
+  useEffect(() => {
+    if (!accountId) return;
+
+    // In parallel, fetch all the drops
+    handleGetAllDrops();
   }, [accountId, selectedFilters]);
 
   const createDropMenuItems = createMenuItems({
@@ -323,7 +384,7 @@ export default function AllDrops() {
   );
 
   const getTableType = () => {
-    if (filteredDataItems.length === 0 && allOwnedDrops.length === 0) {
+    if (filteredDataItems.length === 0 && numOwnedDrops === 0) {
       return 'all-drops';
     }
     return 'no-filtered-drops';
@@ -445,6 +506,7 @@ export default function AllDrops() {
         handleNextPage={handleNextPage}
         handlePrevPage={handlePrevPage}
         hasPagination={hasPagination}
+        isLoading={isAllDropsLoading}
         numPages={numPages}
         pageSizeMenuItems={pageSizeMenuItems}
         rowsSelectPlaceholder={selectedFilters.pageSize.toString()}

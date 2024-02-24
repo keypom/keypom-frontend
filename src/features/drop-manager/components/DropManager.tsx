@@ -1,5 +1,6 @@
 import {
   Menu,
+  Spinner,
   Text,
   Image,
   VStack,
@@ -35,6 +36,7 @@ import {
   PAGE_SIZE_ITEMS,
   createMenuItems,
 } from '../../../features/all-drops/config/menuItems';
+import placeholderImage from '../constants/placeholder-image.png';
 
 import { setConfirmationModalHelper } from './ConfirmationModal';
 
@@ -85,10 +87,12 @@ export const DropManager = ({
     id: '',
     name: '',
     type: '',
-    media: undefined,
+    media: 'loading',
     claimed: '',
   });
   const [loading, setLoading] = useState(true);
+  const [isAllKeysLoading, setIsAllKeysLoading] = useState(true);
+
   const popoverClicked = useRef(0);
 
   const [name, setName] = useState('Untitled');
@@ -133,26 +137,46 @@ export const DropManager = ({
   useEffect(() => {
     if (!accountId) return;
 
-    handleGetKeys();
+    // First get enough data with the current filters to fill the page size
+    handleGetInitialKeys();
+  }, [accountId]);
+
+  useEffect(() => {
+    if (!accountId) return;
+
+    // In parallel, fetch all the drops
+    handleGetAllKeys();
   }, [accountId, selectedFilters]);
+
+  useEffect(() => {
+    async function fetchWallet() {
+      if (!selector) return;
+      try {
+        const wallet = await selector.wallet();
+        setWallet(wallet);
+      } catch (error) {
+        console.error('Error fetching wallet:', error);
+        // Handle the error appropriately
+      }
+    }
+
+    fetchWallet();
+  }, [selector]);
+
+  const getTableType = () => {
+    if (filteredDropKeys.length === 0 && totalKeys === 0) {
+      return 'drop-manager';
+    }
+    return 'no-filtered-keys';
+  };
 
   const handleDropData = async (dropId) => {
     const dropData = await keypomInstance.getDropData({ dropId });
-    console.log('dropData', dropData);
+    setName(dropData.name);
     setDropData(dropData);
   };
 
-  const handleGetKeys = useCallback(async () => {
-    setLoading(true);
-    const keyInfoReturn = await keypomInstance.getKeysInfo({ dropId });
-    const { dropName, dropKeyItems } = keyInfoReturn;
-    const dropSize = dropKeyItems.length;
-    setWallet(await selector.wallet());
-
-    setTotalKeys(dropSize);
-    setName(dropName);
-
-    let keys = dropKeyItems;
+  const handleFiltering = (keys) => {
     if (selectedFilters.status !== KEY_CLAIM_STATUS_OPTIONS.ANY) {
       keys = keys.filter((key) => {
         if (selectedFilters.status === KEY_CLAIM_STATUS_OPTIONS.CLAIMED) {
@@ -162,11 +186,48 @@ export const DropManager = ({
         }
       });
     }
-    const totalPages = Math.ceil(keys.length / selectedFilters.pageSize);
+    return keys;
+  };
+
+  const handleGetAllKeys = useCallback(async () => {
+    setIsAllKeysLoading(true);
+    const keyInfoReturn = await keypomInstance.getAllKeysInfo({ dropId });
+    const { dropKeyItems } = keyInfoReturn;
+    const filteredKeys = handleFiltering(dropKeyItems);
+    setFilteredDropKeys(filteredKeys);
+
+    const totalPages = Math.ceil(filteredKeys.length / selectedFilters.pageSize);
     setHasPagination(totalPages > 1);
     setNumPages(totalPages);
 
-    setFilteredDropKeys(keys);
+    setCurPage(0);
+    setIsAllKeysLoading(false);
+  }, [accountId, selectedFilters, keypomInstance]);
+
+  const handleGetInitialKeys = useCallback(async () => {
+    setLoading(true);
+
+    const dropInfo = await keypomInstance.getDropInfo({ dropId });
+    const totalKeySupply = dropInfo.next_key_id;
+    setTotalKeys(totalKeySupply);
+
+    // Loop until we have enough filtered drops to fill the page size
+    let keysFetched = 0;
+    let filteredKeys = [];
+    while (keysFetched < totalKeySupply && filteredKeys.length < selectedFilters.pageSize) {
+      const dropKeyItems = await keypomInstance.getPaginatedKeysInfo({
+        dropId,
+        start: keysFetched,
+        limit: selectedFilters.pageSize,
+      });
+
+      keysFetched += dropKeyItems.length;
+
+      const curFiltered = handleFiltering(dropKeyItems);
+      filteredKeys = filteredKeys.concat(curFiltered);
+    }
+
+    setFilteredDropKeys(filteredKeys);
     setCurPage(0);
     setLoading(false);
   }, [accountId, selectedFilters, keypomInstance]);
@@ -297,13 +358,21 @@ export const DropManager = ({
       {/* Drop info section */}
       <VStack align="start" paddingTop="4" spacing="4">
         <HStack>
-          <Image
-            alt={`Drop image for ${dropData.id}`}
-            borderRadius="md"
-            boxSize="150px"
-            objectFit="cover"
-            src={dropData.media} // You would dynamically set this
-          />
+          {dropData.media === 'loading' ? (
+            <Spinner />
+          ) : (
+            <Image
+              alt={`Drop image for ${dropData.id}`}
+              borderRadius="md"
+              boxSize="150px"
+              objectFit="cover"
+              src={dropData.media || placeholderImage} // Use dropData.media or fallback to placeholder
+              onError={(e) => {
+                console.log('error loading image', e);
+                setDropData((prev) => ({ ...prev, media: placeholderImage }));
+              }}
+            />
+          )}
           <VStack align="start">
             <Heading fontFamily="" size="sm">
               Drop name
@@ -388,6 +457,7 @@ export const DropManager = ({
           loading={loading}
           mt={{ base: '6', md: '4' }}
           showColumns={showColumns}
+          type={getTableType()}
           {...tableProps}
         />
 
@@ -396,6 +466,7 @@ export const DropManager = ({
           handleNextPage={handleNextPage}
           handlePrevPage={handlePrevPage}
           hasPagination={hasPagination}
+          isLoading={isAllKeysLoading}
           numPages={numPages}
           pageSizeMenuItems={pageSizeMenuItems}
           rowsSelectPlaceholder={selectedFilters.pageSize.toString()}

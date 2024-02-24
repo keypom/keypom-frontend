@@ -50,14 +50,16 @@ export interface DropKeyItem {
   link: string;
   slug: string;
   hasClaimed: boolean;
-  keyInfo?: ProtocolReturnedKeyInfo;
+  keyInfo: ProtocolReturnedKeyInfo | undefined;
 }
 
-const DATA_ITEMS_PER_QUERY = 30;
+const KEY_ITEMS_PER_QUERY = 30;
+const DROP_ITEMS_PER_QUERY = 5;
 class KeypomJS {
   static instance: KeypomJS;
   nearConnection: nearAPI.Near;
 
+  totalDrops: number;
   dropStore: Record<string, ProtocolReturnedDrop[]> = {};
   keyStore: Record<
     string,
@@ -198,40 +200,102 @@ class KeypomJS {
     return DROP_TYPE.OTHER;
   };
 
-  getDrops = async ({
+  // Utility function to fetch drops for a specific page index
+  async fetchDropsPage(accountId, pageIndex) {
+    return await getDrops({
+      accountId,
+      start: pageIndex * DROP_ITEMS_PER_QUERY,
+      limit: DROP_ITEMS_PER_QUERY,
+      withKeys: false,
+    });
+  }
+
+  // Main function to get drops, with caching logic for paginated values
+  getAllDrops = async ({ accountId }: { accountId: string }) => {
+    try {
+      // If totalDrops is not known, fetch it
+      if (!this.totalDrops) {
+        this.totalDrops = await getDropSupplyForOwner({ accountId });
+      }
+
+      // Initialize the cache for this account if it doesn't exist
+      if (!this.dropStore[accountId]) {
+        this.dropStore[accountId] = [];
+      }
+
+      if (this.dropStore[accountId].length >= this.totalDrops) {
+        return this.dropStore[accountId];
+      }
+
+      const totalQueries = Math.ceil(this.totalDrops / DROP_ITEMS_PER_QUERY);
+      const pageIndices = Array.from({ length: totalQueries }, (_, index) => index);
+
+      const allPagesDrops = await Promise.all(
+        pageIndices.map(
+          async (pageIndex) =>
+            await getDrops({
+              accountId,
+              start: pageIndex * DROP_ITEMS_PER_QUERY,
+              limit: DROP_ITEMS_PER_QUERY,
+              withKeys: false,
+            }),
+        ),
+      );
+      this.dropStore[accountId] = allPagesDrops.flat();
+
+      return this.dropStore[accountId];
+    } catch (error) {
+      console.error('Error fetching drops:', error);
+      throw new Error('Failed to fetch drops.');
+    }
+  };
+
+  // Main function to get drops, with caching logic for paginated values
+  getPaginatedDrops = async ({
     accountId,
-    start = 0,
+    start,
     limit,
   }: {
     accountId: string;
-    start?: number;
-    limit?: number;
+    start: number;
+    limit: number;
   }) => {
     try {
-      if (!this.dropStore[accountId]) {
-        const totalDrops = await getDropSupplyForOwner({ accountId });
-        const totalQueries = Math.ceil(totalDrops / DATA_ITEMS_PER_QUERY);
-        const pageIndices = Array.from({ length: totalQueries }, (_, index) => index);
-
-        const allPagesDrops = await Promise.all(
-          pageIndices.map(
-            async (pageIndex) =>
-              await getDrops({
-                accountId,
-                start: pageIndex * DATA_ITEMS_PER_QUERY,
-                limit: DATA_ITEMS_PER_QUERY,
-                withKeys: false,
-              }),
-          ),
-        );
-        this.dropStore[accountId] = allPagesDrops.flat();
+      // If totalDrops is not known, fetch it
+      if (!this.totalDrops) {
+        this.totalDrops = await getDropSupplyForOwner({ accountId });
       }
 
-      const end = limit ? start + limit : this.dropStore[accountId].length;
-      return this.dropStore[accountId].slice(start, end);
+      // Initialize the cache for this account if it doesn't exist
+      if (!this.dropStore[accountId]) {
+        this.dropStore[accountId] = [];
+      }
+
+      // Calculate the end index and the page index for start and end
+      const endIndex = start + limit;
+      const startPageIndex = Math.floor(start / DROP_ITEMS_PER_QUERY);
+      const endPageIndex = Math.ceil(endIndex / DROP_ITEMS_PER_QUERY);
+
+      // Fetch and cache pages as needed
+      for (let pageIndex = startPageIndex; pageIndex < endPageIndex; pageIndex++) {
+        const pageStart = pageIndex * DROP_ITEMS_PER_QUERY;
+
+        // Only fetch if this page hasn't been cached yet
+        if (!this.dropStore[accountId][pageStart]) {
+          console.log('cache miss for: ', pageStart); // eslint-disable-line no-console
+          const pageDrops = await this.fetchDropsPage(accountId, pageIndex);
+
+          // Cache each item from the page with its index as the key
+          pageDrops.forEach((drop, index) => {
+            this.dropStore[accountId][pageStart + index] = drop;
+          });
+        }
+      }
+
+      // Return the requested slice from the cache
+      return this.dropStore[accountId].slice(start, endIndex);
     } catch (error) {
       console.error('Error fetching drops:', error);
-      // Handle or throw the error appropriately
       throw new Error('Failed to fetch drops.');
     }
   };
@@ -265,7 +329,6 @@ class KeypomJS {
       drop = await this.getDropInfo({ dropId: dropId.toString() });
     }
     const { drop_id: id, metadata, next_key_id: totalKeys } = drop!;
-    console.log('drop', drop);
     const claimedKeys = await this.getAvailableKeys(id);
     const claimedText = `${totalKeys - claimedKeys} / ${totalKeys}`;
 
@@ -366,89 +429,110 @@ class KeypomJS {
     return links;
   };
 
-  getKeysInfo = async ({
+  // Utility function to fetch a batch of key information
+  fetchKeyBatch = async (dropId: string, start: number, limit: number) => {
+    const { publicKeys, secretKeys } = await generateKeys({
+      numKeys: limit,
+      rootEntropy: `${get(MASTER_KEY) as string}-${dropId}`,
+      autoMetaNonceStart: start,
+    });
+
+    const keyInfos = await getKeyInformationBatch({ publicKeys });
+
+    const dropKeyItems: DropKeyItem[] = [];
+    keyInfos.forEach((info, index) => {
+      const keyIndex = start + index;
+      this.keyStore[dropId].dropKeyItems[keyIndex] = {
+        id: keyIndex,
+        link: `${window.location.origin}/claim/${getConfig().contractId}#${secretKeys[
+          index
+        ].replace('ed25519:', '')}`,
+        slug: secretKeys[index].substring(8, 16),
+        publicKey: publicKeys[index],
+        hasClaimed: info === null, // Assuming the info contains data to determine this
+        keyInfo: info,
+      };
+    });
+
+    return dropKeyItems;
+  };
+
+  async getAllKeysInfo({ dropId }) {
+    try {
+      const dropInfo = await this.getDropInfo({ dropId });
+      const dropName = this.getDropMetadata(dropInfo.metadata).dropName;
+      const totalKeys = dropInfo.next_key_id;
+      if (
+        !this.keyStore[dropId] ||
+        (this.keyStore[dropId] && this.keyStore[dropId].totalKeys !== totalKeys)
+      ) {
+        // Initialize the cache for this drop
+        this.keyStore[dropId] = {
+          dropName,
+          dropKeyItems: new Array(totalKeys).fill(null),
+          totalKeys,
+        };
+
+        // Define how many batches are needed based on KEY_ITEMS_PER_QUERY
+        const totalBatches = Math.ceil(totalKeys / KEY_ITEMS_PER_QUERY);
+        const batchPromises: Array<Promise<DropKeyItem[]>> = [];
+
+        for (let i = 0; i < totalBatches; i++) {
+          const start = i * KEY_ITEMS_PER_QUERY;
+          const limit = Math.min(KEY_ITEMS_PER_QUERY, totalKeys - start);
+
+          batchPromises.push(this.fetchKeyBatch(dropId, start, limit));
+        }
+
+        // Wait for all batches to resolve
+        await Promise.all(batchPromises);
+      }
+
+      return this.keyStore[dropId];
+    } catch (error) {
+      console.error('Failed to get keys info:', error);
+      throw new Error('Failed to get keys info.');
+    }
+  }
+
+  // Main function to get key info, with caching logic for paginated values
+  getPaginatedKeysInfo = async ({
     dropId,
-    start = 0,
+    start,
     limit,
   }: {
     dropId: string;
-    start?: number;
-    limit?: number;
+    start: number;
+    limit: number;
   }) => {
     try {
+      // Initialize the cache for this drop if it doesn't exist
       if (!this.keyStore[dropId]) {
-        this.keyStore[dropId] = {
-          dropName: '',
-          dropKeyItems: [],
-          totalKeys: 0,
-        };
-        // Calculate total keys needed if limit is defined, else get total from drop
         const dropInfo = await this.getDropInfo({ dropId });
         const dropName = this.getDropMetadata(dropInfo.metadata).dropName;
-        this.keyStore[dropId].dropName = dropName;
         const totalKeys = dropInfo.next_key_id;
-        const end = limit ? Math.min(start + limit, totalKeys) : totalKeys;
-        const requiredKeys = end - start;
 
-        // Calculate total batches based on DATA_ITEMS_PER_QUERY
-        const totalBatches = Math.ceil(requiredKeys / DATA_ITEMS_PER_QUERY);
-
-        // Generate all keys if they haven't been generated yet
-        const { publicKeys, secretKeys } = await generateKeys({
-          numKeys: requiredKeys,
-          rootEntropy: `${get(MASTER_KEY) as string}-${dropId}`,
-          autoMetaNonceStart: start,
-        });
-
-        // Temporarily store keys, ideally you'd want to cache these more efficiently
-        this.keyStore[dropId].dropKeyItems = publicKeys.map((pk, index) => ({
-          id: start + index,
-          link: `${window.location.origin}/claim/${getConfig().contractId}#${secretKeys[
-            index
-          ].replace('ed25519:', '')}`,
-          slug: secretKeys[index].substring(8, 16),
-          publicKey: pk,
-          hasClaimed: true,
-          keyInfo: undefined,
-        }));
-        this.keyStore[dropId].totalKeys = totalKeys;
-
-        // Create batches for parallel API calls
-        const batches: DropKeyItem[][] = []; // An array of arrays of DropKeyItem
-        for (let i = 0; i < totalBatches; i++) {
-          const batchStart = start + i * DATA_ITEMS_PER_QUERY;
-          const batchEnd = Math.min(batchStart + DATA_ITEMS_PER_QUERY, end);
-          const batchKeys = this.keyStore[dropId].dropKeyItems.slice(batchStart, batchEnd);
-
-          batches.push(batchKeys);
-        }
-
-        // Fetch key information in parallel for each batch
-        const batchPromises = batches.map(async (batch) => {
-          const publicKeys = batch.map((key) => key.publicKey);
-          return await getKeyInformationBatch({ publicKeys });
-        });
-
-        const keyInfos = await Promise.all(batchPromises);
-
-        // Flatten the results and map them back to your keyStore structure
-        const flattenedKeyInfos = keyInfos.flat();
-
-        // Assuming the structure of DropKeyItem and adjusting accordingly
-        flattenedKeyInfos.forEach((info, index) => {
-          const keyIndex = start + index;
-          if (info !== null && info !== undefined) {
-            this.keyStore[dropId].dropKeyItems[keyIndex].hasClaimed = false;
-            this.keyStore[dropId].dropKeyItems[keyIndex].keyInfo = info;
-          }
-        });
+        this.keyStore[dropId] = {
+          dropName,
+          dropKeyItems: Array(totalKeys).fill(null), // Initialize with nulls
+          totalKeys,
+        };
       }
 
-      // Return the slice of the keyStore array that matches the requested range
-      const sliced = this.keyStore[dropId];
-      const end = limit ? Math.min(start + limit, sliced.totalKeys) : sliced.totalKeys;
-      sliced.dropKeyItems = sliced.dropKeyItems.slice(start, end);
-      return sliced;
+      // Calculate the end index
+      const endIndex = Math.min(start + limit, this.keyStore[dropId].totalKeys);
+
+      // Fetch and cache batches as needed
+      for (let i = start; i < endIndex; i += KEY_ITEMS_PER_QUERY) {
+        if (!this.keyStore[dropId].dropKeyItems[i]) {
+          // Fetch the keys for this batch
+          const batchLimit = Math.min(KEY_ITEMS_PER_QUERY, endIndex - i);
+          await this.fetchKeyBatch(dropId, i, batchLimit);
+        }
+      }
+
+      // Return the requested slice from the cache
+      return this.keyStore[dropId].dropKeyItems.slice(start, endIndex);
     } catch (e) {
       console.error('Failed to get keys info:', e);
       throw new Error('Failed to get keys info.');

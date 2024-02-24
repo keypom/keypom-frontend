@@ -1,4 +1,4 @@
-import { Box, HStack, Menu, MenuList, Show, Heading } from '@chakra-ui/react';
+import { Box, HStack, Menu, MenuList, Show, Heading, Skeleton } from '@chakra-ui/react';
 import { type ReactElement } from 'react';
 
 import { NextButton, PrevButton } from '@/components/Pagination';
@@ -6,6 +6,7 @@ import { NextButton, PrevButton } from '@/components/Pagination';
 import { DropDownButton } from './DropDownButton';
 
 interface DropManagerPaginationProps {
+  isLoading: boolean;
   hasPagination: boolean;
   pageSizeMenuItems: ReactElement[];
   onClickRowsSelect: () => void;
@@ -17,6 +18,7 @@ interface DropManagerPaginationProps {
 }
 
 export const DropManagerPagination = ({
+  isLoading,
   hasPagination,
   pageSizeMenuItems,
   onClickRowsSelect,
@@ -26,6 +28,15 @@ export const DropManagerPagination = ({
   handleNextPage,
   handlePrevPage,
 }: DropManagerPaginationProps) => {
+  if (isLoading) {
+    // Render Skeleton loaders while content is loading
+    return (
+      <HStack justify="space-between" py="4" w="full">
+        <Skeleton height="20px" w="120px" />
+        <Skeleton height="20px" w="80px" />
+      </HStack>
+    );
+  }
   return hasPagination ? (
     <HStack justify="space-between" py="4" w="full">
       <HStack>
