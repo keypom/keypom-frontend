@@ -11,7 +11,6 @@ import {
   FormHelperText,
   FormLabel,
   Heading,
-  Image,
   Input,
   Modal,
   ModalBody,
@@ -27,6 +26,7 @@ import {
   NumberInputStepper,
   Text,
   useDisclosure,
+  Image as ChakraImage,
 } from '@chakra-ui/react';
 import { useState } from 'react';
 import { Form, useLoaderData, useParams } from 'react-router-dom';
@@ -45,7 +45,7 @@ export default function Event(props) {
   const eventID = params.eventID;
 
   // check if the eventID is valid
-  const event = events.find((event) => event.id == eventID);
+  const event = events.find((event) => String(event.id) === eventID);
 
   // modal information
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -74,12 +74,15 @@ export default function Event(props) {
       ) : (
         <Heading as="h1"> Primary event listing</Heading>
       )}
+      <ChakraImage alt={'tewwtweoiht'} src={'/assets/alcohol.webp'} />
+      <ChakraImage alt={'tewwtweoiht2'} src={'/assets/image-not-found.webp'} />
+
       <Divider bg="black" my="5" />
       <Text>Details about the Event:</Text>
       <Text>Event ID: {eventID}</Text>
       <Card key={event.id} bg="white">
         <CardHeader>
-          <Image alt={event.title} src={'../' + event.img} />
+          <ChakraImage alt={event.title} src={'../' + String(event.img)} />
         </CardHeader>
 
         <CardBody color="black">

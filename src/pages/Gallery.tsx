@@ -45,7 +45,7 @@ export default function Gallery(props) {
   };
 
   const sortById = () => {
-    if (sorted.sorted == 'id') {
+    if (sorted.sorted === 'id') {
       setSorted({ sorted: 'id', reversed: !sorted.reversed });
     } else {
       setSorted({ sorted: 'id', reversed: false });
@@ -61,7 +61,7 @@ export default function Gallery(props) {
   };
 
   const sortByTitle = () => {
-    if (sorted.sorted == 'title') {
+    if (sorted.sorted === 'title') {
       setSorted({ sorted: 'title', reversed: !sorted.reversed });
     } else {
       setSorted({ sorted: 'title', reversed: false });
@@ -84,7 +84,7 @@ export default function Gallery(props) {
   };
 
   const sortByDate = () => {
-    if (sorted.sorted == 'date') {
+    if (sorted.sorted === 'date') {
       setSorted({ sorted: 'date', reversed: !sorted.reversed });
     } else {
       setSorted({ sorted: 'date', reversed: false });
@@ -111,39 +111,38 @@ export default function Gallery(props) {
       <Input placeholder="search" size="md" value={searchPhrase} onChange={handleChange} />
 
       <Button onClick={sortByDate}>
-        {sorted.sorted == 'date' ? RenderArrow() : null}
+        {sorted.sorted === 'date' ? RenderArrow() : null}
         Sort by Date
       </Button>
       <Button onClick={sortByTitle}>
-        {sorted.sorted == 'title' ? RenderArrow() : null}
+        {sorted.sorted === 'title' ? RenderArrow() : null}
         Sort by Title
       </Button>
       <Button onClick={sortById}>
-        {sorted.sorted == 'id' ? RenderArrow() : null}
+        {sorted.sorted === 'id' ? RenderArrow() : null}
         Sort by Id
       </Button>
       <Divider bg="black" my="5" />
       <SimpleGrid minChildWidth="300px" spacing={10}>
-        {events &&
-          events.map((event) => (
-            <Card key={event.id} bg="white">
-              <NavLink to={'../' + subLinkLocation + '/' + event.id}>
-                <CardHeader>
-                  <Image alt={event.title} src={event.img} />
-                </CardHeader>
-                <CardBody color="black">
-                  <Heading as="h2" size="sm">
-                    {event.title}
-                  </Heading>
-                  <Text color="green">${event.price}</Text>
-                  <Text>Event on {event.date}</Text>
-                </CardBody>
-                <CardFooter>
-                  <Text>Event in {event.location}</Text>
-                </CardFooter>
-              </NavLink>
-            </Card>
-          ))}
+        {events?.map((event) => (
+          <Card key={event.id} bg="white">
+            <NavLink to={'../' + subLinkLocation + '/' + String(event.id)}>
+              <CardHeader>
+                <Image alt={event.title} src={event.img} />
+              </CardHeader>
+              <CardBody color="black">
+                <Heading as="h2" size="sm">
+                  {event.title}
+                </Heading>
+                <Text color="green">${event.price}</Text>
+                <Text>Event on {event.date}</Text>
+              </CardBody>
+              <CardFooter>
+                <Text>Event in {event.location}</Text>
+              </CardFooter>
+            </NavLink>
+          </Card>
+        ))}
       </SimpleGrid>
     </Box>
   );
