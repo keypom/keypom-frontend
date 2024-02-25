@@ -1,3 +1,4 @@
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Input,
   Hide,
@@ -18,9 +19,8 @@ import {
   Skeleton,
   VStack,
 } from '@chakra-ui/react';
-import { useCallback, useEffect, useRef, useState } from 'react';
 import { type ProtocolReturnedDrop } from 'keypom-js';
-import { SearchIcon, ChevronDownIcon } from '@chakra-ui/icons';
+import { SearchIcon } from '@chakra-ui/icons';
 import { useNavigate } from 'react-router-dom';
 
 import { PAGE_SIZE_LIMIT, DROP_TYPE } from '@/constants/common';
@@ -45,6 +45,7 @@ import { DropDownButton } from './DropDownButton';
 import { MobileDrawerMenu } from './MobileDrawerMenu';
 import { setConfirmationModalHelper } from './ConfirmationModal';
 import { DropManagerPagination } from './DropManagerPagination';
+import { FilterOptionsMobileButton } from './FilterOptionsMobileButton';
 
 const COLUMNS: ColumnItem[] = [
   {
@@ -125,6 +126,7 @@ export default function AllDrops() {
   };
 
   const handleDropTypeSelect = (item) => {
+    console.log('item', item);
     setSelectedFilters((prevFilters) => ({
       ...prevFilters,
       type: item.label,
@@ -366,23 +368,6 @@ export default function AllDrops() {
       }, []);
   };
 
-  const FilterOptionsMobileButton = () => (
-    <Button
-      height="auto"
-      lineHeight=""
-      px="6"
-      py="3"
-      rightIcon={<ChevronDownIcon />}
-      variant="secondary-content-box"
-      onClick={() => {
-        popoverClicked.current += 1;
-        onOpen();
-      }}
-    >
-      Filter Options
-    </Button>
-  );
-
   const getTableType = () => {
     if (filteredDataItems.length === 0 && numOwnedDrops === 0) {
       return 'all-drops';
@@ -396,9 +381,9 @@ export default function AllDrops() {
       <Show above="md">
         <Heading py="4">All drops</Heading>
         <HStack alignItems="center" display="flex" spacing="auto">
-          <HStack justify="space-between" w="full">
+          <HStack align="stretch" justify="space-between" w="full">
             <InputGroup width="300px">
-              <InputLeftElement pointerEvents="none">
+              <InputLeftElement height="full" pointerEvents="none">
                 <Icon as={SearchIcon} color="gray.400" />
               </InputLeftElement>
               <Input
@@ -408,10 +393,9 @@ export default function AllDrops() {
                 color="gray.400"
                 fontSize="md"
                 fontWeight="medium"
-                height="auto"
+                height="full"
                 placeholder="Search..."
                 px="6"
-                py="3"
                 sx={{
                   '::placeholder': {
                     color: 'gray.400', // Placeholder text color
@@ -474,8 +458,12 @@ export default function AllDrops() {
             All drops
           </Heading>
 
-          <HStack justify="space-between" w="full">
-            <FilterOptionsMobileButton />
+          <HStack align="stretch" justify="space-between" w="full">
+            <FilterOptionsMobileButton
+              buttonTitle="Filter Options"
+              popoverClicked={popoverClicked}
+              onOpen={onOpen}
+            />
             <Menu>
               {({ isOpen }) => (
                 <Box>
@@ -515,15 +503,23 @@ export default function AllDrops() {
 
       {/* Mobile Popup Menu For Filtering */}
       <MobileDrawerMenu
-        dropStatusMenuItems={dropStatusMenuItems}
-        filterDropMenuItems={filterDropMenuItems}
-        handleDropStatusSelect={handleDropStatusSelect}
-        handleDropTypeSelect={handleDropTypeSelect}
+        filters={[
+          {
+            label: 'Type',
+            value: selectedFilters.type,
+            menuItems: filterDropMenuItems,
+          },
+          {
+            label: 'Claimed',
+            value: selectedFilters.status,
+            menuItems: dropStatusMenuItems,
+          },
+        ]}
         handleKeyDown={handleKeyDown}
         handleSearchChange={handleSearchChange}
         isOpen={isOpen}
         searchTerm={searchTerm}
-        selectedFilters={selectedFilters}
+        title="Filter Options"
         onClose={onClose}
       />
     </Box>

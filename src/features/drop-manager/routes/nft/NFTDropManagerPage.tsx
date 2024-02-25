@@ -6,6 +6,7 @@ import { CopyIcon, DeleteIcon } from '@/components/Icons';
 import { DropManager, type GetDataFn } from '@/features/drop-manager/components/DropManager';
 import keypomInstance from '@/lib/keypom';
 
+import placeholderImage from '../../constants/token-placeholder.png';
 import { tableColumns } from '../../components/TableColumn';
 
 export default function NFTDropManagerPage() {
@@ -79,6 +80,7 @@ export default function NFTDropManagerPage() {
     <DropManager
       getClaimedText={(dropSize) => `${dropSize - availableKeys}/${dropSize}`}
       getData={getTableRows}
+      placeholderImage={placeholderImage}
       showColumns={true}
       tableColumns={tableColumns}
     />

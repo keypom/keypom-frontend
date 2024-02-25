@@ -1,5 +1,7 @@
 import {
   Menu,
+  Show,
+  Hide,
   Spinner,
   Text,
   Image,
@@ -11,6 +13,7 @@ import {
   HStack,
   type TableProps,
   useToast,
+  useDisclosure,
 } from '@chakra-ui/react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -29,6 +32,8 @@ import { setMasterKeyValidityModal } from '@/features/drop-manager/components/Ma
 import { PAGE_SIZE_LIMIT } from '@/constants/common';
 import { DropManagerPagination } from '@/features/all-drops/components/DropManagerPagination';
 import { DropDownButton } from '@/features/all-drops/components/DropDownButton';
+import { FilterOptionsMobileButton } from '@/features/all-drops/components/FilterOptionsMobileButton';
+import { MobileDrawerMenu } from '@/features/all-drops/components/MobileDrawerMenu';
 
 import {
   KEY_CLAIM_STATUS_OPTIONS,
@@ -36,7 +41,6 @@ import {
   PAGE_SIZE_ITEMS,
   createMenuItems,
 } from '../../../features/all-drops/config/menuItems';
-import placeholderImage from '../constants/placeholder-image.png';
 
 import { setConfirmationModalHelper } from './ConfirmationModal';
 
@@ -56,19 +60,23 @@ export type GetDataFn = (
 ) => DataItem[];
 
 interface DropManagerProps {
+  placeholderImage: string;
   getClaimedText: (dropSize: number) => string;
   tableColumns: ColumnItem[];
   showColumns?: boolean;
   getData: GetDataFn;
   tableProps?: TableProps;
   loading?: boolean;
+  dropImageSize?: string;
 }
 
 export const DropManager = ({
+  placeholderImage,
   getClaimedText,
   tableColumns = [],
   getData,
   showColumns = true,
+  dropImageSize = '150px',
   tableProps,
 }: DropManagerProps) => {
   const { id: dropId = '' } = useParams();
@@ -94,6 +102,7 @@ export const DropManager = ({
   const [isAllKeysLoading, setIsAllKeysLoading] = useState(true);
 
   const popoverClicked = useRef(0);
+  const { isOpen, onOpen, onClose } = useDisclosure();
 
   const [name, setName] = useState('Untitled');
   const [totalKeys, setTotalKeys] = useState<number>(0);
@@ -351,10 +360,26 @@ export const DropManager = ({
 
   const allowAction = data.length > 0;
 
+  const mobileCancelButton = (
+    <Button
+      height="auto"
+      isDisabled={!allowAction}
+      isLoading={deleting}
+      lineHeight=""
+      px="6"
+      py="3"
+      textColor="red.500"
+      variant="secondary"
+      w={{ base: '100%' }}
+      onClick={handleCancelAllClick}
+    >
+      Cancel all
+    </Button>
+  );
+
   return (
     <Box px="1" py={{ base: '3.25rem', md: '5rem' }}>
       <Breadcrumbs items={breadcrumbItems} />
-      {/* Left Section */}
       {/* Drop info section */}
       <VStack align="start" paddingTop="4" spacing="4">
         <HStack>
@@ -364,8 +389,8 @@ export const DropManager = ({
             <Image
               alt={`Drop image for ${dropData.id}`}
               borderRadius="md"
-              boxSize="150px"
-              objectFit="cover"
+              boxSize={dropImageSize}
+              objectFit="contain"
               src={dropData.media || placeholderImage} // Use dropData.media or fallback to placeholder
               onError={(e) => {
                 console.log('error loading image', e);
@@ -401,55 +426,87 @@ export const DropManager = ({
         </HStack>
       </VStack>
 
-      {/* Top Section */}
-      <HStack justify="space-between">
-        <Heading paddingBottom="0" paddingTop="4">
-          All Keys
-        </Heading>
-        {/* Right Section */}
-        <HStack alignItems="end" justify="end" mt="1rem !important">
-          <Menu>
-            {({ isOpen }) => (
-              <Box>
-                <DropDownButton
-                  isOpen={isOpen}
-                  placeholder={`Status: ${selectedFilters.status}`}
-                  variant="secondary"
-                  onClick={() => (popoverClicked.current += 1)}
-                />
-                <MenuList minWidth="auto">{keyClaimStatusMenuItems}</MenuList>
-              </Box>
-            )}
-          </Menu>
-          <Button
-            height="auto"
-            isDisabled={!allowAction}
-            isLoading={deleting}
-            lineHeight=""
-            px="6"
-            py="3"
-            textColor="red.500"
-            variant="secondary"
-            w={{ base: '100%', sm: 'initial' }}
-            onClick={handleCancelAllClick}
-          >
-            Cancel all
-          </Button>
-          <Button
-            height="auto"
-            isDisabled={!allowAction}
-            isLoading={exporting}
-            lineHeight=""
-            px="6"
-            py="3"
-            variant="secondary"
-            w={{ base: '100%', sm: 'initial' }}
-            onClick={handleExportCSVClick}
-          >
-            Export .CSV
-          </Button>
+      {/* Desktop Menu */}
+      <Show above="md">
+        <HStack justify="space-between">
+          <Heading paddingBottom="0" paddingTop="4">
+            All Keys
+          </Heading>
+          {/* Right Section */}
+          <HStack alignItems="end" justify="end" mt="1rem !important">
+            <Menu>
+              {({ isOpen }) => (
+                <Box>
+                  <DropDownButton
+                    isOpen={isOpen}
+                    placeholder={`Status: ${selectedFilters.status}`}
+                    variant="secondary"
+                    onClick={() => (popoverClicked.current += 1)}
+                  />
+                  <MenuList minWidth="auto">{keyClaimStatusMenuItems}</MenuList>
+                </Box>
+              )}
+            </Menu>
+            <Button
+              height="auto"
+              isDisabled={!allowAction}
+              isLoading={deleting}
+              lineHeight=""
+              px="6"
+              py="3"
+              textColor="red.500"
+              variant="secondary"
+              w={{ base: '100%', sm: 'initial' }}
+              onClick={handleCancelAllClick}
+            >
+              Cancel all
+            </Button>
+            <Button
+              height="auto"
+              isDisabled={!allowAction}
+              isLoading={exporting}
+              lineHeight=""
+              px="6"
+              py="3"
+              variant="secondary"
+              w={{ base: '100%', sm: 'initial' }}
+              onClick={handleExportCSVClick}
+            >
+              Export .CSV
+            </Button>
+          </HStack>
         </HStack>
-      </HStack>
+      </Show>
+
+      {/* Mobile Menu */}
+      <Hide above="md">
+        <VStack>
+          <Heading paddingTop="20px" size="2xl" textAlign="left" w="full">
+            All Keys
+          </Heading>
+
+          <HStack align="stretch" justify="space-between" w="full">
+            <FilterOptionsMobileButton
+              buttonTitle="More Options"
+              popoverClicked={popoverClicked}
+              onOpen={onOpen}
+            />
+            <Button
+              height="auto"
+              isDisabled={!allowAction}
+              isLoading={exporting}
+              lineHeight=""
+              px="6"
+              variant="secondary"
+              w={{ sm: 'initial' }}
+              onClick={handleExportCSVClick}
+            >
+              Export .CSV
+            </Button>
+          </HStack>
+        </VStack>
+      </Hide>
+
       <Box>
         <DataTable
           columns={tableColumns}
@@ -473,6 +530,21 @@ export const DropManager = ({
           onClickRowsSelect={() => (popoverClicked.current += 1)}
         />
       </Box>
+
+      {/* Mobile Popup Menu For Filtering */}
+      <MobileDrawerMenu
+        customButton={mobileCancelButton}
+        filters={[
+          {
+            label: 'Status',
+            value: selectedFilters.status,
+            menuItems: keyClaimStatusMenuItems,
+          },
+        ]}
+        isOpen={isOpen}
+        title="More Options"
+        onClose={onClose}
+      />
     </Box>
   );
 };

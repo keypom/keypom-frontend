@@ -19,7 +19,6 @@ export const DropDownButton = ({
     isActive={isOpen}
     lineHeight=""
     px="6"
-    py="3"
     rightIcon={<ChevronDownIcon color={variant === 'secondary' ? 'gray.800' : ''} />}
     variant={variant}
     onClick={onClick}

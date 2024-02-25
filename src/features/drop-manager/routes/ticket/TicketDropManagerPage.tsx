@@ -98,7 +98,6 @@ export default function TicketDropManagerPage() {
 
   return (
     <DropManager
-      claimedHeaderText="Scanned"
       getClaimedText={(dropSize) => `${dropSize - scannedAndClaimed} / ${dropSize}`}
       getData={getTableRows}
       showColumns={false}
