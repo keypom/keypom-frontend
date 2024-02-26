@@ -34,9 +34,11 @@ import keypomInstance from '@/lib/keypom';
 import {
   DROP_TYPE_OPTIONS,
   DROP_CLAIM_STATUS_OPTIONS,
+  DATE_FILTER_OPTIONS,
   DROP_CLAIM_STATUS_ITEMS,
   PAGE_SIZE_ITEMS,
   DROP_TYPE_ITEMS,
+  DATE_FILTER_ITEMS,
   CREATE_DROP_ITEMS,
   createMenuItems,
 } from '../config/menuItems';
@@ -87,7 +89,13 @@ const COLUMNS: ColumnItem[] = [
   },
 ];
 
-export default function AllDrops() {
+interface AllDropsProps {
+  pageTitle: string;
+  hasDateFilter: boolean;
+  ctaButtonLabel: string;
+}
+
+export default function AllDrops({ pageTitle, hasDateFilter, ctaButtonLabel }: AllDropsProps) {
   const { setAppModal } = useAppContext();
   const navigate = useNavigate();
 
@@ -104,10 +112,12 @@ export default function AllDrops() {
     type: string;
     search: string;
     status: string;
+    date: string;
     pageSize: number;
   }>({
     type: DROP_TYPE_OPTIONS.ANY,
     search: '',
+    date: DATE_FILTER_OPTIONS.ANY,
     status: DROP_CLAIM_STATUS_OPTIONS.ANY,
     pageSize: PAGE_SIZE_LIMIT,
   });
@@ -126,10 +136,16 @@ export default function AllDrops() {
   };
 
   const handleDropTypeSelect = (item) => {
-    console.log('item', item);
     setSelectedFilters((prevFilters) => ({
       ...prevFilters,
       type: item.label,
+    }));
+  };
+
+  const handleDateSelect = (item) => {
+    setSelectedFilters((prevFilters) => ({
+      ...prevFilters,
+      date: item.label,
     }));
   };
 
@@ -199,6 +215,27 @@ export default function AllDrops() {
         const { dropName } = keypomInstance.getDropMetadata(drop.metadata);
         return dropName.toLowerCase().includes(selectedFilters.search.toLowerCase());
       });
+    }
+
+    if (selectedFilters.date !== DATE_FILTER_OPTIONS.ANY) {
+      drops = drops
+        .filter((drop: ProtocolReturnedDrop) => {
+          try {
+            const dropMeta = JSON.parse(drop.metadata || '{}');
+            const date = new Date(dropMeta.dateCreated);
+            return dropMeta.dateCreated && !isNaN(date.getTime()); // Ensures dateCreated is valid
+          } catch (e) {
+            return false; // Exclude drops with malformed metadata
+          }
+        })
+        .sort((a, b) => {
+          // Assuming metadata has been validated, no need for try-catch here
+          const dateA = new Date(JSON.parse(a.metadata).dateCreated).getTime();
+          const dateB = new Date(JSON.parse(b.metadata).dateCreated).getTime();
+          return selectedFilters.date === DATE_FILTER_OPTIONS.NEWEST
+            ? dateB - dateA
+            : dateA - dateB;
+        });
     }
 
     return drops;
@@ -306,6 +343,13 @@ export default function AllDrops() {
     },
   });
 
+  const filterDataMenuItems = createMenuItems({
+    menuItems: DATE_FILTER_ITEMS,
+    onClick: (item) => {
+      handleDateSelect(item);
+    },
+  });
+
   const dropStatusMenuItems = createMenuItems({
     menuItems: DROP_CLAIM_STATUS_ITEMS,
     onClick: (item) => {
@@ -379,7 +423,7 @@ export default function AllDrops() {
     <Box minH="100%" minW="100%">
       {/* Desktop Menu */}
       <Show above="md">
-        <Heading py="4">All drops</Heading>
+        <Heading py="4">{pageTitle}</Heading>
         <HStack alignItems="center" display="flex" spacing="auto">
           <HStack align="stretch" justify="space-between" w="full">
             <InputGroup width="300px">
@@ -420,6 +464,21 @@ export default function AllDrops() {
                   </Box>
                 )}
               </Menu>
+              {hasDateFilter && (
+                <Menu>
+                  {({ isOpen }) => (
+                    <Box>
+                      <DropDownButton
+                        isOpen={isOpen}
+                        placeholder={`Date: ${selectedFilters.type}`}
+                        variant="secondary"
+                        onClick={() => (popoverClicked.current += 1)}
+                      />
+                      <MenuList minWidth="auto">{filterDataMenuItems}</MenuList>
+                    </Box>
+                  )}
+                </Menu>
+              )}
               <Menu>
                 {({ isOpen }) => (
                   <Box>
@@ -438,7 +497,7 @@ export default function AllDrops() {
                   <Box>
                     <DropDownButton
                       isOpen={isOpen}
-                      placeholder="Create drop"
+                      placeholder={ctaButtonLabel}
                       variant="primary"
                       onClick={() => (popoverClicked.current += 1)}
                     />
@@ -469,7 +528,7 @@ export default function AllDrops() {
                 <Box>
                   <DropDownButton
                     isOpen={isOpen}
-                    placeholder="Create drop"
+                    placeholder={ctaButtonLabel}
                     variant="primary"
                     onClick={() => (popoverClicked.current += 1)}
                   />
@@ -509,6 +568,15 @@ export default function AllDrops() {
             value: selectedFilters.type,
             menuItems: filterDropMenuItems,
           },
+          ...(hasDateFilter
+            ? [
+                {
+                  label: 'Date',
+                  value: selectedFilters.date,
+                  menuItems: filterDataMenuItems,
+                },
+              ]
+            : []),
           {
             label: 'Claimed',
             value: selectedFilters.status,

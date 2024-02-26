@@ -20,6 +20,9 @@ const ProtectedRoute = React.lazy(
 const AllDropsPage = React.lazy(
   async () => await import('./features/all-drops/routes/AllDropsPage'),
 );
+const AllEventsPage = React.lazy(
+  async () => await import('./features/all-drops/routes/AllEventsPage'),
+);
 const ClaimPage = React.lazy(async () => await import('@/features/claim/routes/ClaimRouter'));
 const ClaimTokenPage = React.lazy(
   async () => await import('@/features/claim/routes/TokenClaimPage'),
@@ -79,6 +82,14 @@ export const router = createBrowserRouter([
             element: (
               <ProtectedRoute>
                 <AllDropsPage />
+              </ProtectedRoute>
+            ),
+          },
+          {
+            path: 'events',
+            element: (
+              <ProtectedRoute>
+                <AllEventsPage />
               </ProtectedRoute>
             ),
           },

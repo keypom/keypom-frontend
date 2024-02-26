@@ -2,6 +2,7 @@ import { MenuItem } from '@chakra-ui/react';
 
 import { LinkIcon, NFTIcon, TicketIcon, CheckedIcon } from '@/components/Icons';
 import { type MenuItemProps } from '@/components/Menu';
+import { FilterIcon } from '@/components/Icons/FilterIcon';
 
 export const DROP_TYPE_OPTIONS = {
   ANY: 'Any',
@@ -21,6 +22,12 @@ export const KEY_CLAIM_STATUS_OPTIONS = {
   ANY: 'Any',
   CLAIMED: 'Claimed',
   UNCLAIMED: 'Unclaimed',
+};
+
+export const DATE_FILTER_OPTIONS = {
+  ANY: 'Any',
+  NEWEST: 'Newest',
+  OLDEST: 'Oldest',
 };
 
 export const createMenuItems = ({ menuItems, onClick }) => {
@@ -47,6 +54,21 @@ export const CREATE_DROP_ITEMS: MenuItemProps[] = [
   //   href: '/drop/ticket/new',
   //   icon: <TicketIcon h="4" w="4" />,
   // },
+];
+
+export const DATE_FILTER_ITEMS: MenuItemProps[] = [
+  {
+    label: 'Any',
+    icon: <CheckedIcon h="4" isChecked={false} w="4" />,
+  },
+  {
+    label: 'Newest',
+    icon: <FilterIcon h="4" highToLow={true} w="4" />,
+  },
+  {
+    label: 'Oldest',
+    icon: <FilterIcon h="4" highToLow={false} w="4" />,
+  },
 ];
 
 export const DROP_TYPE_ITEMS: MenuItemProps[] = [
