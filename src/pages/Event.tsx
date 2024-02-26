@@ -114,7 +114,7 @@ export default function Event(props) {
 
           <Text my="5">Event in {event.location}</Text>
 
-          <a href={mapHref} my="5" rel="noopener noreferrer" target="_blank">
+          <a href={mapHref} rel="noopener noreferrer" target="_blank">
             Open in Google Maps <ExternalLinkIcon mx="2px" />
           </a>
 
@@ -122,7 +122,7 @@ export default function Event(props) {
             Share Event
           </Heading>
           <Text>Copy the link to share this event with your friends</Text>
-          <NavLink to={'/gallery/' + eventID}>
+          <NavLink to={'/gallery/' + String(eventID)}>
             <Box
               alignItems="center"
               bg="white"
