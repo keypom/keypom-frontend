@@ -142,7 +142,12 @@ export default function Gallery(props) {
       <Divider bg="black" my="5" />
       <SimpleGrid minChildWidth="300px" spacing={10}>
         {events?.map((event) => (
-          <Card key={event.id} style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+          <Card
+            key={event.id}
+            bg="linear-gradient(180deg, rgba(255, 207, 234, 0) 0%, #30c9f34b 100%)"
+            borderRadius={{ base: '1rem', md: '8xl' }}
+            style={{ display: 'flex', flexDirection: 'column', height: '100%' }}
+          >
             {/* <Flex
               style={{
                 display: 'flex',

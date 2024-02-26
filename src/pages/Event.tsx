@@ -95,7 +95,13 @@ export default function Event(props) {
 
       {!isSecondary ? <Text my="5">{event.tickets} Tickets available</Text> : <> </>}
 
-      <HStack align="start" justifyContent="space-between">
+      <HStack
+        align="start"
+        bg="linear-gradient(180deg, rgba(255, 207, 234, 0) 0%, #30c9f34b 100%)"
+        borderRadius={{ base: '1rem', md: '8xl' }}
+        justifyContent="space-between"
+        p="10"
+      >
         <Box textAlign="left">
           <Heading as="h3" my="5" size="lg">
             Description
