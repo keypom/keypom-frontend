@@ -43,7 +43,9 @@ const CreateNftDropPage = React.lazy(
 const CreateTicketDropPage = React.lazy(
   async () => await import('@/features/create-drop/routes/CreateTicketDropPage'),
 );
-
+const EventManagerPage = React.lazy(
+  async () => await import('@/features/drop-manager/routes/events/EventManagerPage'),
+);
 const TokenDropManagerPage = React.lazy(
   async () => await import('@/features/drop-manager/routes/token/TokenDropManagerPage'),
 );
@@ -132,7 +134,14 @@ export const router = createBrowserRouter([
                   },
                   {
                     path: ':id',
-                    element: <TicketDropManagerPage />,
+                    element: <EventManagerPage />,
+                    children: [
+                      {
+                        // Nested dynamic route for :ticketId under /ticket/:id
+                        path: ':ticketId',
+                        element: <TicketDropManagerPage />, // Replace <SpecificTicketPage /> with the component you want to render for this path
+                      },
+                    ],
                   },
                 ],
               },

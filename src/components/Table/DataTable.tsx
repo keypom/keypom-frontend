@@ -33,7 +33,7 @@ import { type ColumnItem, type DataItem } from './types';
  */
 
 interface DataTableProps extends TableProps {
-  type?: 'all-drops' | 'drop-manager' | 'no-filtered-keys' | 'no-filtered-drops';
+  type?: 'all-drops' | 'drop-manager' | 'no-filtered-keys' | 'no-filtered-drops' | 'event-manager';
   showColumns?: boolean;
   columns: ColumnItem[];
   data: DataItem[];

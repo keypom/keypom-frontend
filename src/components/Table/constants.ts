@@ -3,6 +3,10 @@ export const EMPTY_TABLE_TEXT_MAP = {
     heading: `You haven't added any drops`,
     text: `Let's create a drop!`,
   },
+  'event-manager': {
+    heading: `You don't have any tickets for this event!`,
+    text: `Please create a new event`,
+  },
   'no-filtered-drops': {
     heading: `No drops found with the current filters`,
     text: `Please try different filters`,

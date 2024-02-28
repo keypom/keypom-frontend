@@ -89,7 +89,7 @@ export default function TicketDropManagerPage() {
                 await handleDeleteClick(item.publicKey);
               }}
             >
-              <DeleteIcon color="red" />
+              <DeleteIcon color="red.400" />
             </Button>
           )}
         </>

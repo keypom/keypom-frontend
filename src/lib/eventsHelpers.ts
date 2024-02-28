@@ -34,6 +34,7 @@ interface TicketInfo {
   passValidThrough: string;
   price: string;
   artwork: string;
+  maxSupply?: number;
 }
 
 export interface EventDropMetadata {

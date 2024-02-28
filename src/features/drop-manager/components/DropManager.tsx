@@ -388,9 +388,9 @@ export const DropManager = ({
           ) : (
             <Image
               alt={`Drop image for ${dropData.id}`}
-              borderRadius="md"
+              borderRadius="12px"
               boxSize={dropImageSize}
-              objectFit="contain"
+              objectFit="cover"
               src={dropData.media || placeholderImage} // Use dropData.media or fallback to placeholder
               onError={(e) => {
                 console.log('error loading image', e);

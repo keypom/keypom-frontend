@@ -22,15 +22,16 @@ import {
 import { SearchIcon } from '@chakra-ui/icons';
 import { useNavigate } from 'react-router-dom';
 
-import { PAGE_SIZE_LIMIT, DROP_TYPE } from '@/constants/common';
+import { PAGE_SIZE_LIMIT } from '@/constants/common';
 import { useAppContext } from '@/contexts/AppContext';
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
 import { type ColumnItem, type DataItem } from '@/components/Table/types';
 import { DataTable } from '@/components/Table';
-import { DeleteIcon } from '@/components/Icons';
 import keypomInstance, { type EventDrop } from '@/lib/keypom';
 import { type EventDropMetadata } from '@/lib/eventsHelpers';
 import { truncateAddress } from '@/utils/truncateAddress';
+import { ShareIcon } from '@/components/Icons/ShareIcon';
+import { DeleteIcon } from '@/components/Icons';
 
 import {
   DROP_TYPE_OPTIONS,
@@ -71,7 +72,7 @@ const COLUMNS: ColumnItem[] = [
   },
   {
     id: 'numTickets',
-    title: 'Number of Tickets',
+    title: 'Ticket Types',
     selector: (drop) => drop.numTickets,
     loadingElement: <Skeleton height="30px" />,
   },
@@ -128,7 +129,7 @@ export default function AllEvents({ pageTitle, hasDateFilter, ctaButtonLabel }: 
   const formatDate = (date) => {
     // Create an instance of Intl.DateTimeFormat for formatting
     const formatter = new Intl.DateTimeFormat('en-US', {
-      month: 'long', // Full month name.
+      month: 'short', // Full month name.
       day: 'numeric', // Numeric day of the month.
       year: 'numeric', // Numeric full year.
       hour: 'numeric', // Numeric hour.
@@ -208,6 +209,7 @@ export default function AllEvents({ pageTitle, hasDateFilter, ctaButtonLabel }: 
 
   const handleGetAllEvents = useCallback(async () => {
     setIsLoading(true);
+    console.log('accountId', accountId);
 
     const eventDrops = await keypomInstance.getAllEventDrops({
       accountId: accountId!,
@@ -217,16 +219,25 @@ export default function AllEvents({ pageTitle, hasDateFilter, ctaButtonLabel }: 
     setNumOwnedEvents(numEvents);
 
     const filteredEvents = await handleFiltering(eventDrops);
-    const dropData = filteredEvents.map((drop: EventDrop) => {
+    const dropDataPromises = filteredEvents.map(async (drop: EventDrop) => {
       const meta: EventDropMetadata = JSON.parse(drop.drop_config.metadata);
+      const tickets = await keypomInstance.getTicketsForEvent({
+        accountId: accountId!,
+        eventId: meta.ticketInfo.eventId,
+      });
+      const numTickets = tickets.length;
       return {
         id: drop.drop_id,
         name: truncateAddress(meta.eventInfo?.name || 'Untitled', 'end', 48),
         media: meta.eventInfo?.artwork,
-        dateCreated: formatDate(new Date(meta.dateCreated)),
-        numTickets: keypomInstance.getTicketsForEvent(meta.ticketInfo.eventId).length,
+        dateCreated: formatDate(new Date(meta.dateCreated)), // Ensure drop has dateCreated or adjust accordingly
+        numTickets,
+        eventId: meta.ticketInfo.eventId,
       };
     });
+
+    // Use Promise.all to wait for all promises to resolve
+    const dropData = await Promise.all(dropDataPromises);
 
     setFilteredDataItems(dropData);
 
@@ -292,7 +303,6 @@ export default function AllEvents({ pageTitle, hasDateFilter, ctaButtonLabel }: 
       .reduce((result: DataItem[], drop) => {
         if (drop !== null) {
           // show token drop manager for other drops type
-          const dropType = DROP_TYPE.EVENT;
           const dataItem = {
             ...drop,
             name: (
@@ -310,19 +320,33 @@ export default function AllEvents({ pageTitle, hasDateFilter, ctaButtonLabel }: 
             numTickets: drop.numTickets,
             claimed: <Badge variant="lightgreen">{drop.claimed} Claimed</Badge>,
             action: (
-              <Button
-                borderRadius="6xl"
-                size="md"
-                variant="icon"
-                onClick={async (e) => {
-                  e.stopPropagation();
-                  handleDeleteClick(drop.id);
-                }}
-              >
-                <DeleteIcon color="red" />
-              </Button>
+              <>
+                <HStack>
+                  <Button
+                    borderRadius="6xl"
+                    size="md"
+                    variant="icon"
+                    onClick={async (e) => {
+                      e.stopPropagation();
+                      handleDeleteClick(drop.id);
+                    }}
+                  >
+                    <DeleteIcon color="red.400" />
+                  </Button>
+                  <Button
+                    borderRadius="6xl"
+                    size="md"
+                    variant="icon"
+                    onClick={() => {
+                      navigate(`/gallery/event/${((drop.eventId as string) || '').toString()}`);
+                    }}
+                  >
+                    <ShareIcon color="gray.600" height="16px" width="16px" />
+                  </Button>
+                </HStack>
+              </>
             ),
-            href: `/drop/${(dropType as string).toLowerCase()}/${drop.id}`,
+            href: `/drop/ticket/${((drop.eventId as string) || '').toString()}`,
           };
           return [...result, dataItem];
         }

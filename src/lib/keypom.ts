@@ -33,7 +33,7 @@ import { isValidEventInfo, isValidTicketInfo } from './eventsHelpers';
 let instance: KeypomJS;
 const ACCOUNT_ID_REGEX = /^(([a-z\d]+[-_])*[a-z\d]+\.)*([a-z\d]+[-_])*[a-z\d]+$/;
 const networkId = process.env.REACT_APP_NETWORK_ID ?? 'testnet';
-const eventsContract = '1709067373495-kp-ticketing.testnet';
+const eventsContract = '1709145182592-kp-ticketing.testnet';
 
 const myKeyStore = new nearAPI.keyStores.BrowserLocalStorageKeyStore();
 const config = getConfig();
@@ -118,7 +118,10 @@ class KeypomJS {
     return KeypomJS.instance;
   }
 
-  viewCall = async ({ contractId, methodName, args }) => {
+  yoctoToNear = (yocto: string) => nearAPI.utils.format.formatNearAmount(yocto, 4);
+
+  viewCall = async ({ contractId = eventsContract, methodName, args }) => {
+    console.log('calling view function', contractId, methodName, args); // eslint-disable-line no-console
     return await this.viewAccount.viewFunctionV2({
       contractId,
       methodName,
@@ -314,12 +317,47 @@ class KeypomJS {
     this.eventsStore = groupedByEventId;
   };
 
-  getTicketsForEvent = (eventId: string) => {
+  getKeySupplyForTicket = async (dropId: string) => {
+    return await this.viewCall({
+      contractId: eventsContract,
+      methodName: 'get_key_supply_for_drop',
+      args: { drop_id: dropId },
+    });
+  };
+
+  getEventDrop = async ({
+    accountId,
+    eventId,
+  }: {
+    accountId: string;
+    eventId: string;
+  }): Promise<{ drop_config: { metadata: string } }> => {
+    if (!Object.hasOwn(this.eventById, eventId)) {
+      await this.getAllEventDrops({ accountId });
+    }
+
     const dropId = this.eventById[eventId];
-    return this.eventsStore[dropId];
+    return await this.viewCall({
+      contractId: eventsContract,
+      methodName: 'get_drop_information',
+      args: { drop_id: dropId },
+    });
+  };
+
+  getTicketsForEvent = async ({ accountId, eventId }: { accountId: string; eventId: string }) => {
+    if (Object.hasOwn(this.eventById, eventId)) {
+      const dropId = this.eventById[eventId];
+      if (Object.hasOwn(this.eventsStore, dropId)) {
+        return this.eventsStore[dropId];
+      }
+    }
+
+    await this.getAllEventDrops({ accountId });
+    return this.eventsStore[this.eventById[eventId]];
   };
 
   getAllEventDrops = async ({ accountId }: { accountId: string }) => {
+    console.log('fetching all event drops: ', accountId); // eslint-disable-line no-console
     try {
       if (this.eventDrops?.length > 0) {
         return this.eventDrops;

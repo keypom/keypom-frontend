@@ -401,7 +401,7 @@ export default function AllDrops({ pageTitle, hasDateFilter, ctaButtonLabel }: A
                   handleDeleteClick(drop.id);
                 }}
               >
-                <DeleteIcon color="red" />
+                <DeleteIcon color="red.400" />
               </Button>
             ),
             href: `/drop/${(dropType as string).toLowerCase()}/${drop.id}`,
