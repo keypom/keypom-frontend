@@ -21,7 +21,15 @@ const eventTableColumns: ColumnItem[] = [
   {
     id: 'numTickets',
     title: 'Number of tickets',
-    selector: (row) => `${row.soldTickets}/${row.maxTickets || '\u221E'}`,
+    selector: (row) => {
+      // Ensure that soldTickets is a number or can be coerced to a string safely
+      const soldTickets = String(row.soldTickets);
+
+      // Check if maxTickets is a number, otherwise use the infinity symbol
+      const maxTickets = typeof row.maxTickets === 'number' ? row.maxTickets : '\u221E';
+
+      return `${soldTickets}/${maxTickets}`;
+    },
     loadingElement: <Skeleton height="30px" />,
   },
   {
