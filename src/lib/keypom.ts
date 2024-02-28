@@ -28,9 +28,12 @@ import { CLOUDFLARE_IPFS, DROP_TYPE, MASTER_KEY } from '@/constants/common';
 import getConfig from '@/config/config';
 import { get } from '@/utils/localStorage';
 
+import { isValidEventInfo, isValidTicketInfo } from './eventsHelpers';
+
 let instance: KeypomJS;
 const ACCOUNT_ID_REGEX = /^(([a-z\d]+[-_])*[a-z\d]+\.)*([a-z\d]+[-_])*[a-z\d]+$/;
 const networkId = process.env.REACT_APP_NETWORK_ID ?? 'testnet';
+const eventsContract = '1709067373495-kp-ticketing.testnet';
 
 const myKeyStore = new nearAPI.keyStores.BrowserLocalStorageKeyStore();
 const config = getConfig();
@@ -43,6 +46,14 @@ const connectionConfig = {
   helperUrl: config.helperUrl,
   explorerUrl: config.explorerUrl,
 };
+
+export interface EventDrop {
+  drop_id: string;
+  funder_id: string;
+  drop_config: {
+    metadata: string;
+  };
+}
 
 export interface DropKeyItem {
   id: number;
@@ -58,7 +69,24 @@ const DROP_ITEMS_PER_QUERY = 5;
 class KeypomJS {
   static instance: KeypomJS;
   nearConnection: nearAPI.Near;
+  viewAccount: nearAPI.Account;
 
+  // Events
+  totalEventDrops: number;
+  // Maps the event ID to an array of EventDrops
+  eventsStore: Record<string, EventDrop[]> = {};
+  eventDrops: EventDrop[];
+  eventById: Record<string, string> = {};
+  eventsKeyStore: Record<
+    string,
+    {
+      dropName: string;
+      totalKeys: number;
+      dropKeyItems: DropKeyItem[];
+    }
+  > = {};
+
+  // Drops
   totalDrops: number;
   dropStore: Record<string, ProtocolReturnedDrop[]> = {};
   keyStore: Record<
@@ -79,6 +107,7 @@ class KeypomJS {
   async init() {
     await initKeypom({ network: networkId });
     this.nearConnection = await nearAPI.connect(connectionConfig);
+    this.viewAccount = await this.nearConnection.account(config.contractId);
   }
 
   public static getInstance(): KeypomJS {
@@ -88,6 +117,14 @@ class KeypomJS {
 
     return KeypomJS.instance;
   }
+
+  viewCall = async ({ contractId, methodName, args }) => {
+    return await this.viewAccount.viewFunctionV2({
+      contractId,
+      methodName,
+      args,
+    });
+  };
 
   validateAccountId = async (accountId: string) => {
     if (!(accountId.length >= 2 && accountId.length <= 64 && ACCOUNT_ID_REGEX.test(accountId))) {
@@ -244,6 +281,116 @@ class KeypomJS {
       this.dropStore[accountId] = allPagesDrops.flat();
 
       return this.dropStore[accountId];
+    } catch (error) {
+      console.error('Error fetching drops:', error);
+      throw new Error('Failed to fetch drops.');
+    }
+  };
+
+  groupDropsByEvent = (drops) => {
+    const eventDrops = drops.filter((drop) => {
+      const metadata = JSON.parse(drop.drop_config.metadata);
+      return metadata.eventInfo !== undefined;
+    });
+    this.eventDrops = eventDrops;
+
+    const eventById = {};
+    for (const eventDrop of eventDrops) {
+      const metadata = JSON.parse(eventDrop.drop_config.metadata);
+      eventById[metadata.eventInfo.id] = eventDrop.drop_id;
+    }
+    this.eventById = eventById;
+
+    const groupedByEventId = {};
+    drops.forEach((drop) => {
+      const metadata = JSON.parse(drop.drop_config.metadata);
+      const { eventId } = metadata.ticketInfo;
+      const dropId = eventById[eventId];
+      if (!Object.hasOwn(groupedByEventId, dropId)) {
+        groupedByEventId[dropId] = [];
+      }
+      groupedByEventId[dropId].push(drop); // Pushing parsed metadata instead of drop
+    });
+    this.eventsStore = groupedByEventId;
+  };
+
+  getTicketsForEvent = (eventId: string) => {
+    const dropId = this.eventById[eventId];
+    return this.eventsStore[dropId];
+  };
+
+  getAllEventDrops = async ({ accountId }: { accountId: string }) => {
+    try {
+      if (this.eventDrops?.length > 0) {
+        return this.eventDrops;
+      }
+
+      // If totalDrops is not known, fetch it
+      if (!this.totalEventDrops) {
+        this.totalEventDrops = await this.viewCall({
+          contractId: eventsContract,
+          methodName: 'get_drop_supply_for_funder',
+          args: { account_id: accountId },
+        });
+      }
+
+      // Initialize the cache for this account if it doesn't exist
+      if (Object.keys(this.eventsStore).length === 0) {
+        this.eventsStore = {};
+      }
+
+      const totalQueries = Math.ceil(this.totalEventDrops / DROP_ITEMS_PER_QUERY);
+      const pageIndices = Array.from({ length: totalQueries }, (_, index) => index);
+
+      const allPagesDrops = await Promise.all(
+        pageIndices.map(
+          async (pageIndex) =>
+            await this.viewCall({
+              contractId: eventsContract,
+              methodName: 'get_drops_for_funder',
+              args: {
+                account_id: accountId,
+                from_index: (pageIndex * DROP_ITEMS_PER_QUERY).toString(),
+                limit: DROP_ITEMS_PER_QUERY,
+              },
+            }),
+        ),
+      );
+
+      let allDrops = allPagesDrops.flat(); // Assuming allPagesDrops is already defined and flattened.
+      allDrops = allDrops.filter((drop) => {
+        if (!drop.drop_id || !drop.funder_id || !drop.drop_config || !drop.drop_config.metadata) {
+          return false; // Drop does not have the required top-level structure
+        }
+
+        try {
+          const metadata = JSON.parse(drop.drop_config.metadata);
+
+          // Check if metadata has required properties
+          if (!metadata.dropName || !metadata.ticketInfo) {
+            return false; // Metadata does not have required properties
+          }
+
+          // If there's eventInfo, optionally check its validity
+          if (metadata.eventInfo && !isValidEventInfo(metadata.eventInfo)) {
+            return false; // EventInfo is present but invalid
+          }
+
+          // Check ticketInfo's structure
+          if (!isValidTicketInfo(metadata.ticketInfo)) {
+            return false; // TicketInfo is invalid
+          }
+
+          return true; // Drop passes all checks
+        } catch (e) {
+          // JSON.parse failed, metadata is not a valid JSON string
+          return false;
+        }
+      });
+
+      this.groupDropsByEvent(allDrops);
+
+      return this.eventDrops;
     } catch (error) {
       console.error('Error fetching drops:', error);
       throw new Error('Failed to fetch drops.');
