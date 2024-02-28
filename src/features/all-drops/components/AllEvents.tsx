@@ -15,9 +15,9 @@ import {
   Text,
   useDisclosure,
   Heading,
-  Avatar,
   Skeleton,
   VStack,
+  Image,
 } from '@chakra-ui/react';
 import { SearchIcon } from '@chakra-ui/icons';
 import { useNavigate } from 'react-router-dom';
@@ -56,12 +56,6 @@ const COLUMNS: ColumnItem[] = [
     thProps: {
       minW: '240px',
     },
-    loadingElement: <Skeleton height="30px" />,
-  },
-  {
-    id: 'media',
-    title: 'Preview',
-    selector: (drop) => drop.media,
     loadingElement: <Skeleton height="30px" />,
   },
   {
@@ -209,8 +203,6 @@ export default function AllEvents({ pageTitle, hasDateFilter, ctaButtonLabel }: 
 
   const handleGetAllEvents = useCallback(async () => {
     setIsLoading(true);
-    console.log('accountId', accountId);
-
     const eventDrops = await keypomInstance.getAllEventDrops({
       accountId: accountId!,
     });
@@ -306,16 +298,24 @@ export default function AllEvents({ pageTitle, hasDateFilter, ctaButtonLabel }: 
           const dataItem = {
             ...drop,
             name: (
-              <Text color="gray.800" fontWeight="medium">
-                {drop.name}
-              </Text>
+              <HStack spacing={4}>
+                <Image
+                  alt={`Event image for ${drop.id}`}
+                  borderRadius="12px"
+                  boxSize="60px"
+                  objectFit="cover"
+                  src={drop.media as string}
+                />
+                <Text color="gray.800" fontWeight="medium">
+                  {drop.name}
+                </Text>
+              </HStack>
             ),
             type: (
               <Text fontWeight="normal" mt="0.5" textTransform="capitalize">
                 {drop.type}
               </Text>
             ),
-            media: drop.media !== undefined && <Avatar src={drop.media as string} />,
             dateCreated: drop.dateCreated,
             numTickets: drop.numTickets,
             claimed: <Badge variant="lightgreen">{drop.claimed} Claimed</Badge>,
@@ -430,7 +430,7 @@ export default function AllEvents({ pageTitle, hasDateFilter, ctaButtonLabel }: 
       <Hide above="md">
         <VStack spacing="20px">
           <Heading size="2xl" textAlign="left" w="full">
-            All drops
+            My Events
           </Heading>
 
           <HStack align="stretch" justify="space-between" w="full">

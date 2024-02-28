@@ -34,7 +34,7 @@ const eventTableColumns: ColumnItem[] = [
   },
   {
     id: 'price',
-    title: 'Price per ticket',
+    title: 'Price per ticket (NEAR)',
     selector: (row) => row.priceNear,
     loadingElement: <Skeleton height="30px" />,
   },

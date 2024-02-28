@@ -417,7 +417,7 @@ export const DropManager = ({
             <VStack align="start" spacing={1}>
               {' '}
               {/* Adjust spacing as needed */}
-              <Text color="gray.600" fontSize="sm" fontWeight="medium">
+              <Text color="gray.700" fontSize="lg" fontWeight="medium">
                 Claimed
               </Text>
               <Heading>{getClaimedText(totalKeys)}</Heading>

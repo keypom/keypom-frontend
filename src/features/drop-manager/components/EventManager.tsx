@@ -24,6 +24,7 @@ import keypomInstance, { type EventDrop } from '@/lib/keypom';
 import { DropManagerPagination } from '@/features/all-drops/components/DropManagerPagination';
 import { PAGE_SIZE_LIMIT } from '@/constants/common';
 import { type EventDropMetadata } from '@/lib/eventsHelpers';
+import { ShareIcon } from '@/components/Icons/ShareIcon';
 
 import { PAGE_SIZE_ITEMS, createMenuItems } from '../../../features/all-drops/config/menuItems';
 
@@ -224,24 +225,40 @@ export const EventManager = ({
     <Box px="1" py={{ base: '3.25rem', md: '5rem' }}>
       <Breadcrumbs items={breadcrumbItems} />
       {/* Drop info section */}
-      <VStack align="left" paddingTop="4" spacing="4">
-        <HStack>
-          {eventData.artwork === 'loading' ? (
-            <Spinner />
-          ) : (
-            <Image
-              alt={`Event image for ${eventData.name}`}
-              borderRadius="12px"
-              boxSize="150px"
-              objectFit="cover"
-              src={eventData.artwork}
-            />
-          )}
-          <VStack align="left">
-            <Heading fontFamily="" size="sm">
-              Event Name
-            </Heading>
-            <Heading size="lg">{eventData.name}</Heading>
+      <VStack align="left" paddingTop="4" spacing="6">
+        <HStack align="flex-start" justify="space-between" width="100%">
+          <HStack>
+            {eventData.artwork === 'loading' ? (
+              <Spinner />
+            ) : (
+              <Image
+                alt={`Event image for ${eventData.name}`}
+                borderRadius="12px"
+                boxSize="150px"
+                objectFit="cover"
+                src={eventData.artwork}
+              />
+            )}
+            <VStack align="flex-start">
+              {' '}
+              {/* Align items to the left */}
+              <Heading size="sm">Event Name</Heading>
+              <Heading size="lg">{eventData.name}</Heading>
+            </VStack>
+          </HStack>
+          <VStack align="flex-end">
+            {' '}
+            {/* Align items to the right */}
+            <Button
+              borderRadius="6xl"
+              size="md"
+              variant="icon"
+              onClick={() => {
+                navigate(`/gallery/event/${(eventId || '').toString()}`);
+              }}
+            >
+              <ShareIcon color="gray.600" height="16px" width="16px" />
+            </Button>
           </VStack>
         </HStack>
         <HStack w="50%">
@@ -256,7 +273,7 @@ export const EventManager = ({
             <VStack align="start" spacing={1}>
               {' '}
               {/* Adjust spacing as needed */}
-              <Text color="gray.600" fontSize="sm" fontWeight="medium">
+              <Text color="gray.700" fontSize="lg" fontWeight="medium">
                 Sold
               </Text>
               <Heading>{getSoldKeys()}</Heading>
@@ -342,7 +359,7 @@ export const EventManager = ({
         </VStack>
       </Hide>
 
-      <Box>
+      <Box paddingTop="2">
         <DataTable
           columns={tableColumns}
           data={data}
