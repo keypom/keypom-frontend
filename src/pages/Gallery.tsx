@@ -7,17 +7,17 @@ import {
   CardHeader,
   Divider,
   Heading,
-  Image,
   Input,
   SimpleGrid,
   Text,
   Flex,
   VStack,
+  Image as ChakraImage,
 } from '@chakra-ui/react';
 import { NavLink, useLoaderData } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import { useState } from 'react';
-import { ArrowDownIcon, ArrowUpIcon, ExternalLinkIcon } from '@chakra-ui/icons';
+import { ArrowDownIcon, ArrowUpIcon } from '@chakra-ui/icons';
 
 import myData from '../data/db.json';
 
@@ -103,6 +103,13 @@ export default function Gallery(props) {
 
   return (
     <Box p="10">
+      <ChakraImage
+        alt={}
+        height="300"
+        objectFit="cover"
+        src="https://via.placeholder.com/300"
+        width="100%"
+      />
       <Divider bg="black" my="5" />
 
       <Flex>
@@ -144,7 +151,6 @@ export default function Gallery(props) {
         {events?.map((event) => (
           <Card
             key={event.id}
-            bg="linear-gradient(180deg, rgba(255, 207, 234, 0) 0%, #30c9f34b 100%)"
             borderRadius={{ base: '1rem', md: '8xl' }}
             style={{ display: 'flex', flexDirection: 'column', height: '100%' }}
           >
@@ -158,7 +164,14 @@ export default function Gallery(props) {
             > */}
             <NavLink to={'../' + subLinkLocation + '/' + String(event.id)}>
               <CardHeader position="relative">
-                <Image alt={event.title} src={event.img} />
+                <ChakraImage
+                  alt={event.title}
+                  borderRadius="md"
+                  height="300px"
+                  objectFit="cover"
+                  src={event.img}
+                  width="100%"
+                />
                 <Box
                   bg="white"
                   border="1px solid black"
@@ -171,7 +184,7 @@ export default function Gallery(props) {
                 >
                   ${event.price}
                 </Box>
-                <NavLink to={'./'}>
+                {/* <NavLink to={'./'}>
                   <Box
                     alignItems="center"
                     bg="white"
@@ -191,7 +204,7 @@ export default function Gallery(props) {
                   >
                     <ExternalLinkIcon mx="2px" />
                   </Box>
-                </NavLink>
+                </NavLink> */}
               </CardHeader>
               <CardBody color="black">
                 <Heading as="h2" size="sm">

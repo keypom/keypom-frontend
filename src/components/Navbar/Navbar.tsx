@@ -32,10 +32,6 @@ export const Navbar = (props: NavbarProps) => {
       href: '/gallery',
     },
     {
-      name: 'Secondary Market',
-      href: '/secondary-market',
-    },
-    {
       name: 'Docs',
       href: 'https://docs.keypom.xyz',
       isExternal: true,

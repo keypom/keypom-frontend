@@ -78,18 +78,8 @@ export const router = createBrowserRouter([
         loader: eventsLoader,
       },
       {
-        path: 'secondary-market',
-        element: <Gallery isSecondary={true} />,
-        loader: eventsLoader,
-      },
-      {
         path: 'gallery/:eventID',
         element: <Event />,
-        loader: eventsLoader,
-      },
-      {
-        path: 'secondary-market/:eventID',
-        element: <Event isSecondary={true} />,
         loader: eventsLoader,
       },
       {

@@ -2,60 +2,48 @@ import {
   Box,
   Button,
   Divider,
-  FormControl,
-  FormErrorMessage,
-  FormHelperText,
-  FormLabel,
   Heading,
-  Input,
-  Modal,
-  ModalBody,
-  ModalCloseButton,
-  ModalContent,
-  ModalFooter,
-  ModalHeader,
-  ModalOverlay,
-  NumberDecrementStepper,
-  NumberIncrementStepper,
-  NumberInput,
-  NumberInputField,
-  NumberInputStepper,
   Text,
-  useDisclosure,
   Image as ChakraImage,
   HStack,
+  SimpleGrid,
+  Card,
+  CardHeader,
+  CardBody,
+  CardFooter,
+  VStack,
+  useDisclosure,
 } from '@chakra-ui/react';
-import { useState } from 'react';
-import { Form, NavLink, useLoaderData, useParams } from 'react-router-dom';
-import PropTypes from 'prop-types';
+import { NavLink, useLoaderData, useParams } from 'react-router-dom';
 import { ExternalLinkIcon } from '@chakra-ui/icons';
 
-// props validation
-Event.propTypes = {
-  isSecondary: PropTypes.bool,
-};
+import { PurchaseModal } from '@/features/gallery/components/PurchaseModal';
 
-export default function Event(props) {
-  const isSecondary = props.isSecondary || false;
+export default function Event() {
   const events = useLoaderData().events;
 
   const params = useParams();
   const eventID = params.eventID;
 
+  const testticket = {
+    date: '2024-10-10',
+    id: 1,
+    img: 'https://via.placeholder.com/300',
+    location: 'San Francisco',
+    price: 10,
+    title: 'Test Ticket',
+    description: 'This is a test ticket descriptiopnm',
+  };
+  const tickets = [testticket, testticket];
+
   // check if the eventID is valid
   const event = events.find((event) => String(event.id) === eventID);
 
-  // modal information
-  const { isOpen, onOpen, onClose } = useDisclosure();
   const res = event.location.trim().replace(/ /g, '+');
   const mapHref = 'https://www.google.com/maps/search/' + String(res);
 
-  // email input
-  const [input, setInput] = useState('');
-  const handleInputChange = (e) => {
-    setInput(e.target.value);
-  };
-  const isError = input === '';
+  // modal
+  const { isOpen, onOpen, onClose } = useDisclosure();
 
   if (!event) {
     return (
@@ -69,53 +57,64 @@ export default function Event(props) {
 
   return (
     <Box p="10">
-      {isSecondary ? <Text> Secondary event ticket</Text> : <Text> Primary event listing</Text>}
+      <Box position="relative">
+        <ChakraImage
+          alt={event.title}
+          height="300"
+          objectFit="cover"
+          src={'../' + String(event.img)}
+          width="100%"
+        />
+        <Heading
+          as="h2"
+          color="black"
+          left="50%"
+          my="5"
+          position="absolute"
+          size="2xl"
+          textAlign="center"
+          textShadow="
+    -1px -1px 0 #fff,  
+    1px -1px 0 #fff,
+    -1px 1px 0 #fff,
+    1px 1px 0 #fff
+  "
+          top="50%"
+          transform="translate(-50%, -50%)"
+        >
+          {event.title}
+        </Heading>
+      </Box>
+      <Box my="5" />
 
-      <Heading as="h2" my="5" size="2xl">
-        {event.title}
-      </Heading>
-      <Divider bg="black" my="5" />
+      <Box my="5" />
       {/* <Text>Details about the Event:</Text>
       <Text>Event ID: {eventID}</Text> */}
-      <Box position="relative">
-        <ChakraImage alt={event.title} src={'../' + String(event.img)} />
-        <Button
-          colorScheme="green"
-          m="5"
-          maxWidth="300"
-          position="absolute"
-          right="0"
-          top="0"
-          variant="solid"
-          onClick={onOpen}
-        >
-          Buy Now for ${event.price}
-        </Button>
-      </Box>
-
-      {!isSecondary ? <Text my="5">{event.tickets} Tickets available</Text> : <> </>}
 
       <HStack
         align="start"
-        bg="linear-gradient(180deg, rgba(255, 207, 234, 0) 0%, #30c9f34b 100%)"
+        // bg="linear-gradient(180deg, rgba(255, 207, 234, 0) 0%, #30c9f34b 100%)"
         borderRadius={{ base: '1rem', md: '8xl' }}
         justifyContent="space-between"
         p="10"
       >
-        <Box textAlign="left">
+        <Box flex="1" textAlign="left">
           <Heading as="h3" my="5" size="lg">
-            Description
+            Event Details
           </Heading>
           <Text> {event.description} </Text>
-
-          <Heading as="h3" my="5" size="lg">
-            Date
-          </Heading>
-          <Text>Event on {event.date}</Text>
+          <Text>
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor
+            incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud
+            exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure
+            dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
+            Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt
+            mollit anim id est laborum.
+          </Text>
         </Box>
-        <Box textAlign="left">
+        <Box flex="1" textAlign="left">
           <Heading as="h3" my="5" size="lg">
-            Event Location
+            Location
           </Heading>
 
           <Text my="5">Event in {event.location}</Text>
@@ -123,6 +122,11 @@ export default function Event(props) {
           <a href={mapHref} rel="noopener noreferrer" target="_blank">
             Open in Google Maps <ExternalLinkIcon mx="2px" />
           </a>
+
+          <Heading as="h3" my="5" size="lg">
+            Date
+          </Heading>
+          <Text>Event on {event.date}</Text>
 
           <Heading as="h3" my="5" size="lg">
             Share Event
@@ -147,51 +151,57 @@ export default function Event(props) {
         </Box>
       </HStack>
 
-      <Modal isCentered closeOnOverlayClick={false} isOpen={isOpen} size={'xl'} onClose={onClose}>
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader> Purchase Modal </ModalHeader>
-          <Text>Event on {event.date}</Text>
-          <Text>Event in {event.location}</Text>
-          <ModalCloseButton />
-          <Form action="/" method="post">
-            {!isSecondary ? (
-              <>
-                <ModalBody>Select number of tickets</ModalBody>
-                <FormLabel>Ticket Amount</FormLabel>
-                <NumberInput max={50} min={1}>
-                  <NumberInputField />
-                  <NumberInputStepper>
-                    <NumberIncrementStepper />
-                    <NumberDecrementStepper />
-                  </NumberInputStepper>
-                </NumberInput>
-              </>
-            ) : (
-              <> </>
-            )}
+      <Heading as="h3" my="5" size="lg">
+        Tickets
+      </Heading>
 
-            <FormControl isInvalid={isError}>
-              <FormLabel>Email</FormLabel>
-              <Input type="email" value={input} onChange={handleInputChange} />
-              {!isError ? (
-                <FormHelperText>
-                  No account will be created, ensure your email is correct
-                </FormHelperText>
-              ) : (
-                <FormErrorMessage> Email is required. </FormErrorMessage>
-              )}
-            </FormControl>
-
-            <Button colorScheme="green" type="submit">
-              Proceed to checkout
-            </Button>
-          </Form>
-          <ModalFooter>
-            <Button onClick={onClose}>Close</Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
+      <SimpleGrid minChildWidth="300px" spacing={10}>
+        {tickets?.map((ticket) => (
+          <Card
+            key={ticket.id}
+            // bg="linear-gradient(180deg, rgba(255, 207, 234, 0) 0%, #30c9f34b 100%)"
+            borderRadius={{ base: '1rem', md: '8xl' }}
+            style={{ display: 'flex', flexDirection: 'column', height: '100%' }}
+          >
+            <CardHeader position="relative">
+              <ChakraImage
+                alt={ticket.title}
+                borderRadius="md"
+                height="300px"
+                objectFit="cover"
+                src={ticket.img}
+                width="100%"
+              />
+              <Box
+                // bg="white"
+                // border="1px solid black"
+                p={2}
+                position="absolute"
+                right="25"
+                rounded="lg"
+                top="10"
+              >
+                <Text my="2">{event.tickets} Tickets available</Text>
+              </Box>
+            </CardHeader>
+            <CardBody color="black">
+              <Heading as="h3" size="lg">
+                {ticket.title}
+              </Heading>
+              <VStack align="start" spacing={2}>
+                <Text my="2px">{ticket.date}</Text>
+                <Text my="2px">{ticket.description}</Text>
+              </VStack>
+            </CardBody>
+            <CardFooter>
+              <Button colorScheme="green" onClick={onOpen}>
+                Buy for {ticket.price} NEAR
+              </Button>
+            </CardFooter>
+          </Card>
+        ))}
+      </SimpleGrid>
+      <PurchaseModal event={event} isOpen={isOpen} onClose={onClose} />
     </Box>
   );
 }
