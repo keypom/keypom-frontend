@@ -447,8 +447,8 @@ export default function EventManagerPage() {
 
   const breadcrumbItems = [
     {
-      name: 'My drops',
-      href: '/drops',
+      name: 'My events',
+      href: '/events',
     },
     {
       name: eventMetadata?.eventInfo?.name || '',
