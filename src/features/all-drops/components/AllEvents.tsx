@@ -92,7 +92,6 @@ export default function AllEvents({ pageTitle, hasDateFilter, ctaButtonLabel }: 
   const { setAppModal } = useAppContext();
   const navigate = useNavigate();
 
-  const [hasPagination, setHasPagination] = useState<boolean>(false);
   const [numPages, setNumPages] = useState<number>(0);
   const [curPage, setCurPage] = useState<number>(0);
 
@@ -234,7 +233,6 @@ export default function AllEvents({ pageTitle, hasDateFilter, ctaButtonLabel }: 
     setFilteredDataItems(dropData);
 
     const totalPages = Math.ceil(filteredEvents.length / selectedFilters.pageSize);
-    setHasPagination(totalPages > 1);
     setNumPages(totalPages);
 
     setCurPage(0);
@@ -470,7 +468,6 @@ export default function AllEvents({ pageTitle, hasDateFilter, ctaButtonLabel }: 
         curPage={curPage}
         handleNextPage={handleNextPage}
         handlePrevPage={handlePrevPage}
-        hasPagination={hasPagination}
         isLoading={isLoading}
         numPages={numPages}
         pageSizeMenuItems={pageSizeMenuItems}

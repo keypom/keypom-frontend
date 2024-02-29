@@ -109,7 +109,6 @@ export const DropManager = ({
   const [deleting, setDeleting] = useState<boolean>(false);
   const [exporting, setExporting] = useState<boolean>(false);
 
-  const [hasPagination, setHasPagination] = useState<boolean>(false);
   const [numPages, setNumPages] = useState<number>(0);
   const [curPage, setCurPage] = useState<number>(0);
   const [selectedFilters, setSelectedFilters] = useState<{
@@ -206,7 +205,6 @@ export const DropManager = ({
     setFilteredDropKeys(filteredKeys);
 
     const totalPages = Math.ceil(filteredKeys.length / selectedFilters.pageSize);
-    setHasPagination(totalPages > 1);
     setNumPages(totalPages);
 
     setCurPage(0);
@@ -236,7 +234,9 @@ export const DropManager = ({
       filteredKeys = filteredKeys.concat(curFiltered);
     }
 
-    setFilteredDropKeys(filteredKeys);
+    if (filteredKeys.length !== 0) {
+      setFilteredDropKeys(filteredKeys);
+    }
     setCurPage(0);
     setLoading(false);
   }, [accountId, selectedFilters, keypomInstance]);
@@ -417,7 +417,7 @@ export const DropManager = ({
             <VStack align="start" spacing={1}>
               {' '}
               {/* Adjust spacing as needed */}
-              <Text color="gray.700" fontSize="lg" fontWeight="medium">
+              <Text color="gray.400" fontSize="lg" fontWeight="medium">
                 Claimed
               </Text>
               <Heading>{getClaimedText(totalKeys)}</Heading>
@@ -522,7 +522,6 @@ export const DropManager = ({
           curPage={curPage}
           handleNextPage={handleNextPage}
           handlePrevPage={handlePrevPage}
-          hasPagination={hasPagination}
           isLoading={isAllKeysLoading}
           numPages={numPages}
           pageSizeMenuItems={pageSizeMenuItems}

@@ -1,6 +1,7 @@
 import {
   Box,
   Input,
+  Badge,
   Icon,
   Button,
   Heading,
@@ -18,10 +19,11 @@ import {
   VStack,
   useDisclosure,
 } from '@chakra-ui/react';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { SearchIcon } from '@chakra-ui/icons';
 
+import { truncateAddress } from '@/utils/truncateAddress';
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
 import keypomInstance, { type AttendeeKeyItem } from '@/lib/keypom';
 import { type QuestionInfo, type EventDropMetadata } from '@/lib/eventsHelpers';
@@ -68,13 +70,15 @@ const ticketTableColumns: ColumnItem[] = [
 ];
 
 const CLAIM_STATUS = {
-  0: {
+  2: {
     name: 'Purchased',
-    color: 'grey.400',
+    bg: 'gray.100',
+    text: 'gray.600',
   },
   1: {
     name: 'Scanned',
-    color: 'green.400',
+    bg: 'green.50',
+    text: 'green.600',
   },
 };
 
@@ -102,7 +106,6 @@ export default function EventManagerPage() {
     drop_config: { metadata: EventDropMetadata };
   }>();
 
-  const [hasPagination, setHasPagination] = useState<boolean>(false);
   const [exporting, setExporting] = useState<boolean>(false);
   const [numPages, setNumPages] = useState<number>(0);
   const [curPage, setCurPage] = useState<number>(0);
@@ -216,9 +219,9 @@ export default function EventManagerPage() {
     if (selectedFilters.status !== TICKET_CLAIM_STATUS_OPTIONS.ANY) {
       keys = keys.filter((key) => {
         if (selectedFilters.status === TICKET_CLAIM_STATUS_OPTIONS.PURCHASED) {
-          return key.uses_remaining === 0;
+          return key.uses_remaining === 2;
         }
-        return key.uses_remaining > 0;
+        return key.uses_remaining !== 2;
       });
     }
 
@@ -254,13 +257,12 @@ export default function EventManagerPage() {
     setTicketsScanned(numScanned);
 
     const filteredKeys = handleFiltering(dropKeyItems);
-    setFilteredTicketData(filteredKeys);
 
     const totalPages = Math.ceil(filteredKeys.length / selectedFilters.pageSize);
-    setHasPagination(totalPages > 1);
     setNumPages(totalPages);
 
     setCurPage(0);
+    setFilteredTicketData(filteredKeys);
     setIsAllKeysLoading(false);
   }, [accountId, selectedFilters, keypomInstance]);
 
@@ -290,10 +292,12 @@ export default function EventManagerPage() {
       filteredKeys = filteredKeys.concat(curFiltered);
     }
 
-    setFilteredTicketData(filteredKeys);
+    if (filteredTicketData.length !== 0) {
+      setFilteredTicketData(filteredKeys);
+    }
     setCurPage(0);
     setIsLoading(false);
-  }, [accountId, selectedFilters, keypomInstance]);
+  }, [accountId, keypomInstance]);
 
   const pageSizeMenuItems = createMenuItems({
     menuItems: PAGE_SIZE_ITEMS,
@@ -363,12 +367,24 @@ export default function EventManagerPage() {
 
   const getTableRows: GetAttendeeDataFn = (data) => {
     if (data === undefined) return [];
-    console.log(data);
-
     return data.map((item) => ({
       id: item.id, // Assuming `item` has a `drop_id` property that can serve as `id`
-      link: `${window.location.hostname}/${item.publicKey}`,
-      status: CLAIM_STATUS[item.usesRemaining] ? CLAIM_STATUS[item.usesRemaining].name : '',
+      link: truncateAddress(
+        `${window.location.hostname}/${item.publicKey.split('ed25519:')[1]}`,
+        'end',
+        24,
+      ),
+      claimedStatus: (
+        <Badge
+          backgroundColor={CLAIM_STATUS[item.usesRemaining].bg}
+          borderRadius="20px"
+          color={CLAIM_STATUS[item.usesRemaining].text}
+          fontSize="15px"
+          fontWeight="medium"
+        >
+          {CLAIM_STATUS[item.usesRemaining].name}
+        </Badge>
+      ),
       action: (
         <Button
           borderRadius="6xl"
@@ -384,6 +400,24 @@ export default function EventManagerPage() {
     }));
   };
 
+  const data = useMemo(() => {
+    const rowsToShow = filteredTicketData.slice(
+      curPage * selectedFilters.pageSize,
+      (curPage + 1) * selectedFilters.pageSize,
+    );
+    console.log(
+      'filteredTicketData',
+      filteredTicketData,
+      ' numPages',
+      numPages,
+      ' curPage',
+      curPage,
+      ' rowsToShow',
+      rowsToShow,
+    );
+    return getTableRows(rowsToShow);
+  }, [filteredTicketData, filteredTicketData.length, curPage]);
+
   const getTableType = () => {
     if (filteredTicketData.length === 0 && ticketsPurchased === 0) {
       return 'all-tickets';
@@ -397,7 +431,7 @@ export default function EventManagerPage() {
       href: '/drops',
     },
     {
-      name: eventMetadata?.ticketInfo?.name || '',
+      name: eventMetadata?.eventInfo?.name || '',
       href: `/events/event/${eventMetadata?.ticketInfo.eventId || ''}`,
     },
     {
@@ -414,7 +448,7 @@ export default function EventManagerPage() {
       {/* Drop info section */}
       <VStack align="start" paddingTop="4" spacing="4">
         <HStack>
-          {dropData?.drop_config.metadata.ticketInfo.artwork ? (
+          {!dropData?.drop_config.metadata.ticketInfo.artwork ? (
             <Spinner />
           ) : (
             <Image
@@ -432,14 +466,14 @@ export default function EventManagerPage() {
             <Heading size="lg">{dropData?.drop_config.metadata.ticketInfo.name} </Heading>
           </VStack>
         </HStack>
-        <HStack justify="space-between">
+        <HStack justify="space-between" w="100%">
           <Box
             bg="border.box"
             border="2px solid transparent"
             borderRadius="12"
             borderWidth="2px"
             p={4}
-            w="100%" // Adjust based on your layout, 'fit-content' makes the box to fit its content size
+            w="40%" // Adjust based on your layout, 'fit-content' makes the box to fit its content size
           >
             <VStack align="start" spacing={1}>
               {' '}
@@ -456,7 +490,7 @@ export default function EventManagerPage() {
             borderRadius="12"
             borderWidth="2px"
             p={4}
-            w="100%" // Adjust based on your layout, 'fit-content' makes the box to fit its content size
+            w="40%" // Adjust based on your layout, 'fit-content' makes the box to fit its content size
           >
             <VStack align="start" spacing={1}>
               {' '}
@@ -550,7 +584,7 @@ export default function EventManagerPage() {
       <Box>
         <DataTable
           columns={tableColumns}
-          data={getTableRows(filteredTicketData)}
+          data={data}
           loading={isLoading}
           mt={{ base: '6', md: '4' }}
           showColumns={true}
@@ -561,7 +595,6 @@ export default function EventManagerPage() {
           curPage={curPage}
           handleNextPage={handleNextPage}
           handlePrevPage={handlePrevPage}
-          hasPagination={hasPagination}
           isLoading={isAllKeysLoading}
           numPages={numPages}
           pageSizeMenuItems={pageSizeMenuItems}

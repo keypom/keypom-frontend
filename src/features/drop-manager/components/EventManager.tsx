@@ -75,7 +75,6 @@ export const EventManager = ({
   const [deleting, setDeleting] = useState<boolean>(false);
   const [exporting, setExporting] = useState<boolean>(false);
 
-  const [hasPagination, setHasPagination] = useState<boolean>(false);
   const [numPages, setNumPages] = useState<number>(0);
   const [curPage, setCurPage] = useState<number>(0);
   const [ticketData, setTicketData] = useState<TicketItem[]>([]);
@@ -133,7 +132,6 @@ export const EventManager = ({
     setTicketData(await Promise.all(promises));
 
     const totalPages = Math.ceil(ticketsForEvent.length / pageSize);
-    setHasPagination(totalPages > 1);
     setNumPages(totalPages);
 
     setCurPage(0);
@@ -378,7 +376,6 @@ export const EventManager = ({
           curPage={curPage}
           handleNextPage={handleNextPage}
           handlePrevPage={handlePrevPage}
-          hasPagination={hasPagination}
           isLoading={isLoading}
           numPages={numPages}
           pageSizeMenuItems={pageSizeMenuItems}

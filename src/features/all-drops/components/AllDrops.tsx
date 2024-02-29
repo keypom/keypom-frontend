@@ -99,7 +99,6 @@ export default function AllDrops({ pageTitle, hasDateFilter, ctaButtonLabel }: A
   const { setAppModal } = useAppContext();
   const navigate = useNavigate();
 
-  const [hasPagination, setHasPagination] = useState<boolean>(false);
   const [numPages, setNumPages] = useState<number>(0);
   const [curPage, setCurPage] = useState<number>(0);
 
@@ -255,7 +254,6 @@ export default function AllDrops({ pageTitle, hasDateFilter, ctaButtonLabel }: A
     setFilteredDataItems(dropData);
 
     const totalPages = Math.ceil(filteredDrops.length / selectedFilters.pageSize);
-    setHasPagination(totalPages > 1);
     setNumPages(totalPages);
 
     setCurPage(0);
@@ -288,7 +286,10 @@ export default function AllDrops({ pageTitle, hasDateFilter, ctaButtonLabel }: A
     const dropData = await Promise.all(
       filteredDrops.map(async (drop) => await keypomInstance.getDropData({ drop })),
     );
-    setFilteredDataItems(dropData);
+
+    if (dropData.length !== 0) {
+      setFilteredDataItems(dropData);
+    }
     setCurPage(0);
     setIsLoading(false);
   }, [accountId, selectedFilters, keypomInstance]);
@@ -552,7 +553,6 @@ export default function AllDrops({ pageTitle, hasDateFilter, ctaButtonLabel }: A
         curPage={curPage}
         handleNextPage={handleNextPage}
         handlePrevPage={handlePrevPage}
-        hasPagination={hasPagination}
         isLoading={isAllDropsLoading}
         numPages={numPages}
         pageSizeMenuItems={pageSizeMenuItems}
