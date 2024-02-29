@@ -58,7 +58,7 @@ const ticketTableColumns: ColumnItem[] = [
   },
   {
     id: 'action',
-    title: 'Action',
+    title: '',
     selector: (row) => row.action,
     tdProps: {
       display: 'flex',
@@ -149,11 +149,15 @@ export default function EventManagerPage() {
       // Initialize an array to hold the new columns based on questions
       const questionColumns: ColumnItem[] =
         eventMetadata.eventInfo?.questions
-          ?.filter((questionInfo: QuestionInfo) => questionInfo.required)
+          ?.filter(
+            (questionInfo: QuestionInfo) =>
+              questionInfo.question.toLowerCase().includes('name') ||
+              questionInfo.question.toLowerCase().includes('email'),
+          )
           .map((questionInfo) => ({
             id: questionInfo.question, // Using the question text as a unique ID
             title: questionInfo.question, // The question text as the title
-            selector: (row) => row.responses![questionInfo.question], // Accessing the response using the question
+            selector: (row) => row[questionInfo.question] || '-', // Accessing the response using the question
             loadingElement: <Skeleton height="30px" />,
           })) || [];
 
@@ -252,7 +256,7 @@ export default function EventManagerPage() {
     const { dropKeyItems } = keyInfoReturn;
 
     const numScanned = dropKeyItems.filter((key) => {
-      return key.uses_remaining !== 0;
+      return key.uses_remaining !== 2;
     }).length;
     setTicketsScanned(numScanned);
 
@@ -367,37 +371,53 @@ export default function EventManagerPage() {
 
   const getTableRows: GetAttendeeDataFn = (data) => {
     if (data === undefined) return [];
-    return data.map((item) => ({
-      id: item.id, // Assuming `item` has a `drop_id` property that can serve as `id`
-      link: truncateAddress(
-        `${window.location.hostname}/${item.publicKey.split('ed25519:')[1]}`,
-        'end',
-        24,
-      ),
-      claimedStatus: (
-        <Badge
-          backgroundColor={CLAIM_STATUS[item.usesRemaining].bg}
-          borderRadius="20px"
-          color={CLAIM_STATUS[item.usesRemaining].text}
-          fontSize="15px"
-          fontWeight="medium"
-        >
-          {CLAIM_STATUS[item.usesRemaining].name}
-        </Badge>
-      ),
-      action: (
-        <Button
-          borderRadius="6xl"
-          size="md"
-          variant="icon"
-          onClick={async (e) => {
-            console.log('delete', e);
-          }}
-        >
-          View Details
-        </Button>
-      ),
-    }));
+    return data.map((item) => {
+      console.log('item', item);
+      const mapped = {
+        id: item.id, // Assuming `item` has a `drop_id` property that can serve as `id`
+        link: truncateAddress(
+          `${window.location.hostname}/${item.publicKey.split('ed25519:')[1]}`,
+          'end',
+          16,
+        ),
+        claimedStatus: (
+          <Badge
+            backgroundColor={CLAIM_STATUS[item.usesRemaining].bg}
+            borderRadius="20px"
+            color={CLAIM_STATUS[item.usesRemaining].text}
+            fontSize="15px"
+            fontWeight="medium"
+          >
+            {CLAIM_STATUS[item.usesRemaining].name}
+          </Badge>
+        ),
+        action: (
+          <Heading
+            _hover={{
+              textDecoration: 'underline', // If you want underline on hover
+              color: 'blue.600', // A darker color on hover
+            }}
+            color="blue.500"
+            cursor="pointer"
+            fontFamily="body"
+            fontSize="sm"
+            fontWeight="medium"
+            onClick={() => {
+              console.log('View details');
+            }}
+          >
+            View details
+          </Heading>
+        ),
+      };
+
+      for (const [key, value] of Object.entries(item.responses)) {
+        if (!Object.hasOwn(mapped, key)) {
+          mapped[key] = truncateAddress(value, 'end', 16);
+        }
+      }
+      return mapped;
+    });
   };
 
   const data = useMemo(() => {
@@ -536,7 +556,7 @@ export default function EventManagerPage() {
             <HStack>
               <Menu>
                 {({ isOpen }) => (
-                  <Box>
+                  <Box height="60px" paddingBottom="0">
                     <DropDownButton
                       isOpen={isOpen}
                       placeholder={`Claimed: ${selectedFilters.status}`}
@@ -547,6 +567,18 @@ export default function EventManagerPage() {
                   </Box>
                 )}
               </Menu>
+              <Button
+                height="auto"
+                isDisabled={!allowAction}
+                isLoading={exporting}
+                lineHeight=""
+                px="6"
+                variant="secondary"
+                w={{ sm: 'initial' }}
+                onClick={handleExportCSVClick}
+              >
+                Export .CSV
+              </Button>
             </HStack>
           </HStack>
         </HStack>
