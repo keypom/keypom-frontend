@@ -54,6 +54,10 @@ const EthDenverLandingPage = React.lazy(async () => await import('@/pages/EthDen
 
 const ScannerPage = React.lazy(async () => await import('@/features/scanner/routes/ScannerPage'));
 
+const StripeCheckoutPage = React.lazy(async () => await import('@/features/stripe-checkout/routes/StripeCheckoutPage'));
+
+const StripeConnectPage = React.lazy(async () => await import('@/features/stripe-checkout/routes/StripeConnectPage'));
+
 export const router = createBrowserRouter([
   {
     element: <CoreLayout />,
@@ -160,6 +164,19 @@ export const router = createBrowserRouter([
           {
             path: 'scanner',
             element: <ScannerPage />,
+          },
+          {
+            path: 'stripe',
+            children:[
+              {
+                path: 'connect',
+                element: <StripeConnectPage />,
+              },
+              {
+                path: 'checkout',
+                element: <StripeCheckoutPage />,
+              },
+            ],
           },
         ],
       },
