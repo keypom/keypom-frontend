@@ -24,6 +24,12 @@ export const KEY_CLAIM_STATUS_OPTIONS = {
   UNCLAIMED: 'Unclaimed',
 };
 
+export const TICKET_CLAIM_STATUS_OPTIONS = {
+  ANY: 'Any',
+  PURCHASED: 'Purchased',
+  SCANNED: 'Scanned',
+};
+
 export const DATE_FILTER_OPTIONS = {
   ANY: 'Any',
   NEWEST: 'Newest',
@@ -121,6 +127,21 @@ export const KEY_CLAIM_STATUS_ITEMS: MenuItemProps[] = [
   {
     label: 'Unclaimed',
     color: 'gray.600',
+  },
+];
+
+export const TICKET_CLAIM_STATUS_ITEMS: MenuItemProps[] = [
+  {
+    label: 'Any',
+    icon: <CheckedIcon h="4" isChecked={false} w="4" />,
+  },
+  {
+    label: 'Purchased',
+    color: 'gray.600',
+  },
+  {
+    label: 'Scanned',
+    color: 'green.600',
   },
 ];
 

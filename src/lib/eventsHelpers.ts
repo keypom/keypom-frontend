@@ -8,7 +8,7 @@ interface EventDateInfo {
   date: AllDayEvent | MultiDayEvent;
 }
 
-interface QuestionInfo {
+export interface QuestionInfo {
   required: boolean;
   question: string;
 }

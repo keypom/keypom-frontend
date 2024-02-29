@@ -346,7 +346,7 @@ export default function AllEvents({ pageTitle, hasDateFilter, ctaButtonLabel }: 
                 </HStack>
               </>
             ),
-            href: `/drop/ticket/${((drop.eventId as string) || '').toString()}`,
+            href: `/events/event/${((drop.eventId as string) || '').toString()}`,
           };
           return [...result, dataItem];
         }

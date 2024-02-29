@@ -152,6 +152,10 @@ export const EventManager = ({
       name: 'My events',
       href: '/events',
     },
+    {
+      name: eventData.name,
+      href: '/events',
+    },
   ];
 
   const handlePageSizeSelect = (item) => {

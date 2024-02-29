@@ -89,11 +89,22 @@ export const router = createBrowserRouter([
           },
           {
             path: 'events',
-            element: (
-              <ProtectedRoute>
-                <AllEventsPage />
-              </ProtectedRoute>
-            ),
+            element: <ProtectedRoute />, // Wrap the AllEventsPage and its dynamic children with ProtectedRoute
+            children: [
+              {
+                index: true,
+                element: <AllEventsPage />, // Display AllEventsPage at /events
+              },
+              {
+                path: 'event/:id', // Match /events/event/:id
+                element: <EventManagerPage />,
+              },
+              {
+                path: 'ticket/:id', // Match /events/ticket/:id
+                element: <TicketDropManagerPage />,
+              },
+              // Add other paths as needed...
+            ],
           },
           {
             path: 'drop',
@@ -131,17 +142,6 @@ export const router = createBrowserRouter([
                   {
                     path: 'new',
                     element: <CreateTicketDropPage />,
-                  },
-                  {
-                    path: ':id',
-                    element: <EventManagerPage />,
-                    children: [
-                      {
-                        // Nested dynamic route for :ticketId under /ticket/:id
-                        path: ':ticketId',
-                        element: <TicketDropManagerPage />, // Replace <SpecificTicketPage /> with the component you want to render for this path
-                      },
-                    ],
                   },
                 ],
               },

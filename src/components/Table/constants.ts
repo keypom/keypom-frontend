@@ -19,4 +19,12 @@ export const EMPTY_TABLE_TEXT_MAP = {
     heading: `You haven't added any keys`,
     text: '',
   },
+  'all-tickets': {
+    heading: `No tickets have been purchased yet`,
+    text: `Please try again later`,
+  },
+  'no-filtered-tickets': {
+    heading: `No tickets found with the current filters`,
+    text: `Please try different filters`,
+  },
 };

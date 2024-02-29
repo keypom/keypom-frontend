@@ -145,6 +145,7 @@ export default function EventManagerPage() {
           </Button>
         </HStack>
       ),
+      href: `/events/ticket/${(item.id || '').toString()}`,
     }));
   };
 

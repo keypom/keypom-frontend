@@ -28,7 +28,7 @@ import { CLOUDFLARE_IPFS, DROP_TYPE, MASTER_KEY } from '@/constants/common';
 import getConfig from '@/config/config';
 import { get } from '@/utils/localStorage';
 
-import { isValidEventInfo, isValidTicketInfo } from './eventsHelpers';
+import { type EventDropMetadata, isValidEventInfo, isValidTicketInfo } from './eventsHelpers';
 
 let instance: KeypomJS;
 const ACCOUNT_ID_REGEX = /^(([a-z\d]+[-_])*[a-z\d]+\.)*([a-z\d]+[-_])*[a-z\d]+$/;
@@ -64,6 +64,15 @@ export interface DropKeyItem {
   keyInfo: ProtocolReturnedKeyInfo | undefined;
 }
 
+export interface AttendeeKeyItem {
+  drop_id: string;
+  pub_key: string;
+  owner_id: string;
+  metadata: string;
+  uses_remaining: number;
+  message_nonce: number;
+}
+
 const KEY_ITEMS_PER_QUERY = 30;
 const DROP_ITEMS_PER_QUERY = 5;
 class KeypomJS {
@@ -82,7 +91,7 @@ class KeypomJS {
     {
       dropName: string;
       totalKeys: number;
-      dropKeyItems: DropKeyItem[];
+      dropKeyItems: AttendeeKeyItem[];
     }
   > = {};
 
@@ -432,6 +441,120 @@ class KeypomJS {
     } catch (error) {
       console.error('Error fetching drops:', error);
       throw new Error('Failed to fetch drops.');
+    }
+  };
+
+  async getAllKeysForTicket({ dropId }) {
+    try {
+      const dropInfo = await this.viewCall({
+        methodName: 'get_drop_information',
+        args: { drop_id: dropId },
+      });
+      const meta: EventDropMetadata = JSON.parse(dropInfo.drop_config.metadata);
+      const dropName = meta.dropName;
+      const totalKeys = dropInfo.next_key_id;
+      if (
+        !Object.hasOwn(this.eventsKeyStore, dropId) ||
+        this.eventsKeyStore[dropId]?.totalKeys !== totalKeys
+      ) {
+        // Initialize the cache for this drop
+        this.eventsKeyStore[dropId] = {
+          dropName,
+          dropKeyItems: new Array(totalKeys).fill(null),
+          totalKeys,
+        };
+
+        // Define how many batches are needed based on KEY_ITEMS_PER_QUERY
+        const totalBatches = Math.ceil(totalKeys / KEY_ITEMS_PER_QUERY);
+        const batchPromises: Array<Promise<AttendeeKeyItem[]>> = [];
+
+        for (let i = 0; i < totalBatches; i++) {
+          const start = i * KEY_ITEMS_PER_QUERY;
+          const limit = Math.min(KEY_ITEMS_PER_QUERY, totalKeys - start);
+
+          batchPromises.push(
+            this.viewCall({
+              methodName: 'get_keys_for_drop',
+              args: { drop_id: dropId, from_index: start.toString(), limit },
+            }),
+          );
+        }
+
+        // Wait for all batches to resolve and process the results
+        const batchResults = await Promise.all(batchPromises);
+        this.eventsKeyStore[dropId].dropKeyItems = batchResults.flat(); // Use .flat()
+      }
+
+      return this.eventsKeyStore[dropId];
+    } catch (error) {
+      console.error('Failed to get keys info:', error);
+      throw new Error('Failed to get keys info.');
+    }
+  }
+
+  getPaginatedKeysForTicket = async ({
+    dropId,
+    start,
+    limit,
+  }: {
+    dropId: string;
+    start: number;
+    limit: number;
+  }) => {
+    try {
+      // Initialize or update the cache for this drop if it doesn't exist or if total keys have changed
+      const dropInfo = await this.viewCall({
+        methodName: 'get_drop_information',
+        args: { drop_id: dropId },
+      });
+      const meta: EventDropMetadata = JSON.parse(dropInfo.drop_config.metadata);
+      const dropName = meta.dropName;
+      const totalKeys = dropInfo.next_key_id;
+
+      if (
+        !Object.hasOwn(this.eventsKeyStore, dropId) ||
+        this.eventsKeyStore[dropId]?.totalKeys !== totalKeys
+      ) {
+        this.eventsKeyStore[dropId] = {
+          dropName,
+          dropKeyItems: new Array(totalKeys).fill(null),
+          totalKeys,
+        };
+      }
+
+      // Calculate the end index for the requested keys
+      const endIndex = Math.min(start + limit, this.eventsKeyStore[dropId].totalKeys);
+
+      // Fetch and cache only the needed batches
+      for (let i = start; i < endIndex; i += KEY_ITEMS_PER_QUERY) {
+        const batchStart = i;
+        const batchEnd = Math.min(i + KEY_ITEMS_PER_QUERY, endIndex);
+        if (
+          this.eventsKeyStore[dropId].dropKeyItems
+            .slice(batchStart, batchEnd)
+            .some((item) => item === null)
+        ) {
+          // If any item in the range is null, fetch the batch
+          const fetchedKeys = await this.viewCall({
+            methodName: 'get_keys_for_drop',
+            args: {
+              drop_id: dropId,
+              from_index: batchStart.toString(),
+              limit: batchEnd - batchStart,
+            },
+          });
+          // Assume fetchedKeys is an array of keys; adjust based on actual structure
+          for (let j = 0; j < fetchedKeys.length; j++) {
+            this.eventsKeyStore[dropId].dropKeyItems[batchStart + j] = fetchedKeys[j];
+          }
+        }
+      }
+
+      // Return the requested slice from the cache
+      return this.eventsKeyStore[dropId].dropKeyItems.slice(start, endIndex);
+    } catch (e) {
+      console.error('Failed to get paginated keys info:', e);
+      throw new Error('Failed to get paginated keys info.');
     }
   };
 
