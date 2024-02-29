@@ -9,6 +9,7 @@ import keypomInstance from '@/lib/keypom';
 import { getClaimStatus } from '../../utils/getClaimStatus';
 import { getBadgeType } from '../../utils/getBadgeType';
 import { tableColumns } from '../../components/TableColumn';
+import placeholderImage from '../../constants/token-placeholder.png';
 
 export default function TicketDropManagerPage() {
   const navigate = useNavigate();
@@ -98,9 +99,9 @@ export default function TicketDropManagerPage() {
 
   return (
     <DropManager
-      claimedHeaderText="Scanned"
       getClaimedText={(dropSize) => `${dropSize - scannedAndClaimed} / ${dropSize}`}
       getData={getTableRows}
+      placeholderImage={placeholderImage}
       showColumns={false}
       tableColumns={tableColumns}
     />

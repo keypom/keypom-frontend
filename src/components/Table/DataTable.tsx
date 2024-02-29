@@ -33,7 +33,7 @@ import { type ColumnItem, type DataItem } from './types';
  */
 
 interface DataTableProps extends TableProps {
-  type?: 'all-drops' | 'drop-manager' | 'no-filtered-drops';
+  type?: 'all-drops' | 'drop-manager' | 'no-filtered-keys' | 'no-filtered-drops';
   showColumns?: boolean;
   columns: ColumnItem[];
   data: DataItem[];
@@ -98,12 +98,21 @@ export const DataTable = ({
           {/* Desktop Table */}
           <Show above="md">
             <TableContainer>
-              <Table {...props}>
+              <Table {...props} borderRadius="12px">
                 {showColumns && (
                   <Thead>
                     <Tr>
-                      {columns.map((col) => (
-                        <Th key={col.id} fontFamily="body" {...col.thProps}>
+                      {columns.map((col, index) => (
+                        <Th
+                          key={col.id}
+                          fontFamily="body"
+                          {...col.thProps}
+                          // Apply a border radius of 12px to the first and last Th elements
+                          borderTopLeftRadius={index === 0 ? '12px !important' : undefined}
+                          borderTopRightRadius={
+                            index === columns.length - 1 ? '12px !important' : undefined
+                          }
+                        >
                           {col.title}
                         </Th>
                       ))}

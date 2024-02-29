@@ -27,6 +27,10 @@ export const SignedInButton = () => {
   const { account, selector } = useAuthWalletContext();
 
   const handleSignOut = async () => {
+    if (!selector.isSignedIn()) {
+      console.error('Not signed in');
+      return;
+    }
     const wallet = await selector.wallet();
 
     wallet

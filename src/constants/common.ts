@@ -19,6 +19,6 @@ export const MASTER_KEY = 'MASTER_KEY';
 
 export const MAX_FILE_SIZE = 10000000;
 
-export const PAGE_SIZE_LIMIT = 10;
+export const PAGE_SIZE_LIMIT = 5;
 export const NFT_ATTEMPT_KEY = 'NFT_ATTEMPT';
 export const PAGE_QUERY_PARAM = 'page';
