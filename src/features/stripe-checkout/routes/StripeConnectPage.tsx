@@ -7,22 +7,13 @@ import keypomInstance from '@/lib/keypom';
 import { useAppContext, type AppModalOptions } from '@/contexts/AppContext';
 import { get, set } from '@/utils/localStorage';
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
-
-import Stripe from 'stripe';
-const stripe = new Stripe("sk_test_51OiK2DBuXHcYytHqo1SoogX5L607gYvi8sJ9Tm2uPL3FgT2FU4SZWnXoWBrNWlsecyR9rHTOnKw5Cn2uk34OnFAh001IOVNnom", {
-  apiVersion: '2020-08-27',
-  stripeAccount: 'acct_1OiK2DBuXHcYytHq'
-});
+import { StripeUserInfoForm } from '../components/StripeInformationForm';
 
 
 export const gas = '100000000000000';
-const SCANNER_PASSWORD_KEY = 'scanner_password';
 
 
 // To stop concurrent scan result handling
-let scanningResultInProgress = false;
-let secretKeyInCurrentTransaction = '';
-let isModalOpen = false;
 
 const StripeConnectPage = () => {
     // Some of these should be enums
@@ -30,7 +21,6 @@ const StripeConnectPage = () => {
     const [lastName, setLastName] = useState('Lu');
     const [email, setEmail] = useState('minqianlu00@gmail.com');
     const [country, setCountry] = useState('US');
-    const [companyName, setCompanyName] = useState('');
     const [companyType, setCompanyType] = useState('individual');
     
     const { isLoggedIn } = useAuthWalletContext();
@@ -55,7 +45,9 @@ const StripeConnectPage = () => {
         });
         if (response.ok) {
           // Account created successfully
-          console.log(response.json());
+          const responseBody = await response.json();
+          const accountLinkUrl = responseBody.accountLinkUrl;
+          window.location.href = accountLinkUrl;
         } else {
           // Error creating account
           console.log(response.json());
@@ -63,11 +55,12 @@ const StripeConnectPage = () => {
 
     };
 
+    // TODO: MAKE FORM TO COLLECT SOME USER INFO PRIOR TO CONNECTING STRIPE ACCOUNT
     if(isLoggedIn){
     return (
         <Center height="100vh">
           <VStack spacing={4}>
-            <Button onClick={handleSubmitClick}>Connect Stripe Account</Button>
+            <StripeUserInfoForm handleSubmitClick={handleSubmitClick} setFirstName={setFirstName} setLastName={setLastName} setEmail={setEmail} />
           </VStack>
         </Center>
     );
