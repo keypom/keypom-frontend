@@ -14,14 +14,12 @@ import {
   VStack,
   useDisclosure,
 } from '@chakra-ui/react';
-import { NavLink, useLoaderData, useParams } from 'react-router-dom';
+import { NavLink, useParams } from 'react-router-dom';
 import { ExternalLinkIcon } from '@chakra-ui/icons';
 
 import { PurchaseModal } from '@/features/gallery/components/PurchaseModal';
 
 export default function Event() {
-  const events = useLoaderData().events;
-
   const params = useParams();
   const eventID = params.eventID;
 

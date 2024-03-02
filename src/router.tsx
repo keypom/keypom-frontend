@@ -75,7 +75,12 @@ export const router = createBrowserRouter([
       {
         path: 'gallery',
         element: <Gallery />,
-        loader: eventsLoader,
+        loader: () => {
+          import('@/lib/keypom').then(async (keypomLib) => {
+            await keypomLib.default.init();
+          });
+          return null;
+        },
       },
       {
         path: 'gallery/:eventID',

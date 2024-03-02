@@ -490,6 +490,7 @@ export default function AllDrops() {
       />
 
       <DropManagerPagination
+        type={'Rows'}
         curPage={curPage}
         handleNextPage={handleNextPage}
         handlePrevPage={handlePrevPage}
