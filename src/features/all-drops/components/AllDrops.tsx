@@ -546,6 +546,7 @@ export default function AllDrops({ pageTitle, hasDateFilter, ctaButtonLabel }: A
         data={getTableRows()}
         loading={isLoading}
         mt={{ base: '6', md: '4' }}
+        showMobileTitles={[]}
         type={getTableType()}
       />
 

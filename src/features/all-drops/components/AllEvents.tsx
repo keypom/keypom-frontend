@@ -461,6 +461,7 @@ export default function AllEvents({ pageTitle, hasDateFilter, ctaButtonLabel }: 
         data={getTableRows()}
         loading={isLoading}
         mt={{ base: '6', md: '4' }}
+        showMobileTitles={['dateCreated', 'numTickets']}
         type={getTableType()}
       />
 

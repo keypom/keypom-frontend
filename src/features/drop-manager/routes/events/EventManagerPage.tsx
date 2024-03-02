@@ -20,7 +20,7 @@ const eventTableColumns: ColumnItem[] = [
   },
   {
     id: 'numTickets',
-    title: 'Number of tickets',
+    title: 'Tickets sold',
     selector: (row) => {
       // Ensure that soldTickets is a number or can be coerced to a string safely
       const soldTickets = String(row.soldTickets);
@@ -34,7 +34,7 @@ const eventTableColumns: ColumnItem[] = [
   },
   {
     id: 'price',
-    title: 'Price per ticket (NEAR)',
+    title: 'Price (NEAR)',
     selector: (row) => row.priceNear,
     loadingElement: <Skeleton height="30px" />,
   },
@@ -90,17 +90,17 @@ export default function EventManagerPage() {
             src={item.artwork}
           />
           <VStack align="left">
-            <Heading fontFamily="body" fontSize={{ base: 'xl', md: 'md' }} fontWeight="bold">
+            <Heading fontFamily="body" fontSize={{ md: 'lg' }} fontWeight="bold">
               {item.name}
             </Heading>
-            <Heading fontFamily="body" fontSize={{ base: 'xl', md: 'md' }} fontWeight="light">
+            <Heading fontFamily="body" fontSize={{ md: 'md' }} fontWeight="light">
               {item.description}
             </Heading>
             <VStack align="left" spacing={0}>
               <Heading
                 color="gray.400"
                 fontFamily="body"
-                fontSize={{ base: 'xl', md: 'md' }}
+                fontSize={{ md: 'md' }}
                 fontWeight="light"
               >
                 Purchase through: {item.salesValidThrough}
@@ -108,7 +108,7 @@ export default function EventManagerPage() {
               <Heading
                 color="gray.400"
                 fontFamily="body"
-                fontSize={{ base: 'xl', md: 'md' }}
+                fontSize={{ md: 'md' }}
                 fontWeight="light"
               >
                 Valid through: {item.passValidThrough}

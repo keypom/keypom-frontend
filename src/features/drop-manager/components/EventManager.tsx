@@ -116,6 +116,7 @@ export const EventManager = ({
     const promises = ticketsForEvent.map(async (ticket) => {
       const meta: EventDropMetadata = JSON.parse(ticket.drop_config.metadata);
       const supply = await keypomInstance.getKeySupplyForTicket(ticket.drop_id);
+      console.log('Valid Through', meta.ticketInfo.salesValidThrough);
       return {
         id: ticket.drop_id,
         artwork: meta.ticketInfo.artwork,
@@ -301,7 +302,7 @@ export const EventManager = ({
               py="3"
               textColor="red.500"
               variant="secondary"
-              w={{ base: '100%', sm: 'initial' }}
+              w={{ sm: 'initial' }}
               onClick={handleCancelAllClick}
             >
               Cancel all
@@ -340,7 +341,7 @@ export const EventManager = ({
               py="3"
               textColor="red.500"
               variant="secondary"
-              w={{ base: '100%', sm: 'initial' }}
+              w={{ sm: 'initial' }}
               onClick={handleCancelAllClick}
             >
               Cancel all
@@ -368,6 +369,7 @@ export const EventManager = ({
           loading={isLoading}
           mt={{ base: '6', md: '4' }}
           showColumns={true}
+          showMobileTitles={['price', 'numTickets']}
           type="event-manager"
           {...tableProps}
         />

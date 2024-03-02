@@ -620,6 +620,7 @@ export default function EventManagerPage() {
           loading={isLoading}
           mt={{ base: '6', md: '4' }}
           showColumns={true}
+          showMobileTitles={['link', 'status']}
           type={getTableType()}
         />
 

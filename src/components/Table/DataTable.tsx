@@ -45,6 +45,7 @@ interface DataTableProps extends TableProps {
   columns: ColumnItem[];
   data: DataItem[];
   loading?: boolean;
+  showMobileTitles: string[];
 }
 
 export const DataTable = ({
@@ -53,6 +54,7 @@ export const DataTable = ({
   columns = [],
   data = [],
   loading = false,
+  showMobileTitles = [],
   ...props
 }: DataTableProps) => {
   const navigate = useNavigate();
@@ -133,7 +135,13 @@ export const DataTable = ({
 
           {/* Mobile table */}
           <Hide above="md">
-            <MobileDataTable columns={columns} data={data} loading={loading} {...props} />
+            <MobileDataTable
+              columns={columns}
+              data={data}
+              loading={loading}
+              showMobileTitles={showMobileTitles}
+              {...props}
+            />
           </Hide>
         </>
       ) : (
