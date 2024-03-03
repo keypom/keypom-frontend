@@ -7,13 +7,13 @@ import {
   ModalContent,
   ModalFooter,
   ModalHeader,
-  ModalOverlay,
   Input,
   Box,
   Center,
   Spinner,
   Text,
   ModalCloseButton,
+  ModalOverlay,
 } from '@chakra-ui/react';
 import { CheckIcon, CloseIcon } from '@chakra-ui/icons';
 
@@ -39,8 +39,8 @@ export const AppModal = () => {
         });
       }}
     >
-      <ModalOverlay />
-      <ModalContent p={{ base: '8', md: '16' }} textAlign="center" top={'-10rem'}>
+      <ModalOverlay backdropFilter="blur(0px)" bg="blackAlpha.600" />
+      <ModalContent p={{ base: '8', md: '16' }} textAlign="center" top={'-5rem'}>
         <ModalHeader
           alignItems="center"
           display="flex"

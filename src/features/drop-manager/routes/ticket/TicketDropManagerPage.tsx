@@ -41,7 +41,6 @@ import {
   TICKET_CLAIM_STATUS_ITEMS,
   TICKET_CLAIM_STATUS_OPTIONS,
 } from '@/features/all-drops/config/menuItems';
-import { file } from '@/utils/file';
 
 const ticketTableColumns: ColumnItem[] = [
   {
@@ -149,11 +148,7 @@ export default function EventManagerPage() {
       // Initialize an array to hold the new columns based on questions
       const questionColumns: ColumnItem[] =
         eventMetadata.eventInfo?.questions
-          ?.filter(
-            (questionInfo: QuestionInfo) =>
-              questionInfo.question.toLowerCase().includes('name') ||
-              questionInfo.question.toLowerCase().includes('email'),
-          )
+          ?.filter((questionInfo: QuestionInfo) => showQuestion(questionInfo.question))
           .map((questionInfo) => ({
             id: questionInfo.question, // Using the question text as a unique ID
             title: questionInfo.question, // The question text as the title
@@ -219,6 +214,13 @@ export default function EventManagerPage() {
     handleGetAllKeys();
   }, [accountId, selectedFilters]);
 
+  const showQuestion = (question: string) => {
+    return (
+      question.toLowerCase().replaceAll(' ', '').includes('name') ||
+      question.toLowerCase().replaceAll(' ', '').includes('email')
+    );
+  };
+
   const handleFiltering = (keys: AttendeeKeyItem[]) => {
     if (selectedFilters.status !== TICKET_CLAIM_STATUS_OPTIONS.ANY) {
       keys = keys.filter((key) => {
@@ -232,10 +234,19 @@ export default function EventManagerPage() {
     if (selectedFilters.search.trim() !== '') {
       keys = keys.filter((key) => {
         const metadata = JSON.parse(key.metadata);
-        const answers: string[] = Object.values(metadata.questions); // Extracts all answers to the questions
+        const answers: Record<string, string> = metadata.questions; // Extracts all answers to the questions
 
-        // Check if any answer includes the search term
-        return answers.some((answer) => answer.includes(selectedFilters.search.trim()));
+        for (const [question, answer] of Object.entries(answers)) {
+          if (showQuestion(question)) {
+            const answerString = answer.toLowerCase().replaceAll(' ', '');
+            const searchTerm = selectedFilters.search.toLowerCase().trim();
+
+            if (answerString.includes(searchTerm)) {
+              return true;
+            }
+          }
+        }
+        return false;
       });
     }
 
@@ -284,7 +295,7 @@ export default function EventManagerPage() {
     let keysFetched = 0;
     let filteredKeys: AttendeeItem[] = [];
     while (keysFetched < totalKeySupply && filteredKeys.length < selectedFilters.pageSize) {
-      const dropKeyItems = await keypomInstance.getPaginatedKeysForTicket({
+      const dropKeyItems: AttendeeKeyItem[] = await keypomInstance.getPaginatedKeysForTicket({
         dropId,
         start: keysFetched,
         limit: selectedFilters.pageSize,
@@ -354,13 +365,46 @@ export default function EventManagerPage() {
   };
 
   const handleExportCSVClick = async () => {
-    const data = await keypomInstance.getAllKeysForTicket({ dropId });
-    if (data.dropKeyItems.length > 0) {
+    const { dropName, dropKeyItems: data } = await keypomInstance.getAllKeysForTicket({ dropId });
+    if (data.length > 0) {
       setExporting(true);
 
       try {
-        const links = await keypomInstance.getLinksToExport(dropId);
-        file(`Drop ID ${data[0].dropId as string}.csv`, links.join('\r\n'));
+        // Construct CSV header
+        const questions = eventMetadata?.eventInfo?.questions || [];
+        let csvContent = 'data:text/csv;charset=utf-8,';
+        csvContent += 'Ticket ID,' + questions.map((q) => q.question).join(',') + '\r\n';
+
+        // Construct CSV rows
+        data.forEach((item, i) => {
+          const responses = JSON.parse(item.metadata).questions || {};
+          const row = [item.pub_key.split('ed25519:')[1]];
+
+          // Add answers in the same order as the questions
+          questions.forEach((q) => {
+            row.push(responses[q.question] || '');
+          });
+
+          // Join the individual row's columns and push it to CSV content
+          csvContent += row.join(',') + '\r\n';
+        });
+
+        // Encode the CSV content
+        const encodedUri = encodeURI(csvContent);
+
+        // Create a link to download the CSV file
+        const link = document.createElement('a');
+        link.setAttribute('href', encodedUri);
+        link.setAttribute(
+          'download',
+          `${(eventMetadata?.eventInfo?.name || '').toLowerCase().replaceAll(' ', '_')}-${dropName
+            .toLowerCase()
+            .replaceAll(' ', '_')}.csv`,
+        );
+        document.body.appendChild(link); // Required for FF
+
+        link.click(); // This will download the CSV file
+        document.body.removeChild(link); // Clean up
       } catch (e) {
         console.error('error', e);
       } finally {
@@ -372,7 +416,6 @@ export default function EventManagerPage() {
   const getTableRows: GetAttendeeDataFn = (data) => {
     if (data === undefined) return [];
     return data.map((item) => {
-      console.log('item', item);
       const mapped = {
         id: item.id, // Assuming `item` has a `drop_id` property that can serve as `id`
         link: truncateAddress(
@@ -424,16 +467,6 @@ export default function EventManagerPage() {
     const rowsToShow = filteredTicketData.slice(
       curPage * selectedFilters.pageSize,
       (curPage + 1) * selectedFilters.pageSize,
-    );
-    console.log(
-      'filteredTicketData',
-      filteredTicketData,
-      ' numPages',
-      numPages,
-      ' curPage',
-      curPage,
-      ' rowsToShow',
-      rowsToShow,
     );
     return getTableRows(rowsToShow);
   }, [filteredTicketData, filteredTicketData.length, curPage]);

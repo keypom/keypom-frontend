@@ -130,7 +130,6 @@ class KeypomJS {
   yoctoToNear = (yocto: string) => nearAPI.utils.format.formatNearAmount(yocto, 4);
 
   viewCall = async ({ contractId = eventsContract, methodName, args }) => {
-    console.log('calling view function', contractId, methodName, args); // eslint-disable-line no-console
     return await this.viewAccount.viewFunctionV2({
       contractId,
       methodName,
@@ -366,7 +365,6 @@ class KeypomJS {
   };
 
   getAllEventDrops = async ({ accountId }: { accountId: string }) => {
-    console.log('fetching all event drops: ', accountId); // eslint-disable-line no-console
     try {
       if (this.eventDrops?.length > 0) {
         return this.eventDrops;
@@ -590,7 +588,6 @@ class KeypomJS {
 
         // Only fetch if this page hasn't been cached yet
         if (!this.dropStore[accountId][pageStart]) {
-          console.log('cache miss for: ', pageStart); // eslint-disable-line no-console
           const pageDrops = await this.fetchDropsPage(accountId, pageIndex);
 
           // Cache each item from the page with its index as the key
