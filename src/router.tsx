@@ -1,6 +1,8 @@
 import React from 'react';
 import { createBrowserRouter } from 'react-router-dom';
-import StripeDashboard from './features/stripe-checkout/routes/StripeDashBoard';
+import StripeUtilityTest from './features/stripe-checkout/routes/StripeCreateEvent';
+import StripeDashboard from './features/stripe-checkout/routes/StripeDashboard';
+import StripePurchaseTicket from './features/stripe-checkout/routes/StripePurchaseTicket';
 
 const LandingPage = React.lazy(async () => await import('@/features/landing/routes/LandingPage'));
 
@@ -181,6 +183,14 @@ export const router = createBrowserRouter([
                 path: 'dashboard',
                 element: <StripeDashboard />,
               },
+              {
+                path: 'create-event',
+                element: <StripeUtilityTest />,
+              },
+              {
+                path: 'purchase-ticket',
+                element: <StripePurchaseTicket />,
+              }
             ],
           },
         ],
