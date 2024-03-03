@@ -1,7 +1,7 @@
 import React from 'react';
 import { createBrowserRouter } from 'react-router-dom';
 
-import { eventsLoader } from './pages/Gallery';
+import { eventsLoader } from './pages/Event';
 
 const LandingPage = React.lazy(async () => await import('@/features/landing/routes/LandingPage'));
 

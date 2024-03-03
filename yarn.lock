@@ -6306,7 +6306,7 @@ react-qr-code@^2.0.11:
     prop-types "^15.8.1"
     qr.js "0.0.0"
 
-react-qr-reader@3.0.0-beta-1:
+react-qr-reader@^3.0.0-beta-1:
   version "3.0.0-beta-1"
   resolved "https://registry.yarnpkg.com/react-qr-reader/-/react-qr-reader-3.0.0-beta-1.tgz#e04a20876409313439959d8e0ea6df3ba6e36d68"
   integrity sha512-5HeFH9x/BlziRYQYGK2AeWS9WiKYZtGGMs9DXy3bcySTX3C9UJL9EwcPnWw8vlf7JP4FcrAlr1SnZ5nsWLQGyw==

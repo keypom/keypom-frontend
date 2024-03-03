@@ -13,15 +13,25 @@ import {
   CardFooter,
   VStack,
   useDisclosure,
+  useToast,
 } from '@chakra-ui/react';
-import { NavLink, useParams } from 'react-router-dom';
+import { NavLink, useLoaderData, useParams } from 'react-router-dom';
 import { ExternalLinkIcon } from '@chakra-ui/icons';
 
 import { PurchaseModal } from '@/features/gallery/components/PurchaseModal';
 
+import myData from '../data/db.json';
+import { useLocation } from 'react-router-dom';
+import { SellModal } from '@/features/gallery/components/SellModal';
+import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import { VerifyModal } from '@/features/gallery/components/VerifyModal';
+
 export default function Event() {
   const params = useParams();
   const eventID = params.eventID;
+  const location = useLocation();
+  const navigate = useNavigate();
 
   const testticket = {
     date: '2024-10-10',
@@ -34,14 +44,75 @@ export default function Event() {
   };
   const tickets = [testticket, testticket];
 
+  const toast = useToast();
+
+  const events = useLoaderData().events;
+
   // check if the eventID is valid
   const event = events.find((event) => String(event.id) === eventID);
 
-  const res = event.location.trim().replace(/ /g, '+');
-  const mapHref = 'https://www.google.com/maps/search/' + String(res);
-
   // modal
   const { isOpen, onOpen, onClose } = useDisclosure();
+
+  // verify
+  const { isOpen: verifyIsOpen, onOpen: verifyOnOpen, onClose: verifyOnClose } = useDisclosure();
+
+  function useQuery() {
+    return new URLSearchParams(useLocation().search);
+  }
+
+  let query = useQuery();
+  let secretKey = query.get('secretKey');
+
+  // Now you can use the secretKey in your component
+  //example: http://localhost:3000/gallery/1?secretKey=itsasecret
+
+  console.log('secretKey' + secretKey);
+
+  let doKeyModal = true;
+
+  if (secretKey == null) {
+    //uhh
+    doKeyModal = false;
+  } else if (secretKey === 'itsasecret') {
+    //do something
+  }
+
+  function CloseSellModal() {
+    doKeyModal = false;
+    // Remove the secretKey parameter from the URL
+    // const params = new URLSearchParams(location.search);
+    // params.delete('secretKey');
+    navigate('./');
+
+    console.log('secretKegwgewey' + secretKey);
+  }
+
+  const [input, setInput] = useState('');
+  const SellTicket = (event) => {
+    event.preventDefault();
+    //sell the ticket with the secret key, give toast, and sell
+    navigate('./');
+    const sellsuccessful = Math.random();
+    console.log('inpuit' + input);
+    if (sellsuccessful <= 0.5) {
+      toast({
+        title: 'Item put for sale successfully PLACEHOLDER',
+        description: `Your item has been put for sale for ${input} NEAR`,
+        status: 'success',
+        duration: 5000,
+        isClosable: true,
+      });
+    } else {
+      toast({
+        title: 'Item not put for sale',
+        description: 'Your item has not been put for sale',
+        status: 'error',
+        duration: 5000,
+        isClosable: true,
+      });
+    }
+  };
 
   if (!event) {
     return (
@@ -52,6 +123,10 @@ export default function Event() {
       </Box>
     );
   }
+
+  const res = event.location.trim().replace(/ /g, '+');
+
+  const mapHref = 'https://www.google.com/maps/search/' + String(res);
 
   return (
     <Box p="10">
@@ -111,6 +186,10 @@ export default function Event() {
           </Text>
         </Box>
         <Box flex="1" textAlign="left">
+          <Button variant="primary" onClick={verifyOnOpen}>
+            Verify Ticket
+          </Button>
+
           <Heading as="h3" my="5" size="lg">
             Location
           </Heading>
@@ -156,6 +235,9 @@ export default function Event() {
       <SimpleGrid minChildWidth="300px" spacing={10}>
         {tickets?.map((ticket) => (
           <Card
+            onClick={onOpen}
+            transition="transform 0.2s"
+            _hover={{ transform: 'scale(1.05)', cursor: 'pointer' }}
             key={ticket.id}
             // bg="linear-gradient(180deg, rgba(255, 207, 234, 0) 0%, #30c9f34b 100%)"
             borderRadius={{ base: '1rem', md: '8xl' }}
@@ -192,14 +274,28 @@ export default function Event() {
               </VStack>
             </CardBody>
             <CardFooter>
-              <Button colorScheme="green" onClick={onOpen}>
-                Buy for {ticket.price} NEAR
-              </Button>
+              <Button colorScheme="green">Buy for {ticket.price} NEAR</Button>
             </CardFooter>
           </Card>
         ))}
       </SimpleGrid>
       <PurchaseModal event={event} isOpen={isOpen} onClose={onClose} />
+      <SellModal
+        input={input}
+        setInput={setInput}
+        event={event}
+        isOpen={doKeyModal}
+        onSubmit={SellTicket}
+        onClose={CloseSellModal}
+      />
+
+      <VerifyModal event={event} isOpen={verifyIsOpen} onClose={verifyOnClose} />
     </Box>
   );
 }
+
+export const eventsLoader = async () => {
+  // const res = await fetch("http://localhost:3000/events");
+
+  return myData;
+};

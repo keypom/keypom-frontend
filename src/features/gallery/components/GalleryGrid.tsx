@@ -16,6 +16,7 @@ import {
 import { NavLink, useNavigate } from 'react-router-dom';
 
 import { type DataItem } from './types';
+import { IconBox } from '@/components/IconBox';
 
 // props validation
 interface GalleryGridProps extends BoxProps {
@@ -50,7 +51,12 @@ export const GalleryGrid = ({ loading = false, data = [], ...props }: GalleryGri
   if (loading) {
     return (
       <>
-        <SimpleGrid minChildWidth="300px" spacing={10}>
+        <SimpleGrid
+          minChildWidth="300px"
+          mt={{ base: '6', md: '4' }}
+          borderRadius="12px"
+          spacing={10}
+        >
           {loadingdata.map((event) => (
             <Card
               key={event.id}
@@ -89,17 +95,23 @@ export const GalleryGrid = ({ loading = false, data = [], ...props }: GalleryGri
 
   return (
     <>
-      <SimpleGrid minChildWidth="300px" spacing={10}>
-        {data?.map((event) => (
-          <Card
-            transition="transform 0.2s"
-            _hover={{ transform: 'scale(1.05)' }}
-            key={event.id}
-            borderRadius={{ base: '1rem', md: '8xl' }}
-            style={{ display: 'flex', flexDirection: 'column', height: '100%' }}
-          >
-            {console.log(event)}
-            {/* <Flex
+      <IconBox h="full" mt={{ base: '6', md: '7' }} pb={{ base: '6', md: '16' }} w="full">
+        <SimpleGrid minChildWidth="300px" spacing={10}>
+          {data?.map((event) => (
+            <Card
+              transition="transform 0.2s"
+              _hover={{ transform: 'scale(1.05)' }}
+              key={event.id}
+              borderRadius={{ base: '1rem', md: '8xl' }}
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                height: '100%',
+                border: '1px solid rgba(0, 0, 0, 0.5)',
+              }}
+            >
+              {/* {console.log(event)} */}
+              {/* <Flex
               style={{
                 display: 'flex',
                 flexDirection: 'column',
@@ -107,29 +119,29 @@ export const GalleryGrid = ({ loading = false, data = [], ...props }: GalleryGri
                 height: '100%',
               }}
             > */}
-            <NavLink to={'../gallery/' + String(event.id)}>
-              <CardHeader position="relative">
-                <Image
-                  alt={event.name}
-                  borderRadius="md"
-                  height="300px"
-                  objectFit="cover"
-                  src={event.medfia}
-                  width="100%"
-                />
-                <Box
-                  bg="white"
-                  border="1px solid black"
-                  color="black"
-                  left="25"
-                  p={2}
-                  position="absolute"
-                  rounded="lg"
-                  top="25"
-                >
-                  ${event.claimed}
-                </Box>
-                {/* <NavLink to={'./'}>
+              <NavLink to={'../gallery/' + String(event.id)}>
+                <CardHeader position="relative">
+                  <Image
+                    alt={event.name}
+                    borderRadius="md"
+                    height="300px"
+                    objectFit="cover"
+                    src={event.medfia}
+                    width="100%"
+                  />
+                  <Box
+                    bg="white"
+                    border="1px solid black"
+                    color="black"
+                    left="25"
+                    p={2}
+                    position="absolute"
+                    rounded="lg"
+                    top="25"
+                  >
+                    ${event.claimed}
+                  </Box>
+                  {/* <NavLink to={'./'}>
                   <Box
                     alignItems="center"
                     bg="white"
@@ -150,23 +162,24 @@ export const GalleryGrid = ({ loading = false, data = [], ...props }: GalleryGri
                     <ExternalLinkIcon mx="2px" />
                   </Box>
                 </NavLink> */}
-              </CardHeader>
-              <CardBody color="black">
-                <Heading as="h2" size="sm">
-                  {event.name}
-                </Heading>
-              </CardBody>
-              <CardFooter>
-                <VStack align="start" spacing={2}>
-                  <Text my="2px">Event on {event.type}</Text>
-                  <Text my="2px">Event in {event.id}</Text>
-                </VStack>
-              </CardFooter>
-            </NavLink>
-            {/* </Flex> */}
-          </Card>
-        ))}
-      </SimpleGrid>
+                </CardHeader>
+                <CardBody color="black">
+                  <Heading as="h2" size="sm">
+                    {event.name}
+                  </Heading>
+                </CardBody>
+                <CardFooter>
+                  <VStack align="start" spacing={2}>
+                    <Text my="2px">Event on {event.type}</Text>
+                    <Text my="2px">Event in {event.id}</Text>
+                  </VStack>
+                </CardFooter>
+              </NavLink>
+              {/* </Flex> */}
+            </Card>
+          ))}
+        </SimpleGrid>
+      </IconBox>
     </>
   );
 };

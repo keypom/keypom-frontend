@@ -17,6 +17,8 @@ import {
   Icon,
   Button,
   useDisclosure,
+  Menu,
+  MenuList,
 } from '@chakra-ui/react';
 import { NavLink } from 'react-router-dom';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -25,7 +27,9 @@ import { ArrowDownIcon, ArrowUpIcon, SearchIcon } from '@chakra-ui/icons';
 import { DropManagerPagination } from '@/features/all-drops/components/DropManagerPagination';
 import {
   DROP_CLAIM_STATUS_OPTIONS,
+  DROP_TYPE_ITEMS,
   DROP_TYPE_OPTIONS,
+  GALLERY_PRICE_ITEMS,
   PAGE_SIZE_ITEMS,
   createMenuItems,
 } from '@/features/all-drops/config/menuItems';
@@ -34,6 +38,7 @@ import { PAGE_SIZE_LIMIT } from '@/constants/common';
 import keypomInstance from '@/lib/keypom';
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
 import { GalleryGrid } from '@/features/gallery/components/GalleryGrid';
+import { DropDownButton } from '@/features/all-drops/components/DropDownButton';
 
 // import myData from '../data/db.json';
 
@@ -57,12 +62,12 @@ export default function Gallery() {
   const popoverClicked = useRef(0);
 
   const [selectedFilters, setSelectedFilters] = useState<{
-    // type: string;
+    type: string;
     search: string;
     // status: string;
     pageSize: number;
   }>({
-    // type: DROP_TYPE_OPTIONS.ANY,
+    type: DROP_TYPE_OPTIONS.ANY,
     search: '',
     // status: DROP_CLAIM_STATUS_OPTIONS.ANY,
     pageSize: PAGE_SIZE_LIMIT,
@@ -71,6 +76,22 @@ export default function Gallery() {
   // const [numOwnedDrops, setNumOwnedDrops] = useState<number>(0);
   const [filteredDataItems, setFilteredDataItems] = useState<DataItem[]>([]);
   // const [wallet, setWallet] = useState({});
+
+  const handleDropTypeSelect = (item) => {
+    console.log('item', item);
+    setSelectedFilters((prevFilters) => ({
+      ...prevFilters,
+      type: item.label,
+    }));
+  };
+
+  const handlePriceFilterSelect = (item) => {
+    console.log('item', item);
+    setSelectedFilters((prevFilters) => ({
+      ...prevFilters,
+      price: item.label,
+    }));
+  };
 
   const { selector, accountId } = useAuthWalletContext();
 
@@ -105,12 +126,12 @@ export default function Gallery() {
 
   const handleFiltering = async (drops) => {
     // Apply the selected filters
-    // if (selectedFilters.type !== DROP_TYPE_OPTIONS.ANY) {
-    //   drops = drops.filter(
-    //     (drop) =>
-    //       keypomInstance.getDropType(drop).toLowerCase() === selectedFilters.type.toLowerCase(),
-    //   );
-    // }
+    if (selectedFilters.type !== DROP_TYPE_OPTIONS.ANY) {
+      drops = drops.filter(
+        (drop) =>
+          keypomInstance.getDropType(drop).toLowerCase() === selectedFilters.type.toLowerCase(),
+      );
+    }
 
     // if (selectedFilters.status !== DROP_CLAIM_STATUS_OPTIONS.ANY) {
     //   // Convert each drop to a promise that resolves to either the drop or null
@@ -137,8 +158,12 @@ export default function Gallery() {
 
     if (selectedFilters.search.trim() !== '') {
       drops = drops.filter((drop) => {
-        const { dropName } = keypomInstance.getDropMetadata(drop.metadata);
-        return dropName.toLowerCase().includes(selectedFilters.search.toLowerCase());
+        const { dropName, description } = keypomInstance.getDropMetadata(drop.metadata);
+        //match name and description
+        return (
+          dropName.toLowerCase().includes(searchTerm) ||
+          description.toLowerCase().includes(searchTerm)
+        );
       });
     }
 
@@ -233,6 +258,20 @@ export default function Gallery() {
     },
   });
 
+  const filterDropMenuItems = createMenuItems({
+    menuItems: DROP_TYPE_ITEMS,
+    onClick: (item) => {
+      handleDropTypeSelect(item);
+    },
+  });
+
+  const priceMenuItems = createMenuItems({
+    menuItems: GALLERY_PRICE_ITEMS,
+    onClick: (item) => {
+      handlePriceFilterSelect(item);
+    },
+  });
+
   const getGalleryGridRows = () => {
     if (filteredDataItems === undefined || filteredDataItems.length === 0) return [];
     console.log('currpage: ' + curPage);
@@ -310,6 +349,7 @@ export default function Gallery() {
         src="https://via.placeholder.com/300"
         width="100%"
       />
+      <Heading py="4">Browse Events</Heading>
       <Divider bg="black" my="5" />
 
       <HStack alignItems="center" display="flex" spacing="auto">
@@ -340,6 +380,32 @@ export default function Gallery() {
             />
           </InputGroup>
           <HStack>
+            <Menu>
+              {({ isOpen }) => (
+                <Box>
+                  <DropDownButton
+                    isOpen={isOpen}
+                    placeholder={`Type: ${selectedFilters.type}`}
+                    variant="secondary"
+                    onClick={() => (popoverClicked.current += 1)}
+                  />
+                  <MenuList minWidth="auto">{filterDropMenuItems}</MenuList>
+                </Box>
+              )}
+            </Menu>
+            <Menu>
+              {({ isOpen }) => (
+                <Box>
+                  <DropDownButton
+                    isOpen={isOpen}
+                    placeholder={`Price: ${selectedFilters.price}`}
+                    variant="secondary"
+                    onClick={() => (popoverClicked.current += 1)}
+                  />
+                  <MenuList minWidth="auto">{priceMenuItems}</MenuList>
+                </Box>
+              )}
+            </Menu>
             <Button
               py="6"
               variant="secondary"

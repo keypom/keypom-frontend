@@ -68,6 +68,25 @@ export const DROP_TYPE_ITEMS: MenuItemProps[] = [
   },
 ];
 
+export const GALLERY_PRICE_ITEMS: MenuItemProps[] = [
+  {
+    label: '<20',
+    // icon: <CheckedIcon h="4" isChecked={false} w="4" />,
+  },
+  {
+    label: '20-50',
+    // icon: <LinkIcon h="4" w="4" />,
+  },
+  {
+    label: '50-100',
+    // icon: <NFTIcon h="4" w="4" />,
+  },
+  {
+    label: '100+',
+    // icon: <TicketIcon h="4" w="4" />,
+  },
+];
+
 export const DROP_CLAIM_STATUS_ITEMS: MenuItemProps[] = [
   {
     label: 'Any',
