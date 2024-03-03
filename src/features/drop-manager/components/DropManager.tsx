@@ -514,6 +514,7 @@ export const DropManager = ({
           loading={loading}
           mt={{ base: '6', md: '4' }}
           showColumns={showColumns}
+          showMobileTitles={[]}
           type={getTableType()}
           {...tableProps}
         />
