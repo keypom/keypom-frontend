@@ -149,15 +149,11 @@ export const SORT_MENU_ITEMS: MenuItemProps[] = [
   //   // color: 'gray.600',
   // },
   {
-    label: 'Date',
+    label: 'Tickets ascending',
     // color: 'gray.600',
   },
   {
-    label: 'Price',
-    // color: 'gray.600',
-  },
-  {
-    label: 'Tickets',
+    label: 'Tickets descending',
     // color: 'gray.600',
   },
 ];

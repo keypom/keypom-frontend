@@ -14,6 +14,7 @@ import {
   Modal,
   ModalCloseButton,
   ModalContent,
+  ModalFooter,
   ModalHeader,
   ModalOverlay,
   Spacer,
@@ -44,7 +45,7 @@ export const VerifyModal = ({ isOpen, onClose, event }: VerifyModalProps) => {
         title: 'No QR Code Found',
         description: `Your code wasnt read properly, please try again`,
         status: 'error',
-        duration: 5000,
+        duration: 1000,
         isClosable: true,
       });
       return;
@@ -53,9 +54,9 @@ export const VerifyModal = ({ isOpen, onClose, event }: VerifyModalProps) => {
     if (answer === 'http://en.m.wikipedia.org') {
       toast({
         title: 'Valid',
-        description: `Your code is a valid for this event`,
+        description: `Your ticket is valid for this event`,
         status: 'success',
-        duration: 5000,
+        duration: 1000,
         isClosable: true,
       });
       return;
@@ -65,7 +66,7 @@ export const VerifyModal = ({ isOpen, onClose, event }: VerifyModalProps) => {
       title: 'Invalid',
       description: 'Your ticket is invalid',
       status: 'error',
-      duration: 5000,
+      duration: 1000,
       isClosable: true,
     });
   };
@@ -74,22 +75,31 @@ export const VerifyModal = ({ isOpen, onClose, event }: VerifyModalProps) => {
     <Modal isCentered closeOnOverlayClick={false} isOpen={isOpen} size={'xl'} onClose={onClose}>
       <ModalOverlay />
       <ModalContent>
-        {/* <Image src={event.img} alt={event.title} /> */}
-
-        <ModalHeader>
-          <Flex justifyContent="space-between">
-            <Box />
-            <Flex justifyContent="center" flex="1">
-              <div>Verify Modal</div>
-            </Flex>
-            <Tooltip
-              label="Enable your camera when asked, then hold your QR code up to the camera and wait for a popup."
-              placement="top-end"
-            >
-              <Icon as={InfoOutlineIcon} />
+        <ModalCloseButton />
+        <Text textAlign="left" color="black">
+          Ticket Name
+        </Text>
+        <Text textAlign="left">{event.name}</Text>
+        <Text textAlign="left" mt="4" color="black">
+          Description
+        </Text>
+        <Text textAlign="left">{event.description}</Text>
+        <Text textAlign="left" mt="4" color="black">
+          Date
+        </Text>
+        <Text textAlign="left">{event.date}</Text>
+        <Text textAlign="left" mt="4" color="black">
+          Location
+        </Text>
+        <Text textAlign="left">{event.location}</Text>
+        <HStack>
+          <Text textAlign="left" mt="4" color="black">
+            Scan QR Code
+            <Tooltip label="Enable your camera when asked, then hold your QR code up to the camera and wait for a popup.">
+              <Icon mx="2" as={InfoOutlineIcon} />
             </Tooltip>
-          </Flex>
-        </ModalHeader>
+          </Text>
+        </HStack>
 
         <QrReader
           onResult={(result, error) => {
@@ -104,26 +114,17 @@ export const VerifyModal = ({ isOpen, onClose, event }: VerifyModalProps) => {
           }}
           style={{ width: '100%' }}
         />
-        <p>{data}</p>
 
-        <Text color="gray" textAlign={'left'}>
-          VerifyModal {event.date}
+        <Text textAlign="left" mt="4" color="black">
+          Ticket Information
         </Text>
-        <Text color="gray" textAlign={'left'}>
-          Verify Modal {event.location}
-        </Text>
-        <Text my="2" textAlign={'left'}>
-          {event.description} LVerifyModalet, consectetur adipiscing elit, sed do eiusmod tempor
-          incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud
-          exercitaVerifyModalyModalecat cupidatat non proident, sunt in culpa qui officia deserunt
-          mollit anim id est laborum.
-        </Text>
+        <Text textAlign="left">{data}</Text>
 
-        <Button variant={'secondary'} onClick={onClose}>
-          Cancel
-        </Button>
-
-        <ModalCloseButton />
+        <ModalFooter>
+          <Button w="100%" variant={'secondary'} onClick={onClose}>
+            Cancel
+          </Button>
+        </ModalFooter>
       </ModalContent>
     </Modal>
   );

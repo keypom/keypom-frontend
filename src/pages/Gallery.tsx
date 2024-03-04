@@ -23,6 +23,7 @@ import {
   Flex,
   Spacer,
 } from '@chakra-ui/react';
+// import { DateRangePicker } from 'rsuite';
 import { NavLink } from 'react-router-dom';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ArrowDownIcon, ArrowUpIcon, SearchIcon } from '@chakra-ui/icons';
@@ -76,7 +77,7 @@ export default function Gallery() {
     startDate: Moment | null;
     endDate: Moment | null;
     sort: string;
-    reversed: boolean;
+    // reversed: boolean;
   }>({
     // type: DROP_TYPE_OPTIONS.ANY,
     search: '',
@@ -84,27 +85,29 @@ export default function Gallery() {
     price: GALLERY_PRICE_ITEMS[0].label,
     startDate: null,
     endDate: null,
-    sort: 'Date',
-    reversed: false,
+    sort: 'Tickets ascending',
+    // reversed: false,
   });
   const [searchTerm, setSearchTerm] = useState<string>('');
   // const [numOwnedDrops, setNumOwnedDrops] = useState<number>(0);
   const [filteredDataItems, setFilteredDataItems] = useState<DataItem[]>([]);
   // const [wallet, setWallet] = useState({});
 
+  const [banner, setBanner] = useState('defaultbanner');
+
   const handleSortMenuSelect = (item) => {
     //if you select the same item, reverse the order
-    if (selectedFilters.sort === item.label) {
-      setSelectedFilters((prevFilters) => ({
-        ...prevFilters,
-        reversed: !prevFilters.reversed,
-      }));
-    } else {
-      setSelectedFilters((prevFilters) => ({
-        ...prevFilters,
-        sort: item.label,
-      }));
-    }
+    // if (selectedFilters.sort === item.label) {
+    //   setSelectedFilters((prevFilters) => ({
+    //     ...prevFilters,
+    //     reversed: !prevFilters.reversed,
+    //   }));
+    // } else {
+    setSelectedFilters((prevFilters) => ({
+      ...prevFilters,
+      sort: item.label,
+    }));
+    // }
   };
 
   const handlePriceFilterSelect = (item) => {
@@ -255,28 +258,30 @@ export default function Gallery() {
       console.log('before sortuing');
       console.log(dropData);
       //sort the drops based on the selected sort option
-      if (selectedFilters.sort === 'Date') {
+      // if (selectedFilters.sort === 'Date') {
+      //   dropData = dropData.sort((a, b) => {
+      //     if (selectedFilters.reversed) {
+      //       return b[1].type.localeCompare(a[1].type);
+      //     }
+      //     return a[1].type.localeCompare(b[1].type);
+      //   });
+      // }
+      // if (selectedFilters.sort === 'Price') {
+      //   dropData = dropData.sort((a, b) => {
+      //     if (selectedFilters.reversed) {
+      //       return b[1].claimed.localeCompare(a[1].claimed);
+      //     }
+      //     return a[1].claimed.localeCompare(b[1].claimed);
+      //   });
+      // }
+      if (selectedFilters.sort === 'Tickets ascending') {
         dropData = dropData.sort((a, b) => {
-          if (selectedFilters.reversed) {
-            return b[1].type.localeCompare(a[1].type);
-          }
-          return a[1].type.localeCompare(b[1].type);
-        });
-      }
-      if (selectedFilters.sort === 'Price') {
-        dropData = dropData.sort((a, b) => {
-          if (selectedFilters.reversed) {
-            return b[1].claimed.localeCompare(a[1].claimed);
-          }
-          return a[1].claimed.localeCompare(b[1].claimed);
-        });
-      }
-      if (selectedFilters.sort === 'Tickets') {
-        dropData = dropData.sort((a, b) => {
-          if (selectedFilters.reversed) {
-            return b[1].id.localeCompare(a[1].id);
-          }
           return a[1].id.localeCompare(b[1].id);
+        });
+      }
+      if (selectedFilters.sort === 'Tickets descending') {
+        dropData = dropData.sort((a, b) => {
+          return b[1].id.localeCompare(a[1].id);
         });
       }
       console.log('after sortuing');
@@ -341,6 +346,14 @@ export default function Gallery() {
   }, [accountId, selectedFilters, keypomInstance]);
 
   useEffect(() => {
+    if (filteredDataItems.length == 0) return;
+    const randomElement = filteredDataItems[Math.floor(Math.random() * filteredDataItems.length)];
+
+    console.log(randomElement);
+    setBanner(randomElement.media);
+  }, [filteredDataItems]);
+
+  useEffect(() => {
     if (!accountId) return;
 
     // First get enough data with the current filters to fill the page size
@@ -386,36 +399,9 @@ export default function Gallery() {
     );
   };
 
-  const RenderArrow = () => {
-    if (selectedFilters.reversed) {
-      return <ArrowUpIcon />;
-    }
-    return <ArrowDownIcon />;
-  };
-
-  // const setStartDate = (startDate) => {
-  //   setSelectedFilters((prevFilters) => ({
-  //     ...prevFilters,
-  //     startDate: startDate,
-  //   }));
-  // };
-
-  // const setEndDate = (endDate) => {
-  //   setSelectedFilters((prevFilters) => ({
-  //     ...prevFilters,
-  //     endDate: endDate,
-  //   }));
-  // };
-
   return (
     <Box p="10">
-      <ChakraImage
-        alt={'banner'}
-        height="300"
-        objectFit="cover"
-        src="https://via.placeholder.com/300"
-        width="100%"
-      />
+      <ChakraImage alt={banner} height="300" objectFit="cover" src={banner} width="100%" />
       <Heading py="4">Browse Events</Heading>
       <Divider bg="black" my="5" />
 
@@ -448,6 +434,7 @@ export default function Gallery() {
           </InputGroup>
           <HStack>
             <DateRangePicker
+              format="MM/dd/yyyy HH:mm"
               startDate={selectedFilters.startDate}
               startDateId="your_unique_start_date_id"
               endDate={selectedFilters.endDate}
@@ -461,6 +448,7 @@ export default function Gallery() {
               }}
               focusedInput={focusedInput}
               onFocusChange={(focusedInput) => setFocusedInput(focusedInput)}
+              hideKeyboardShortcutsPanel={true}
             />
             <Menu>
               {({ isOpen }) => (
@@ -475,13 +463,13 @@ export default function Gallery() {
                 </Box>
               )}
             </Menu>
-            <Box w="200px">
+            <Box w="260px">
               <Flex justifyContent="flex-end">
                 {(!isAllDropsLoading && (
                   <Menu>
                     {({ isOpen }) => (
                       <HStack>
-                        <Box
+                        {/* <Box
                           _hover={{ transform: 'scale(1.05)', cursor: 'pointer' }}
                           onClick={() => {
                             setSelectedFilters((prevFilters) => ({
@@ -489,10 +477,7 @@ export default function Gallery() {
                               reversed: !prevFilters.reversed,
                             }));
                           }}
-                        >
-                          {RenderArrow()}
-                          {/* {selectedFilters.sort === 'Any' ? null : RenderArrow()} */}
-                        </Box>
+                        ></Box> */}
                         <DropDownButton
                           isOpen={isOpen}
                           placeholder={`Sort: ${selectedFilters.sort}`}
@@ -506,18 +491,20 @@ export default function Gallery() {
                 )) || (
                   <HStack>
                     <Skeleton
-                      _hover={{ transform: 'scale(1.05)', cursor: 'pointer' }}
-                      onClick={() => {
-                        setSelectedFilters((prevFilters) => ({
-                          ...prevFilters,
-                          reversed: !prevFilters.reversed,
-                        }));
-                      }}
+                    // _hover={{ transform: 'scale(1.05)', cursor: 'pointer' }}
+                    // onClick={() => {
+                    //   setSelectedFilters((prevFilters) => ({
+                    //     ...prevFilters,
+                    //     reversed: !prevFilters.reversed,
+                    //   }));
+                    // }}
                     >
-                      {RenderArrow()}
-                      {/* {selectedFilters.sort === 'Any' ? null : RenderArrow()} */}
+                      {/* {RenderArrow()}
+                      {selectedFilters.sort === 'Any' ? null : RenderArrow()} */}
                     </Skeleton>
                     <Button
+                      h="52px"
+                      w="200px"
                       isLoading
                       loadingText="Loading..."
                       variant="secondary"

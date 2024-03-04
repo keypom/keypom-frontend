@@ -11,6 +11,7 @@ import {
   Modal,
   ModalCloseButton,
   ModalContent,
+  ModalFooter,
   ModalHeader,
   ModalOverlay,
   Text,
@@ -43,24 +44,24 @@ export const SellModal = ({
     <Modal isCentered closeOnOverlayClick={false} isOpen={isOpen} size={'xl'} onClose={onClose}>
       <ModalOverlay />
       <ModalContent>
-        <Image src={event.img} alt={event.title} />
-        <ModalHeader> Sell Modal </ModalHeader>
-        <Text color="gray" textAlign={'left'}>
-          Event on {event.date}
-        </Text>
-        <Text color="gray" textAlign={'left'}>
-          Event in {event.location}
-        </Text>
-        <Text my="2" textAlign={'left'}>
-          {event.description} Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-          eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis
-          nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute
-          irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
-          pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia
-          deserunt mollit anim id est laborum.
-        </Text>
-
         <ModalCloseButton />
+        <Text textAlign="left" color="black">
+          Ticket Name
+        </Text>
+        <Text textAlign="left">{event.name}</Text>
+        <Text textAlign="left" mt="4" color="black">
+          Description
+        </Text>
+        <Text textAlign="left">{event.description}</Text>
+        <Text textAlign="left" mt="4" color="black">
+          Date
+        </Text>
+        <Text textAlign="left">{event.date}</Text>
+        <Text textAlign="left" mt="4" color="black">
+          Location
+        </Text>
+        <Text textAlign="left">{event.location}</Text>
+
         <Form action="/" onSubmit={onSubmit}>
           <FormControl isInvalid={isError}>
             <FormLabel>Price in NEAR</FormLabel>
@@ -75,13 +76,16 @@ export const SellModal = ({
           </FormControl>
 
           <Box my="5"></Box>
-          <HStack justifyContent="space-between">
-            <Button type="submit">List Ticket</Button>
-            <Button variant={'secondary'} onClick={onClose}>
-              Close
-            </Button>
-          </HStack>
+          <Button w="100%" type="submit">
+            Put Ticket For Sale
+          </Button>
         </Form>
+
+        <ModalFooter>
+          <Button w="100%" variant={'secondary'} onClick={onClose}>
+            Cancel
+          </Button>
+        </ModalFooter>
       </ModalContent>
     </Modal>
   );

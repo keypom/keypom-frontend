@@ -52,16 +52,32 @@ export const PurchaseModal = ({
     <Modal isCentered closeOnOverlayClick={false} isOpen={isOpen} size={'xl'} onClose={onClose}>
       <ModalOverlay />
       <ModalContent>
-        <ModalHeader> Purchase Modal </ModalHeader>
-        <Text>Event on {event.date}</Text>
-        <Text>Event in {event.location}</Text>
         <ModalCloseButton />
-        <Form action="/" method="post">
+        <Text textAlign="left" color="black">
+          Ticket Name
+        </Text>
+        <Text textAlign="left">{event.name}</Text>
+        <Text textAlign="left" mt="4" color="black">
+          Description
+        </Text>
+        <Text textAlign="left">{event.description}</Text>
+        <Text textAlign="left" mt="4" color="black">
+          Date
+        </Text>
+        <Text textAlign="left">{event.date}</Text>
+        <Text textAlign="left" mt="4" color="black">
+          Location
+        </Text>
+        <Text textAlign="left">{event.location}</Text>
+
+        <Form>
           {event.tickets > 1 ? (
             <>
-              <ModalBody>Select number of tickets</ModalBody>
-              <FormLabel>Ticket Amount</FormLabel>
+              <Text textAlign="left" mt="4" color="black">
+                Ticket Amount
+              </Text>
               <NumberInput
+                mt="2"
                 max={event.tickets}
                 min={1}
                 value={ticketAmount}
@@ -78,8 +94,10 @@ export const PurchaseModal = ({
             <> </>
           )}
           <FormControl isInvalid={isError}>
-            <FormLabel>Email</FormLabel>
-            <Input type="email" value={email} onChange={handleInputChange} />
+            <Text textAlign="left" mt="4" color="black">
+              Email
+            </Text>
+            <Input mt="2" type="email" value={email} onChange={handleInputChange} />
             {!isError ? (
               <FormHelperText>
                 No account will be created, ensure your email is correct
@@ -89,12 +107,14 @@ export const PurchaseModal = ({
             )}
           </FormControl>
 
-          <Button colorScheme="green" onClick={onSubmit}>
+          <Button w="100%" mt="4" isDisabled={isError} colorScheme="green" onClick={onSubmit}>
             Proceed to checkout
           </Button>
         </Form>
         <ModalFooter>
-          <Button onClick={onClose}>Close</Button>
+          <Button w="100%" variant={'secondary'} onClick={onClose}>
+            Cancel
+          </Button>
         </ModalFooter>
       </ModalContent>
     </Modal>
