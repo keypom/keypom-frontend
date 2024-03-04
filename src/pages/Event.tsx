@@ -7,26 +7,21 @@ import {
   Image as ChakraImage,
   HStack,
   SimpleGrid,
-  Card,
-  CardHeader,
-  CardBody,
-  CardFooter,
-  VStack,
   useDisclosure,
   useToast,
+  useBreakpointValue,
+  VStack,
 } from '@chakra-ui/react';
-import { NavLink, useLoaderData, useParams } from 'react-router-dom';
+import { useLoaderData, useParams, useNavigate } from 'react-router-dom';
 import { ExternalLinkIcon } from '@chakra-ui/icons';
-
-import { PurchaseModal } from '@/features/gallery/components/PurchaseModal';
-
-import myData from '../data/db.json';
-import { useLocation } from 'react-router-dom';
-import { SellModal } from '@/features/gallery/components/SellModal';
-import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
+
+import { SellModal } from '@/features/gallery/components/SellModal';
+import { PurchaseModal } from '@/features/gallery/components/PurchaseModal';
 import { VerifyModal } from '@/features/gallery/components/VerifyModal';
 import { TicketCard } from '@/features/gallery/components/TicketCard';
+
+import myData from '../data/db.json';
 
 export default function Event() {
   const params = useParams();
@@ -46,23 +41,31 @@ export default function Event() {
   // verify
   const { isOpen: verifyIsOpen, onOpen: verifyOnOpen, onClose: verifyOnClose } = useDisclosure();
 
-  function useQuery() {
-    return new URLSearchParams(useLocation().search);
-  }
+  // function useQuery() {
+  //   return new URLSearchParams(useLocation().search);
+  // }
 
-  let query = useQuery();
-  let secretKey = query.get('secretKey');
+  // const query = useQuery();
+  const secretKey = window.location.hash.substring(1).trim().split('=', 2)[1];
 
-  //example: http://localhost:3000/gallery/1?secretKey=itsasecret
+  // example: http://localhost:3000/gallery/1#secretKey=itsasecret
 
   console.log('secretKey' + secretKey);
   let doKeyModal = false;
   if (secretKey == null) {
-    //uhh
+    // uhh
     doKeyModal = false;
   } else if (secretKey === 'itsasecret') {
-    //do something
-    let doKeyModal = true;
+    // do something
+    doKeyModal = true;
+  } else {
+    toast({
+      title: 'Sale request failure',
+      description: `This item may not be put for sale at this time`,
+      status: 'error',
+      duration: 5000,
+      isClosable: true,
+    });
   }
 
   function CloseSellModal() {
@@ -78,7 +81,7 @@ export default function Event() {
   const [input, setInput] = useState('');
   const SellTicket = (event) => {
     event.preventDefault();
-    //sell the ticket with the secret key, give toast, and sell
+    // sell the ticket with the secret key, give toast, and sell
     navigate('./');
     const sellsuccessful = Math.random();
     console.log('inpuit' + input);
@@ -113,7 +116,7 @@ export default function Event() {
 
   const loadingdata = [];
 
-  //append 10 loading cards
+  // append 10 loading cards
   for (let i = 0; i < 3; i++) {
     const loadingCard = {
       id: i,
@@ -129,12 +132,14 @@ export default function Event() {
 
   const mapHref = 'https://www.google.com/maps/search/' + String(res);
 
-  //purchase modal
+  // purchase modal
   const [email, setEmail] = useState('');
   const [ticketAmount, setTicketAmount] = useState(1);
 
   const incrementAmount = () => {
-    setTicketAmount(ticketAmount + 1);
+    if (ticketAmount < event.tickets) {
+      setTicketAmount(ticketAmount + 1);
+    }
   };
 
   const decrementAmount = () => {
@@ -156,7 +161,7 @@ export default function Event() {
 
   const PurchaseTicket = (e) => {
     e.preventDefault();
-    //sell the ticket with the secret key, give toast, and sell
+    // sell the ticket with the secret key, give toast, and sell
     navigate('./');
 
     const buySuccessful = Math.random();
@@ -174,7 +179,7 @@ export default function Event() {
     } else {
       toast({
         title: 'Purchase failed PLACEHOLDER',
-        description: 'The item has not purchased',
+        description: 'The item has n  ot purchased',
         status: 'error',
         duration: 5000,
         isClosable: true,
@@ -182,8 +187,21 @@ export default function Event() {
     }
   };
 
+  // mobile stacking
+  const Stack = useBreakpointValue({ base: VStack, md: HStack });
+
   return (
     <Box p="10">
+      <Box
+        backgroundColor="white"
+        h="100%"
+        left={0}
+        position="absolute"
+        top={0}
+        w="100%"
+        zIndex={-1}
+      />
+
       <Box position="relative">
         <ChakraImage
           alt={event.title}
@@ -218,17 +236,19 @@ export default function Event() {
       {/* <Text>Details about the Event:</Text>
       <Text>Event ID: {eventID}</Text> */}
 
-      <HStack
+      {/* <Box backgroundColor={'white'} h="100vh" left="0" ml="0" position="absolute" w="100vw"></Box> */}
+      <Stack
         align="start"
         // bg="linear-gradient(180deg, rgba(255, 207, 234, 0) 0%, #30c9f34b 100%)"
         borderRadius={{ base: '1rem', md: '8xl' }}
         justifyContent="space-between"
         p="0"
       >
-        <Box flex="2" textAlign="left" mr="20">
-          <Heading as="h3" my="5" size="sm">
+        <Box flex="2" mr="20" textAlign="left">
+          <Text color="black.800" fontSize="xl" fontWeight="medium" my="2">
             Event Details
-          </Heading>
+          </Text>
+
           <Text> {event.description} </Text>
           <Text>
             Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor
@@ -240,13 +260,9 @@ export default function Event() {
           </Text>
         </Box>
         <Box flex="1" textAlign="left">
-          <Button variant="primary" onClick={verifyOnOpen}>
-            Verify Ticket
-          </Button>
-
-          <Heading as="h3" mt="5" mb="2" size="sm">
+          <Text color="black.800" fontSize="xl" fontWeight="medium" my="2">
             Location
-          </Heading>
+          </Text>
 
           <Text>{event.location}</Text>
 
@@ -254,12 +270,16 @@ export default function Event() {
             Open in Google Maps <ExternalLinkIcon mx="2px" />
           </a>
 
-          <Heading as="h3" mt="5" mb="2" size="sm">
+          <Text color="black.800" fontSize="xl" fontWeight="medium" my="2">
             Date
-          </Heading>
+          </Text>
           <Text>{event.date}</Text>
+
+          <Button mt="4" variant="primary" onClick={verifyOnOpen}>
+            Verify Ticket
+          </Button>
         </Box>
-      </HStack>
+      </Stack>
 
       <Heading as="h3" my="5" size="lg">
         Tickets
@@ -268,13 +288,13 @@ export default function Event() {
         {loadingdata?.map((ticket) => (
           <Box>
             <TicketCard
-              surroundingNavLink={false}
-              loading={false}
               key={ticket.id}
-              event={loadingdata[0]}
               amount={ticketAmount}
-              incrementAmount={incrementAmount}
               decrementAmount={decrementAmount}
+              event={loadingdata[0]}
+              incrementAmount={incrementAmount}
+              loading={false}
+              surroundingNavLink={false}
               onSubmit={OpenPurchaseModal}
             />
           </Box>
@@ -282,22 +302,23 @@ export default function Event() {
       </SimpleGrid>
 
       <PurchaseModal
-        setEmail={setEmail}
-        setTicketAmount={setTicketAmount}
-        onSubmit={PurchaseTicket}
-        event={event}
-        isOpen={isOpen}
-        onClose={ClosePurchaseModal}
+        amount={ticketAmount}
+        decrementAmount={decrementAmount}
         email={email}
-        ticketAmount={ticketAmount}
+        event={event}
+        incrementAmount={incrementAmount}
+        isOpen={isOpen}
+        setEmail={setEmail}
+        onClose={ClosePurchaseModal}
+        onSubmit={PurchaseTicket}
       />
       <SellModal
-        input={input}
-        setInput={setInput}
         event={event}
+        input={input}
         isOpen={doKeyModal}
-        onSubmit={SellTicket}
+        setInput={setInput}
         onClose={CloseSellModal}
+        onSubmit={SellTicket}
       />
 
       <VerifyModal event={event} isOpen={verifyIsOpen} onClose={verifyOnClose} />

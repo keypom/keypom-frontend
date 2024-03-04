@@ -1,22 +1,8 @@
-import {
-  Text,
-  Heading,
-  VStack,
-  BoxProps,
-  SimpleGrid,
-  Card,
-  CardHeader,
-  Image,
-  Box,
-  CardBody,
-  CardFooter,
-  Skeleton,
-  SkeletonText,
-} from '@chakra-ui/react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { type BoxProps, SimpleGrid, Box, Text } from '@chakra-ui/react';
+
+import { IconBox } from '@/components/IconBox';
 
 import { type DataItem } from './types';
-import { IconBox } from '@/components/IconBox';
 import { TicketCard } from './TicketCard';
 
 // props validation
@@ -28,7 +14,7 @@ interface GalleryGridProps extends BoxProps {
 export const GalleryGrid = ({ loading = false, data = [], ...props }: GalleryGridProps) => {
   const loadingdata = [];
 
-  //append 10 loading cards
+  // append 10 loading cards
   for (let i = 0; i < 10; i++) {
     const loadingCard = {
       id: i,
@@ -40,16 +26,21 @@ export const GalleryGrid = ({ loading = false, data = [], ...props }: GalleryGri
     loadingdata.push(loadingCard);
   }
 
-  var temp = loading ? [...loadingdata] : [...data];
-
-  console.log('temp', temp.length);
+  const temp = loading ? [...loadingdata] : [...data];
 
   return (
     <>
-      <IconBox h="full" mt={{ base: '6', md: '7' }} pb={{ base: '6', md: '16' }} w="full" p="20px">
+      <IconBox h="full" mt={{ base: '6', md: '7' }} p="20px" pb={{ base: '6', md: '16' }} w="full">
+        {(temp === undefined || temp.length === 0) && (
+          <Box textAlign="center" w="full">
+            <Text color="black.800" fontSize="xl" fontWeight="medium" mt="10">
+              No events found with current filters
+            </Text>
+          </Box>
+        )}
         <SimpleGrid minChildWidth="250px" spacing={5}>
           {temp?.map((event) => (
-            <TicketCard surroundingNavLink={true} loading={loading} key={event.id} event={event} />
+            <TicketCard key={event.id} event={event} loading={loading} surroundingNavLink={true} />
           ))}
         </SimpleGrid>
       </IconBox>

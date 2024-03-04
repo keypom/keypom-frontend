@@ -3,24 +3,17 @@ import {
   FormControl,
   FormErrorMessage,
   FormHelperText,
-  FormLabel,
   Input,
   Modal,
-  ModalBody,
   ModalCloseButton,
   ModalContent,
   ModalFooter,
-  ModalHeader,
   ModalOverlay,
-  NumberDecrementStepper,
-  NumberIncrementStepper,
-  NumberInput,
-  NumberInputField,
-  NumberInputStepper,
   Text,
 } from '@chakra-ui/react';
-import { useState } from 'react';
 import { Form } from 'react-router-dom';
+
+import { TicketIncrementer } from './TicketIncrementer';
 
 interface PurchaseModalProps {
   isOpen: boolean;
@@ -30,7 +23,9 @@ interface PurchaseModalProps {
   setEmail: (email: string) => void;
   email: string;
   setTicketAmount: (ticketAmount: number) => void;
-  ticketAmount: number;
+  amount: number;
+  decrementAmount: () => void;
+  incrementAmount: () => void;
 }
 
 export const PurchaseModal = ({
@@ -40,8 +35,9 @@ export const PurchaseModal = ({
   onSubmit,
   setEmail,
   email,
-  setTicketAmount,
-  ticketAmount,
+  decrementAmount,
+  incrementAmount,
+  amount,
 }: PurchaseModalProps) => {
   // email input
   const handleInputChange = (e) => {
@@ -51,50 +47,37 @@ export const PurchaseModal = ({
   return (
     <Modal isCentered closeOnOverlayClick={false} isOpen={isOpen} size={'xl'} onClose={onClose}>
       <ModalOverlay />
-      <ModalContent>
+      <ModalContent p="8">
         <ModalCloseButton />
-        <Text textAlign="left" color="black">
+        <Text as="h2" color="black.800" fontSize="xl" fontWeight="medium" my="4px" textAlign="left">
           Ticket Name
         </Text>
         <Text textAlign="left">{event.name}</Text>
-        <Text textAlign="left" mt="4" color="black">
+        <Text as="h2" color="black.800" fontSize="l" fontWeight="medium" my="4px" textAlign="left">
           Description
         </Text>
         <Text textAlign="left">{event.description}</Text>
-        <Text textAlign="left" mt="4" color="black">
+        <Text as="h2" color="black.800" fontSize="l" fontWeight="medium" my="4px" textAlign="left">
           Date
         </Text>
         <Text textAlign="left">{event.date}</Text>
-        <Text textAlign="left" mt="4" color="black">
+        <Text as="h2" color="black.800" fontSize="l" fontWeight="medium" my="4px" textAlign="left">
           Location
         </Text>
         <Text textAlign="left">{event.location}</Text>
 
         <Form>
           {event.tickets > 1 ? (
-            <>
-              <Text textAlign="left" mt="4" color="black">
-                Ticket Amount
-              </Text>
-              <NumberInput
-                mt="2"
-                max={event.tickets}
-                min={1}
-                value={ticketAmount}
-                onChange={(valueString, valueNumber) => setTicketAmount(valueNumber)}
-              >
-                <NumberInputField />
-                <NumberInputStepper>
-                  <NumberIncrementStepper />
-                  <NumberDecrementStepper />
-                </NumberInputStepper>
-              </NumberInput>
-            </>
+            <TicketIncrementer
+              amount={amount}
+              decrementAmount={decrementAmount}
+              incrementAmount={incrementAmount}
+            />
           ) : (
             <> </>
           )}
           <FormControl isInvalid={isError}>
-            <Text textAlign="left" mt="4" color="black">
+            <Text color="black" mt="4" textAlign="left">
               Email
             </Text>
             <Input mt="2" type="email" value={email} onChange={handleInputChange} />
@@ -107,12 +90,12 @@ export const PurchaseModal = ({
             )}
           </FormControl>
 
-          <Button w="100%" mt="4" isDisabled={isError} colorScheme="green" onClick={onSubmit}>
+          <Button colorScheme="green" isDisabled={isError} mt="4" w="100%" onClick={onSubmit}>
             Proceed to checkout
           </Button>
         </Form>
         <ModalFooter>
-          <Button w="100%" variant={'secondary'} onClick={onClose}>
+          <Button variant={'secondary'} w="100%" onClick={onClose}>
             Cancel
           </Button>
         </ModalFooter>

@@ -490,7 +490,6 @@ export default function AllDrops() {
       />
 
       <DropManagerPagination
-        type={'Rows'}
         curPage={curPage}
         handleNextPage={handleNextPage}
         handlePrevPage={handlePrevPage}
@@ -499,6 +498,7 @@ export default function AllDrops() {
         numPages={numPages}
         pageSizeMenuItems={pageSizeMenuItems}
         rowsSelectPlaceholder={selectedFilters.pageSize.toString()}
+        type={'Rows'}
         onClickRowsSelect={() => (popoverClicked.current += 1)}
       />
 

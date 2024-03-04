@@ -4,21 +4,17 @@ import {
   FormControl,
   FormErrorMessage,
   FormHelperText,
-  FormLabel,
-  HStack,
-  Image,
   Input,
   Modal,
   ModalCloseButton,
   ModalContent,
   ModalFooter,
-  ModalHeader,
   ModalOverlay,
   Text,
 } from '@chakra-ui/react';
 import { Form } from 'react-router-dom';
 
-interface PurchaseModalProps {
+interface SellModalProps {
   input: string;
   setInput: (input: string) => void;
   isOpen: boolean;
@@ -34,7 +30,7 @@ export const SellModal = ({
   onClose,
   onSubmit,
   event,
-}: PurchaseModalProps) => {
+}: SellModalProps) => {
   // price input
   const handleInputChange = (e) => {
     setInput(e.target.value);
@@ -43,28 +39,37 @@ export const SellModal = ({
   return (
     <Modal isCentered closeOnOverlayClick={false} isOpen={isOpen} size={'xl'} onClose={onClose}>
       <ModalOverlay />
-      <ModalContent>
+      <ModalContent p="8">
         <ModalCloseButton />
-        <Text textAlign="left" color="black">
+        <Text as="h2" color="black.800" fontSize="xl" fontWeight="medium" my="4px" textAlign="left">
           Ticket Name
         </Text>
         <Text textAlign="left">{event.name}</Text>
-        <Text textAlign="left" mt="4" color="black">
+        <Text as="h2" color="black.800" fontSize="l" fontWeight="medium" my="4px" textAlign="left">
           Description
         </Text>
         <Text textAlign="left">{event.description}</Text>
-        <Text textAlign="left" mt="4" color="black">
+        <Text as="h2" color="black.800" fontSize="l" fontWeight="medium" my="4px" textAlign="left">
           Date
         </Text>
         <Text textAlign="left">{event.date}</Text>
-        <Text textAlign="left" mt="4" color="black">
+        <Text as="h2" color="black.800" fontSize="l" fontWeight="medium" my="4px" textAlign="left">
           Location
         </Text>
         <Text textAlign="left">{event.location}</Text>
 
         <Form action="/" onSubmit={onSubmit}>
           <FormControl isInvalid={isError}>
-            <FormLabel>Price in NEAR</FormLabel>
+            <Text
+              as="h2"
+              color="black.800"
+              fontSize="l"
+              fontWeight="medium"
+              my="4px"
+              textAlign="left"
+            >
+              Price in NEAR
+            </Text>
             <Input type="number" value={input} onChange={handleInputChange} />
             {!isError ? (
               <FormHelperText>
@@ -76,13 +81,13 @@ export const SellModal = ({
           </FormControl>
 
           <Box my="5"></Box>
-          <Button w="100%" type="submit">
+          <Button type="submit" w="100%">
             Put Ticket For Sale
           </Button>
         </Form>
 
         <ModalFooter>
-          <Button w="100%" variant={'secondary'} onClick={onClose}>
+          <Button variant={'secondary'} w="100%" onClick={onClose}>
             Cancel
           </Button>
         </ModalFooter>

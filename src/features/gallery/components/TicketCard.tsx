@@ -1,4 +1,3 @@
-import { IconBox } from '@/components/IconBox';
 import {
   Box,
   Button,
@@ -6,27 +5,20 @@ import {
   CardBody,
   CardFooter,
   CardHeader,
-  FormControl,
-  FormErrorMessage,
-  FormHelperText,
-  FormLabel,
-  HStack,
-  Heading,
   Image as ChakraImage,
-  Input,
-  Modal,
-  ModalCloseButton,
-  ModalContent,
-  ModalHeader,
-  ModalOverlay,
   Skeleton,
   SkeletonText,
   Text,
   VStack,
+  Badge,
 } from '@chakra-ui/react';
-import { Form, NavLink } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 
-interface PurchaseModalProps {
+import { IconBox } from '@/components/IconBox';
+
+import { TicketIncrementer } from './TicketIncrementer';
+
+interface TicketCardProps {
   input: string;
   setInput: (input: string) => void;
   isOpen: boolean;
@@ -48,7 +40,7 @@ export const TicketCard = ({
   decrementAmount,
   surroundingNavLink,
   onSubmit,
-}: PurchaseModalProps) => {
+}: TicketCardProps) => {
   const SurroundingLink = ({ children }) => {
     return surroundingNavLink ? (
       <NavLink to={'../gallery/' + String(event.id)}>{children}</NavLink>
@@ -57,7 +49,7 @@ export const TicketCard = ({
     );
   };
 
-  const navButton = onSubmit == null ? true : false;
+  const navButton = onSubmit == null;
 
   if (loading) {
     return (
@@ -102,86 +94,83 @@ export const TicketCard = ({
   return (
     <IconBox
       key={event.id}
-      transition="transform 0.2s"
       _hover={{ transform: 'scale(1.05)' }}
       borderRadius={{ base: '1rem', md: '8xl' }}
+      m="0px"
+      p="0px"
+      pb="0px"
       style={{
         display: 'flex',
         flexDirection: 'column',
         height: '100%',
         // border: '1px solid rgba(0, 0, 0, 0.5)',
       }}
-      p="0px"
-      m="0px"
+      transition="transform 0.2s"
     >
       <SurroundingLink>
         <Box m="30px" position="relative">
           <ChakraImage
             alt={event.name}
+            border="0px"
             borderRadius="md"
-            height="300px"
+            height="200px"
             objectFit="cover"
             src={'te'}
             width="100%"
-            border="0px"
           />
-          <Box
-            bg="white"
-            //   border="1px solid black"
-            color="grey"
-            right="5"
+          <Badge
             p={2}
             position="absolute"
+            right="5"
             rounded="lg"
             top="25"
+            variant="gray"
+            //   border="1px solid black"
+            color="grey"
           >
             {event.claimed} available
-          </Box>
+          </Badge>
 
           <Box align="left" color="black">
-            <Heading as="h2" size="md">
+            <Text as="h2" color="black.800" fontSize="xl" fontWeight="medium" my="2" size="sm">
               {event.name}
-            </Heading>
+            </Text>
           </Box>
           <Box>
             <VStack align="start" spacing={2}>
-              <Text color="grey" my="2px">
+              <Text color="grey" fontSize="sm" my="1px">
                 {event.type}
               </Text>
-              <Text align="left" color="black" my="2px">
-                {event.id} Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod
-                tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis
-                nostrud exercitation ullamco laboris nisi ut aliq
+              <Text color="grey" fontSize="sm" my="1px">
+                {event.id}
+              </Text>
+
+              <Text align="left" color="black" fontSize="sm" my="1px">
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor
+                incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud
+                exercitation ullamco laboris nisi ut aliq
               </Text>
             </VStack>
           </Box>
           {amount ? (
-            <>
-              <HStack mt="5">
-                <Button w="7px" variant="secondary" onClick={decrementAmount}>
-                  -
-                </Button>
-                <Button w="7px" variant="secondary">
-                  {amount}
-                </Button>
-                <Button w="7px" variant="secondary" onClick={incrementAmount}>
-                  +
-                </Button>
-              </HStack>
-            </>
+            <TicketIncrementer
+              amount={amount}
+              decrementAmount={decrementAmount}
+              incrementAmount={incrementAmount}
+            />
           ) : null}
           {navButton ? (
             <>
               <NavLink to={'../gallery/' + String(event.id)}>
-                <Button w="100%" mt="5">
+                <Button mt="5" w="100%">
                   {' '}
-                  Buy for {event.claimed} NEAR
+                  Browse Event
                 </Button>
               </NavLink>
             </>
           ) : (
             <>
-              <Button w="100%" mt="5" onClick={onSubmit}>
+              <Button mt="5" w="100%" onClick={onSubmit}>
                 {' '}
                 Buy for {event.claimed} NEAR
               </Button>

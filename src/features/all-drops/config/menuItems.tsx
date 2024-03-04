@@ -143,6 +143,29 @@ export const PAGE_SIZE_ITEMS: MenuItemProps[] = [
   },
 ];
 
+export const GALLERY_PAGE_SIZE_ITEMS: MenuItemProps[] = [
+  {
+    label: '6',
+    color: 'gray.600',
+  },
+  {
+    label: '12',
+    color: 'gray.600',
+  },
+  {
+    label: '18',
+    color: 'gray.600',
+  },
+  {
+    label: '24',
+    color: 'gray.600',
+  },
+  {
+    label: '60',
+    color: 'gray.600',
+  },
+];
+
 export const SORT_MENU_ITEMS: MenuItemProps[] = [
   // {
   //   label: 'Any',

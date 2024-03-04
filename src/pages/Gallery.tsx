@@ -1,52 +1,45 @@
 import {
   Box,
-  Card,
-  CardBody,
-  CardFooter,
-  CardHeader,
   Divider,
   Heading,
   Input,
-  SimpleGrid,
-  Text,
-  VStack,
   Image as ChakraImage,
   HStack,
   InputGroup,
   InputLeftElement,
   Icon,
   Button,
-  useDisclosure,
   Menu,
   MenuList,
   Skeleton,
   Flex,
-  Spacer,
+  Hide,
+  VStack,
+  Show,
+  useDisclosure,
 } from '@chakra-ui/react';
-// import { DateRangePicker } from 'rsuite';
-import { NavLink } from 'react-router-dom';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ArrowDownIcon, ArrowUpIcon, SearchIcon } from '@chakra-ui/icons';
+import { SearchIcon } from '@chakra-ui/icons';
 import { DateRangePicker } from 'react-dates';
 import 'react-dates/initialize';
 import 'react-dates/lib/css/_datepicker.css';
 import '../features/gallery/components/cssoverrides.css';
-import moment, { Moment } from 'moment';
+import { type Moment } from 'moment';
+import { type ProtocolReturnedDrop } from 'keypom-js';
 
 import { DropManagerPagination } from '@/features/all-drops/components/DropManagerPagination';
 import {
   GALLERY_PRICE_ITEMS,
-  PAGE_SIZE_ITEMS,
+  GALLERY_PAGE_SIZE_ITEMS,
   SORT_MENU_ITEMS,
   createMenuItems,
 } from '@/features/all-drops/config/menuItems';
-
-import { PAGE_SIZE_LIMIT } from '@/constants/common';
 import keypomInstance from '@/lib/keypom';
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
 import { GalleryGrid } from '@/features/gallery/components/GalleryGrid';
 import { DropDownButton } from '@/features/all-drops/components/DropDownButton';
-import { ProtocolReturnedDrop } from 'keypom-js';
+import { FilterOptionsMobileButton } from '@/features/all-drops/components/FilterOptionsMobileButton';
+import { MobileDrawerMenu } from '@/features/all-drops/components/MobileDrawerMenu';
 
 // import myData from '../data/db.json';
 
@@ -66,7 +59,9 @@ export default function Gallery() {
   const [isAllDropsLoading, setIsAllDropsLoading] = useState(true);
   const popoverClicked = useRef(0);
 
-  //date range picker
+  const { isOpen, onOpen, onClose } = useDisclosure();
+
+  // date range picker
   const [focusedInput, setFocusedInput] = useState(null);
 
   const [selectedFilters, setSelectedFilters] = useState<{
@@ -81,7 +76,7 @@ export default function Gallery() {
   }>({
     // type: DROP_TYPE_OPTIONS.ANY,
     search: '',
-    pageSize: PAGE_SIZE_LIMIT,
+    pageSize: parseInt(GALLERY_PAGE_SIZE_ITEMS[0].label),
     price: GALLERY_PRICE_ITEMS[0].label,
     startDate: null,
     endDate: null,
@@ -96,7 +91,7 @@ export default function Gallery() {
   const [banner, setBanner] = useState('defaultbanner');
 
   const handleSortMenuSelect = (item) => {
-    //if you select the same item, reverse the order
+    // if you select the same item, reverse the order
     // if (selectedFilters.sort === item.label) {
     //   setSelectedFilters((prevFilters) => ({
     //     ...prevFilters,
@@ -214,7 +209,7 @@ export default function Gallery() {
       drops = resolvedDrops.filter((drop): drop is ProtocolReturnedDrop => drop !== null);
     }
 
-    //apply start and end date filters
+    // apply start and end date filters
     console.log('endDate: ', selectedFilters.endDate);
     console.log('startDate: ', selectedFilters.startDate);
 
@@ -249,15 +244,15 @@ export default function Gallery() {
       drops = resolvedDrops.filter((drop): drop is ProtocolReturnedDrop => drop !== null);
     }
 
-    //before returning drops, sort them if all drops are fetched
+    // before returning drops, sort them if all drops are fetched
     if (!isAllDropsLoading && selectedFilters.sort !== 'Any') {
-      //get data for each drop and pair it with the drop
+      // get data for each drop and pair it with the drop
       let dropData = await Promise.all(
         drops.map(async (drop) => [drop, await keypomInstance.getDropData({ drop })]),
       );
       console.log('before sortuing');
       console.log(dropData);
-      //sort the drops based on the selected sort option
+      // sort the drops based on the selected sort option
       // if (selectedFilters.sort === 'Date') {
       //   dropData = dropData.sort((a, b) => {
       //     if (selectedFilters.reversed) {
@@ -286,7 +281,7 @@ export default function Gallery() {
       }
       console.log('after sortuing');
       console.log(dropData);
-      //extract the drops from the sorted array
+      // extract the drops from the sorted array
       drops = dropData.map((drop) => drop[0]);
     }
 
@@ -368,7 +363,7 @@ export default function Gallery() {
   }, [accountId, selectedFilters]);
 
   const pageSizeMenuItems = createMenuItems({
-    menuItems: PAGE_SIZE_ITEMS,
+    menuItems: GALLERY_PAGE_SIZE_ITEMS,
     onClick: (item) => {
       handlePageSizeSelect(item);
     },
@@ -405,40 +400,128 @@ export default function Gallery() {
       <Heading py="4">Browse Events</Heading>
       <Divider bg="black" my="5" />
 
-      <HStack alignItems="center" display="flex" spacing="auto">
-        <HStack align="stretch" justify="space-between" w="full">
-          <InputGroup width="300px">
-            <InputLeftElement height="full" pointerEvents="none">
-              <Icon as={SearchIcon} color="gray.400" />
-            </InputLeftElement>
-            <Input
-              backgroundColor="white"
-              border="2px solid"
-              borderColor="gray.200"
-              color="gray.400"
-              fontSize="md"
-              fontWeight="medium"
-              h="52px"
-              height="full"
-              placeholder="Search..."
-              px="6"
-              sx={{
-                '::placeholder': {
-                  color: 'gray.400', // Placeholder text color
-                },
-              }}
-              value={searchTerm}
-              onChange={handleSearchChange}
-              onKeyDown={handleKeyDown}
+      <Show above="md">
+        <HStack alignItems="center" display="flex" spacing="auto">
+          <HStack align="stretch" justify="space-between" w="full">
+            <InputGroup width="300px">
+              <InputLeftElement height="full" pointerEvents="none">
+                <Icon as={SearchIcon} color="gray.400" />
+              </InputLeftElement>
+              <Input
+                backgroundColor="white"
+                border="2px solid"
+                borderColor="gray.200"
+                color="gray.400"
+                fontSize="md"
+                fontWeight="medium"
+                h="52px"
+                height="full"
+                placeholder="Search..."
+                px="6"
+                sx={{
+                  '::placeholder': {
+                    color: 'gray.400', // Placeholder text color
+                  },
+                }}
+                value={searchTerm}
+                onChange={handleSearchChange}
+                onKeyDown={handleKeyDown}
+              />
+            </InputGroup>
+            <HStack>
+              <DateRangePicker
+                endDate={selectedFilters.endDate}
+                endDateId="your_unique_end_date_id"
+                focusedInput={focusedInput}
+                format="MM/dd/yyyy HH:mm"
+                hideKeyboardShortcutsPanel={true}
+                startDate={selectedFilters.startDate}
+                startDateId="your_unique_start_date_id"
+                onDatesChange={({ startDate, endDate }) => {
+                  setSelectedFilters((prevFilters) => ({
+                    ...prevFilters,
+                    startDate,
+                    endDate,
+                  }));
+                }}
+                onFocusChange={(focusedInput) => {
+                  setFocusedInput(focusedInput);
+                }}
+              />
+              <Menu>
+                {({ isOpen }) => (
+                  <Box>
+                    <DropDownButton
+                      isOpen={isOpen}
+                      placeholder={`Price: ${selectedFilters.price}`}
+                      variant="secondary"
+                      onClick={() => (popoverClicked.current += 1)}
+                    />
+                    <MenuList minWidth="auto">{priceMenuItems}</MenuList>
+                  </Box>
+                )}
+              </Menu>
+              <Box w="260px">
+                <Flex justifyContent="flex-end">
+                  {(!isAllDropsLoading && (
+                    <Menu>
+                      {({ isOpen }) => (
+                        <HStack>
+                          <DropDownButton
+                            isOpen={isOpen}
+                            placeholder={`Sort: ${selectedFilters.sort}`}
+                            variant="secondary"
+                            onClick={() => (popoverClicked.current += 1)}
+                          />
+                          <MenuList minWidth="auto">{sortOrderMenuItems}</MenuList>
+                        </HStack>
+                      )}
+                    </Menu>
+                  )) || (
+                    <HStack>
+                      <Skeleton></Skeleton>
+                      <Button
+                        isLoading
+                        h="52px"
+                        loadingText="Loading..."
+                        spinnerPlacement="end"
+                        variant="secondary"
+                        w="200px"
+                        w="full"
+                      >
+                        Sort
+                      </Button>
+                    </HStack>
+                  )}
+                </Flex>
+              </Box>
+            </HStack>
+          </HStack>
+        </HStack>
+      </Show>
+
+      {/* Mobile Menu */}
+      <Hide above="md">
+        <VStack spacing="20px">
+          <Heading size="2xl" textAlign="left" w="full">
+            All drops
+          </Heading>
+
+          <HStack align="stretch" justify="space-between" w="full">
+            <FilterOptionsMobileButton
+              buttonTitle="Filter Options"
+              popoverClicked={popoverClicked}
+              onOpen={onOpen}
             />
-          </InputGroup>
-          <HStack>
             <DateRangePicker
-              format="MM/dd/yyyy HH:mm"
-              startDate={selectedFilters.startDate}
-              startDateId="your_unique_start_date_id"
               endDate={selectedFilters.endDate}
               endDateId="your_unique_end_date_id"
+              focusedInput={focusedInput}
+              format="MM/dd/yyyy HH:mm"
+              hideKeyboardShortcutsPanel={true}
+              numberOfMonths={1}
+              startDate={selectedFilters.startDate}
+              startDateId="your_unique_start_date_id"
               onDatesChange={({ startDate, endDate }) => {
                 setSelectedFilters((prevFilters) => ({
                   ...prevFilters,
@@ -446,85 +529,40 @@ export default function Gallery() {
                   endDate,
                 }));
               }}
-              focusedInput={focusedInput}
-              onFocusChange={(focusedInput) => setFocusedInput(focusedInput)}
-              hideKeyboardShortcutsPanel={true}
+              onFocusChange={(focusedInput) => {
+                setFocusedInput(focusedInput);
+              }}
             />
-            <Menu>
-              {({ isOpen }) => (
-                <Box>
-                  <DropDownButton
-                    isOpen={isOpen}
-                    placeholder={`Price: ${selectedFilters.price}`}
-                    variant="secondary"
-                    onClick={() => (popoverClicked.current += 1)}
-                  />
-                  <MenuList minWidth="auto">{priceMenuItems}</MenuList>
-                </Box>
-              )}
-            </Menu>
-            <Box w="260px">
-              <Flex justifyContent="flex-end">
-                {(!isAllDropsLoading && (
-                  <Menu>
-                    {({ isOpen }) => (
-                      <HStack>
-                        {/* <Box
-                          _hover={{ transform: 'scale(1.05)', cursor: 'pointer' }}
-                          onClick={() => {
-                            setSelectedFilters((prevFilters) => ({
-                              ...prevFilters,
-                              reversed: !prevFilters.reversed,
-                            }));
-                          }}
-                        ></Box> */}
-                        <DropDownButton
-                          isOpen={isOpen}
-                          placeholder={`Sort: ${selectedFilters.sort}`}
-                          variant="secondary"
-                          onClick={() => (popoverClicked.current += 1)}
-                        />
-                        <MenuList minWidth="auto">{sortOrderMenuItems}</MenuList>
-                      </HStack>
-                    )}
-                  </Menu>
-                )) || (
-                  <HStack>
-                    <Skeleton
-                    // _hover={{ transform: 'scale(1.05)', cursor: 'pointer' }}
-                    // onClick={() => {
-                    //   setSelectedFilters((prevFilters) => ({
-                    //     ...prevFilters,
-                    //     reversed: !prevFilters.reversed,
-                    //   }));
-                    // }}
-                    >
-                      {/* {RenderArrow()}
-                      {selectedFilters.sort === 'Any' ? null : RenderArrow()} */}
-                    </Skeleton>
-                    <Button
-                      h="52px"
-                      w="200px"
-                      isLoading
-                      loadingText="Loading..."
-                      variant="secondary"
-                      spinnerPlacement="end"
-                      w="full"
-                    >
-                      Sort
-                    </Button>
-                  </HStack>
-                )}
-              </Flex>
-            </Box>
           </HStack>
-        </HStack>
-      </HStack>
+        </VStack>
+      </Hide>
+
+      {/* Mobile Popup Menu For Filtering */}
+      <MobileDrawerMenu
+        filters={[
+          {
+            label: 'Price',
+            value: selectedFilters.price,
+            menuItems: priceMenuItems,
+          },
+          {
+            label: 'Sort',
+            value: selectedFilters.sort,
+            menuItems: sortOrderMenuItems,
+          },
+        ]}
+        handleKeyDown={handleKeyDown}
+        handleSearchChange={handleSearchChange}
+        isOpen={isOpen}
+        searchTerm={searchTerm}
+        title="Filter Options"
+        onClose={onClose}
+      />
 
       <Divider bg="black" my="5" />
       <GalleryGrid data={getGalleryGridRows()} loading={isLoading} />
+
       <DropManagerPagination
-        type={'Events'}
         curPage={curPage}
         handleNextPage={handleNextPage}
         handlePrevPage={handlePrevPage}
@@ -533,6 +571,7 @@ export default function Gallery() {
         numPages={numPages}
         pageSizeMenuItems={pageSizeMenuItems}
         rowsSelectPlaceholder={selectedFilters.pageSize.toString()}
+        type={'Events'}
         onClickRowsSelect={() => (popoverClicked.current += 1)}
       />
     </Box>
