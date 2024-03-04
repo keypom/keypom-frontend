@@ -33,7 +33,7 @@ module.exports = {
     '@typescript-eslint',
   ],
   rules: {
-    endOfLine: 'auto',
+    endOfLine: 'off',
     'react/react-in-jsx-scope': 'off',
     'react/jsx-sort-props': [
       2,
