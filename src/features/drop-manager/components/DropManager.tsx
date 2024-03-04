@@ -511,6 +511,7 @@ export const DropManager = ({
         <DataTable
           columns={tableColumns}
           data={data}
+          excludeMobileColumns={[]}
           loading={loading}
           mt={{ base: '6', md: '4' }}
           showColumns={showColumns}
