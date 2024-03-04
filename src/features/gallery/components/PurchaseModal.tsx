@@ -26,15 +26,28 @@ interface PurchaseModalProps {
   isOpen: boolean;
   onClose: () => void;
   event: any;
+  onSubmit: () => void;
+  setEmail: (email: string) => void;
+  email: string;
+  setTicketAmount: (ticketAmount: number) => void;
+  ticketAmount: number;
 }
 
-export const PurchaseModal = ({ isOpen, onClose, event }: PurchaseModalProps) => {
+export const PurchaseModal = ({
+  isOpen,
+  onClose,
+  event,
+  onSubmit,
+  setEmail,
+  email,
+  setTicketAmount,
+  ticketAmount,
+}: PurchaseModalProps) => {
   // email input
-  const [input, setInput] = useState('');
   const handleInputChange = (e) => {
-    setInput(e.target.value);
+    setEmail(e.target.value);
   };
-  const isError = input === '';
+  const isError = email === '';
   return (
     <Modal isCentered closeOnOverlayClick={false} isOpen={isOpen} size={'xl'} onClose={onClose}>
       <ModalOverlay />
@@ -48,7 +61,12 @@ export const PurchaseModal = ({ isOpen, onClose, event }: PurchaseModalProps) =>
             <>
               <ModalBody>Select number of tickets</ModalBody>
               <FormLabel>Ticket Amount</FormLabel>
-              <NumberInput max={event.tickets} min={1}>
+              <NumberInput
+                max={event.tickets}
+                min={1}
+                value={ticketAmount}
+                onChange={(valueString, valueNumber) => setTicketAmount(valueNumber)}
+              >
                 <NumberInputField />
                 <NumberInputStepper>
                   <NumberIncrementStepper />
@@ -59,10 +77,9 @@ export const PurchaseModal = ({ isOpen, onClose, event }: PurchaseModalProps) =>
           ) : (
             <> </>
           )}
-
           <FormControl isInvalid={isError}>
             <FormLabel>Email</FormLabel>
-            <Input type="email" value={input} onChange={handleInputChange} />
+            <Input type="email" value={email} onChange={handleInputChange} />
             {!isError ? (
               <FormHelperText>
                 No account will be created, ensure your email is correct
@@ -72,7 +89,7 @@ export const PurchaseModal = ({ isOpen, onClose, event }: PurchaseModalProps) =>
             )}
           </FormControl>
 
-          <Button colorScheme="green" type="submit">
+          <Button colorScheme="green" onClick={onSubmit}>
             Proceed to checkout
           </Button>
         </Form>

@@ -19,18 +19,24 @@ import {
   useDisclosure,
   Menu,
   MenuList,
+  Skeleton,
+  Flex,
+  Spacer,
 } from '@chakra-ui/react';
 import { NavLink } from 'react-router-dom';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ArrowDownIcon, ArrowUpIcon, SearchIcon } from '@chakra-ui/icons';
+import { DateRangePicker } from 'react-dates';
+import 'react-dates/initialize';
+import 'react-dates/lib/css/_datepicker.css';
+import '../features/gallery/components/cssoverrides.css';
+import moment, { Moment } from 'moment';
 
 import { DropManagerPagination } from '@/features/all-drops/components/DropManagerPagination';
 import {
-  DROP_CLAIM_STATUS_OPTIONS,
-  DROP_TYPE_ITEMS,
-  DROP_TYPE_OPTIONS,
   GALLERY_PRICE_ITEMS,
   PAGE_SIZE_ITEMS,
+  SORT_MENU_ITEMS,
   createMenuItems,
 } from '@/features/all-drops/config/menuItems';
 
@@ -39,6 +45,7 @@ import keypomInstance from '@/lib/keypom';
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
 import { GalleryGrid } from '@/features/gallery/components/GalleryGrid';
 import { DropDownButton } from '@/features/all-drops/components/DropDownButton';
+import { ProtocolReturnedDrop } from 'keypom-js';
 
 // import myData from '../data/db.json';
 
@@ -48,10 +55,7 @@ import { DropDownButton } from '@/features/all-drops/components/DropDownButton';
 // };
 
 export default function Gallery() {
-  // const [events, setEvents] = useState(allEvents);
   // const isSecondary = props.isSecondary || false;
-  // const [sorted, setSorted] = useState({ sorted: 'date', reversed: false });
-
   // pagination
   const [hasPagination, setHasPagination] = useState<boolean>(false);
   const [numPages, setNumPages] = useState<number>(0);
@@ -61,39 +65,56 @@ export default function Gallery() {
   const [isAllDropsLoading, setIsAllDropsLoading] = useState(true);
   const popoverClicked = useRef(0);
 
+  //date range picker
+  const [focusedInput, setFocusedInput] = useState(null);
+
   const [selectedFilters, setSelectedFilters] = useState<{
-    type: string;
+    // type: string;
     search: string;
-    // status: string;
     pageSize: number;
+    price: string;
+    startDate: Moment | null;
+    endDate: Moment | null;
+    sort: string;
+    reversed: boolean;
   }>({
-    type: DROP_TYPE_OPTIONS.ANY,
+    // type: DROP_TYPE_OPTIONS.ANY,
     search: '',
-    // status: DROP_CLAIM_STATUS_OPTIONS.ANY,
     pageSize: PAGE_SIZE_LIMIT,
+    price: GALLERY_PRICE_ITEMS[0].label,
+    startDate: null,
+    endDate: null,
+    sort: 'Date',
+    reversed: false,
   });
   const [searchTerm, setSearchTerm] = useState<string>('');
   // const [numOwnedDrops, setNumOwnedDrops] = useState<number>(0);
   const [filteredDataItems, setFilteredDataItems] = useState<DataItem[]>([]);
   // const [wallet, setWallet] = useState({});
 
-  const handleDropTypeSelect = (item) => {
-    console.log('item', item);
-    setSelectedFilters((prevFilters) => ({
-      ...prevFilters,
-      type: item.label,
-    }));
+  const handleSortMenuSelect = (item) => {
+    //if you select the same item, reverse the order
+    if (selectedFilters.sort === item.label) {
+      setSelectedFilters((prevFilters) => ({
+        ...prevFilters,
+        reversed: !prevFilters.reversed,
+      }));
+    } else {
+      setSelectedFilters((prevFilters) => ({
+        ...prevFilters,
+        sort: item.label,
+      }));
+    }
   };
 
   const handlePriceFilterSelect = (item) => {
-    console.log('item', item);
     setSelectedFilters((prevFilters) => ({
       ...prevFilters,
       price: item.label,
     }));
   };
 
-  const { selector, accountId } = useAuthWalletContext();
+  const { accountId } = useAuthWalletContext();
 
   const handlePageSizeSelect = (item) => {
     setSelectedFilters((prevFilters) => ({
@@ -126,45 +147,142 @@ export default function Gallery() {
 
   const handleFiltering = async (drops) => {
     // Apply the selected filters
-    if (selectedFilters.type !== DROP_TYPE_OPTIONS.ANY) {
-      drops = drops.filter(
-        (drop) =>
-          keypomInstance.getDropType(drop).toLowerCase() === selectedFilters.type.toLowerCase(),
-      );
+
+    if (selectedFilters.price !== GALLERY_PRICE_ITEMS[0].label) {
+      // Apply price filters
+      const priceFilter = selectedFilters.price;
+      // Convert each drop to a promise that resolves to either the drop or null
+      const dropsPromises = drops.map(async (drop) => {
+        const data = await keypomInstance.getDropData({ drop });
+        const price = parseFloat(data.claimed);
+        console.log('price: ', price);
+        console.log('priceFilter: ', priceFilter);
+        if (priceFilter === GALLERY_PRICE_ITEMS[1].label) {
+          if (price < 20) {
+            return drop;
+          } else {
+            return null;
+          }
+        } else if (priceFilter === GALLERY_PRICE_ITEMS[2].label) {
+          if (price >= 20 && price < 50) {
+            return drop;
+          } else {
+            return null;
+          }
+        } else if (priceFilter === GALLERY_PRICE_ITEMS[3].label) {
+          if (price >= 50 && price < 100) {
+            return drop;
+          } else {
+            return null;
+          }
+        } else if (priceFilter === GALLERY_PRICE_ITEMS[4].label) {
+          if (price >= 100) {
+            return drop;
+          } else {
+            return null;
+          }
+        }
+      });
+
+      const resolvedDrops = await Promise.all(dropsPromises);
+      drops = resolvedDrops.filter((drop): drop is ProtocolReturnedDrop => drop !== null);
     }
 
-    // if (selectedFilters.status !== DROP_CLAIM_STATUS_OPTIONS.ANY) {
-    //   // Convert each drop to a promise that resolves to either the drop or null
-    //   const dropsPromises = drops.map(async (drop) => {
-    //     const keysLeft = await keypomInstance.getAvailableKeys(drop.drop_id);
-    //     const isFullyClaimed = keysLeft === 0;
-    //     const isPartiallyClaimed = keysLeft > 0 && keysLeft < drop.next_key_id;
-    //     const isUnclaimed = keysLeft === drop.next_key_id;
-
-    //     if (
-    //       (isFullyClaimed && selectedFilters.status === DROP_CLAIM_STATUS_OPTIONS.FULLY) ||
-    //       (isPartiallyClaimed && selectedFilters.status === DROP_CLAIM_STATUS_OPTIONS.PARTIALLY) ||
-    //       (isUnclaimed && selectedFilters.status === DROP_CLAIM_STATUS_OPTIONS.UNCLAIMED)
-    //     ) {
-    //       return drop;
-    //     }
-    //     return null;
-    //   });
-
-    //   // Wait for all promises to resolve, then filter out the nulls
-    //   const resolvedDrops = await Promise.all(dropsPromises);
-    //   drops = resolvedDrops.filter((drop): drop is ProtocolReturnedDrop => drop !== null);
-    // }
-
     if (selectedFilters.search.trim() !== '') {
-      drops = drops.filter((drop) => {
-        const { dropName, description } = keypomInstance.getDropMetadata(drop.metadata);
-        //match name and description
-        return (
+      // Apply search filter
+      // Convert each drop to a promise that resolves to either the drop or null
+      const dropsPromises = drops.map(async (drop) => {
+        const data = await keypomInstance.getDropData({ drop });
+        const { dropName } = keypomInstance.getDropMetadata(drop.metadata);
+
+        const description = data.type;
+
+        // console.log('dropName: ', dropName);
+        // console.log('description: ', description);
+        if (
           dropName.toLowerCase().includes(searchTerm) ||
           description.toLowerCase().includes(searchTerm)
-        );
+        ) {
+          return drop;
+        } else return null;
       });
+
+      const resolvedDrops = await Promise.all(dropsPromises);
+      drops = resolvedDrops.filter((drop): drop is ProtocolReturnedDrop => drop !== null);
+    }
+
+    //apply start and end date filters
+    console.log('endDate: ', selectedFilters.endDate);
+    console.log('startDate: ', selectedFilters.startDate);
+
+    if (selectedFilters.startDate !== null) {
+      // Convert each drop to a promise that resolves to either the drop or null
+      const dropsPromises = drops.map(async (drop) => {
+        const data = await keypomInstance.getDropData({ drop });
+
+        const date = new Date(Number(data.id) * 1000);
+        console.log('date: ', date);
+        if (date >= selectedFilters.startDate.toDate()) {
+          return drop;
+        } else return null;
+      });
+
+      const resolvedDrops = await Promise.all(dropsPromises);
+      drops = resolvedDrops.filter((drop): drop is ProtocolReturnedDrop => drop !== null);
+    }
+
+    if (selectedFilters.endDate !== null) {
+      // Convert each drop to a promise that resolves to either the drop or null
+      const dropsPromises = drops.map(async (drop) => {
+        const data = await keypomInstance.getDropData({ drop });
+
+        const date = new Date(data.id);
+        if (date <= selectedFilters.endDate.toDate()) {
+          return drop;
+        } else return null;
+      });
+
+      const resolvedDrops = await Promise.all(dropsPromises);
+      drops = resolvedDrops.filter((drop): drop is ProtocolReturnedDrop => drop !== null);
+    }
+
+    //before returning drops, sort them if all drops are fetched
+    if (!isAllDropsLoading && selectedFilters.sort !== 'Any') {
+      //get data for each drop and pair it with the drop
+      let dropData = await Promise.all(
+        drops.map(async (drop) => [drop, await keypomInstance.getDropData({ drop })]),
+      );
+      console.log('before sortuing');
+      console.log(dropData);
+      //sort the drops based on the selected sort option
+      if (selectedFilters.sort === 'Date') {
+        dropData = dropData.sort((a, b) => {
+          if (selectedFilters.reversed) {
+            return b[1].type.localeCompare(a[1].type);
+          }
+          return a[1].type.localeCompare(b[1].type);
+        });
+      }
+      if (selectedFilters.sort === 'Price') {
+        dropData = dropData.sort((a, b) => {
+          if (selectedFilters.reversed) {
+            return b[1].claimed.localeCompare(a[1].claimed);
+          }
+          return a[1].claimed.localeCompare(b[1].claimed);
+        });
+      }
+      if (selectedFilters.sort === 'Tickets') {
+        dropData = dropData.sort((a, b) => {
+          if (selectedFilters.reversed) {
+            return b[1].id.localeCompare(a[1].id);
+          }
+          return a[1].id.localeCompare(b[1].id);
+        });
+      }
+      console.log('after sortuing');
+      console.log(dropData);
+      //extract the drops from the sorted array
+      drops = dropData.map((drop) => drop[0]);
     }
 
     return drops;
@@ -222,21 +340,6 @@ export default function Gallery() {
     setIsLoading(false);
   }, [accountId, selectedFilters, keypomInstance]);
 
-  // useEffect(() => {
-  //   async function fetchWallet() {
-  //     if (!selector) return;
-  //     try {
-  //       const wallet = await selector.wallet();
-  //       setWallet(wallet);
-  //     } catch (error) {
-  //       console.error('Error fetching wallet:', error);
-  //       // Handle the error appropriately
-  //     }
-  //   }
-
-  //   fetchWallet();
-  // }, [selector]);
-
   useEffect(() => {
     if (!accountId) return;
 
@@ -258,10 +361,10 @@ export default function Gallery() {
     },
   });
 
-  const filterDropMenuItems = createMenuItems({
-    menuItems: DROP_TYPE_ITEMS,
+  const sortOrderMenuItems = createMenuItems({
+    menuItems: SORT_MENU_ITEMS,
     onClick: (item) => {
-      handleDropTypeSelect(item);
+      handleSortMenuSelect(item);
     },
   });
 
@@ -276,74 +379,38 @@ export default function Gallery() {
     if (filteredDataItems === undefined || filteredDataItems.length === 0) return [];
     console.log('currpage: ' + curPage);
     console.log('selectedFilters.pageSize: ' + selectedFilters.pageSize);
+
     return filteredDataItems.slice(
       curPage * selectedFilters.pageSize,
       (curPage + 1) * selectedFilters.pageSize,
     );
   };
 
-  // search value
-  // const [searchPhrase, setSearchPhrase] = useState('');
-  // const handleChange = (changeEvent) => {
-  //   setSearchPhrase(changeEvent.target.value);
-  //   const matchedEvents = allEvents.filter((event) => {
-  //     return event.title.toLowerCase().includes(changeEvent.target.value.toLowerCase());
-  //   });
-  //   setEvents(matchedEvents);
+  const RenderArrow = () => {
+    if (selectedFilters.reversed) {
+      return <ArrowUpIcon />;
+    }
+    return <ArrowDownIcon />;
+  };
+
+  // const setStartDate = (startDate) => {
+  //   setSelectedFilters((prevFilters) => ({
+  //     ...prevFilters,
+  //     startDate: startDate,
+  //   }));
   // };
 
-  // const sortByTitle = () => {
-  //   let tempreversed = sorted.reversed;
-  //   if (sorted.sorted === 'title') {
-  //     setSorted({ sorted: 'title', reversed: !sorted.reversed });
-  //     tempreversed = !tempreversed;
-  //   } else {
-  //     setSorted({ sorted: 'title', reversed: false });
-  //     tempreversed = false;
-  //   }
-  //   const eventsCopy = [...events];
-  //   eventsCopy.sort((eventA, eventB) => {
-  //     if (tempreversed) {
-  //       return eventA.title.localeCompare(eventB.title);
-  //     }
-  //     return eventB.title.localeCompare(eventA.title);
-  //   });
-  //   setEvents(eventsCopy);
-  // };
-
-  // const sortByDate = () => {
-  //   let tempreversed = sorted.reversed;
-  //   if (sorted.sorted === 'date') {
-  //     setSorted({ sorted: 'date', reversed: !sorted.reversed });
-  //     tempreversed = !tempreversed;
-  //   } else {
-  //     setSorted({ sorted: 'date', reversed: false });
-  //     tempreversed = false;
-  //   }
-  //   const eventsCopy = [...events];
-  //   console.log(sorted.reversed);
-  //   eventsCopy.sort((eventA, eventB) => {
-  //     if (tempreversed) {
-  //       return eventA.date.localeCompare(eventB.date);
-  //     }
-  //     return eventB.date.localeCompare(eventA.date);
-  //   });
-
-  //   console.log(eventsCopy[1]);
-  //   setEvents(eventsCopy);
-  // };
-
-  // const RenderArrow = () => {
-  //   if (sorted.reversed) {
-  //     return <ArrowUpIcon />;
-  //   }
-  //   return <ArrowDownIcon />;
+  // const setEndDate = (endDate) => {
+  //   setSelectedFilters((prevFilters) => ({
+  //     ...prevFilters,
+  //     endDate: endDate,
+  //   }));
   // };
 
   return (
     <Box p="10">
       <ChakraImage
-        alt={}
+        alt={'banner'}
         height="300"
         objectFit="cover"
         src="https://via.placeholder.com/300"
@@ -380,19 +447,21 @@ export default function Gallery() {
             />
           </InputGroup>
           <HStack>
-            <Menu>
-              {({ isOpen }) => (
-                <Box>
-                  <DropDownButton
-                    isOpen={isOpen}
-                    placeholder={`Type: ${selectedFilters.type}`}
-                    variant="secondary"
-                    onClick={() => (popoverClicked.current += 1)}
-                  />
-                  <MenuList minWidth="auto">{filterDropMenuItems}</MenuList>
-                </Box>
-              )}
-            </Menu>
+            <DateRangePicker
+              startDate={selectedFilters.startDate}
+              startDateId="your_unique_start_date_id"
+              endDate={selectedFilters.endDate}
+              endDateId="your_unique_end_date_id"
+              onDatesChange={({ startDate, endDate }) => {
+                setSelectedFilters((prevFilters) => ({
+                  ...prevFilters,
+                  startDate,
+                  endDate,
+                }));
+              }}
+              focusedInput={focusedInput}
+              onFocusChange={(focusedInput) => setFocusedInput(focusedInput)}
+            />
             <Menu>
               {({ isOpen }) => (
                 <Box>
@@ -406,22 +475,61 @@ export default function Gallery() {
                 </Box>
               )}
             </Menu>
-            <Button
-              py="6"
-              variant="secondary"
-              // onClick={sortByDate}
-            >
-              {/* {sorted.sorted === 'date' ? RenderArrow() : null} */}
-              Date
-            </Button>
-            <Button
-              py="6"
-              variant="secondary"
-              // onClick={sortByTitle}
-            >
-              {/* {sorted.sorted === 'title' ? RenderArrow() : null} */}
-              Title
-            </Button>
+            <Box w="200px">
+              <Flex justifyContent="flex-end">
+                {(!isAllDropsLoading && (
+                  <Menu>
+                    {({ isOpen }) => (
+                      <HStack>
+                        <Box
+                          _hover={{ transform: 'scale(1.05)', cursor: 'pointer' }}
+                          onClick={() => {
+                            setSelectedFilters((prevFilters) => ({
+                              ...prevFilters,
+                              reversed: !prevFilters.reversed,
+                            }));
+                          }}
+                        >
+                          {RenderArrow()}
+                          {/* {selectedFilters.sort === 'Any' ? null : RenderArrow()} */}
+                        </Box>
+                        <DropDownButton
+                          isOpen={isOpen}
+                          placeholder={`Sort: ${selectedFilters.sort}`}
+                          variant="secondary"
+                          onClick={() => (popoverClicked.current += 1)}
+                        />
+                        <MenuList minWidth="auto">{sortOrderMenuItems}</MenuList>
+                      </HStack>
+                    )}
+                  </Menu>
+                )) || (
+                  <HStack>
+                    <Skeleton
+                      _hover={{ transform: 'scale(1.05)', cursor: 'pointer' }}
+                      onClick={() => {
+                        setSelectedFilters((prevFilters) => ({
+                          ...prevFilters,
+                          reversed: !prevFilters.reversed,
+                        }));
+                      }}
+                    >
+                      {RenderArrow()}
+                      {/* {selectedFilters.sort === 'Any' ? null : RenderArrow()} */}
+                    </Skeleton>
+                    <Button
+                      isLoading
+                      loadingText="Loading..."
+                      variant="secondary"
+                      spinnerPlacement="end"
+                      w="full"
+                    >
+                      Sort
+                    </Button>
+                  </HStack>
+                )}
+              </Flex>
+            </Box>
           </HStack>
         </HStack>
       </HStack>

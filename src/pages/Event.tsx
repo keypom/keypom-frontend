@@ -30,7 +30,6 @@ import { VerifyModal } from '@/features/gallery/components/VerifyModal';
 export default function Event() {
   const params = useParams();
   const eventID = params.eventID;
-  const location = useLocation();
   const navigate = useNavigate();
 
   const testticket = {
@@ -127,6 +126,42 @@ export default function Event() {
   const res = event.location.trim().replace(/ /g, '+');
 
   const mapHref = 'https://www.google.com/maps/search/' + String(res);
+
+  //purchase modal
+  const [email, setEmail] = useState('');
+  const [ticketAmount, setTicketAmount] = useState(1);
+
+  const OpenPurchaseModal = () => {
+    setTicketAmount(1);
+    setEmail('');
+    onOpen();
+  };
+
+  const PurchaseTicket = (event) => {
+    event.preventDefault();
+    //sell the ticket with the secret key, give toast, and sell
+    navigate('./');
+    const buySuccessful = Math.random();
+    console.log('email' + email);
+    console.log('ticketAmount' + ticketAmount);
+    if (buySuccessful <= 0.5) {
+      toast({
+        title: 'Purchase successful PLACEHOLDER',
+        description: `The item has been bought for ${event.price} NEAR`,
+        status: 'success',
+        duration: 5000,
+        isClosable: true,
+      });
+    } else {
+      toast({
+        title: 'Purchase failed PLACEHOLDER',
+        description: 'The item has not purchased',
+        status: 'error',
+        duration: 5000,
+        isClosable: true,
+      });
+    }
+  };
 
   return (
     <Box p="10">
@@ -235,7 +270,7 @@ export default function Event() {
       <SimpleGrid minChildWidth="300px" spacing={10}>
         {tickets?.map((ticket) => (
           <Card
-            onClick={onOpen}
+            onClick={OpenPurchaseModal}
             transition="transform 0.2s"
             _hover={{ transform: 'scale(1.05)', cursor: 'pointer' }}
             key={ticket.id}
@@ -279,7 +314,16 @@ export default function Event() {
           </Card>
         ))}
       </SimpleGrid>
-      <PurchaseModal event={event} isOpen={isOpen} onClose={onClose} />
+      <PurchaseModal
+        setEmail={setEmail}
+        setTicketAmount={setTicketAmount}
+        onSubmit={PurchaseTicket}
+        event={event}
+        isOpen={isOpen}
+        onClose={onClose}
+        email={email}
+        ticketAmount={ticketAmount}
+      />
       <SellModal
         input={input}
         setInput={setInput}
