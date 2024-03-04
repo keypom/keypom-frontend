@@ -18,6 +18,7 @@ interface MobileDataTableProps extends TableProps {
   data: DataItem[];
   loading: boolean;
   showMobileTitles: string[];
+  excludeMobileTitles: string[];
 }
 
 export const MobileDataTable = ({
@@ -25,6 +26,7 @@ export const MobileDataTable = ({
   data,
   loading = false,
   showMobileTitles = [],
+  excludeMobileTitles = [],
   ...props
 }: MobileDataTableProps) => {
   const navigate = useNavigate();
@@ -65,7 +67,10 @@ export const MobileDataTable = ({
         <Td>
           <VStack align="flex-start" spacing="2">
             {columns
-              .filter((column) => actionColumn.title !== column.title) // exclude action column
+              .filter(
+                (column) =>
+                  actionColumn.title !== column.title && !excludeMobileTitles.includes(column.id),
+              ) // exclude action column
               .map((column) => (
                 <Box key={`${drop.id}-${column.id}`}>
                   {showMobileTitles.includes(column.id) ? `${column.title}: ` : ''}

@@ -40,13 +40,8 @@ const eventTableColumns: ColumnItem[] = [
   },
   {
     id: 'action',
-    title: 'Action',
+    title: '',
     selector: (row) => row.action,
-    tdProps: {
-      display: 'flex',
-      justifyContent: 'right',
-      verticalAlign: 'middle',
-    },
     loadingElement: <Skeleton height="30px" />,
   },
 ];
@@ -55,7 +50,7 @@ export default function EventManagerPage() {
   const navigate = useNavigate();
 
   const { id: eventId = '' } = useParams();
-  const [eventData, setEventData] = useState<EventData>({ name: 'Event Name', artwork: 'loading' });
+  const [eventData, setEventData] = useState<EventData>();
   const { selector, accountId } = useAuthWalletContext();
 
   useEffect(() => {
@@ -69,6 +64,7 @@ export default function EventManagerPage() {
       setEventData({
         name: metadata.eventInfo?.name || 'Untitled',
         artwork: metadata.eventInfo?.artwork || 'loading',
+        questions: metadata.eventInfo?.questions || [],
       });
     };
     getEventData();

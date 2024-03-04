@@ -1,6 +1,7 @@
 import {
   Box,
   Input,
+  Divider,
   Badge,
   Icon,
   Button,
@@ -18,6 +19,7 @@ import {
   Text,
   VStack,
   useDisclosure,
+  ModalContent,
 } from '@chakra-ui/react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -41,12 +43,13 @@ import {
   TICKET_CLAIM_STATUS_ITEMS,
   TICKET_CLAIM_STATUS_OPTIONS,
 } from '@/features/all-drops/config/menuItems';
+import { useAppContext } from '@/contexts/AppContext';
 
 const ticketTableColumns: ColumnItem[] = [
   {
-    id: 'link',
-    title: 'Link',
-    selector: (row) => row.link,
+    id: 'ticketId',
+    title: 'Ticket ID',
+    selector: (row) => row.ticketId,
     loadingElement: <Skeleton height="30px" />,
   },
   {
@@ -68,7 +71,7 @@ const ticketTableColumns: ColumnItem[] = [
   },
 ];
 
-const CLAIM_STATUS = {
+export const CLAIM_STATUS = {
   2: {
     name: 'Purchased',
     bg: 'gray.100',
@@ -93,9 +96,11 @@ export type GetAttendeeDataFn = (data: AttendeeItem[]) => DataItem[];
 export default function EventManagerPage() {
   const navigate = useNavigate();
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const { setAppModal } = useAppContext();
 
   const { id: dropId = '' } = useParams();
   const [eventMetadata, setEventMetadata] = useState<EventDropMetadata>();
+  const [dataTableQuestionIds, setDataTableQuestionIds] = useState<string[]>([]);
   const [ticketsPurchased, setTicketsPurchased] = useState<number>(0);
   const [tableColumns, setTableColumns] = useState<ColumnItem[]>(ticketTableColumns);
   const [ticketsScanned, setTicketsScanned] = useState<number>(0);
@@ -131,7 +136,7 @@ export default function EventManagerPage() {
     if (!accountId) return;
     if (!dropId) return;
 
-    const getEventData = async () => {
+    const getDropData = async () => {
       const drop: { drop_id: string; funder_id: string; drop_config: { metadata: string } } =
         await keypomInstance.viewCall({
           methodName: 'get_drop_information',
@@ -139,27 +144,8 @@ export default function EventManagerPage() {
         });
       const metadata: EventDropMetadata = JSON.parse(drop.drop_config.metadata);
       setDropData({ ...drop, drop_config: { metadata } });
-      const eventDrop = await keypomInstance.getEventDrop({
-        accountId,
-        eventId: metadata.ticketInfo.eventId,
-      });
-      const eventMetadata: EventDropMetadata = JSON.parse(eventDrop.drop_config.metadata);
-
-      // Initialize an array to hold the new columns based on questions
-      const questionColumns: ColumnItem[] =
-        eventMetadata.eventInfo?.questions
-          ?.filter((questionInfo: QuestionInfo) => showQuestion(questionInfo.question))
-          .map((questionInfo) => ({
-            id: questionInfo.question, // Using the question text as a unique ID
-            title: questionInfo.question, // The question text as the title
-            selector: (row) => row[questionInfo.question] || '-', // Accessing the response using the question
-            loadingElement: <Skeleton height="30px" />,
-          })) || [];
-
-      setTableColumns((prevColumns) => [...questionColumns, ...prevColumns]);
-      setEventMetadata(eventMetadata);
     };
-    getEventData();
+    getDropData();
   }, [dropId, selector, accountId]);
 
   useEffect(() => {
@@ -179,8 +165,22 @@ export default function EventManagerPage() {
         accountId,
         eventId: metadata.ticketInfo.eventId,
       });
-      const eventMetadata: EventDropMetadata = JSON.parse(eventDrop.drop_config.metadata);
-      setEventMetadata(eventMetadata);
+      const eventDropMetadata: EventDropMetadata = JSON.parse(eventDrop.drop_config.metadata);
+      setEventMetadata(eventDropMetadata);
+
+      const questionColumns: ColumnItem[] =
+        eventDropMetadata.eventInfo?.questions
+          ?.filter((questionInfo: QuestionInfo) => showQuestion(questionInfo.question))
+          .map((questionInfo) => ({
+            id: questionInfo.question, // Using the question text as a unique ID
+            title: questionInfo.question, // The question text as the title
+            selector: (row) => row[questionInfo.question] || '-', // Accessing the response using the question
+            loadingElement: <Skeleton height="30px" />,
+          })) || [];
+
+      setDataTableQuestionIds(questionColumns.map((questionInfo) => questionInfo.id));
+
+      setTableColumns((prevColumns) => [...questionColumns, ...prevColumns]);
     };
     getEventData();
   }, [dropId, selector, accountId]);
@@ -364,6 +364,71 @@ export default function EventManagerPage() {
     setCurPage((prev) => prev - 1);
   };
 
+  const openViewDetailsModal = ({ item, eventMetadata }) => {
+    const questionColumns = eventMetadata?.eventInfo?.questions ? (
+      eventMetadata?.eventInfo?.questions.map((questionInfo) => (
+        <VStack key={questionInfo.question} align="left" spacing={0}>
+          <Text color="black.800" fontWeight="medium">
+            {questionInfo.question}
+          </Text>
+          <Text>{item.responses[questionInfo.question] || '-'}</Text>
+        </VStack>
+      ))
+    ) : (
+      <Text>None</Text>
+    );
+
+    setAppModal({
+      isOpen: true,
+      size: 'xl',
+      modalContent: (
+        <ModalContent maxH="90vh" overflowY="auto" padding={6}>
+          <VStack align="left" spacing={6} textAlign="left">
+            <Text color="black.800" fontSize="xl" fontWeight="medium">
+              Attendee details
+            </Text>
+            <HStack justify="space-between">
+              <VStack align="left" spacing={0}>
+                <Text fontWeight="medium">Ticket ID</Text>
+                <Text color="blue.500">
+                  {truncateAddress(item.publicKey.split('ed25519:')[1], 'end', 16)}
+                </Text>
+              </VStack>
+              <Badge
+                backgroundColor={CLAIM_STATUS[item.usesRemaining].bg}
+                borderRadius="20px"
+                color={CLAIM_STATUS[item.usesRemaining].text}
+                fontSize="15px"
+                fontWeight="medium"
+              >
+                {CLAIM_STATUS[item.usesRemaining].name}
+              </Badge>
+            </HStack>
+            <Divider borderColor="gray.300" /> {/* This creates the horizontal line */}
+            <VStack align="left" spacing={6}>
+              <Text color="black.800" fontSize="xl" fontWeight="medium">
+                Attendee questions and responses
+              </Text>
+              {questionColumns}
+            </VStack>
+            {/* ... more content based on your design */}
+            <Button
+              autoFocus={false}
+              variant="secondary"
+              width="full"
+              onClick={() => {
+                setAppModal({ isOpen: false });
+              }}
+            >
+              Close
+            </Button>
+          </VStack>
+        </ModalContent>
+      ),
+    });
+    console.log('View details for', item);
+  };
+
   const handleExportCSVClick = async () => {
     const { dropName, dropKeyItems: data } = await keypomInstance.getAllKeysForTicket({ dropId });
     if (data.length > 0) {
@@ -373,16 +438,18 @@ export default function EventManagerPage() {
         // Construct CSV header
         const questions = eventMetadata?.eventInfo?.questions || [];
         let csvContent = 'data:text/csv;charset=utf-8,';
-        csvContent += 'Ticket ID,' + questions.map((q) => q.question).join(',') + '\r\n';
+        csvContent +=
+          'Ticket ID,' + 'Claim Status' + questions.map((q) => q.question).join(',') + '\r\n';
 
         // Construct CSV rows
         data.forEach((item, i) => {
           const responses = JSON.parse(item.metadata).questions || {};
           const row = [item.pub_key.split('ed25519:')[1]];
+          row.push(CLAIM_STATUS[item.uses_remaining].name);
 
           // Add answers in the same order as the questions
           questions.forEach((q) => {
-            row.push(responses[q.question] || '');
+            row.push(responses[q.question] || '-');
           });
 
           // Join the individual row's columns and push it to CSV content
@@ -414,15 +481,11 @@ export default function EventManagerPage() {
   };
 
   const getTableRows: GetAttendeeDataFn = (data) => {
-    if (data === undefined) return [];
+    if (data === undefined || eventMetadata === undefined) return [];
     return data.map((item) => {
       const mapped = {
         id: item.id, // Assuming `item` has a `drop_id` property that can serve as `id`
-        link: truncateAddress(
-          `${window.location.hostname}/${item.publicKey.split('ed25519:')[1]}`,
-          'end',
-          16,
-        ),
+        ticketId: truncateAddress(`${item.publicKey.split('ed25519:')[1]}`, 'end', 16),
         claimedStatus: (
           <Badge
             backgroundColor={CLAIM_STATUS[item.usesRemaining].bg}
@@ -446,7 +509,7 @@ export default function EventManagerPage() {
             fontSize="sm"
             fontWeight="medium"
             onClick={() => {
-              console.log('View details');
+              openViewDetailsModal({ item, eventMetadata });
             }}
           >
             View details
@@ -469,7 +532,7 @@ export default function EventManagerPage() {
       (curPage + 1) * selectedFilters.pageSize,
     );
     return getTableRows(rowsToShow);
-  }, [filteredTicketData, filteredTicketData.length, curPage]);
+  }, [filteredTicketData, filteredTicketData.length, curPage, eventMetadata]);
 
   const getTableType = () => {
     if (filteredTicketData.length === 0 && ticketsPurchased === 0) {
@@ -621,7 +684,7 @@ export default function EventManagerPage() {
       <Hide above="md">
         <VStack>
           <Heading paddingTop="20px" size="2xl" textAlign="left" w="full">
-            All Keys
+            All attendees
           </Heading>
 
           <HStack align="stretch" justify="space-between" w="full">
@@ -650,10 +713,11 @@ export default function EventManagerPage() {
         <DataTable
           columns={tableColumns}
           data={data}
-          loading={isLoading}
+          excludeMobileColumns={dataTableQuestionIds}
+          loading={isLoading || !eventMetadata}
           mt={{ base: '6', md: '4' }}
           showColumns={true}
-          showMobileTitles={['link', 'status']}
+          showMobileTitles={['ticketId']}
           type={getTableType()}
         />
 
@@ -661,7 +725,7 @@ export default function EventManagerPage() {
           curPage={curPage}
           handleNextPage={handleNextPage}
           handlePrevPage={handlePrevPage}
-          isLoading={isAllKeysLoading}
+          isLoading={isAllKeysLoading || !eventMetadata}
           numPages={numPages}
           pageSizeMenuItems={pageSizeMenuItems}
           rowsSelectPlaceholder={selectedFilters.pageSize.toString()}

@@ -74,10 +74,6 @@ const COLUMNS: ColumnItem[] = [
     id: 'action',
     title: '',
     selector: (drop) => drop.action,
-    tdProps: {
-      display: 'flex',
-      justifyContent: 'right',
-    },
     loadingElement: <Skeleton height="30px" />,
   },
 ];
@@ -318,31 +314,29 @@ export default function AllEvents({ pageTitle, hasDateFilter, ctaButtonLabel }: 
             numTickets: drop.numTickets,
             claimed: <Badge variant="lightgreen">{drop.claimed} Claimed</Badge>,
             action: (
-              <>
-                <HStack>
-                  <Button
-                    borderRadius="6xl"
-                    size="md"
-                    variant="icon"
-                    onClick={async (e) => {
-                      e.stopPropagation();
-                      handleDeleteClick(drop.id);
-                    }}
-                  >
-                    <DeleteIcon color="red.400" />
-                  </Button>
-                  <Button
-                    borderRadius="6xl"
-                    size="md"
-                    variant="icon"
-                    onClick={() => {
-                      navigate(`/gallery/event/${((drop.eventId as string) || '').toString()}`);
-                    }}
-                  >
-                    <ShareIcon color="gray.600" height="16px" width="16px" />
-                  </Button>
-                </HStack>
-              </>
+              <HStack>
+                <Button
+                  borderRadius="6xl"
+                  size="md"
+                  variant="icon"
+                  onClick={async (e) => {
+                    e.stopPropagation();
+                    handleDeleteClick(drop.id);
+                  }}
+                >
+                  <DeleteIcon color="red.400" />
+                </Button>
+                <Button
+                  borderRadius="6xl"
+                  size="md"
+                  variant="icon"
+                  onClick={() => {
+                    navigate(`/gallery/event/${((drop.eventId as string) || '').toString()}`);
+                  }}
+                >
+                  <ShareIcon color="gray.600" height="16px" width="16px" />
+                </Button>
+              </HStack>
             ),
             href: `/events/event/${((drop.eventId as string) || '').toString()}`,
           };
@@ -459,6 +453,7 @@ export default function AllEvents({ pageTitle, hasDateFilter, ctaButtonLabel }: 
       <DataTable
         columns={COLUMNS}
         data={getTableRows()}
+        excludeMobileColumns={[]}
         loading={isLoading}
         mt={{ base: '6', md: '4' }}
         showMobileTitles={['dateCreated', 'numTickets']}

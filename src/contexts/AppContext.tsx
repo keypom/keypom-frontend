@@ -17,6 +17,8 @@ export interface AppModalOptions {
 
 interface AppModalValues {
   isOpen: boolean;
+  modalContent?: React.ReactNode;
+  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl' | 'full';
   closeOnOverlayClick?: boolean;
   closeButtonVisible?: boolean;
   message?: string;

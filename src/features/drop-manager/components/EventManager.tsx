@@ -17,22 +17,23 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { type ColumnItem, type DataItem } from '@/components/Table/types';
 import { DataTable } from '@/components/Table';
 import { Breadcrumbs } from '@/components/Breadcrumbs';
-import { file } from '@/utils/file';
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
 import { useAppContext } from '@/contexts/AppContext';
 import keypomInstance, { type EventDrop } from '@/lib/keypom';
 import { DropManagerPagination } from '@/features/all-drops/components/DropManagerPagination';
 import { PAGE_SIZE_LIMIT } from '@/constants/common';
-import { type EventDropMetadata } from '@/lib/eventsHelpers';
+import { type QuestionInfo, type EventDropMetadata } from '@/lib/eventsHelpers';
 import { ShareIcon } from '@/components/Icons/ShareIcon';
 
 import { PAGE_SIZE_ITEMS, createMenuItems } from '../../../features/all-drops/config/menuItems';
+import { CLAIM_STATUS } from '../routes/ticket/TicketDropManagerPage';
 
 import { setConfirmationModalHelper } from './ConfirmationModal';
 
 export interface EventData {
   name: string;
   artwork: string;
+  questions: QuestionInfo[];
 }
 
 export interface TicketItem {
@@ -53,7 +54,7 @@ export type GetTicketDataFn = (
 ) => DataItem[];
 
 interface EventManagerProps {
-  eventData: EventData;
+  eventData?: EventData;
   tableColumns: ColumnItem[];
   getData: GetTicketDataFn;
   tableProps?: TableProps;
@@ -152,7 +153,7 @@ export const EventManager = ({
       href: '/events',
     },
     {
-      name: eventData.name,
+      name: eventData?.name || '',
       href: '/events',
     },
   ];
@@ -170,16 +171,57 @@ export const EventManager = ({
   };
 
   const handleExportCSVClick = async () => {
-    if (data.length > 0) {
+    if (ticketData.length > 0) {
       setExporting(true);
+      for (let i = 0; i < ticketData.length; i++) {
+        const ticket = ticketData[i];
+        const { dropName, dropKeyItems: data } = await keypomInstance.getAllKeysForTicket({
+          dropId: ticket.id,
+        });
 
-      try {
-        const links = await keypomInstance.getLinksToExport(data[0].dropId as string);
-        file(`Drop ID ${data[0].dropId as string}.csv`, links.join('\r\n'));
-      } catch (e) {
-        console.error('error', e);
-      } finally {
-        setExporting(false);
+        try {
+          // Construct CSV header
+          const questions = eventData?.questions || [];
+          let csvContent = 'data:text/csv;charset=utf-8,';
+          csvContent +=
+            'Ticket ID,' + 'Claim Status' + questions.map((q) => q.question).join(',') + '\r\n';
+
+          // Construct CSV rows
+          data.forEach((item, i) => {
+            const responses = JSON.parse(item.metadata).questions || {};
+            const row = [item.pub_key.split('ed25519:')[1]];
+            row.push(CLAIM_STATUS[item.uses_remaining].name);
+
+            // Add answers in the same order as the questions
+            questions.forEach((q) => {
+              row.push(responses[q.question] || '-');
+            });
+
+            // Join the individual row's columns and push it to CSV content
+            csvContent += row.join(',') + '\r\n';
+          });
+
+          // Encode the CSV content
+          const encodedUri = encodeURI(csvContent);
+
+          // Create a link to download the CSV file
+          const link = document.createElement('a');
+          link.setAttribute('href', encodedUri);
+          link.setAttribute(
+            'download',
+            `${(eventData?.name || '').toLowerCase().replaceAll(' ', '_')}-${dropName
+              .toLowerCase()
+              .replaceAll(' ', '_')}.csv`,
+          );
+          document.body.appendChild(link); // Required for FF
+
+          link.click(); // This will download the CSV file
+          document.body.removeChild(link); // Clean up
+        } catch (e) {
+          console.error('error', e);
+        } finally {
+          setExporting(false);
+        }
       }
     }
   };
@@ -231,7 +273,7 @@ export const EventManager = ({
       <VStack align="left" paddingTop="4" spacing="6">
         <HStack align="flex-start" justify="space-between" width="100%">
           <HStack>
-            {eventData.artwork === 'loading' ? (
+            {!eventData?.artwork ? (
               <Spinner />
             ) : (
               <Image
@@ -239,14 +281,14 @@ export const EventManager = ({
                 borderRadius="12px"
                 boxSize="150px"
                 objectFit="cover"
-                src={eventData.artwork}
+                src={eventData?.artwork}
               />
             )}
             <VStack align="flex-start">
               {' '}
               {/* Align items to the left */}
               <Heading size="sm">Event Name</Heading>
-              <Heading size="lg">{eventData.name}</Heading>
+              <Heading size="lg">{eventData?.name}</Heading>
             </VStack>
           </HStack>
           <VStack align="flex-end">
@@ -295,7 +337,7 @@ export const EventManager = ({
           <HStack alignItems="end" justify="end" mt="1rem !important">
             <Button
               height="auto"
-              isDisabled={!allowAction}
+              isDisabled={!allowAction || !eventData}
               isLoading={deleting}
               lineHeight=""
               px="6"
@@ -309,7 +351,7 @@ export const EventManager = ({
             </Button>
             <Button
               height="auto"
-              isDisabled={!allowAction}
+              isDisabled={!allowAction || !eventData}
               isLoading={exporting}
               lineHeight=""
               px="6"
@@ -334,7 +376,7 @@ export const EventManager = ({
           <HStack align="stretch" justify="space-between" w="full">
             <Button
               height="auto"
-              isDisabled={!allowAction}
+              isDisabled={!allowAction || !eventData}
               isLoading={deleting}
               lineHeight=""
               px="6"
@@ -348,7 +390,7 @@ export const EventManager = ({
             </Button>
             <Button
               height="auto"
-              isDisabled={!allowAction}
+              isDisabled={!allowAction || !eventData}
               isLoading={exporting}
               lineHeight=""
               px="6"
@@ -366,7 +408,8 @@ export const EventManager = ({
         <DataTable
           columns={tableColumns}
           data={data}
-          loading={isLoading}
+          excludeMobileColumns={[]}
+          loading={isLoading || !eventData}
           mt={{ base: '6', md: '4' }}
           showColumns={true}
           showMobileTitles={['price', 'numTickets']}
@@ -378,7 +421,7 @@ export const EventManager = ({
           curPage={curPage}
           handleNextPage={handleNextPage}
           handlePrevPage={handlePrevPage}
-          isLoading={isLoading}
+          isLoading={isLoading || !eventData}
           numPages={numPages}
           pageSizeMenuItems={pageSizeMenuItems}
           rowsSelectPlaceholder={pageSize.toString()}
