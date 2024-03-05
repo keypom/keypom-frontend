@@ -15,7 +15,7 @@ export interface AppModalOptions {
   buttonProps?: ButtonProps;
 }
 
-interface AppModalValues {
+export interface AppModalValues {
   isOpen: boolean;
   modalContent?: React.ReactNode;
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl' | 'full';
@@ -29,6 +29,7 @@ interface AppModalValues {
   isLoading?: boolean;
   isSuccess?: boolean;
   isError?: boolean;
+  canClose?: boolean;
 }
 
 interface AppContextValues {

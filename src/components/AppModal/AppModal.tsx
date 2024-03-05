@@ -28,16 +28,18 @@ export const AppModal = () => {
   const [values, setValues] = useState({});
   const [loading, setLoading] = useState(false);
 
+  const canClose = appModal.canClose !== undefined ? appModal.canClose : true;
   return (
     <Modal
       isCentered
-      closeOnOverlayClick={appModal.closeOnOverlayClick || false}
+      closeOnEsc={canClose}
+      closeOnOverlayClick={canClose && (appModal.closeOnOverlayClick || false)}
       isOpen={appModal.isOpen}
       size={appModal.size || 'md'}
       onClose={() => {
-        setAppModal({
-          isOpen: false,
-        });
+        if (canClose) {
+          setAppModal({ isOpen: false });
+        }
       }}
     >
       <ModalOverlay backdropFilter="blur(0px)" bg="blackAlpha.600" opacity="1" />

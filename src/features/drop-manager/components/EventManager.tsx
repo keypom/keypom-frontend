@@ -10,9 +10,11 @@ import {
   Heading,
   HStack,
   type TableProps,
+  ModalContent,
 } from '@chakra-ui/react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { type Wallet } from '@near-wallet-selector/core';
 
 import { type ColumnItem, type DataItem } from '@/components/Table/types';
 import { DataTable } from '@/components/Table';
@@ -21,14 +23,16 @@ import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
 import { useAppContext } from '@/contexts/AppContext';
 import keypomInstance, { type EventDrop } from '@/lib/keypom';
 import { DropManagerPagination } from '@/features/all-drops/components/DropManagerPagination';
-import { PAGE_SIZE_LIMIT } from '@/constants/common';
+import { KEYPOM_EVENTS_CONTRACT, PAGE_SIZE_LIMIT } from '@/constants/common';
 import { type QuestionInfo, type EventDropMetadata } from '@/lib/eventsHelpers';
 import { ShareIcon } from '@/components/Icons/ShareIcon';
+import { NotFound404 } from '@/components/NotFound404';
+import ProgressModalContent from '@/components/AppModal/ProgessModalContent';
+import CompletionModalContent from '@/components/AppModal/CompletionModal';
+import useDeletion from '@/components/AppModal/useDeletion';
 
 import { PAGE_SIZE_ITEMS, createMenuItems } from '../../../features/all-drops/config/menuItems';
 import { CLAIM_STATUS } from '../routes/ticket/TicketDropManagerPage';
-
-import { setConfirmationModalHelper } from './ConfirmationModal';
 
 export interface EventData {
   name: string;
@@ -69,11 +73,11 @@ export const EventManager = ({
   const { id: eventId = '' } = useParams();
   const navigate = useNavigate();
   const { setAppModal } = useAppContext();
-  const [wallet, setWallet] = useState({});
+  const [wallet, setWallet] = useState<Wallet>();
   const { selector, accountId } = useAuthWalletContext();
   const [isLoading, setIsLoading] = useState(true);
+  const [isErr, setIsErr] = useState(false);
 
-  const [deleting, setDeleting] = useState<boolean>(false);
   const [exporting, setExporting] = useState<boolean>(false);
 
   const [numPages, setNumPages] = useState<number>(0);
@@ -108,36 +112,47 @@ export const EventManager = ({
   };
 
   const handleGetAllTickets = useCallback(async () => {
-    setIsLoading(true);
-    const ticketsForEvent: EventDrop[] = await keypomInstance.getTicketsForEvent({
-      accountId: accountId!,
-      eventId,
-    });
+    try {
+      setIsLoading(true);
+      const ticketsForEvent: EventDrop[] = await keypomInstance.getTicketsForEvent({
+        accountId: accountId!,
+        eventId,
+      });
 
-    const promises = ticketsForEvent.map(async (ticket) => {
-      const meta: EventDropMetadata = JSON.parse(ticket.drop_config.metadata);
-      const supply = await keypomInstance.getKeySupplyForTicket(ticket.drop_id);
-      console.log('Valid Through', meta.ticketInfo.salesValidThrough);
-      return {
-        id: ticket.drop_id,
-        artwork: meta.ticketInfo.artwork,
-        name: meta.ticketInfo.name,
-        description: meta.ticketInfo.name,
-        salesValidThrough: meta.ticketInfo.salesValidThrough,
-        passValidThrough: meta.ticketInfo.passValidThrough,
-        maxTickets: meta.ticketInfo.maxSupply,
-        soldTickets: supply,
-        priceNear: keypomInstance.yoctoToNear(meta.ticketInfo.price),
-      };
-    });
+      if (ticketsForEvent == null || ticketsForEvent.length === 0) {
+        setIsErr(true);
+        setIsLoading(false);
+        return;
+      }
 
-    setTicketData(await Promise.all(promises));
+      const promises = ticketsForEvent.map(async (ticket) => {
+        const meta: EventDropMetadata = JSON.parse(ticket.drop_config.metadata);
+        const supply = await keypomInstance.getKeySupplyForTicket(ticket.drop_id);
+        return {
+          id: ticket.drop_id,
+          artwork: meta.ticketInfo.artwork,
+          name: meta.ticketInfo.name,
+          description: meta.ticketInfo.name,
+          salesValidThrough: meta.ticketInfo.salesValidThrough,
+          passValidThrough: meta.ticketInfo.passValidThrough,
+          maxTickets: meta.ticketInfo.maxSupply,
+          soldTickets: supply,
+          priceNear: keypomInstance.yoctoToNear(meta.ticketInfo.price),
+        };
+      });
 
-    const totalPages = Math.ceil(ticketsForEvent.length / pageSize);
-    setNumPages(totalPages);
+      setTicketData(await Promise.all(promises));
 
-    setCurPage(0);
-    setIsLoading(false);
+      const totalPages = Math.ceil(ticketsForEvent.length / pageSize);
+      setNumPages(totalPages);
+
+      setCurPage(0);
+      setIsLoading(false);
+    } catch (e) {
+      console.error('Error fetching tickets:', e);
+      setIsErr(true);
+      setIsLoading(false);
+    }
   }, [accountId, keypomInstance]);
 
   const pageSizeMenuItems = createMenuItems({
@@ -226,36 +241,139 @@ export const EventManager = ({
     }
   };
 
-  const handleCancelAllClick = async () => {
-    if (data.length > 0) {
-      setDeleting(true);
+  const performDeletionLogic = async (dropIds) => {
+    if (!wallet) return;
 
-      const dropId = data[0].dropId;
+    try {
+      let totalSupplyTickets = 0;
+      const ticketSupplies: number[] = [];
+      for (let i = 0; i < dropIds.length; i++) {
+        const dropId = dropIds[i];
+        const supplyForTicket: number = await keypomInstance.getKeySupplyForTicket(dropId);
 
-      setConfirmationModalHelper(
-        setAppModal,
-        async () => {
-          await keypomInstance.deleteDrops({
-            wallet,
-            dropIds: [dropId as string],
+        ticketSupplies.push(supplyForTicket);
+        totalSupplyTickets += supplyForTicket;
+      }
+
+      let totalDeleted = 0;
+      for (let i = 0; i < dropIds.length; i++) {
+        const dropId = dropIds[i];
+        const supplyForTicket = ticketSupplies[i];
+        const ticketInfo = ticketData.find((item) => item.id === dropId);
+
+        let deletedForTicket = 0;
+        const deleteLimit = 50;
+        for (let j = 0; j < supplyForTicket; j += deleteLimit) {
+          const toDelete = Math.min(deleteLimit, supplyForTicket - deletedForTicket);
+
+          // Update Progress Modal
+          setAppModal({
+            isOpen: true,
+            size: 'xl',
+            canClose: false,
+            modalContent: (
+              <ProgressModalContent
+                message={`Deleting ${supplyForTicket.toString()} Purchased ${
+                  ticketInfo?.name as string
+                } Tickets`}
+                progress={(totalDeleted / totalSupplyTickets) * 100}
+                title={`Deleting: ${(ticketInfo?.name as string) || 'Ticket'} (${
+                  dropIds.length - (i + 1)
+                } Tickets Types Left)`}
+              />
+            ),
           });
-          navigate('/drops');
-        },
-        'drop',
-      );
-      console.log('deleting drop', dropId);
-      setDeleting(false);
+
+          await wallet.signAndSendTransaction({
+            signerId: accountId!,
+            receiverId: KEYPOM_EVENTS_CONTRACT,
+            actions: [
+              {
+                type: 'FunctionCall',
+                params: {
+                  methodName: 'delete_keys',
+                  args: { drop_id: dropId, limit: toDelete },
+                  gas: '300000000000000',
+                  deposit: '0',
+                },
+              },
+            ],
+          });
+
+          totalDeleted += toDelete;
+          deletedForTicket += toDelete;
+        }
+      }
+
+      // Completion Modal
+      setAppModal({
+        isOpen: true,
+        size: 'xl',
+        modalContent: (
+          <CompletionModalContent
+            completionMessage={`${dropIds.length as string} Ticket(s) deleted successfully!`}
+            onClose={() => {
+              setAppModal({ isOpen: false });
+              navigate('/events');
+            }}
+          />
+        ),
+      });
+    } catch (error) {
+      console.error('Error during deletion:', error);
+      // Error Modal
+      setAppModal({
+        isOpen: true,
+        size: 'xl',
+        modalContent: (
+          <ModalContent padding={6}>
+            <VStack align="stretch" spacing={4}>
+              <Text color="red.500" fontSize="lg" fontWeight="semibold">
+                Error
+              </Text>
+              <Text>There was an error deleting the Tickets. Please try again.</Text>
+              <Button
+                autoFocus={false}
+                variant="secondary"
+                width="full"
+                onClick={() => {
+                  setAppModal({ isOpen: false });
+                }}
+              >
+                Close
+              </Button>
+            </VStack>
+          </ModalContent>
+        ),
+      });
     }
   };
 
-  const handleDeleteClick = async (dropId: string) => {
-    setConfirmationModalHelper(
-      setAppModal,
-      async () => {
-        // TODO
-        window.location.reload();
-      },
-      'key',
+  const { openConfirmationModal } = useDeletion({
+    setAppModal,
+  });
+
+  const handleDeleteClick = async (dropId) => {
+    if (!wallet) return;
+
+    // Open the confirmation modal with customization if needed
+    openConfirmationModal(
+      [dropId],
+      'Are you sure you want to delete this ticket type? Any purchased tickets will be lost.',
+      performDeletionLogic,
+    );
+  };
+
+  const handleDeleteAllClick = async () => {
+    if (!wallet || !eventId) return;
+
+    const dropIds = ticketData.map((item) => item.id);
+
+    // Open the confirmation modal with customization if needed
+    openConfirmationModal(
+      dropIds,
+      'Are you sure you want to delete this event and all its tickets? This action cannot be undone.',
+      performDeletionLogic,
     );
   };
 
@@ -265,6 +383,16 @@ export const EventManager = ({
   );
 
   const allowAction = data.length > 0;
+
+  if (isErr) {
+    return (
+      <NotFound404
+        cta="Return to homepage"
+        header="Event Not Found"
+        subheader="Please check the URL and try again."
+      />
+    );
+  }
 
   return (
     <Box px="1" py={{ base: '3.25rem', md: '5rem' }}>
@@ -319,14 +447,13 @@ export const EventManager = ({
               {' '}
               {/* Adjust spacing as needed */}
               <Text color="gray.700" fontSize="lg" fontWeight="medium">
-                Sold
+                Tickets Sold
               </Text>
               <Heading>{getSoldKeys()}</Heading>
             </VStack>
           </Box>
         </HStack>
       </VStack>
-
       {/* Desktop Menu */}
       <Show above="md">
         <HStack justify="space-between">
@@ -338,16 +465,15 @@ export const EventManager = ({
             <Button
               height="auto"
               isDisabled={!allowAction || !eventData}
-              isLoading={deleting}
               lineHeight=""
               px="6"
               py="3"
               textColor="red.500"
               variant="secondary"
               w={{ sm: 'initial' }}
-              onClick={handleCancelAllClick}
+              onClick={handleDeleteAllClick}
             >
-              Cancel all
+              Delete All
             </Button>
             <Button
               height="auto"
@@ -365,26 +491,24 @@ export const EventManager = ({
           </HStack>
         </HStack>
       </Show>
-
       {/* Mobile Menu */}
       <Hide above="md">
         <VStack>
           <Heading paddingTop="20px" size="2xl" textAlign="left" w="full">
-            All Keys
+            All tickets
           </Heading>
 
           <HStack align="stretch" justify="space-between" w="full">
             <Button
               height="auto"
               isDisabled={!allowAction || !eventData}
-              isLoading={deleting}
               lineHeight=""
               px="6"
               py="3"
               textColor="red.500"
               variant="secondary"
               w={{ sm: 'initial' }}
-              onClick={handleCancelAllClick}
+              onClick={handleDeleteAllClick}
             >
               Cancel all
             </Button>
@@ -403,7 +527,6 @@ export const EventManager = ({
           </HStack>
         </VStack>
       </Hide>
-
       <Box paddingTop="2">
         <DataTable
           columns={tableColumns}

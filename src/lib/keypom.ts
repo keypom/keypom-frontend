@@ -24,7 +24,7 @@ import {
 import * as nearAPI from 'near-api-js';
 
 import { truncateAddress } from '@/utils/truncateAddress';
-import { CLOUDFLARE_IPFS, DROP_TYPE, MASTER_KEY } from '@/constants/common';
+import { CLOUDFLARE_IPFS, DROP_TYPE, KEYPOM_EVENTS_CONTRACT, MASTER_KEY } from '@/constants/common';
 import getConfig from '@/config/config';
 import { get } from '@/utils/localStorage';
 
@@ -33,7 +33,6 @@ import { type EventDropMetadata, isValidEventInfo, isValidTicketInfo } from './e
 let instance: KeypomJS;
 const ACCOUNT_ID_REGEX = /^(([a-z\d]+[-_])*[a-z\d]+\.)*([a-z\d]+[-_])*[a-z\d]+$/;
 const networkId = process.env.REACT_APP_NETWORK_ID ?? 'testnet';
-const eventsContract = '1709145182592-kp-ticketing.testnet';
 
 const myKeyStore = new nearAPI.keyStores.BrowserLocalStorageKeyStore();
 const config = getConfig();
@@ -129,7 +128,8 @@ class KeypomJS {
 
   yoctoToNear = (yocto: string) => nearAPI.utils.format.formatNearAmount(yocto, 4);
 
-  viewCall = async ({ contractId = eventsContract, methodName, args }) => {
+  viewCall = async ({ contractId = KEYPOM_EVENTS_CONTRACT, methodName, args }) => {
+    console.log('viewCall', contractId, methodName, args);
     return await this.viewAccount.viewFunctionV2({
       contractId,
       methodName,
@@ -327,7 +327,7 @@ class KeypomJS {
 
   getKeySupplyForTicket = async (dropId: string) => {
     return await this.viewCall({
-      contractId: eventsContract,
+      contractId: KEYPOM_EVENTS_CONTRACT,
       methodName: 'get_key_supply_for_drop',
       args: { drop_id: dropId },
     });
@@ -339,14 +339,18 @@ class KeypomJS {
   }: {
     accountId: string;
     eventId: string;
-  }): Promise<{ drop_config: { metadata: string } }> => {
+  }): Promise<{ drop_config: { metadata: string } } | null> => {
     if (!Object.hasOwn(this.eventById, eventId)) {
       await this.getAllEventDrops({ accountId });
     }
 
+    if (!Object.hasOwn(this.eventById, eventId)) {
+      return null;
+    }
+
     const dropId = this.eventById[eventId];
     return await this.viewCall({
-      contractId: eventsContract,
+      contractId: KEYPOM_EVENTS_CONTRACT,
       methodName: 'get_drop_information',
       args: { drop_id: dropId },
     });
@@ -361,6 +365,9 @@ class KeypomJS {
     }
 
     await this.getAllEventDrops({ accountId });
+    if (!Object.hasOwn(this.eventById, eventId)) {
+      return [];
+    }
     return this.eventsStore[this.eventById[eventId]];
   };
 
@@ -373,7 +380,7 @@ class KeypomJS {
       // If totalDrops is not known, fetch it
       if (!this.totalEventDrops) {
         this.totalEventDrops = await this.viewCall({
-          contractId: eventsContract,
+          contractId: KEYPOM_EVENTS_CONTRACT,
           methodName: 'get_drop_supply_for_funder',
           args: { account_id: accountId },
         });
@@ -391,7 +398,7 @@ class KeypomJS {
         pageIndices.map(
           async (pageIndex) =>
             await this.viewCall({
-              contractId: eventsContract,
+              contractId: KEYPOM_EVENTS_CONTRACT,
               methodName: 'get_drops_for_funder',
               args: {
                 account_id: accountId,

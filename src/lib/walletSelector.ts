@@ -8,8 +8,9 @@ import { setupModal, type WalletSelectorModal } from '@near-wallet-selector/moda
 import { setupNearWallet } from '@near-wallet-selector/near-wallet';
 import { setupMyNearWallet } from '@near-wallet-selector/my-near-wallet';
 
+import { KEYPOM_EVENTS_CONTRACT } from '@/constants/common';
+
 const NETWORK_ID = process.env.REACT_APP_NETWORK_ID ?? 'testnet';
-const CONTRACT_ID = process.env.REACT_APP_CONTRACT_ID ?? 'v2.keypom.testnet';
 
 export class NearWalletSelector {
   public accounts: AccountState[];
@@ -22,7 +23,7 @@ export class NearWalletSelector {
       debug: true,
       modules: [setupNearWallet(), setupMyNearWallet()],
     });
-    const _modal = setupModal(_selector, { contractId: CONTRACT_ID, theme: 'light' });
+    const _modal = setupModal(_selector, { contractId: KEYPOM_EVENTS_CONTRACT, theme: 'light' });
     const state = _selector.store.getState();
 
     this.accounts = state.accounts;
