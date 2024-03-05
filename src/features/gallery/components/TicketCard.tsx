@@ -119,7 +119,7 @@ export const TicketCard = ({
             borderRadius="md"
             height="200px"
             objectFit="cover"
-            src={'te'}
+            src={event.media}
             width="100%"
           />
           <Badge
@@ -132,7 +132,7 @@ export const TicketCard = ({
             //   border="1px solid black"
             color="grey"
           >
-            {event.claimed} available
+            {event.numTickets} available
           </Badge>
 
           <Box align="left" color="black">
@@ -143,7 +143,7 @@ export const TicketCard = ({
           <Box>
             <VStack align="start" spacing={2}>
               <Text color="grey" fontSize="sm" my="1px">
-                {event.type}
+                {event.dateCreated}
               </Text>
               <Text color="grey" fontSize="sm" my="1px">
                 {event.id}

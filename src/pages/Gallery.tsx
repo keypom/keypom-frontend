@@ -34,12 +34,14 @@ import {
   SORT_MENU_ITEMS,
   createMenuItems,
 } from '@/features/all-drops/config/menuItems';
-import keypomInstance from '@/lib/keypom';
+import keypomInstance, { type EventDrop } from '@/lib/keypom';
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
 import { GalleryGrid } from '@/features/gallery/components/GalleryGrid';
 import { DropDownButton } from '@/features/all-drops/components/DropDownButton';
 import { FilterOptionsMobileButton } from '@/features/all-drops/components/FilterOptionsMobileButton';
 import { MobileDrawerMenu } from '@/features/all-drops/components/MobileDrawerMenu';
+import { type EventDropMetadata } from '@/lib/eventsHelpers';
+import { truncateAddress } from '@/utils/truncateAddress';
 
 // import myData from '../data/db.json';
 
@@ -288,35 +290,60 @@ export default function Gallery() {
     return drops;
   };
 
-  const handleGetAllDrops = useCallback(async () => {
-    setIsAllDropsLoading(true);
+  const formatDate = (date) => {
+    // Create an instance of Intl.DateTimeFormat for formatting
+    const formatter = new Intl.DateTimeFormat('en-US', {
+      month: 'short', // Full month name.
+      day: 'numeric', // Numeric day of the month.
+      year: 'numeric', // Numeric full year.
+      hour: 'numeric', // Numeric hour.
+      minute: 'numeric', // Numeric minute.
+      hour12: true, // Use 12-hour time.
+    });
+    return formatter.format(date);
+  };
 
-    // const drops = await keypomInstance.getAllDrops({
-    //   accountId: accountId!,
-    // });
+  const [numOwnedEvents, setNumOwnedEvents] = useState<number>(0);
 
-    const drops = await keypomInstance.getAllEvents({
+  const handleGetAllEvents = useCallback(async () => {
+    setIsLoading(true);
+    const eventDrops = await keypomInstance.getAllEventDrops({
       accountId: 'benjiman.testnet',
     });
 
-    console.log('testingdrops', drops);
+    console.log('eventDrops123123; ', eventDrops);
 
-    // const drops = await keypomInstance.getPaginatedEvents({
-    //   accountId: 'benjiman.testnet',
-    // });
+    const numEvents = eventDrops.length;
+    setNumOwnedEvents(numEvents);
 
-    const filteredDrops = await handleFiltering(drops);
-    const dropData = await Promise.all(
-      filteredDrops.map(async (drop) => await keypomInstance.getDropData({ drop })),
-    );
+    const filteredEvents = await handleFiltering(eventDrops);
+    const dropDataPromises = filteredEvents.map(async (drop: EventDrop) => {
+      const meta: EventDropMetadata = JSON.parse(drop.drop_config.metadata);
+      const tickets = await keypomInstance.getTicketsForEvent({
+        accountId: accountId!,
+        eventId: meta.ticketInfo.eventId,
+      });
+      const numTickets = tickets.length;
+      return {
+        id: drop.drop_id,
+        name: truncateAddress(meta.eventInfo?.name || 'Untitled', 'end', 48),
+        media: meta.eventInfo?.artwork,
+        dateCreated: formatDate(new Date(meta.dateCreated)), // Ensure drop has dateCreated or adjust accordingly
+        numTickets,
+        eventId: meta.ticketInfo.eventId,
+      };
+    });
+
+    // Use Promise.all to wait for all promises to resolve
+    const dropData = await Promise.all(dropDataPromises);
+
     setFilteredDataItems(dropData);
 
-    const totalPages = Math.ceil(filteredDrops.length / selectedFilters.pageSize);
-    setHasPagination(totalPages > 1);
+    const totalPages = Math.ceil(filteredEvents.length / selectedFilters.pageSize);
     setNumPages(totalPages);
 
     setCurPage(0);
-    setIsAllDropsLoading(false);
+    setIsLoading(false);
   }, [accountId, selectedFilters, keypomInstance]);
 
   const handleGetInitialDrops = useCallback(async () => {
@@ -326,9 +353,8 @@ export default function Gallery() {
     // const totalSupply = await keypomInstance.getDropSupplyForOwner({ accountId: accountId! });
     // // setNumOwnedDrops(totalSupply);
 
-    const totalSupply = await keypomInstance.getAllEvents({
-      accountId: 'benjiman.testnet',
-    });
+    // First get the total supply of drops so we know when to stop fetching
+    const totalSupply = await keypomInstance.getDropSupplyForOwner({ accountId: accountId! });
 
     console.log('initialtotal' + totalSupply);
 
@@ -336,10 +362,8 @@ export default function Gallery() {
     let dropsFetched = 0;
     let filteredDrops: ProtocolReturnedDrop[] = [];
     while (dropsFetched < totalSupply && filteredDrops.length < selectedFilters.pageSize) {
-      const drops = await keypomInstance.getPaginatedDrops({
-        accountId: accountId!,
-        start: dropsFetched,
-        limit: selectedFilters.pageSize,
+      const drops = await keypomInstance.getAllEventDrops({
+        accountId: 'benjiman.testnet',
       });
       dropsFetched += drops.length;
 
@@ -360,7 +384,6 @@ export default function Gallery() {
     if (filteredDataItems.length == 0) return;
     const randomElement = filteredDataItems[Math.floor(Math.random() * filteredDataItems.length)];
 
-    console.log(randomElement);
     setBanner(randomElement.media);
   }, [filteredDataItems]);
 
@@ -374,8 +397,8 @@ export default function Gallery() {
   useEffect(() => {
     if (!accountId) return;
 
-    // In parallel, fetch all the drops
-    handleGetAllDrops();
+    // In parallel, fetch all the events
+    handleGetAllEvents();
   }, [accountId, selectedFilters]);
 
   const pageSizeMenuItems = createMenuItems({
@@ -418,9 +441,9 @@ export default function Gallery() {
 
       <Show above="md">
         <HStack alignItems="center" display="flex" spacing="auto">
-          <HStack align="stretch" justify="space-between" w="full">
+          <HStack align="center" justify="space-between" w="full">
             <InputGroup width="300px">
-              <InputLeftElement height="full" pointerEvents="none">
+              <InputLeftElement height="56px" pointerEvents="none">
                 <Icon as={SearchIcon} color="gray.400" />
               </InputLeftElement>
               <Input
@@ -431,7 +454,7 @@ export default function Gallery() {
                 fontSize="md"
                 fontWeight="medium"
                 h="52px"
-                height="full"
+                height="56px"
                 placeholder="Search..."
                 px="6"
                 sx={{
@@ -502,7 +525,6 @@ export default function Gallery() {
                         loadingText="Loading..."
                         spinnerPlacement="end"
                         variant="secondary"
-                        w="200px"
                         w="full"
                       >
                         Sort

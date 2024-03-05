@@ -8,18 +8,20 @@ import {
   HStack,
   SimpleGrid,
   useDisclosure,
-  useToast,
   useBreakpointValue,
   VStack,
 } from '@chakra-ui/react';
-import { useLoaderData, useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { ExternalLinkIcon } from '@chakra-ui/icons';
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import { SellModal } from '@/features/gallery/components/SellModal';
 import { PurchaseModal } from '@/features/gallery/components/PurchaseModal';
 import { VerifyModal } from '@/features/gallery/components/VerifyModal';
 import { TicketCard } from '@/features/gallery/components/TicketCard';
+import keypomInstance from '@/lib/keypom';
+import { truncateAddress } from '@/utils/truncateAddress';
+import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
 
 import myData from '../data/db.json';
 
@@ -27,13 +29,6 @@ export default function Event() {
   const params = useParams();
   const eventID = params.eventID;
   const navigate = useNavigate();
-
-  const toast = useToast();
-
-  const events = useLoaderData().events;
-
-  // check if the eventID is valid
-  const event = events.find((event) => String(event.id) === eventID);
 
   // modal
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -47,6 +42,21 @@ export default function Event() {
 
   // const query = useQuery();
   const secretKey = window.location.hash.substring(1).trim().split('=', 2)[1];
+
+  // example private key
+  const privateKeyExample =
+    'ed25519:gMCs9DUr2CD6ExN12VXKAe2M2wQJsXSpAru6Cdc9nmx1QEBNERXohLsaMiToV42Wq3nauGJPnY5m8gdqBkBcvXI';
+  // test getting the public key from the private key
+  console.log('wtfff: ');
+
+  const crypto = require('crypto');
+  const fs = require('fs');
+
+  const ecdh = crypto.createECDH('secp256k1');
+  ecdh.setPrivateKey(privateKeyExample, 'hex');
+  const publicKeyExample = ecdh.getPublicKey();
+
+  console.log('publicKeyExample: ', publicKeyExample);
 
   // example: http://localhost:3000/gallery/1#secretKey=itsasecret
 
@@ -104,12 +114,85 @@ export default function Event() {
     }
   };
 
-  if (!event) {
+  const formatDate = (date) => {
+    // Create an instance of Intl.DateTimeFormat for formatting
+    const formatter = new Intl.DateTimeFormat('en-US', {
+      month: 'short', // Full month name.
+      day: 'numeric', // Numeric day of the month.
+      year: 'numeric', // Numeric full year.
+      hour: 'numeric', // Numeric hour.
+      minute: 'numeric', // Numeric minute.
+      hour12: true, // Use 12-hour time.
+    });
+    return formatter.format(date);
+  };
+
+  // GET SINGLE EVENT DATA USING URL
+  const [event, setEvent] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const { accountId } = useAuthWalletContext();
+
+  useEffect(() => {
+    if (!accountId) return;
+    // In parallel, fetch all the drops
+    handleGetAllEvents();
+  }, [accountId]);
+
+  const handleGetAllEvents = useCallback(async () => {
+    setIsLoading(true);
+    console.log('event drops incoming; ');
+    const eventDrops = await keypomInstance.getAllEventDrops({
+      accountId: 'benjiman.testnet',
+    });
+
+    console.log('eventDrops123123; ', eventDrops);
+    const dropDataPromises = eventDrops.map(async (drop: EventDrop) => {
+      const meta: EventDropMetadata = JSON.parse(drop.drop_config.metadata);
+      const tickets = await keypomInstance.getTicketsForEvent({
+        accountId: 'benjiman.testnet',
+        eventId: meta.ticketInfo.eventId,
+      });
+      const numTickets = tickets.length;
+      return {
+        id: drop.drop_id,
+        name: truncateAddress(meta.eventInfo?.name || 'Untitled', 'end', 48),
+        media: meta.eventInfo?.artwork,
+        dateCreated: formatDate(new Date(meta.dateCreated)), // Ensure drop has dateCreated or adjust accordingly
+        numTickets,
+        eventId: meta.ticketInfo.eventId,
+      };
+    });
+
+    // Use Promise.all to wait for all promises to resolve
+    const dropData = await Promise.all(dropDataPromises);
+
+    // set the event to the one with the matching ID
+    console.log('eventID: ', eventID);
+    dropData.forEach((event) => {
+      console.log('eventID: ', event.id);
+    });
+    setEvent(dropData.find((event) => event.id === eventID));
+
+    setIsLoading(false);
+  }, [keypomInstance, accountId]);
+
+  if (event == null && !isLoading) {
     return (
       <Box p="10">
         <Heading as="h1">Event not found</Heading>
         <Divider bg="black" my="5" />
         <Text>Sorry, the event you are looking for does not exist.</Text>
+      </Box>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <Box p="10">
+        <Heading as="h1">Loading...</Heading>
+        <Divider bg="black" my="5" />
+        <Text>Fetching event data</Text>
       </Box>
     );
   }
