@@ -291,9 +291,19 @@ export default function Gallery() {
   const handleGetAllDrops = useCallback(async () => {
     setIsAllDropsLoading(true);
 
-    const drops = await keypomInstance.getAllDrops({
-      accountId: accountId!,
+    // const drops = await keypomInstance.getAllDrops({
+    //   accountId: accountId!,
+    // });
+
+    const drops = await keypomInstance.getAllEvents({
+      accountId: 'benjiman.testnet',
     });
+
+    console.log('testingdrops', drops);
+
+    // const drops = await keypomInstance.getPaginatedEvents({
+    //   accountId: 'benjiman.testnet',
+    // });
 
     const filteredDrops = await handleFiltering(drops);
     const dropData = await Promise.all(
@@ -313,8 +323,14 @@ export default function Gallery() {
     setIsLoading(true);
 
     // First get the total supply of drops so we know when to stop fetching
-    const totalSupply = await keypomInstance.getDropSupplyForOwner({ accountId: accountId! });
-    // setNumOwnedDrops(totalSupply);
+    // const totalSupply = await keypomInstance.getDropSupplyForOwner({ accountId: accountId! });
+    // // setNumOwnedDrops(totalSupply);
+
+    const totalSupply = await keypomInstance.getAllEvents({
+      accountId: 'benjiman.testnet',
+    });
+
+    console.log('initialtotal' + totalSupply);
 
     // Loop until we have enough filtered drops to fill the page size
     let dropsFetched = 0;

@@ -165,13 +165,10 @@ export default function Event() {
     navigate('./');
 
     const buySuccessful = Math.random();
-    console.log('email' + email);
-    console.log('ticketAmount' + ticketAmount);
-    console.log('event' + event);
     if (buySuccessful <= 0.5) {
       toast({
         title: 'Purchase successful PLACEHOLDER',
-        description: `The item has been bought for ${event.price} NEAR`,
+        description: `The item has been bought for ${event.price as number} NEAR`,
         status: 'success',
         duration: 5000,
         isClosable: true,

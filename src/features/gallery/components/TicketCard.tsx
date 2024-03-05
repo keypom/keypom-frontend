@@ -32,6 +32,10 @@ interface TicketCardProps {
   surroundingNavLink: boolean;
 }
 
+interface SurroundingLinkProps {
+  children: React.ReactNode;
+}
+
 export const TicketCard = ({
   event,
   loading,
@@ -41,7 +45,7 @@ export const TicketCard = ({
   surroundingNavLink,
   onSubmit,
 }: TicketCardProps) => {
-  const SurroundingLink = ({ children }) => {
+  const SurroundingLink = ({ children }: SurroundingLinkProps) => {
     return surroundingNavLink ? (
       <NavLink to={'../gallery/' + String(event.id)}>{children}</NavLink>
     ) : (

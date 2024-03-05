@@ -28,7 +28,6 @@ export const VerifyModal = ({ isOpen, onClose, event }: VerifyModalProps) => {
   const toast = useToast();
 
   const checkData = (answer) => {
-    console.log('answer: ' + answer);
     answer = answer?.trim();
     if (answer === 'No result') {
       toast({
@@ -67,50 +66,6 @@ export const VerifyModal = ({ isOpen, onClose, event }: VerifyModalProps) => {
       <ModalContent maxH="90vh" p="8">
         <Box maxH="90vh" overflowY="auto" p="0">
           <ModalCloseButton />
-          <Text
-            as="h2"
-            color="black.800"
-            fontSize="xl"
-            fontWeight="medium"
-            my="4px"
-            textAlign="left"
-          >
-            Ticket Name
-          </Text>
-          <Text textAlign="left">{event.name}</Text>
-          <Text
-            as="h2"
-            color="black.800"
-            fontSize="l"
-            fontWeight="medium"
-            my="4px"
-            textAlign="left"
-          >
-            Description
-          </Text>
-          <Text textAlign="left">{event.description}</Text>
-          <Text
-            as="h2"
-            color="black.800"
-            fontSize="l"
-            fontWeight="medium"
-            my="4px"
-            textAlign="left"
-          >
-            Date
-          </Text>
-          <Text textAlign="left">{event.date}</Text>
-          <Text
-            as="h2"
-            color="black.800"
-            fontSize="l"
-            fontWeight="medium"
-            my="4px"
-            textAlign="left"
-          >
-            Location
-          </Text>
-          <Text textAlign="left">{event.location}</Text>
           <HStack>
             <Text
               as="h2"
@@ -152,6 +107,55 @@ export const VerifyModal = ({ isOpen, onClose, event }: VerifyModalProps) => {
             Ticket Information
           </Text>
           <Text textAlign="left">{data}</Text>
+
+          {data != 'No result' ? (
+            <>
+              <Text
+                as="h2"
+                color="black.800"
+                fontSize="xl"
+                fontWeight="medium"
+                my="4px"
+                textAlign="left"
+              >
+                Ticket Name TODO: get this data
+              </Text>
+              <Text textAlign="left">{event.name}</Text>
+              <Text
+                as="h2"
+                color="black.800"
+                fontSize="l"
+                fontWeight="medium"
+                my="4px"
+                textAlign="left"
+              >
+                Description
+              </Text>
+              <Text textAlign="left">{event.description}</Text>
+              <Text
+                as="h2"
+                color="black.800"
+                fontSize="l"
+                fontWeight="medium"
+                my="4px"
+                textAlign="left"
+              >
+                Date
+              </Text>
+              <Text textAlign="left">{event.date}</Text>
+              <Text
+                as="h2"
+                color="black.800"
+                fontSize="l"
+                fontWeight="medium"
+                my="4px"
+                textAlign="left"
+              >
+                Location
+              </Text>
+              <Text textAlign="left">{event.location}</Text>
+            </>
+          ) : null}
 
           <ModalFooter>
             <Button variant={'secondary'} w="100%" onClick={onClose}>

@@ -49,19 +49,19 @@ export const PurchaseModal = ({
       <ModalOverlay />
       <ModalContent p="8">
         <ModalCloseButton />
-        <Text as="h2" color="black.800" fontSize="xl" fontWeight="medium" my="4px" textAlign="left">
+        <Text as="h2" color="black.800" fontSize="xl" fontWeight="medium" mt="8px" textAlign="left">
           Ticket Name
         </Text>
         <Text textAlign="left">{event.name}</Text>
-        <Text as="h2" color="black.800" fontSize="l" fontWeight="medium" my="4px" textAlign="left">
+        <Text as="h2" color="black.800" fontSize="l" fontWeight="medium" mt="8px" textAlign="left">
           Description
         </Text>
         <Text textAlign="left">{event.description}</Text>
-        <Text as="h2" color="black.800" fontSize="l" fontWeight="medium" my="4px" textAlign="left">
+        <Text as="h2" color="black.800" fontSize="l" fontWeight="medium" mt="8px" textAlign="left">
           Date
         </Text>
         <Text textAlign="left">{event.date}</Text>
-        <Text as="h2" color="black.800" fontSize="l" fontWeight="medium" my="4px" textAlign="left">
+        <Text as="h2" color="black.800" fontSize="l" fontWeight="medium" mt="8px" textAlign="left">
           Location
         </Text>
         <Text textAlign="left">{event.location}</Text>
