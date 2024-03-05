@@ -6,6 +6,7 @@ export const CLOUDFLARE_IPFS = 'https://cloudflare-ipfs.com/ipfs';
 export const DROP_TYPE = {
   TOKEN: 'TOKEN',
   TICKET: 'TICKET',
+  EVENT: 'EVENT',
   TRIAL: 'TRIAL',
   NFT: 'NFT',
   SIMPLE: 'SIMPLE',

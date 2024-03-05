@@ -46,6 +46,11 @@ export const Navbar = (props: NavbarProps) => {
       href: '/drops',
       isProtected: !isLoggedIn,
     },
+    {
+      name: 'My Events',
+      href: '/events',
+      isProtected: !isLoggedIn,
+    },
   ];
 
   const menuItems = MENU_ITEMS.map((item) => (

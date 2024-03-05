@@ -7,7 +7,6 @@ import { DropDownButton } from './DropDownButton';
 
 interface DropManagerPaginationProps {
   isLoading: boolean;
-  hasPagination: boolean;
   pageSizeMenuItems: ReactElement[];
   onClickRowsSelect: () => void;
   rowsSelectPlaceholder: string;
@@ -20,7 +19,6 @@ interface DropManagerPaginationProps {
 
 export const DropManagerPagination = ({
   isLoading,
-  hasPagination,
   pageSizeMenuItems,
   onClickRowsSelect,
   rowsSelectPlaceholder,
@@ -42,7 +40,7 @@ export const DropManagerPagination = ({
       </HStack>
     );
   }
-  return hasPagination ? (
+  return (
     <HStack justify="space-between" py="4" w="full">
       <HStack>
         <Show above="sm">
@@ -82,12 +80,12 @@ export const DropManagerPagination = ({
         />
         <NextButton
           id="all-drops"
-          isDisabled={curPage === numPages - 1}
+          isDisabled={numPages === 0 ? true : curPage === numPages - 1}
           lineHeight=""
           variant="secondary"
           onClick={handleNextPage}
         />
       </HStack>
     </HStack>
-  ) : null;
+  );
 };

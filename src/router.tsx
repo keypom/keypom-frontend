@@ -22,6 +22,9 @@ const ProtectedRoute = React.lazy(
 const AllDropsPage = React.lazy(
   async () => await import('./features/all-drops/routes/AllDropsPage'),
 );
+const AllEventsPage = React.lazy(
+  async () => await import('./features/all-drops/routes/AllEventsPage'),
+);
 const ClaimPage = React.lazy(async () => await import('@/features/claim/routes/ClaimRouter'));
 const ClaimTokenPage = React.lazy(
   async () => await import('@/features/claim/routes/TokenClaimPage'),
@@ -42,7 +45,9 @@ const CreateNftDropPage = React.lazy(
 const CreateTicketDropPage = React.lazy(
   async () => await import('@/features/create-drop/routes/CreateTicketDropPage'),
 );
-
+const EventManagerPage = React.lazy(
+  async () => await import('@/features/drop-manager/routes/events/EventManagerPage'),
+);
 const TokenDropManagerPage = React.lazy(
   async () => await import('@/features/drop-manager/routes/token/TokenDropManagerPage'),
 );
@@ -104,6 +109,25 @@ export const router = createBrowserRouter([
             ),
           },
           {
+            path: 'events',
+            element: <ProtectedRoute />, // Wrap the AllEventsPage and its dynamic children with ProtectedRoute
+            children: [
+              {
+                index: true,
+                element: <AllEventsPage />, // Display AllEventsPage at /events
+              },
+              {
+                path: 'event/:id', // Match /events/event/:id
+                element: <EventManagerPage />,
+              },
+              {
+                path: 'ticket/:id', // Match /events/ticket/:id
+                element: <TicketDropManagerPage />,
+              },
+              // Add other paths as needed...
+            ],
+          },
+          {
             path: 'drop',
             element: <ProtectedRoute />,
             children: [
@@ -139,10 +163,6 @@ export const router = createBrowserRouter([
                   {
                     path: 'new',
                     element: <CreateTicketDropPage />,
-                  },
-                  {
-                    path: ':id',
-                    element: <TicketDropManagerPage />,
                   },
                 ],
               },
