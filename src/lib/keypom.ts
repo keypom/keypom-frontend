@@ -111,6 +111,8 @@ class KeypomJS {
     if (instance !== undefined) {
       throw new Error('New instance cannot be created!!');
     }
+
+    this.init();
   }
 
   async init() {
@@ -120,7 +122,12 @@ class KeypomJS {
   }
 
   public static getInstance(): KeypomJS {
-    if (!KeypomJS.instance) {
+    if (
+      !KeypomJS.instance ||
+      KeypomJS.instance === undefined ||
+      KeypomJS.instance === null ||
+      this.viewAccount === undefined
+    ) {
       KeypomJS.instance = new KeypomJS();
     }
 

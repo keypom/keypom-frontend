@@ -19,16 +19,29 @@ import { SellModal } from '@/features/gallery/components/SellModal';
 import { PurchaseModal } from '@/features/gallery/components/PurchaseModal';
 import { VerifyModal } from '@/features/gallery/components/VerifyModal';
 import { TicketCard } from '@/features/gallery/components/TicketCard';
-import keypomInstance from '@/lib/keypom';
-import { truncateAddress } from '@/utils/truncateAddress';
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
-
-import myData from '../data/db.json';
+import { type EventDropMetadata } from '@/lib/eventsHelpers';
+import keypomInstance from '@/lib/keypom';
 
 export default function Event() {
   const params = useParams();
-  const eventID = params.eventID;
   const navigate = useNavigate();
+
+  // GET SINGLE EVENT DATA USING URL
+  const [event, setEvent] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [noDrop, setNoDrop] = useState(false);
+  const [input, setInput] = useState('');
+  const [email, setEmail] = useState('');
+  const [ticketAmount, setTicketAmount] = useState(1);
+  const [ticketList, setTicketList] = useState([]);
+  const [areTicketsLoading, setAreTicketsLoading] = useState(true);
+
+  const { selector } = useAuthWalletContext();
+
+  const accountId = 'benjiman.testnet';
+
+  const eventId = params.eventID;
 
   // modal
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -36,11 +49,6 @@ export default function Event() {
   // verify
   const { isOpen: verifyIsOpen, onOpen: verifyOnOpen, onClose: verifyOnClose } = useDisclosure();
 
-  // function useQuery() {
-  //   return new URLSearchParams(useLocation().search);
-  // }
-
-  // const query = useQuery();
   const secretKey = window.location.hash.substring(1).trim().split('=', 2)[1];
 
   // example private key
@@ -78,132 +86,13 @@ export default function Event() {
     });
   }
 
-  function CloseSellModal() {
-    doKeyModal = false;
-    // Remove the secretKey parameter from the URL
-    // const params = new URLSearchParams(location.search);
-    // params.delete('secretKey');
-    navigate('./');
-
-    console.log('secretKegwgewey' + secretKey);
-  }
-
-  const [input, setInput] = useState('');
-  const SellTicket = (event) => {
-    event.preventDefault();
-    // sell the ticket with the secret key, give toast, and sell
-    navigate('./');
-    const sellsuccessful = Math.random();
-    console.log('inpuit' + input);
-    if (sellsuccessful <= 0.5) {
-      toast({
-        title: 'Item put for sale successfully PLACEHOLDER',
-        description: `Your item has been put for sale for ${input} NEAR`,
-        status: 'success',
-        duration: 5000,
-        isClosable: true,
-      });
-    } else {
-      toast({
-        title: 'Item not put for sale',
-        description: 'Your item has not been put for sale',
-        status: 'error',
-        duration: 5000,
-        isClosable: true,
-      });
-    }
-  };
-
-  const formatDate = (date) => {
-    // Create an instance of Intl.DateTimeFormat for formatting
-    const formatter = new Intl.DateTimeFormat('en-US', {
-      month: 'short', // Full month name.
-      day: 'numeric', // Numeric day of the month.
-      year: 'numeric', // Numeric full year.
-      hour: 'numeric', // Numeric hour.
-      minute: 'numeric', // Numeric minute.
-      hour12: true, // Use 12-hour time.
-    });
-    return formatter.format(date);
-  };
-
-  // GET SINGLE EVENT DATA USING URL
-  const [event, setEvent] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
-
-  const { accountId } = useAuthWalletContext();
-
-  useEffect(() => {
-    if (!accountId) return;
-    // In parallel, fetch all the drops
-    handleGetAllEvents();
-  }, [accountId]);
-
-  const handleGetAllEvents = useCallback(async () => {
-    setIsLoading(true);
-    console.log('event drops incoming; ');
-    const eventDrops = await keypomInstance.getAllEventDrops({
-      accountId: 'benjiman.testnet',
-    });
-
-    console.log('eventDrops123123; ', eventDrops);
-    const dropDataPromises = eventDrops.map(async (drop: EventDrop) => {
-      const meta: EventDropMetadata = JSON.parse(drop.drop_config.metadata);
-      const tickets = await keypomInstance.getTicketsForEvent({
-        accountId: 'benjiman.testnet',
-        eventId: meta.ticketInfo.eventId,
-      });
-      const numTickets = tickets.length;
-      return {
-        id: drop.drop_id,
-        name: truncateAddress(meta.eventInfo?.name || 'Untitled', 'end', 48),
-        media: meta.eventInfo?.artwork,
-        dateCreated: formatDate(new Date(meta.dateCreated)), // Ensure drop has dateCreated or adjust accordingly
-        numTickets,
-        eventId: meta.ticketInfo.eventId,
-      };
-    });
-
-    // Use Promise.all to wait for all promises to resolve
-    const dropData = await Promise.all(dropDataPromises);
-
-    // set the event to the one with the matching ID
-    console.log('eventID: ', eventID);
-    dropData.forEach((event) => {
-      console.log('eventID: ', event.id);
-    });
-    setEvent(dropData.find((event) => event.id === eventID));
-
-    setIsLoading(false);
-  }, [keypomInstance, accountId]);
-
-  if (event == null && !isLoading) {
-    return (
-      <Box p="10">
-        <Heading as="h1">Event not found</Heading>
-        <Divider bg="black" my="5" />
-        <Text>Sorry, the event you are looking for does not exist.</Text>
-      </Box>
-    );
-  }
-
-  if (isLoading) {
-    return (
-      <Box p="10">
-        <Heading as="h1">Loading...</Heading>
-        <Divider bg="black" my="5" />
-        <Text>Fetching event data</Text>
-      </Box>
-    );
-  }
-
   const loadingdata = [];
 
   // append 10 loading cards
   for (let i = 0; i < 3; i++) {
     const loadingCard = {
       id: i,
-      name: 'dummy',
+      name: 'dummy2',
       type: 'Type 1',
       media: 'https://via.placeholder.com/300',
       claimed: 100,
@@ -211,13 +100,16 @@ export default function Event() {
     loadingdata.push(loadingCard);
   }
 
-  const res = event.location.trim().replace(/ /g, '+');
+  console.log(event);
+
+  const res = '';
+  if (event) {
+    event.location.trim().replace(/ /g, '+');
+  }
 
   const mapHref = 'https://www.google.com/maps/search/' + String(res);
 
   // purchase modal
-  const [email, setEmail] = useState('');
-  const [ticketAmount, setTicketAmount] = useState(1);
 
   const incrementAmount = () => {
     if (ticketAmount < event.tickets) {
@@ -270,6 +162,161 @@ export default function Event() {
   // mobile stacking
   const Stack = useBreakpointValue({ base: VStack, md: HStack });
 
+  function CloseSellModal() {
+    doKeyModal = false;
+    // Remove the secretKey parameter from the URL
+    // const params = new URLSearchParams(location.search);
+    // params.delete('secretKey');
+    navigate('./');
+
+    console.log('secretKegwgewey' + secretKey);
+  }
+
+  const SellTicket = (event) => {
+    event.preventDefault();
+    // sell the ticket with the secret key, give toast, and sell
+    navigate('./');
+    const sellsuccessful = Math.random();
+    console.log('inpuit' + input);
+    if (sellsuccessful <= 0.5) {
+      toast({
+        title: 'Item put for sale successfully PLACEHOLDER',
+        description: `Your item has been put for sale for ${input} NEAR`,
+        status: 'success',
+        duration: 5000,
+        isClosable: true,
+      });
+    } else {
+      toast({
+        title: 'Item not put for sale',
+        description: 'Your item has not been put for sale',
+        status: 'error',
+        duration: 5000,
+        isClosable: true,
+      });
+    }
+  };
+
+  const handleGetAllTickets = useCallback(async () => {
+    setIsLoading(true);
+    const ticketsForEvent: EventDrop[] = await keypomInstance.getTicketsForEvent({
+      accountId,
+      eventId,
+    });
+
+    const promises = ticketsForEvent.map(async (ticket) => {
+      const meta: EventDropMetadata = JSON.parse(ticket.drop_config.metadata);
+      const supply = await keypomInstance.getKeySupplyForTicket(ticket.drop_id);
+      console.log('Valid Through', meta.ticketInfo.salesValidThrough);
+      return {
+        id: ticket.drop_id,
+        artwork: meta.ticketInfo.artwork,
+        name: meta.ticketInfo.name,
+        description: meta.ticketInfo.name,
+        salesValidThrough: meta.ticketInfo.salesValidThrough,
+        passValidThrough: meta.ticketInfo.passValidThrough,
+        maxTickets: meta.ticketInfo.maxSupply,
+        soldTickets: supply,
+        priceNear: keypomInstance.yoctoToNear(meta.ticketInfo.price),
+      };
+    });
+
+    let tickets = await Promise.all(promises);
+
+    // map tickets
+    tickets = tickets.map((ticket) => {
+      let available = 'unlimited';
+      if (ticket.maxTickets != undefined) {
+        available = String(ticket.maxTickets - ticket.soldTickets);
+      }
+      let dateString = '';
+      if (ticket.passValidThrough) {
+        dateString = ticket.passValidThrough;
+        // typeof ticket.passValidThrough === 'string'
+        //   ? ticket.passValidThrough
+        //   : `${ticket.date.from} to ${ticket.date.to}`;
+      }
+      return {
+        ...ticket,
+        price: ticket.priceNear,
+        media: ticket.artwork,
+        numTickets: available,
+        dateString,
+        location: '',
+        description: ticket.description,
+      };
+    });
+
+    console.log('tickets: ', tickets);
+
+    setTicketList(tickets);
+
+    setAreTicketsLoading(false);
+  }, [accountId, keypomInstance]);
+
+  useEffect(() => {
+    if (!keypomInstance || !eventId || !accountId) return;
+
+    handleGetAllTickets();
+  }, [keypomInstance, eventId, accountId]);
+
+  useEffect(() => {
+    if (eventId === '') navigate('/drops');
+    if (!accountId) return;
+    if (!eventId) return;
+
+    const getEventData = async () => {
+      // console.log('eventID: ' + eventId);
+      try {
+        const drop = await keypomInstance.getEventDrop({ accountId, eventId });
+
+        const meta: EventDropMetadata = JSON.parse(drop.drop_config.metadata);
+        let dateString = '';
+        if (meta.eventInfo?.date) {
+          dateString =
+            typeof meta.eventInfo?.date.date === 'string'
+              ? meta.eventInfo?.date.date
+              : `${meta.eventInfo?.date.date.from} to ${meta.eventInfo?.date.date.to}`;
+        }
+        console.log('driopeed: ', meta);
+        console.log('meta.ticketInfo: ', meta.ticketInfo);
+        setEvent({
+          name: meta.eventInfo?.name || 'Untitled',
+          artwork: meta.eventInfo?.artwork || 'loading',
+          questions: meta.eventInfo?.questions || [],
+          location: meta.eventInfo?.location || 'loading',
+          date: dateString,
+          description: meta.eventInfo?.description || 'loading',
+          ticketInfo: meta.ticketInfo,
+        });
+        setIsLoading(false);
+      } catch (error) {
+        setNoDrop(true);
+      }
+    };
+    getEventData();
+  }, [eventId, selector, accountId, keypomInstance]);
+
+  if (noDrop) {
+    return (
+      <Box p="10">
+        <Heading as="h1">Event not found</Heading>
+        <Divider bg="black" my="5" />
+        <Text>Sorry, the event you are looking for does not exist.</Text>
+      </Box>
+    );
+  }
+
+  if (isLoading || event == null) {
+    return (
+      <Box p="10">
+        <Heading as="h1">Loading...</Heading>
+        <Divider bg="black" my="5" />
+        <Text>Fetching event data</Text>
+      </Box>
+    );
+  }
+
   return (
     <Box p="10">
       <Box
@@ -287,7 +334,7 @@ export default function Event() {
           alt={event.title}
           height="300"
           objectFit="cover"
-          src={'../' + String(event.img)}
+          src={event.artwork}
           width="100%"
         />
         <Heading
@@ -307,7 +354,7 @@ export default function Event() {
           top="33%"
           transform="translate(-50%, -50%)"
         >
-          {event.title}
+          {event.name}
         </Heading>
       </Box>
       <Box my="5" />
@@ -330,14 +377,6 @@ export default function Event() {
           </Text>
 
           <Text> {event.description} </Text>
-          <Text>
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor
-            incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud
-            exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure
-            dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
-            Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt
-            mollit anim id est laborum.
-          </Text>
         </Box>
         <Box flex="1" textAlign="left">
           <Text color="black.800" fontSize="xl" fontWeight="medium" my="2">
@@ -365,20 +404,31 @@ export default function Event() {
         Tickets
       </Heading>
       <SimpleGrid minChildWidth="250px" spacing={5}>
-        {loadingdata?.map((ticket) => (
-          <Box>
-            <TicketCard
-              key={ticket.id}
-              amount={ticketAmount}
-              decrementAmount={decrementAmount}
-              event={loadingdata[0]}
-              incrementAmount={incrementAmount}
-              loading={false}
-              surroundingNavLink={false}
-              onSubmit={OpenPurchaseModal}
-            />
-          </Box>
-        ))}
+        {!areTicketsLoading
+          ? ticketList.map((ticket) => (
+              <TicketCard
+                key={ticket.id}
+                amount={ticketAmount}
+                decrementAmount={decrementAmount}
+                event={ticket}
+                incrementAmount={incrementAmount}
+                loading={false}
+                surroundingNavLink={false}
+                onSubmit={OpenPurchaseModal}
+              />
+            ))
+          : loadingdata.map((ticket) => (
+              <TicketCard
+                key={loadingdata.id}
+                amount={ticketAmount}
+                decrementAmount={decrementAmount}
+                event={loadingdata[0]}
+                incrementAmount={incrementAmount}
+                loading={true}
+                surroundingNavLink={false}
+                onSubmit={OpenPurchaseModal}
+              />
+            ))}
       </SimpleGrid>
 
       <PurchaseModal
@@ -405,9 +455,3 @@ export default function Event() {
     </Box>
   );
 }
-
-export const eventsLoader = async () => {
-  // const res = await fetch("http://localhost:3000/events");
-
-  return myData;
-};

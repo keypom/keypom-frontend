@@ -45,12 +45,12 @@ export const TicketCard = ({
   surroundingNavLink,
   onSubmit,
 }: TicketCardProps) => {
+  const nav = '../gallery/' + String(event.navurl);
+
+  console.log('event', event);
+
   const SurroundingLink = ({ children }: SurroundingLinkProps) => {
-    return surroundingNavLink ? (
-      <NavLink to={'../gallery/' + String(event.id)}>{children}</NavLink>
-    ) : (
-      <>{children}</>
-    );
+    return surroundingNavLink ? <NavLink to={nav}>{children}</NavLink> : <>{children}</>;
   };
 
   const navButton = onSubmit == null;
@@ -122,18 +122,42 @@ export const TicketCard = ({
             src={event.media}
             width="100%"
           />
-          <Badge
-            p={2}
-            position="absolute"
-            right="5"
-            rounded="lg"
-            top="25"
-            variant="gray"
-            //   border="1px solid black"
-            color="grey"
-          >
-            {event.numTickets} available
-          </Badge>
+
+          {event.numTickets === 'unlimited' ? (
+            <></>
+          ) : (
+            <>
+              {event.numTickets === '0' ? (
+                <>
+                  <Badge
+                    p={2}
+                    position="absolute"
+                    right="5"
+                    rounded="lg"
+                    top="25"
+                    variant="gray"
+                    //   border="1px solid black"
+                    color="grey"
+                  >
+                    Sold out
+                  </Badge>
+                </>
+              ) : (
+                <Badge
+                  p={2}
+                  position="absolute"
+                  right="5"
+                  rounded="lg"
+                  top="25"
+                  variant="gray"
+                  //   border="1px solid black"
+                  color="grey"
+                >
+                  {event.numTickets} available
+                </Badge>
+              )}
+            </>
+          )}
 
           <Box align="left" color="black">
             <Text as="h2" color="black.800" fontSize="xl" fontWeight="medium" my="2" size="sm">
@@ -143,16 +167,14 @@ export const TicketCard = ({
           <Box>
             <VStack align="start" spacing={2}>
               <Text color="grey" fontSize="sm" my="1px">
-                {event.dateCreated}
+                {event.dateString}
               </Text>
               <Text color="grey" fontSize="sm" my="1px">
-                {event.id}
+                {event.location}
               </Text>
 
               <Text align="left" color="black" fontSize="sm" my="1px">
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor
-                incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud
-                exercitation ullamco laboris nisi ut aliq
+                {event.description}
               </Text>
             </VStack>
           </Box>
@@ -165,7 +187,7 @@ export const TicketCard = ({
           ) : null}
           {navButton ? (
             <>
-              <NavLink to={'../gallery/' + String(event.id)}>
+              <NavLink to={nav}>
                 <Button mt="5" w="100%">
                   {' '}
                   Browse Event
@@ -176,7 +198,7 @@ export const TicketCard = ({
             <>
               <Button mt="5" w="100%" onClick={onSubmit}>
                 {' '}
-                Buy for {event.claimed} NEAR
+                Buy for {event.price} NEAR
               </Button>
             </>
           )}

@@ -319,18 +319,33 @@ export default function Gallery() {
     const filteredEvents = await handleFiltering(eventDrops);
     const dropDataPromises = filteredEvents.map(async (drop: EventDrop) => {
       const meta: EventDropMetadata = JSON.parse(drop.drop_config.metadata);
+
+      console.log('meta.eventInfo?', meta.eventInfo);
+
+      let dateString = '';
+      if (meta.eventInfo?.date) {
+        dateString =
+          typeof meta.eventInfo?.date.date === 'string'
+            ? meta.eventInfo?.date.date
+            : `${meta.eventInfo?.date.date.from} to ${meta.eventInfo?.date.date.to}`;
+      }
+
       const tickets = await keypomInstance.getTicketsForEvent({
         accountId: accountId!,
         eventId: meta.ticketInfo.eventId,
       });
       const numTickets = tickets.length;
       return {
+        location: meta.eventInfo?.location,
+        dateString,
         id: drop.drop_id,
         name: truncateAddress(meta.eventInfo?.name || 'Untitled', 'end', 48),
         media: meta.eventInfo?.artwork,
         dateCreated: formatDate(new Date(meta.dateCreated)), // Ensure drop has dateCreated or adjust accordingly
         numTickets,
+        description: meta.eventInfo?.description,
         eventId: meta.ticketInfo.eventId,
+        navurl: meta.ticketInfo.eventId,
       };
     });
 
@@ -362,9 +377,16 @@ export default function Gallery() {
     let dropsFetched = 0;
     let filteredDrops: ProtocolReturnedDrop[] = [];
     while (dropsFetched < totalSupply && filteredDrops.length < selectedFilters.pageSize) {
-      const drops = await keypomInstance.getAllEventDrops({
+      let drops = await keypomInstance.getAllEventDrops({
         accountId: 'benjiman.testnet',
       });
+
+      drops = drops.filter((drop) => {
+        const meta: EventDropMetadata = JSON.parse(drop.drop_config.metadata);
+        return meta.eventInfo !== undefined;
+      });
+
+      console.log('All Event Drops drops: ', drops);
       dropsFetched += drops.length;
 
       const curFiltered = await handleFiltering(drops);
