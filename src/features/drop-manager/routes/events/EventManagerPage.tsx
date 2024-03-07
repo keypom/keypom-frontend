@@ -1,20 +1,26 @@
 import {
-  Show,
-  Hide,
-  Spinner,
-  Text,
-  Image,
-  VStack,
   Box,
+  Divider,
   Button,
   Heading,
+  Hide,
   HStack,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  Image,
+  Show,
   Skeleton,
+  Spinner,
+  Text,
+  VStack,
+  ModalContent,
 } from '@chakra-ui/react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { type Wallet } from '@near-wallet-selector/core';
 
+import { get } from '@/utils/localStorage';
 import { DeleteIcon } from '@/components/Icons';
 import { type ColumnItem, type DataItem } from '@/components/Table/types';
 import { DataTable } from '@/components/Table';
@@ -23,7 +29,7 @@ import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
 import { useAppContext } from '@/contexts/AppContext';
 import keypomInstance, { type EventDrop } from '@/lib/keypom';
 import { DropManagerPagination } from '@/features/all-drops/components/DropManagerPagination';
-import { PAGE_SIZE_LIMIT } from '@/constants/common';
+import { MASTER_KEY, PAGE_SIZE_LIMIT } from '@/constants/common';
 import { type QuestionInfo, type EventDropMetadata } from '@/lib/eventsHelpers';
 import { ShareIcon } from '@/components/Icons/ShareIcon';
 import { NotFound404 } from '@/components/NotFound404';
@@ -98,6 +104,8 @@ export default function EventManagerPage() {
   const [wallet, setWallet] = useState<Wallet>();
   const [isLoading, setIsLoading] = useState(true);
   const [isErr, setIsErr] = useState(false);
+  const [isCorrectMasterKey, setIsCorrectMasterKey] = useState(true);
+  const [userKey, setUserKey] = useState();
 
   const [exporting, setExporting] = useState<boolean>(false);
 
@@ -121,6 +129,17 @@ export default function EventManagerPage() {
         setIsErr(true);
         return;
       }
+      if (eventInfo?.questions) {
+        try {
+          const privKey = await keypomInstance.getDerivedPrivKey({
+            encryptedPk: eventInfo.encPrivKey!,
+            ivBase64: eventInfo.iv!,
+            saltBase64: eventInfo.salt!,
+            pw: get(MASTER_KEY) as string,
+          });
+          setUserKey(privKey);
+        } catch (e) {}
+      }
       setEventData({
         name: eventInfo.name || 'Untitled',
         artwork: eventInfo.artwork || 'loading',
@@ -134,6 +153,42 @@ export default function EventManagerPage() {
       setIsErr(true);
     }
   }, [eventId, selector, accountId]);
+
+  const handleClosePwModal = () => {
+    setAppModal({ isOpen: false });
+    navigate(`/events`);
+  };
+
+  useEffect(() => {
+    if (!isCorrectMasterKey) {
+      setAppModal({
+        isOpen: true,
+        size: 'xl',
+        modalContent: (
+          <ModalContent maxH="90vh" overflowY="auto" p={6}>
+            <ModalHeader>Incorrect Site Password</ModalHeader>
+            <Divider borderColor="gray.300" />
+            <ModalBody>
+              <VStack align="left" spacing={6}>
+                <Text fontSize="md">
+                  The site password you entered is incorrect. Please change it in your user profile
+                  settings.
+                </Text>
+                <Text fontSize="md">
+                  Without the correct password, you will not be able to view attendee information.
+                </Text>
+              </VStack>
+            </ModalBody>
+            <ModalFooter>
+              <Button variant="secondary" onClick={handleClosePwModal}>
+                Close
+              </Button>
+            </ModalFooter>
+          </ModalContent>
+        ),
+      });
+    }
+  }, [isCorrectMasterKey]);
 
   useEffect(() => {
     if (!keypomInstance || !eventId || !accountId) return;
@@ -202,24 +257,37 @@ export default function EventManagerPage() {
         try {
           // Construct CSV header
           const questions = eventData?.questions || [];
+          if (questions.length !== 0) {
+            if (!userKey) {
+              setIsCorrectMasterKey(false);
+              return;
+            }
+          }
           let csvContent = 'data:text/csv;charset=utf-8,';
           csvContent +=
-            'Ticket ID,' + 'Claim Status' + questions.map((q) => q.question).join(',') + '\r\n';
+            'Ticket ID,' + 'Claim Status,' + questions.map((q) => q.question).join(',') + '\r\n';
+          console.log('questions', questions);
 
           // Construct CSV rows
-          data.forEach((item, i) => {
-            const responses = JSON.parse(item.metadata).questions || {};
-            const row = [item.pub_key.split('ed25519:')[1]];
-            row.push(CLAIM_STATUS[item.uses_remaining].name);
+          await Promise.all(
+            data.map(async (item, i) => {
+              const decryptedMeta = await keypomInstance.decryptMetadata({
+                data: item.metadata,
+                privKey: userKey,
+              });
+              const responses = JSON.parse(decryptedMeta).questions || {};
+              const row = [item.pub_key.split('ed25519:')[1]];
+              row.push(CLAIM_STATUS[item.uses_remaining].name);
 
-            // Add answers in the same order as the questions
-            questions.forEach((q) => {
-              row.push(responses[q.question] || '-');
-            });
+              // Add answers in the same order as the questions
+              questions.forEach((q) => {
+                row.push(responses[q.question] || '-');
+              });
 
-            // Join the individual row's columns and push it to CSV content
-            csvContent += row.join(',') + '\r\n';
-          });
+              // Join the individual row's columns and push it to CSV content
+              csvContent += row.join(',') + '\r\n';
+            }),
+          );
 
           // Encode the CSV content
           const encodedUri = encodeURI(csvContent);
@@ -307,6 +375,7 @@ export default function EventManagerPage() {
       navigate,
       eventId,
       ticketData: [ticketData],
+      deleteAll: ticketData.length <= 1,
       setAppModal,
     };
 
@@ -331,6 +400,7 @@ export default function EventManagerPage() {
       accountId,
       navigate,
       eventId,
+      deleteAll: true,
       ticketData,
       setAppModal,
     };

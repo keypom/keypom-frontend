@@ -330,7 +330,7 @@ class KeypomJS {
       args: { account_id: accountId },
     });
     const meta: FunderMetadata = JSON.parse(funderInfo.metadata);
-    meta[eventId] = undefined;
+    delete meta[eventId];
 
     await wallet.signAndSendTransaction({
       signerId: accountId,
@@ -350,12 +350,12 @@ class KeypomJS {
   };
 
   deleteEventFromCache = ({ eventId }: { eventId: string }) => {
-    this.eventInfoById[eventId] = undefined;
-    this.ticketDropsByEventId[eventId] = undefined;
+    delete this.eventInfoById[eventId];
+    delete this.ticketDropsByEventId[eventId];
   };
 
   deleteTicketFromCache = ({ dropId }: { dropId: string }) => {
-    this.purchasedTicketsById[dropId] = undefined;
+    delete this.purchasedTicketsById[dropId];
   };
 
   getEventInfo = async ({
@@ -455,7 +455,7 @@ class KeypomJS {
       });
       const funderMeta: FunderMetadata = JSON.parse(funderInfo.metadata);
 
-      const events = [];
+      const events: FunderEventMetadata[] = [];
       for (const eventId in funderMeta) {
         events.push(funderMeta[eventId]);
         this.eventInfoById[eventId] = funderMeta[eventId];
@@ -477,7 +477,6 @@ class KeypomJS {
   };
 
   decryptMetadata = async ({ privKey, data }) => {
-    console.log('decryptMetadata', privKey, data);
     // Step 6: Decrypt the encrypted data using the decrypted private key
     const decryptedData = await decryptWithPrivateKey(data, privKey);
     return decryptedData;
@@ -1066,4 +1065,3 @@ class KeypomJS {
 const keypomInstance = KeypomJS.getInstance();
 
 export default keypomInstance;
-

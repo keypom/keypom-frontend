@@ -20,6 +20,8 @@ const ProtectedRoute = React.lazy(
 const AllDropsPage = React.lazy(
   async () => await import('./features/all-drops/routes/AllDropsPage'),
 );
+
+const TicketQRCodePage = React.lazy(async () => await import('./features/ticket-qr/TicketQRCode'));
 const AllEventsPage = React.lazy(
   async () => await import('./features/all-drops/routes/AllEventsPage'),
 );
@@ -86,6 +88,16 @@ export const router = createBrowserRouter([
                 <AllDropsPage />
               </ProtectedRoute>
             ),
+          },
+          {
+            path: 'tickets',
+            children: [
+              {
+                path: 'ticket/:id', // Match /tickets/ticket/:id
+                element: <TicketQRCodePage />,
+              },
+              // Add other paths as needed...
+            ],
           },
           {
             path: 'events',

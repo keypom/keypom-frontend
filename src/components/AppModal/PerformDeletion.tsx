@@ -10,13 +10,13 @@ import CompletionModalContent from './CompletionModal';
 export const performDeletionLogic = async ({
   wallet,
   accountId,
-  navigate,
+  deleteAll,
   eventId,
   ticketData,
   setAppModal,
 }: {
   wallet: Wallet;
-  navigate: any;
+  deleteAll: boolean;
   accountId: string;
   eventId: string;
   ticketData: EventDrop[];
@@ -122,7 +122,7 @@ export const performDeletionLogic = async ({
       keypomInstance.deleteTicketFromCache({ dropId });
     }
 
-    if (ticketData.length === 0 || ticketData.length > 1) {
+    if (deleteAll) {
       setAppModal({
         isOpen: true,
         size: 'xl',
@@ -140,9 +140,8 @@ export const performDeletionLogic = async ({
         eventId,
         wallet,
       });
+      keypomInstance.deleteEventFromCache({ eventId });
     }
-
-    keypomInstance.deleteEventFromCache({ eventId });
 
     // Completion Modal
     setAppModal({

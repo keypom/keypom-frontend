@@ -198,7 +198,6 @@ export default function AllEvents({ pageTitle, hasDateFilter, ctaButtonLabel }: 
 
   const handleGetAllEvents = useCallback(async () => {
     setIsLoading(true);
-    await keypomInstance.groupAllDropsForAccount({ accountId: accountId! });
     const eventDrops = await keypomInstance.getEventsForAccount({
       accountId: accountId!,
     });
@@ -289,6 +288,7 @@ export default function AllEvents({ pageTitle, hasDateFilter, ctaButtonLabel }: 
       navigate,
       eventId,
       ticketData,
+      deleteAll: true,
       setAppModal,
     };
 
