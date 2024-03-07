@@ -268,6 +268,21 @@ export const EventManager = ({
         const deleteLimit = 50;
 
         if (supplyForTicket === 0) {
+          // Update Progress Modal
+          setAppModal({
+            isOpen: true,
+            size: 'xl',
+            canClose: false,
+            modalContent: (
+              <ProgressModalContent
+                message={`Deleting Ticket`}
+                progress={(totalDeleted / totalSupplyTickets) * 100}
+                title={`Deleting: ${(ticketInfo?.name as string) || 'Ticket'} (${
+                  dropIds.length - (i + 1)
+                } Tickets Types Left)`}
+              />
+            ),
+          });
           await wallet.signAndSendTransaction({
             signerId: accountId!,
             receiverId: KEYPOM_EVENTS_CONTRACT,
