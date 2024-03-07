@@ -345,7 +345,7 @@ export default function Gallery() {
         numTickets,
         description: meta.eventInfo?.description,
         eventId: meta.ticketInfo.eventId,
-        navurl: meta.ticketInfo.eventId,
+        navurl: String('benjiman.testnet') + ':' + meta.ticketInfo.eventId,
       };
     });
 

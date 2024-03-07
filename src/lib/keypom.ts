@@ -497,6 +497,44 @@ class KeypomJS {
     }
   }
 
+  getTicketKeyInformation = async ({ publicKey }: { publicKey: string }) => {
+    try {
+      const fetchedinfo = await this.viewCall({
+        methodName: 'get_key_information',
+        args: {
+          key: publicKey,
+        },
+      });
+
+      console.log('fetchedinfo', fetchedinfo);
+
+      // Return the requested slice from the cache
+      return fetchedinfo;
+    } catch (e) {
+      console.error('Failed to get key info:', e);
+      throw new Error('Failed to get key info.');
+    }
+  };
+
+  getTicketDropInformation = async ({ dropID }: { dropID: string }) => {
+    try {
+      const fetchedinfo = await this.viewCall({
+        methodName: 'get_drop_information',
+        args: {
+          drop_id: dropID,
+        },
+      });
+
+      console.log('fetchedinfo', fetchedinfo);
+
+      // Return the requested slice from the cache
+      return fetchedinfo;
+    } catch (e) {
+      console.error('Failed to get key info:', e);
+      throw new Error('Failed to get key info.');
+    }
+  };
+
   getPaginatedKeysForTicket = async ({
     dropId,
     start,

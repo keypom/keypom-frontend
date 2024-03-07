@@ -10,10 +10,12 @@ import {
   useDisclosure,
   useBreakpointValue,
   VStack,
+  useToast,
 } from '@chakra-ui/react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ExternalLinkIcon } from '@chakra-ui/icons';
 import { useCallback, useEffect, useState } from 'react';
+import { getPubFromSecret } from 'keypom-js';
 
 import { SellModal } from '@/features/gallery/components/SellModal';
 import { PurchaseModal } from '@/features/gallery/components/PurchaseModal';
@@ -26,6 +28,7 @@ import keypomInstance from '@/lib/keypom';
 export default function Event() {
   const params = useParams();
   const navigate = useNavigate();
+  const toast = useToast();
 
   // GET SINGLE EVENT DATA USING URL
   const [event, setEvent] = useState(null);
@@ -36,12 +39,15 @@ export default function Event() {
   const [ticketAmount, setTicketAmount] = useState(1);
   const [ticketList, setTicketList] = useState([]);
   const [areTicketsLoading, setAreTicketsLoading] = useState(true);
+  const [doKeyModal, setDoKeyModal] = useState(false);
+  const [sellDropInfo, setSellDropInfo] = useState(null);
 
   const { selector } = useAuthWalletContext();
 
-  const accountId = 'benjiman.testnet';
-
-  const eventId = params.eventID;
+  // split up params into two parts, the accountID and the eventID'
+  const eventURL = params.eventID.split(':');
+  const accountId = eventURL[0];
+  const eventId = eventURL[1];
 
   // modal
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -52,39 +58,95 @@ export default function Event() {
   const secretKey = window.location.hash.substring(1).trim().split('=', 2)[1];
 
   // example private key
-  const privateKeyExample =
-    'ed25519:gMCs9DUr2CD6ExN12VXKAe2M2wQJsXSpAru6Cdc9nmx1QEBNERXohLsaMiToV42Wq3nauGJPnY5m8gdqBkBcvXI';
+  // const privateKeyExample =
+  //   'ed25519:5KGpNrFRuiesHr6kMTinyEr9w33CDESdi5B4mpWJngaHY1S2kQU8mdy2J5Hr9o1p7yUWYFNrLEWfJsaix1R7tadA';
   // test getting the public key from the private key
-  console.log('wtfff: ');
 
-  const crypto = require('crypto');
-  const fs = require('fs');
+  useEffect(() => {
+    if (!keypomInstance || !eventId || !accountId) return;
 
-  const ecdh = crypto.createECDH('secp256k1');
-  ecdh.setPrivateKey(privateKeyExample, 'hex');
-  const publicKeyExample = ecdh.getPublicKey();
+    getKeyInformation();
+  }, [secretKey, eventId]);
 
-  console.log('publicKeyExample: ', publicKeyExample);
+  const getKeyInformation = useCallback(async () => {
+    if (secretKey == null) {
+      return;
+    }
 
-  // example: http://localhost:3000/gallery/1#secretKey=itsasecret
+    try {
+      const publicKey: string = getPubFromSecret(secretKey);
 
-  console.log('secretKey' + secretKey);
-  let doKeyModal = false;
-  if (secretKey == null) {
-    // uhh
-    doKeyModal = false;
-  } else if (secretKey === 'itsasecret') {
-    // do something
-    doKeyModal = true;
-  } else {
-    toast({
-      title: 'Sale request failure',
-      description: `This item may not be put for sale at this time`,
-      status: 'error',
-      duration: 5000,
-      isClosable: true,
-    });
-  }
+      const keyinfo = await keypomInstance.getTicketKeyInformation({
+        publicKey: String(publicKey),
+      });
+
+      console.log('keyinfo: ', keyinfo);
+
+      // get drop info using the key info id
+
+      var dropID = keyinfo.token_id.split(':')[0];
+
+      console.log('dropID: ', dropID);
+
+      // testing dropID = "1709145479199-Ground Ticket-14"
+
+      const dropData = await keypomInstance.getTicketDropInformation({ dropID });
+
+      console.log('dropData: ', dropData);
+
+      // parse dropData's metadata to get eventId
+      const meta: EventDropMetadata = JSON.parse(dropData.drop_config.metadata);
+
+      var keyinfoEventId = meta.ticketInfo?.eventId;
+      if (keyinfoEventId !== eventId) {
+        console.log('Event ID mismatch', keyinfoEventId, eventId);
+      }
+      console.log('123keyinfoeventID: ', keyinfoEventId);
+
+      console.log('123accountId: ', accountId);
+
+      // testing keyinfoEventId = "17f270df-fcee-4682-8b4b-673916cc65a9"
+
+      const drop = await keypomInstance.getEventDrop({ accountId, eventId:keyinfoEventId });
+
+      console.log('drop: ', drop);
+      const meta2: EventDropMetadata = JSON.parse(drop.drop_config.metadata);
+      let dateString = '';
+      if (meta2.eventInfo?.date) {
+        dateString =
+          typeof meta2.eventInfo?.date.date === 'string'
+            ? meta2.eventInfo?.date.date
+            : `${meta2.eventInfo?.date.date.from} to ${meta2.eventInfo?.date.date.to}`;
+      }
+      console.log('soolddriopeed: ', meta2);
+      console.log('sooldmeta.ticketInfo: ', meta2.ticketInfo);
+      console.log('sooldmeta.dokeymodal: ', doKeyModal);
+      setSellDropInfo({
+        name: meta2.eventInfo?.name || 'Untitled',
+        artwork: meta2.eventInfo?.artwork || 'loading',
+        questions: meta2.eventInfo?.questions || [],
+        location: meta2.eventInfo?.location || 'loading',
+        date: dateString,
+        description: meta2.eventInfo?.description || 'loading',
+        ticketInfo: meta2.ticketInfo,
+      });
+
+      setDoKeyModal(true);
+    } catch (error) {
+      console.error('Error getting key information', error);
+      toast({
+        title: 'Sale request failure',
+        description: `This item may not be put for sale at this time since ${error}`,
+        status: 'error',
+        duration: 5000,
+        isClosable: true,
+      });
+    }
+  }, [secretKey, keypomInstance]);
+
+  // example: http://localhost:3000/gallery/benjiman.testnet:152c9ef5-13de-40f6-9ec2-cc39f5886f4e#secretKey=ed25519:AXSwjeNg8qS8sFPSCK2eYK7UoQ3Kyyqt9oeKiJRd8pUhhEirhL2qbrs7tLBYpoGE4Acn8JbFL7FVjgyT2aDJaJx
+
+  console.log('secretKey: ' + secretKey);
 
   const loadingdata = [];
 
@@ -163,10 +225,10 @@ export default function Event() {
   const Stack = useBreakpointValue({ base: VStack, md: HStack });
 
   function CloseSellModal() {
-    doKeyModal = false;
+    setDoKeyModal(false);
+    setSellDropInfo(null);
+
     // Remove the secretKey parameter from the URL
-    // const params = new URLSearchParams(location.search);
-    // params.delete('secretKey');
     navigate('./');
 
     console.log('secretKegwgewey' + secretKey);
@@ -176,8 +238,11 @@ export default function Event() {
     event.preventDefault();
     // sell the ticket with the secret key, give toast, and sell
     navigate('./');
+    setDoKeyModal(false);
+    setSellDropInfo(null);
     const sellsuccessful = Math.random();
-    console.log('inpuit' + input);
+    console.log('inpuit' + sellsuccessful + input);
+
     if (sellsuccessful <= 0.5) {
       toast({
         title: 'Item put for sale successfully PLACEHOLDER',
@@ -278,8 +343,7 @@ export default function Event() {
               ? meta.eventInfo?.date.date
               : `${meta.eventInfo?.date.date.from} to ${meta.eventInfo?.date.date.to}`;
         }
-        console.log('driopeed: ', meta);
-        console.log('meta.ticketInfo: ', meta.ticketInfo);
+
         setEvent({
           name: meta.eventInfo?.name || 'Untitled',
           artwork: meta.eventInfo?.artwork || 'loading',
@@ -442,14 +506,16 @@ export default function Event() {
         onClose={ClosePurchaseModal}
         onSubmit={PurchaseTicket}
       />
-      <SellModal
-        event={event}
+      {doKeyModal && sellDropInfo != null && ( 
+        <SellModal
+        event={sellDropInfo}
         input={input}
-        isOpen={doKeyModal}
+        isOpen={doKeyModal && sellDropInfo != null}
         setInput={setInput}
         onClose={CloseSellModal}
         onSubmit={SellTicket}
-      />
+      />}
+      
 
       <VerifyModal event={event} isOpen={verifyIsOpen} onClose={verifyOnClose} />
     </Box>

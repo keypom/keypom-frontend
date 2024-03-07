@@ -42,9 +42,8 @@ export const SellModal = ({
       <ModalContent p="8">
         <ModalCloseButton />
         <Text as="h2" color="black.800" fontSize="xl" fontWeight="medium" my="4px" textAlign="left">
-          Ticket Name
+          {event.name}
         </Text>
-        <Text textAlign="left">{event.name}</Text>
         <Text as="h2" color="black.800" fontSize="l" fontWeight="medium" my="4px" textAlign="left">
           Description
         </Text>

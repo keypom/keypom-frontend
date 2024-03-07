@@ -26,6 +26,10 @@
   color: var(--chakra-colors-gray-400);
 }
 
+.DateRangePickerInput_arrow_svg {
+  display: none !important;
+}
+
 .DateRangePickerInput {
   border-radius: 10px !important;
   border: 2px solid !important;
