@@ -46,7 +46,7 @@ export const AppModal = () => {
       {appModal.modalContent !== undefined ? (
         appModal.modalContent
       ) : (
-        <ModalContent p={{ base: '8', md: '16' }} textAlign="center" top={'-5rem'}>
+        <ModalContent p={{ base: '4', md: '8' }} textAlign="center" top={'-5rem'}>
           <ModalHeader
             alignItems="center"
             display="flex"
@@ -106,7 +106,7 @@ export const AppModal = () => {
 
           {appModal.options && appModal.options.length > 0 && (
             <ModalFooter>
-              <ButtonGroup justifyContent="center" w="full">
+              <ButtonGroup justifyContent="space-between" w="full">
                 {appModal.options.map(({ label, func, buttonProps, lazy }, i) => (
                   <Button
                     key={i}

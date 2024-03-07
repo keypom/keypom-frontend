@@ -8,6 +8,9 @@ import {
   Heading,
   Hide,
   HStack,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
   Image,
   InputGroup,
   InputLeftElement,
@@ -25,6 +28,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { SearchIcon } from '@chakra-ui/icons';
 
+import { get } from '@/utils/localStorage';
 import { truncateAddress } from '@/utils/truncateAddress';
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
 import keypomInstance, { type AttendeeKeyItem } from '@/lib/keypom';
@@ -40,7 +44,7 @@ import { FilterOptionsMobileButton } from '@/features/all-drops/components/Filte
 import { DataTable } from '@/components/Table';
 import { DropManagerPagination } from '@/features/all-drops/components/DropManagerPagination';
 import { MobileDrawerMenu } from '@/features/all-drops/components/MobileDrawerMenu';
-import { PAGE_SIZE_LIMIT } from '@/constants/common';
+import { MASTER_KEY, PAGE_SIZE_LIMIT } from '@/constants/common';
 import {
   createMenuItems,
   PAGE_SIZE_ITEMS,
@@ -105,6 +109,7 @@ export default function EventManagerPage() {
 
   const { id: dropId = '' } = useParams();
   const [isErr, setIsErr] = useState(false);
+  const [isCorrectMasterKey, setIsCorrectMasterKey] = useState(true);
   const [eventInfo, setEventInfo] = useState<FunderEventMetadata>();
   const [dataTableQuestionIds, setDataTableQuestionIds] = useState<string[]>([]);
   const [ticketsPurchased, setTicketsPurchased] = useState<number>(0);
@@ -123,6 +128,7 @@ export default function EventManagerPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isAllKeysLoading, setIsAllKeysLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState<string>('');
+  const [userKey, setUserKey] = useState();
   const [selectedFilters, setSelectedFilters] = useState<{
     search: string;
     status: string;
@@ -136,6 +142,42 @@ export default function EventManagerPage() {
   const popoverClicked = useRef(0);
 
   const { selector, accountId } = useAuthWalletContext();
+
+  const handleClosePwModal = () => {
+    setAppModal({ isOpen: false });
+    navigate(eventInfo ? `/events/event/${eventInfo.id}` : `/events`);
+  };
+
+  useEffect(() => {
+    if (!isCorrectMasterKey) {
+      setAppModal({
+        isOpen: true,
+        size: 'xl',
+        modalContent: (
+          <ModalContent maxH="90vh" overflowY="auto" p={6}>
+            <ModalHeader>Incorrect Site Password</ModalHeader>
+            <Divider borderColor="gray.300" />
+            <ModalBody>
+              <VStack align="left" spacing={6}>
+                <Text fontSize="md">
+                  The site password you entered is incorrect. Please change it in your user profile
+                  settings.
+                </Text>
+                <Text fontSize="md">
+                  Without the correct password, you will not be able to view attendee information.
+                </Text>
+              </VStack>
+            </ModalBody>
+            <ModalFooter>
+              <Button variant="secondary" onClick={handleClosePwModal}>
+                Close
+              </Button>
+            </ModalFooter>
+          </ModalContent>
+        ),
+      });
+    }
+  }, [isCorrectMasterKey]);
 
   useEffect(() => {
     if (dropId === '') navigate('/drops');
@@ -179,6 +221,22 @@ export default function EventManagerPage() {
           eventId: metadata.eventId,
         });
         setEventInfo(eventInfo);
+        console.log('eventInfo', eventInfo);
+        if (eventInfo?.questions) {
+          try {
+            console.log('Decrypting priv key');
+            const privKey = await keypomInstance.getDerivedPrivKey({
+              encryptedPk: eventInfo.encPrivKey!,
+              ivBase64: eventInfo.iv!,
+              saltBase64: eventInfo.salt!,
+              pw: get(MASTER_KEY) as string,
+            });
+            console.log('Decrypted Priv Key:', privKey);
+            setUserKey(privKey);
+          } catch (e) {
+            setIsCorrectMasterKey(false);
+          }
+        }
 
         const questionColumns: ColumnItem[] =
           eventInfo.questions
@@ -194,7 +252,7 @@ export default function EventManagerPage() {
 
         setTableColumns((prevColumns) => [...questionColumns, ...prevColumns]);
       } catch (e) {
-        console.error('error', e);
+        console.error('error in fooooooooo', e);
         setIsErr(true);
       }
     };
@@ -222,28 +280,28 @@ export default function EventManagerPage() {
   }, [dropId, selector, accountId]);
 
   useEffect(() => {
-    if (!accountId || !dropId) return;
+    if (!accountId || !dropId || !userKey) return;
 
     // First get enough data with the current filters to fill the page size
     try {
-      handleGetInitialKeys();
+      handleGetInitialKeys(userKey);
     } catch (e) {
       console.error('error', e);
       setIsErr(true);
     }
-  }, [accountId]);
+  }, [accountId, userKey]);
 
   useEffect(() => {
-    if (!accountId || !dropId) return;
+    if (!accountId || !dropId || !userKey) return;
 
     // In parallel, fetch all the drops
     try {
-      handleGetAllKeys();
+      handleGetAllKeys(userKey);
     } catch (e) {
       console.error('error', e);
       setIsErr(true);
     }
-  }, [accountId, selectedFilters]);
+  }, [userKey, accountId, selectedFilters]);
 
   const showQuestion = (question: string) => {
     return (
@@ -292,58 +350,97 @@ export default function EventManagerPage() {
     });
   };
 
-  const handleGetAllKeys = useCallback(async () => {
-    setIsAllKeysLoading(true);
-    const keyInfoReturn = await keypomInstance.getAllKeysForTicket({ dropId });
-    const { dropKeyItems } = keyInfoReturn;
+  const handleGetAllKeys = useCallback(
+    async (userPrivKey) => {
+      setIsAllKeysLoading(true);
+      const keyInfoReturn = await keypomInstance.getAllKeysForTicket({ dropId });
+      let { dropKeyItems } = keyInfoReturn;
 
-    const numScanned = dropKeyItems.filter((key) => {
-      return key.uses_remaining !== 2;
-    }).length;
-    setTicketsScanned(numScanned);
+      const numScanned = dropKeyItems.filter((key) => {
+        return key.uses_remaining !== 2;
+      }).length;
+      setTicketsScanned(numScanned);
 
-    const filteredKeys = handleFiltering(dropKeyItems);
+      dropKeyItems = await Promise.all(
+        dropKeyItems.map(async (key) => {
+          const newKey = key;
+          try {
+            const decryptedMeta = await keypomInstance.decryptMetadata({
+              data: key.metadata,
+              privKey: userPrivKey,
+            });
+            newKey.metadata = decryptedMeta;
+          } catch (e) {
+            console.error('error', e);
+            setIsCorrectMasterKey(false);
+          }
+          return newKey;
+        }),
+      );
 
-    const totalPages = Math.ceil(filteredKeys.length / selectedFilters.pageSize);
-    setNumPages(totalPages);
+      const filteredKeys = handleFiltering(dropKeyItems);
 
-    setCurPage(0);
-    setFilteredTicketData(filteredKeys);
-    setIsAllKeysLoading(false);
-  }, [accountId, selectedFilters, keypomInstance]);
+      const totalPages = Math.ceil(filteredKeys.length / selectedFilters.pageSize);
+      setNumPages(totalPages);
 
-  const handleGetInitialKeys = useCallback(async () => {
-    setIsLoading(true);
-
-    // Initialize or update the cache for this drop if it doesn't exist or if total keys have changed
-    const dropInfo = await keypomInstance.viewCall({
-      methodName: 'get_drop_information',
-      args: { drop_id: dropId },
-    });
-    const totalKeySupply = dropInfo.next_key_id;
-
-    // Loop until we have enough filtered drops to fill the page size
-    let keysFetched = 0;
-    let filteredKeys: AttendeeItem[] = [];
-    while (keysFetched < totalKeySupply && filteredKeys.length < selectedFilters.pageSize) {
-      const dropKeyItems: AttendeeKeyItem[] = await keypomInstance.getPaginatedKeysForTicket({
-        dropId,
-        start: keysFetched,
-        limit: selectedFilters.pageSize,
-      });
-
-      keysFetched += dropKeyItems.length;
-
-      const curFiltered = handleFiltering(dropKeyItems);
-      filteredKeys = filteredKeys.concat(curFiltered);
-    }
-
-    if (filteredTicketData.length !== 0) {
+      setCurPage(0);
       setFilteredTicketData(filteredKeys);
-    }
-    setCurPage(0);
-    setIsLoading(false);
-  }, [accountId, keypomInstance]);
+      setIsAllKeysLoading(false);
+    },
+    [accountId, selectedFilters, keypomInstance],
+  );
+
+  const handleGetInitialKeys = useCallback(
+    async (userPrivKey) => {
+      setIsLoading(true);
+
+      // Initialize or update the cache for this drop if it doesn't exist or if total keys have changed
+      const dropInfo = await keypomInstance.viewCall({
+        methodName: 'get_drop_information',
+        args: { drop_id: dropId },
+      });
+      const totalKeySupply = dropInfo.next_key_id;
+
+      // Loop until we have enough filtered drops to fill the page size
+      let keysFetched = 0;
+      let filteredKeys: AttendeeItem[] = [];
+      while (keysFetched < totalKeySupply && filteredKeys.length < selectedFilters.pageSize) {
+        let dropKeyItems: AttendeeKeyItem[] = await keypomInstance.getPaginatedKeysForTicket({
+          dropId,
+          start: keysFetched,
+          limit: selectedFilters.pageSize,
+        });
+        dropKeyItems = await Promise.all(
+          dropKeyItems.map(async (key) => {
+            const newKey = key;
+            try {
+              const decryptedMeta = await keypomInstance.decryptMetadata({
+                data: key.metadata,
+                privKey: userPrivKey,
+              });
+              newKey.metadata = decryptedMeta;
+            } catch (e) {
+              console.error('error', e);
+              setIsCorrectMasterKey(false);
+            }
+            return newKey;
+          }),
+        );
+
+        keysFetched += dropKeyItems.length;
+
+        const curFiltered = handleFiltering(dropKeyItems);
+        filteredKeys = filteredKeys.concat(curFiltered);
+      }
+
+      if (filteredTicketData.length !== 0) {
+        setFilteredTicketData(filteredKeys);
+      }
+      setCurPage(0);
+      setIsLoading(false);
+    },
+    [accountId, keypomInstance],
+  );
 
   const pageSizeMenuItems = createMenuItems({
     menuItems: PAGE_SIZE_ITEMS,

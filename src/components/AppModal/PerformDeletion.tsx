@@ -118,6 +118,8 @@ export const performDeletionLogic = async ({
         totalDeleted += toDelete;
         deletedForTicket += toDelete;
       }
+
+      keypomInstance.deleteTicketFromCache({ dropId });
     }
 
     if (ticketData.length === 0 || ticketData.length > 1) {
@@ -140,6 +142,8 @@ export const performDeletionLogic = async ({
       });
     }
 
+    keypomInstance.deleteEventFromCache({ eventId });
+
     // Completion Modal
     setAppModal({
       isOpen: true,
@@ -153,7 +157,6 @@ export const performDeletionLogic = async ({
           }
           onClose={() => {
             setAppModal({ isOpen: false });
-            navigate('/events');
           }}
         />
       ),

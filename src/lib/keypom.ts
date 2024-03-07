@@ -35,6 +35,7 @@ import {
   type FunderEventMetadata,
   type FunderMetadata,
 } from './eventsHelpers';
+import { decryptPrivateKey, decryptWithPrivateKey, deriveKeyFromPassword } from './cryptoHelpers';
 
 let instance: KeypomJS;
 const ACCOUNT_ID_REGEX = /^(([a-z\d]+[-_])*[a-z\d]+\.)*([a-z\d]+[-_])*[a-z\d]+$/;
@@ -124,7 +125,11 @@ class KeypomJS {
   }
 
   public static getInstance(): KeypomJS {
-    if (!KeypomJS.instance) {
+    if (
+      !KeypomJS.instance ||
+      !(KeypomJS.instance instanceof KeypomJS) ||
+      this.instance === undefined
+    ) {
       KeypomJS.instance = new KeypomJS();
     }
 
@@ -321,11 +326,11 @@ class KeypomJS {
     accountId: string;
   }) => {
     const funderInfo = await this.viewCall({
-      methodName: 'get_funder_metadata',
+      methodName: 'get_funder_info',
       args: { account_id: accountId },
     });
     const meta: FunderMetadata = JSON.parse(funderInfo.metadata);
-    delete meta[eventId];
+    meta[eventId] = undefined;
 
     await wallet.signAndSendTransaction({
       signerId: accountId,
@@ -344,6 +349,15 @@ class KeypomJS {
     });
   };
 
+  deleteEventFromCache = ({ eventId }: { eventId: string }) => {
+    this.eventInfoById[eventId] = undefined;
+    this.ticketDropsByEventId[eventId] = undefined;
+  };
+
+  deleteTicketFromCache = ({ dropId }: { dropId: string }) => {
+    this.purchasedTicketsById[dropId] = undefined;
+  };
+
   getEventInfo = async ({
     accountId,
     eventId,
@@ -353,7 +367,7 @@ class KeypomJS {
   }): Promise<FunderEventMetadata> => {
     try {
       const funderInfo = await this.viewCall({
-        methodName: 'get_funder_metadata',
+        methodName: 'get_funder_info',
         args: { account_id: accountId },
       });
       const funderMeta = JSON.parse(funderInfo.metadata);
@@ -436,7 +450,7 @@ class KeypomJS {
   getEventsForAccount = async ({ accountId }: { accountId: string }) => {
     try {
       const funderInfo = await this.viewCall({
-        methodName: 'get_funder_metadata',
+        methodName: 'get_funder_info',
         args: { account_id: accountId },
       });
       const funderMeta: FunderMetadata = JSON.parse(funderInfo.metadata);
@@ -454,7 +468,22 @@ class KeypomJS {
     }
   };
 
-  async getAllKeysForTicket({ dropId }) {
+  getDerivedPrivKey = async ({ encryptedPk, pw, saltBase64, ivBase64 }) => {
+    // Step 3: Derive a symmetric key from the password
+    const symmetricKey = await deriveKeyFromPassword(pw, saltBase64);
+    // Step 5: Decrypt the private key using the symmetric key
+    const decryptedPrivateKey = await decryptPrivateKey(encryptedPk, ivBase64, symmetricKey);
+    return decryptedPrivateKey;
+  };
+
+  decryptMetadata = async ({ privKey, data }) => {
+    console.log('decryptMetadata', privKey, data);
+    // Step 6: Decrypt the encrypted data using the decrypted private key
+    const decryptedData = await decryptWithPrivateKey(data, privKey);
+    return decryptedData;
+  };
+
+  getAllKeysForTicket = async ({ dropId }) => {
     try {
       const dropInfo = await this.viewCall({
         methodName: 'get_drop_information',
@@ -498,7 +527,7 @@ class KeypomJS {
       console.error('Failed to get keys info:', error);
       throw new Error('Failed to get keys info.');
     }
-  }
+  };
 
   getPaginatedKeysForTicket = async ({
     dropId,
@@ -516,29 +545,28 @@ class KeypomJS {
         args: { drop_id: dropId },
       });
       const meta: EventDropMetadata = JSON.parse(dropInfo.drop_config.metadata);
-      const dropName = meta.dropName;
       const totalKeys = dropInfo.next_key_id;
 
       if (
-        !Object.hasOwn(this.eventsKeyStore, dropId) ||
-        this.eventsKeyStore[dropId]?.totalKeys !== totalKeys
+        !Object.hasOwn(this.purchasedTicketsById, dropId) ||
+        this.purchasedTicketsById[dropId]?.totalKeys !== totalKeys
       ) {
-        this.eventsKeyStore[dropId] = {
-          dropName,
+        this.purchasedTicketsById[dropId] = {
+          dropMeta: meta,
           dropKeyItems: new Array(totalKeys).fill(null),
           totalKeys,
         };
       }
 
       // Calculate the end index for the requested keys
-      const endIndex = Math.min(start + limit, this.eventsKeyStore[dropId].totalKeys);
+      const endIndex = Math.min(start + limit, this.purchasedTicketsById[dropId].totalKeys);
 
       // Fetch and cache only the needed batches
       for (let i = start; i < endIndex; i += KEY_ITEMS_PER_QUERY) {
         const batchStart = i;
         const batchEnd = Math.min(i + KEY_ITEMS_PER_QUERY, endIndex);
         if (
-          this.eventsKeyStore[dropId].dropKeyItems
+          this.purchasedTicketsById[dropId].dropKeyItems
             .slice(batchStart, batchEnd)
             .some((item) => item === null)
         ) {
@@ -553,13 +581,13 @@ class KeypomJS {
           });
           // Assume fetchedKeys is an array of keys; adjust based on actual structure
           for (let j = 0; j < fetchedKeys.length; j++) {
-            this.eventsKeyStore[dropId].dropKeyItems[batchStart + j] = fetchedKeys[j];
+            this.purchasedTicketsById[dropId].dropKeyItems[batchStart + j] = fetchedKeys[j];
           }
         }
       }
 
       // Return the requested slice from the cache
-      return this.eventsKeyStore[dropId].dropKeyItems.slice(start, endIndex);
+      return this.purchasedTicketsById[dropId].dropKeyItems.slice(start, endIndex);
     } catch (e) {
       console.error('Failed to get paginated keys info:', e);
       throw new Error('Failed to get paginated keys info.');
@@ -1038,3 +1066,4 @@ class KeypomJS {
 const keypomInstance = KeypomJS.getInstance();
 
 export default keypomInstance;
+
