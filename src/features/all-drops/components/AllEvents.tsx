@@ -198,9 +198,14 @@ export default function AllEvents({ pageTitle, hasDateFilter, ctaButtonLabel }: 
 
   const handleGetAllEvents = useCallback(async () => {
     setIsLoading(true);
-    const eventDrops = await keypomInstance.getEventsForAccount({
-      accountId: accountId!,
-    });
+    let eventDrops: FunderEventMetadata[] = [];
+    try {
+      eventDrops = await keypomInstance.getEventsForAccount({
+        accountId: accountId!,
+      });
+    } catch (e) {
+      console.error('Error fetching events:', e);
+    }
 
     const numEvents = eventDrops.length;
     setNumOwnedEvents(numEvents);
