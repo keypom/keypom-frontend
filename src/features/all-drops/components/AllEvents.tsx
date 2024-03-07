@@ -18,14 +18,13 @@ import {
   Skeleton,
   VStack,
   Image,
-  ModalContent,
 } from '@chakra-ui/react';
 import { SearchIcon } from '@chakra-ui/icons';
 import { useNavigate } from 'react-router-dom';
 import { type Wallet } from '@near-wallet-selector/core';
 
-import keypomInstance, { type EventDrop } from '@/lib/keypom';
-import { KEYPOM_EVENTS_CONTRACT, PAGE_SIZE_LIMIT } from '@/constants/common';
+import keypomInstance from '@/lib/keypom';
+import { PAGE_SIZE_LIMIT } from '@/constants/common';
 import { useAppContext } from '@/contexts/AppContext';
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
 import { type ColumnItem, type DataItem } from '@/components/Table/types';
@@ -35,8 +34,7 @@ import { truncateAddress } from '@/utils/truncateAddress';
 import { ShareIcon } from '@/components/Icons/ShareIcon';
 import { DeleteIcon } from '@/components/Icons';
 import useDeletion from '@/components/AppModal/useDeletion';
-import ProgressModalContent from '@/components/AppModal/ProgessModalContent';
-import CompletionModalContent from '@/components/AppModal/CompletionModal';
+import { performDeletionLogic } from '@/components/AppModal/PerformDeletion';
 
 import {
   DROP_TYPE_OPTIONS,
@@ -273,149 +271,6 @@ export default function AllEvents({ pageTitle, hasDateFilter, ctaButtonLabel }: 
     },
   });
 
-  const performDeletionLogic = async (ticketData: EventDrop[]) => {
-    if (!wallet) return;
-
-    try {
-      let totalSupplyTickets = 0;
-      const ticketSupplies: number[] = [];
-      for (let i = 0; i < ticketData.length; i++) {
-        const dropId = ticketData[i].drop_id;
-        const supplyForTicket: number = await keypomInstance.getKeySupplyForTicket(dropId);
-
-        ticketSupplies.push(supplyForTicket);
-        totalSupplyTickets += supplyForTicket;
-      }
-
-      let totalDeleted = 0;
-      for (let i = 0; i < ticketData.length; i++) {
-        const curTicketData = ticketData[i];
-        const dropId = curTicketData.drop_id;
-        const supplyForTicket = ticketSupplies[i];
-        const meta = JSON.parse(curTicketData.drop_config.metadata);
-
-        let deletedForTicket = 0;
-        const deleteLimit = 50;
-
-        if (supplyForTicket === 0) {
-          // Update Progress Modal
-          setAppModal({
-            isOpen: true,
-            size: 'xl',
-            canClose: false,
-            modalContent: (
-              <ProgressModalContent
-                message={`Deleting Ticket`}
-                progress={(totalDeleted / totalSupplyTickets) * 100}
-                title={`Deleting: ${(meta.name as string) || 'Ticket'} (${
-                  ticketData.length - (i + 1)
-                } Tickets Types Left)`}
-              />
-            ),
-          });
-          await wallet.signAndSendTransaction({
-            signerId: accountId!,
-            receiverId: KEYPOM_EVENTS_CONTRACT,
-            actions: [
-              {
-                type: 'FunctionCall',
-                params: {
-                  methodName: 'delete_keys',
-                  args: { drop_id: dropId },
-                  gas: '300000000000000',
-                  deposit: '0',
-                },
-              },
-            ],
-          });
-        }
-
-        for (let j = 0; j < supplyForTicket; j += deleteLimit) {
-          const toDelete = Math.min(deleteLimit, supplyForTicket - deletedForTicket);
-
-          // Update Progress Modal
-          setAppModal({
-            isOpen: true,
-            size: 'xl',
-            canClose: false,
-            modalContent: (
-              <ProgressModalContent
-                message={`Deleting ${supplyForTicket.toString()} Purchased ${
-                  meta.name as string
-                } Tickets`}
-                progress={(totalDeleted / totalSupplyTickets) * 100}
-                title={`Deleting: ${(meta.name as string) || 'Ticket'} (${
-                  ticketData.length - (i + 1)
-                } Tickets Types Left)`}
-              />
-            ),
-          });
-
-          await wallet.signAndSendTransaction({
-            signerId: accountId!,
-            receiverId: KEYPOM_EVENTS_CONTRACT,
-            actions: [
-              {
-                type: 'FunctionCall',
-                params: {
-                  methodName: 'delete_keys',
-                  args: { drop_id: dropId, limit: toDelete },
-                  gas: '300000000000000',
-                  deposit: '0',
-                },
-              },
-            ],
-          });
-
-          totalDeleted += toDelete;
-          deletedForTicket += toDelete;
-        }
-      }
-
-      // Completion Modal
-      setAppModal({
-        isOpen: true,
-        size: 'xl',
-        modalContent: (
-          <CompletionModalContent
-            completionMessage={`${ticketData.length.toString()} Ticket(s) deleted successfully!`}
-            onClose={() => {
-              setAppModal({ isOpen: false });
-              navigate('/events');
-            }}
-          />
-        ),
-      });
-    } catch (error) {
-      console.error('Error during deletion:', error);
-      // Error Modal
-      setAppModal({
-        isOpen: true,
-        size: 'xl',
-        modalContent: (
-          <ModalContent padding={6}>
-            <VStack align="stretch" spacing={4}>
-              <Text color="red.500" fontSize="lg" fontWeight="semibold">
-                Error
-              </Text>
-              <Text>There was an error deleting the Tickets. Please try again.</Text>
-              <Button
-                autoFocus={false}
-                variant="secondary"
-                width="full"
-                onClick={() => {
-                  setAppModal({ isOpen: false });
-                }}
-              >
-                Close
-              </Button>
-            </VStack>
-          </ModalContent>
-        ),
-      });
-    }
-  };
-
   const { openConfirmationModal } = useDeletion({
     setAppModal,
   });
@@ -428,9 +283,18 @@ export default function AllEvents({ pageTitle, hasDateFilter, ctaButtonLabel }: 
       eventId,
     });
 
+    const deletionArgs = {
+      wallet,
+      accountId,
+      navigate,
+      eventId,
+      ticketData,
+      setAppModal,
+    };
+
     // Open the confirmation modal with customization if needed
     openConfirmationModal(
-      ticketData,
+      deletionArgs,
       'Are you sure you want to delete this event and all its tickets? This action cannot be undone.',
       performDeletionLogic,
     );

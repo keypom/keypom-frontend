@@ -22,6 +22,7 @@ import {
   type ProtocolReturnedKeyInfo,
 } from 'keypom-js';
 import * as nearAPI from 'near-api-js';
+import { type Wallet } from '@near-wallet-selector/core';
 
 import { truncateAddress } from '@/utils/truncateAddress';
 import { CLOUDFLARE_IPFS, DROP_TYPE, KEYPOM_EVENTS_CONTRACT, MASTER_KEY } from '@/constants/common';
@@ -32,6 +33,7 @@ import {
   type EventDropMetadata,
   isValidTicketInfo,
   type FunderEventMetadata,
+  type FunderMetadata,
 } from './eventsHelpers';
 
 let instance: KeypomJS;
@@ -306,6 +308,39 @@ class KeypomJS {
       contractId: KEYPOM_EVENTS_CONTRACT,
       methodName: 'get_key_supply_for_drop',
       args: { drop_id: dropId },
+    });
+  };
+
+  deleteEventFromFunderMetadata = async ({
+    wallet,
+    eventId,
+    accountId,
+  }: {
+    wallet: Wallet;
+    eventId: string;
+    accountId: string;
+  }) => {
+    const funderInfo = await this.viewCall({
+      methodName: 'get_funder_metadata',
+      args: { account_id: accountId },
+    });
+    const meta: FunderMetadata = JSON.parse(funderInfo.metadata);
+    delete meta[eventId];
+
+    await wallet.signAndSendTransaction({
+      signerId: accountId,
+      receiverId: KEYPOM_EVENTS_CONTRACT,
+      actions: [
+        {
+          type: 'FunctionCall',
+          params: {
+            methodName: 'set_funder_metadata',
+            args: { metadata: JSON.stringify(meta) },
+            gas: '300000000000000',
+            deposit: '0',
+          },
+        },
+      ],
     });
   };
 
