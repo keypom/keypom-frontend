@@ -23,4 +23,4 @@ export const MAX_FILE_SIZE = 10000000;
 export const PAGE_SIZE_LIMIT = 5;
 export const NFT_ATTEMPT_KEY = 'NFT_ATTEMPT';
 export const PAGE_QUERY_PARAM = 'page';
-export const KEYPOM_EVENTS_CONTRACT = '1709145182592-kp-ticketing.testnet';
+export const KEYPOM_EVENTS_CONTRACT = '1709767638969-kp-ticketing.testnet';

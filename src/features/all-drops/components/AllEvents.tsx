@@ -27,8 +27,8 @@ import { useAppContext } from '@/contexts/AppContext';
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
 import { type ColumnItem, type DataItem } from '@/components/Table/types';
 import { DataTable } from '@/components/Table';
-import keypomInstance, { type EventDrop } from '@/lib/keypom';
-import { type EventDropMetadata } from '@/lib/eventsHelpers';
+import keypomInstance from '@/lib/keypom';
+import { type FunderEventMetadata } from '@/lib/eventsHelpers';
 import { truncateAddress } from '@/utils/truncateAddress';
 import { ShareIcon } from '@/components/Icons/ShareIcon';
 import { DeleteIcon } from '@/components/Icons';
@@ -164,20 +164,18 @@ export default function AllEvents({ pageTitle, hasDateFilter, ctaButtonLabel }: 
     }
   };
 
-  const handleFiltering = async (drops: EventDrop[]) => {
+  const handleFiltering = async (events: FunderEventMetadata[]) => {
     if (selectedFilters.search.trim() !== '') {
-      drops = drops.filter((drop) => {
-        const { dropName } = JSON.parse(drop.drop_config.metadata);
-        return dropName.toLowerCase().includes(selectedFilters.search.toLowerCase());
+      events = events.filter((event) => {
+        return event.name.toLowerCase().includes(selectedFilters.search.toLowerCase());
       });
     }
 
     if (selectedFilters.date !== DATE_FILTER_OPTIONS.ANY) {
-      drops = drops
-        .filter((drop) => {
+      events = events
+        .filter((event) => {
           try {
-            const { dateCreated } = JSON.parse(drop.drop_config.metadata);
-            const date = new Date(dateCreated);
+            const date = new Date(event.dateCreated);
             return date && !isNaN(date.getTime()); // Ensures dateCreated is valid
           } catch (e) {
             return false; // Exclude drops with malformed metadata
@@ -185,20 +183,21 @@ export default function AllEvents({ pageTitle, hasDateFilter, ctaButtonLabel }: 
         })
         .sort((a, b) => {
           // Assuming metadata has been validated, no need for try-catch here
-          const dateA = new Date(JSON.parse(a.drop_config.metadata).dateCreated).getTime();
-          const dateB = new Date(JSON.parse(b.drop_config.metadata).dateCreated).getTime();
+          const dateA = new Date(a.dateCreated).getTime();
+          const dateB = new Date(b.dateCreated).getTime();
           return selectedFilters.date === DATE_FILTER_OPTIONS.NEWEST
             ? dateB - dateA
             : dateA - dateB;
         });
     }
 
-    return drops;
+    return events;
   };
 
   const handleGetAllEvents = useCallback(async () => {
     setIsLoading(true);
-    const eventDrops = await keypomInstance.getAllEventDrops({
+    await keypomInstance.groupAllDropsForAccount({ accountId: accountId! });
+    const eventDrops = await keypomInstance.getEventsForAccount({
       accountId: accountId!,
     });
 
@@ -206,20 +205,19 @@ export default function AllEvents({ pageTitle, hasDateFilter, ctaButtonLabel }: 
     setNumOwnedEvents(numEvents);
 
     const filteredEvents = await handleFiltering(eventDrops);
-    const dropDataPromises = filteredEvents.map(async (drop: EventDrop) => {
-      const meta: EventDropMetadata = JSON.parse(drop.drop_config.metadata);
-      const tickets = await keypomInstance.getTicketsForEvent({
+    const dropDataPromises = filteredEvents.map(async (event: FunderEventMetadata) => {
+      const tickets = await keypomInstance.getTicketsForEventId({
         accountId: accountId!,
-        eventId: meta.ticketInfo.eventId,
+        eventId: event.id,
       });
       const numTickets = tickets.length;
       return {
-        id: drop.drop_id,
-        name: truncateAddress(meta.eventInfo?.name || 'Untitled', 'end', 48),
-        media: meta.eventInfo?.artwork,
-        dateCreated: formatDate(new Date(meta.dateCreated)), // Ensure drop has dateCreated or adjust accordingly
+        id: event.id,
+        name: truncateAddress(event.name || 'Untitled', 'end', 48),
+        media: event.artwork,
+        dateCreated: formatDate(new Date(parseInt(event.dateCreated))), // Ensure drop has dateCreated or adjust accordingly
         numTickets,
-        eventId: meta.ticketInfo.eventId,
+        eventId: event.id,
       };
     });
 
@@ -349,9 +347,9 @@ export default function AllEvents({ pageTitle, hasDateFilter, ctaButtonLabel }: 
 
   const getTableType = () => {
     if (filteredDataItems.length === 0 && numOwnedEvents === 0) {
-      return 'all-drops';
+      return 'all-events';
     }
-    return 'no-filtered-drops';
+    return 'no-filtered-events';
   };
 
   return (

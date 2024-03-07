@@ -28,7 +28,11 @@ import { CLOUDFLARE_IPFS, DROP_TYPE, KEYPOM_EVENTS_CONTRACT, MASTER_KEY } from '
 import getConfig from '@/config/config';
 import { get } from '@/utils/localStorage';
 
-import { type EventDropMetadata, isValidEventInfo, isValidTicketInfo } from './eventsHelpers';
+import {
+  type EventDropMetadata,
+  isValidTicketInfo,
+  type FunderEventMetadata,
+} from './eventsHelpers';
 
 let instance: KeypomJS;
 const ACCOUNT_ID_REGEX = /^(([a-z\d]+[-_])*[a-z\d]+\.)*([a-z\d]+[-_])*[a-z\d]+$/;
@@ -79,17 +83,16 @@ class KeypomJS {
   nearConnection: nearAPI.Near;
   viewAccount: nearAPI.Account;
 
-  // Events
-  totalEventDrops: number;
-  // Maps the event ID to an array of EventDrops
-  eventsStore: Record<string, EventDrop[]> = {};
-  eventDrops: EventDrop[];
-  eventById: Record<string, string> = {};
-  eventsKeyStore: Record<
+  // Map the event ID to a set of drop IDs
+  ticketDropsByEventId: Record<string, EventDrop[]> = {};
+  // Maps the event ID to its metadata
+  eventInfoById: Record<string, FunderEventMetadata> = {};
+  // Map a drop ID to a set of keys
+  purchasedTicketsById: Record<
     string,
     {
-      dropName: string;
       totalKeys: number;
+      dropMeta: EventDropMetadata;
       dropKeyItems: AttendeeKeyItem[];
     }
   > = {};
@@ -298,33 +301,6 @@ class KeypomJS {
     }
   };
 
-  groupDropsByEvent = (drops) => {
-    const eventDrops = drops.filter((drop) => {
-      const metadata = JSON.parse(drop.drop_config.metadata);
-      return metadata.eventInfo !== undefined;
-    });
-    this.eventDrops = eventDrops;
-
-    const eventById = {};
-    for (const eventDrop of eventDrops) {
-      const metadata = JSON.parse(eventDrop.drop_config.metadata);
-      eventById[metadata.eventInfo.id] = eventDrop.drop_id;
-    }
-    this.eventById = eventById;
-
-    const groupedByEventId = {};
-    drops.forEach((drop) => {
-      const metadata = JSON.parse(drop.drop_config.metadata);
-      const { eventId } = metadata.ticketInfo;
-      const dropId = eventById[eventId];
-      if (!Object.hasOwn(groupedByEventId, dropId)) {
-        groupedByEventId[dropId] = [];
-      }
-      groupedByEventId[dropId].push(drop); // Pushing parsed metadata instead of drop
-    });
-    this.eventsStore = groupedByEventId;
-  };
-
   getKeySupplyForTicket = async (dropId: string) => {
     return await this.viewCall({
       contractId: KEYPOM_EVENTS_CONTRACT,
@@ -333,116 +309,110 @@ class KeypomJS {
     });
   };
 
-  getEventDrop = async ({
+  getEventInfo = async ({
     accountId,
     eventId,
   }: {
     accountId: string;
     eventId: string;
-  }): Promise<{ drop_config: { metadata: string } } | null> => {
-    if (!Object.hasOwn(this.eventById, eventId)) {
-      await this.getAllEventDrops({ accountId });
-    }
-
-    if (!Object.hasOwn(this.eventById, eventId)) {
-      return null;
-    }
-
-    const dropId = this.eventById[eventId];
-    return await this.viewCall({
-      contractId: KEYPOM_EVENTS_CONTRACT,
-      methodName: 'get_drop_information',
-      args: { drop_id: dropId },
-    });
-  };
-
-  getTicketsForEvent = async ({ accountId, eventId }: { accountId: string; eventId: string }) => {
-    if (Object.hasOwn(this.eventById, eventId)) {
-      const dropId = this.eventById[eventId];
-      if (Object.hasOwn(this.eventsStore, dropId)) {
-        return this.eventsStore[dropId];
-      }
-    }
-
-    await this.getAllEventDrops({ accountId });
-    if (!Object.hasOwn(this.eventById, eventId)) {
-      return [];
-    }
-    return this.eventsStore[this.eventById[eventId]];
-  };
-
-  getAllEventDrops = async ({ accountId }: { accountId: string }) => {
+  }): Promise<FunderEventMetadata> => {
     try {
-      if (this.eventDrops?.length > 0) {
-        return this.eventDrops;
-      }
-
-      // If totalDrops is not known, fetch it
-      if (!this.totalEventDrops) {
-        this.totalEventDrops = await this.viewCall({
-          contractId: KEYPOM_EVENTS_CONTRACT,
-          methodName: 'get_drop_supply_for_funder',
-          args: { account_id: accountId },
-        });
-      }
-
-      // Initialize the cache for this account if it doesn't exist
-      if (Object.keys(this.eventsStore).length === 0) {
-        this.eventsStore = {};
-      }
-
-      const totalQueries = Math.ceil(this.totalEventDrops / DROP_ITEMS_PER_QUERY);
-      const pageIndices = Array.from({ length: totalQueries }, (_, index) => index);
-
-      const allPagesDrops = await Promise.all(
-        pageIndices.map(
-          async (pageIndex) =>
-            await this.viewCall({
-              contractId: KEYPOM_EVENTS_CONTRACT,
-              methodName: 'get_drops_for_funder',
-              args: {
-                account_id: accountId,
-                from_index: (pageIndex * DROP_ITEMS_PER_QUERY).toString(),
-                limit: DROP_ITEMS_PER_QUERY,
-              },
-            }),
-        ),
-      );
-
-      let allDrops = allPagesDrops.flat(); // Assuming allPagesDrops is already defined and flattened.
-      allDrops = allDrops.filter((drop) => {
-        if (!drop.drop_id || !drop.funder_id || !drop.drop_config || !drop.drop_config.metadata) {
-          return false; // Drop does not have the required top-level structure
-        }
-
-        try {
-          const metadata = JSON.parse(drop.drop_config.metadata);
-
-          // Check if metadata has required properties
-          if (!metadata.dropName || !metadata.ticketInfo) {
-            return false; // Metadata does not have required properties
-          }
-
-          // If there's eventInfo, optionally check its validity
-          if (metadata.eventInfo && !isValidEventInfo(metadata.eventInfo)) {
-            return false; // EventInfo is present but invalid
-          }
-
-          // Check ticketInfo's structure
-          if (!isValidTicketInfo(metadata.ticketInfo)) {
-            return false; // TicketInfo is invalid
-          }
-
-          return true; // Drop passes all checks
-        } catch (e) {
-          // JSON.parse failed, metadata is not a valid JSON string
-          return false;
-        }
+      const funderInfo = await this.viewCall({
+        methodName: 'get_funder_metadata',
+        args: { account_id: accountId },
       });
+      const funderMeta = JSON.parse(funderInfo.metadata);
 
-      this.groupDropsByEvent(allDrops);
+      return funderMeta[eventId];
+    } catch (error) {
+      console.error('Error getting event info:', error);
+      throw new Error('Error getting event info');
+    }
+  };
 
-      return this.eventDrops;
+  groupDropsByEvent = (drops: EventDrop[]) => {
+    console.log('groupDropsByEvent', drops);
+    for (const eventDrop of drops) {
+      const metadata: EventDropMetadata = JSON.parse(eventDrop.drop_config.metadata);
+
+      if (!Object.hasOwn(this.ticketDropsByEventId, metadata.eventId)) {
+        this.ticketDropsByEventId[metadata.eventId] = [];
+      }
+      this.ticketDropsByEventId[metadata.eventId].push(eventDrop);
+    }
+  };
+
+  groupAllDropsForAccount = async ({ accountId }: { accountId: string }) => {
+    const numDrops = await this.viewCall({
+      methodName: 'get_drop_supply_for_funder',
+      args: { account_id: accountId },
+    });
+
+    const totalQueries = Math.ceil(numDrops / DROP_ITEMS_PER_QUERY);
+    const pageIndices = Array.from({ length: totalQueries }, (_, index) => index);
+
+    const allPagesDrops = await Promise.all(
+      pageIndices.map(
+        async (pageIndex) =>
+          await this.viewCall({
+            contractId: KEYPOM_EVENTS_CONTRACT,
+            methodName: 'get_drops_for_funder',
+            args: {
+              account_id: accountId,
+              from_index: (pageIndex * DROP_ITEMS_PER_QUERY).toString(),
+              limit: DROP_ITEMS_PER_QUERY,
+            },
+          }),
+      ),
+    );
+
+    let allDrops: EventDrop[] = allPagesDrops.flat(); // Assuming allPagesDrops is already defined and flattened.
+    allDrops = allDrops.filter((drop) => {
+      if (!drop.drop_id || !drop.funder_id || !drop.drop_config || !drop.drop_config.metadata) {
+        return false; // Drop does not have the required top-level structure
+      }
+
+      try {
+        const metadata = JSON.parse(drop.drop_config.metadata);
+
+        // Check ticketInfo's structure
+        if (!isValidTicketInfo(metadata)) {
+          return false; // TicketInfo is invalid
+        }
+
+        return true; // Drop passes all checks
+      } catch (e) {
+        // JSON.parse failed, metadata is not a valid JSON string
+        return false;
+      }
+    });
+
+    this.groupDropsByEvent(allDrops);
+  };
+
+  getTicketsForEventId = async ({ accountId, eventId }: { accountId: string; eventId: string }) => {
+    if (!Object.hasOwn(this.ticketDropsByEventId, eventId)) {
+      await this.groupAllDropsForAccount({ accountId });
+    }
+
+    return this.ticketDropsByEventId[eventId] || [];
+  };
+
+  getEventsForAccount = async ({ accountId }: { accountId: string }) => {
+    try {
+      const funderInfo = await this.viewCall({
+        methodName: 'get_funder_metadata',
+        args: { account_id: accountId },
+      });
+      const funderMeta: FunderMetadata = JSON.parse(funderInfo.metadata);
+
+      const events = [];
+      for (const eventId in funderMeta) {
+        events.push(funderMeta[eventId]);
+        this.eventInfoById[eventId] = funderMeta[eventId];
+      }
+
+      return events;
     } catch (error) {
       console.error('Error fetching drops:', error);
       throw new Error('Failed to fetch drops.');
@@ -455,17 +425,15 @@ class KeypomJS {
         methodName: 'get_drop_information',
         args: { drop_id: dropId },
       });
-      const meta: EventDropMetadata = JSON.parse(dropInfo.drop_config.metadata);
-      const dropName = meta.dropName;
       const totalKeys = dropInfo.next_key_id;
       if (
-        !Object.hasOwn(this.eventsKeyStore, dropId) ||
-        this.eventsKeyStore[dropId]?.totalKeys !== totalKeys
+        !Object.hasOwn(this.purchasedTicketsById, dropId) ||
+        this.purchasedTicketsById[dropId]?.totalKeys !== totalKeys
       ) {
         // Initialize the cache for this drop
-        this.eventsKeyStore[dropId] = {
-          dropName,
+        this.purchasedTicketsById[dropId] = {
           dropKeyItems: new Array(totalKeys).fill(null),
+          dropMeta: JSON.parse(dropInfo.drop_config.metadata),
           totalKeys,
         };
 
@@ -487,10 +455,10 @@ class KeypomJS {
 
         // Wait for all batches to resolve and process the results
         const batchResults = await Promise.all(batchPromises);
-        this.eventsKeyStore[dropId].dropKeyItems = batchResults.flat(); // Use .flat()
+        this.purchasedTicketsById[dropId].dropKeyItems = batchResults.flat(); // Use .flat()
       }
 
-      return this.eventsKeyStore[dropId];
+      return this.purchasedTicketsById[dropId];
     } catch (error) {
       console.error('Failed to get keys info:', error);
       throw new Error('Failed to get keys info.');

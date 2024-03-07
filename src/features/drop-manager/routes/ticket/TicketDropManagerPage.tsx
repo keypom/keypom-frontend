@@ -28,7 +28,11 @@ import { SearchIcon } from '@chakra-ui/icons';
 import { truncateAddress } from '@/utils/truncateAddress';
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
 import keypomInstance, { type AttendeeKeyItem } from '@/lib/keypom';
-import { type QuestionInfo, type EventDropMetadata } from '@/lib/eventsHelpers';
+import {
+  type QuestionInfo,
+  type EventDropMetadata,
+  type FunderEventMetadata,
+} from '@/lib/eventsHelpers';
 import { type ColumnItem, type DataItem } from '@/components/Table/types';
 import { Breadcrumbs } from '@/components/Breadcrumbs';
 import { DropDownButton } from '@/features/all-drops/components/DropDownButton';
@@ -44,6 +48,7 @@ import {
   TICKET_CLAIM_STATUS_OPTIONS,
 } from '@/features/all-drops/config/menuItems';
 import { useAppContext } from '@/contexts/AppContext';
+import { NotFound404 } from '@/components/NotFound404';
 
 const ticketTableColumns: ColumnItem[] = [
   {
@@ -99,7 +104,8 @@ export default function EventManagerPage() {
   const { setAppModal } = useAppContext();
 
   const { id: dropId = '' } = useParams();
-  const [eventMetadata, setEventMetadata] = useState<EventDropMetadata>();
+  const [isErr, setIsErr] = useState(false);
+  const [eventInfo, setEventInfo] = useState<FunderEventMetadata>();
   const [dataTableQuestionIds, setDataTableQuestionIds] = useState<string[]>([]);
   const [ticketsPurchased, setTicketsPurchased] = useState<number>(0);
   const [tableColumns, setTableColumns] = useState<ColumnItem[]>(ticketTableColumns);
@@ -137,13 +143,18 @@ export default function EventManagerPage() {
     if (!dropId) return;
 
     const getDropData = async () => {
-      const drop: { drop_id: string; funder_id: string; drop_config: { metadata: string } } =
-        await keypomInstance.viewCall({
-          methodName: 'get_drop_information',
-          args: { drop_id: dropId },
-        });
-      const metadata: EventDropMetadata = JSON.parse(drop.drop_config.metadata);
-      setDropData({ ...drop, drop_config: { metadata } });
+      try {
+        const drop: { drop_id: string; funder_id: string; drop_config: { metadata: string } } =
+          await keypomInstance.viewCall({
+            methodName: 'get_drop_information',
+            args: { drop_id: dropId },
+          });
+        const metadata: EventDropMetadata = JSON.parse(drop.drop_config.metadata);
+        setDropData({ ...drop, drop_config: { metadata } });
+      } catch (e) {
+        console.error('error', e);
+        setIsErr(true);
+      }
     };
     getDropData();
   }, [dropId, selector, accountId]);
@@ -154,33 +165,38 @@ export default function EventManagerPage() {
     if (!dropId) return;
 
     const getEventData = async () => {
-      const drop: { drop_id: string; funder_id: string; drop_config: { metadata: string } } =
-        await keypomInstance.viewCall({
-          methodName: 'get_drop_information',
-          args: { drop_id: dropId },
+      try {
+        const drop: { drop_id: string; funder_id: string; drop_config: { metadata: string } } =
+          await keypomInstance.viewCall({
+            methodName: 'get_drop_information',
+            args: { drop_id: dropId },
+          });
+        const metadata: EventDropMetadata = JSON.parse(drop.drop_config.metadata);
+        setDropData({ ...drop, drop_config: { metadata } });
+
+        const eventInfo = await keypomInstance.getEventInfo({
+          accountId,
+          eventId: metadata.eventId,
         });
-      const metadata: EventDropMetadata = JSON.parse(drop.drop_config.metadata);
-      setDropData({ ...drop, drop_config: { metadata } });
-      const eventDrop = await keypomInstance.getEventDrop({
-        accountId,
-        eventId: metadata.ticketInfo.eventId,
-      });
-      const eventDropMetadata: EventDropMetadata = JSON.parse(eventDrop.drop_config.metadata);
-      setEventMetadata(eventDropMetadata);
+        setEventInfo(eventInfo);
 
-      const questionColumns: ColumnItem[] =
-        eventDropMetadata.eventInfo?.questions
-          ?.filter((questionInfo: QuestionInfo) => showQuestion(questionInfo.question))
-          .map((questionInfo) => ({
-            id: questionInfo.question, // Using the question text as a unique ID
-            title: questionInfo.question, // The question text as the title
-            selector: (row) => row[questionInfo.question] || '-', // Accessing the response using the question
-            loadingElement: <Skeleton height="30px" />,
-          })) || [];
+        const questionColumns: ColumnItem[] =
+          eventInfo.questions
+            ?.filter((questionInfo: QuestionInfo) => showQuestion(questionInfo.question))
+            .map((questionInfo) => ({
+              id: questionInfo.question, // Using the question text as a unique ID
+              title: questionInfo.question, // The question text as the title
+              selector: (row) => row[questionInfo.question] || '-', // Accessing the response using the question
+              loadingElement: <Skeleton height="30px" />,
+            })) || [];
 
-      setDataTableQuestionIds(questionColumns.map((questionInfo) => questionInfo.id));
+        setDataTableQuestionIds(questionColumns.map((questionInfo) => questionInfo.id));
 
-      setTableColumns((prevColumns) => [...questionColumns, ...prevColumns]);
+        setTableColumns((prevColumns) => [...questionColumns, ...prevColumns]);
+      } catch (e) {
+        console.error('error', e);
+        setIsErr(true);
+      }
     };
     getEventData();
   }, [dropId, selector, accountId]);
@@ -191,11 +207,16 @@ export default function EventManagerPage() {
     if (!dropId) return;
 
     const getTicketsPurchased = async () => {
-      const numKeys = await keypomInstance.viewCall({
-        methodName: 'get_key_supply_for_drop',
-        args: { drop_id: dropId },
-      });
-      setTicketsPurchased(numKeys);
+      try {
+        const numKeys = await keypomInstance.viewCall({
+          methodName: 'get_key_supply_for_drop',
+          args: { drop_id: dropId },
+        });
+        setTicketsPurchased(numKeys);
+      } catch (e) {
+        console.error('error', e);
+        setIsErr(true);
+      }
     };
     getTicketsPurchased();
   }, [dropId, selector, accountId]);
@@ -204,14 +225,24 @@ export default function EventManagerPage() {
     if (!accountId || !dropId) return;
 
     // First get enough data with the current filters to fill the page size
-    handleGetInitialKeys();
+    try {
+      handleGetInitialKeys();
+    } catch (e) {
+      console.error('error', e);
+      setIsErr(true);
+    }
   }, [accountId]);
 
   useEffect(() => {
     if (!accountId || !dropId) return;
 
     // In parallel, fetch all the drops
-    handleGetAllKeys();
+    try {
+      handleGetAllKeys();
+    } catch (e) {
+      console.error('error', e);
+      setIsErr(true);
+    }
   }, [accountId, selectedFilters]);
 
   const showQuestion = (question: string) => {
@@ -364,9 +395,15 @@ export default function EventManagerPage() {
     setCurPage((prev) => prev - 1);
   };
 
-  const openViewDetailsModal = ({ item, eventMetadata }) => {
-    const questionColumns = eventMetadata?.eventInfo?.questions ? (
-      eventMetadata?.eventInfo?.questions.map((questionInfo) => (
+  const openViewDetailsModal = ({
+    item,
+    eventInfo,
+  }: {
+    item: any;
+    eventInfo: FunderEventMetadata;
+  }) => {
+    const questionColumns = eventInfo?.questions ? (
+      eventInfo?.questions.map((questionInfo) => (
         <VStack key={questionInfo.question} align="left" spacing={0}>
           <Text color="black.800" fontWeight="medium">
             {questionInfo.question}
@@ -430,13 +467,13 @@ export default function EventManagerPage() {
   };
 
   const handleExportCSVClick = async () => {
-    const { dropName, dropKeyItems: data } = await keypomInstance.getAllKeysForTicket({ dropId });
+    const { dropMeta, dropKeyItems: data } = await keypomInstance.getAllKeysForTicket({ dropId });
     if (data.length > 0) {
       setExporting(true);
 
       try {
         // Construct CSV header
-        const questions = eventMetadata?.eventInfo?.questions || [];
+        const questions = eventInfo?.questions || [];
         let csvContent = 'data:text/csv;charset=utf-8,';
         csvContent +=
           'Ticket ID,' + 'Claim Status' + questions.map((q) => q.question).join(',') + '\r\n';
@@ -464,7 +501,7 @@ export default function EventManagerPage() {
         link.setAttribute('href', encodedUri);
         link.setAttribute(
           'download',
-          `${(eventMetadata?.eventInfo?.name || '').toLowerCase().replaceAll(' ', '_')}-${dropName
+          `${(eventInfo?.name || '').toLowerCase().replaceAll(' ', '_')}-${dropMeta.name
             .toLowerCase()
             .replaceAll(' ', '_')}.csv`,
         );
@@ -481,7 +518,7 @@ export default function EventManagerPage() {
   };
 
   const getTableRows: GetAttendeeDataFn = (data) => {
-    if (data === undefined || eventMetadata === undefined) return [];
+    if (data === undefined || eventInfo === undefined) return [];
     return data.map((item) => {
       const mapped = {
         id: item.id, // Assuming `item` has a `drop_id` property that can serve as `id`
@@ -509,7 +546,7 @@ export default function EventManagerPage() {
             fontSize="sm"
             fontWeight="medium"
             onClick={() => {
-              openViewDetailsModal({ item, eventMetadata });
+              openViewDetailsModal({ item, eventInfo });
             }}
           >
             View details
@@ -532,7 +569,7 @@ export default function EventManagerPage() {
       (curPage + 1) * selectedFilters.pageSize,
     );
     return getTableRows(rowsToShow);
-  }, [filteredTicketData, filteredTicketData.length, curPage, eventMetadata]);
+  }, [filteredTicketData, filteredTicketData.length, curPage, eventInfo]);
 
   const getTableType = () => {
     if (filteredTicketData.length === 0 && ticketsPurchased === 0) {
@@ -547,16 +584,26 @@ export default function EventManagerPage() {
       href: '/events',
     },
     {
-      name: eventMetadata?.eventInfo?.name || '',
-      href: `/events/event/${eventMetadata?.ticketInfo.eventId || ''}`,
+      name: eventInfo?.name || '',
+      href: `/events/event/${eventInfo?.id || ''}`,
     },
     {
-      name: dropData?.drop_config.metadata.ticketInfo.name || '',
+      name: dropData?.drop_config.metadata.name || '',
       href: '',
     },
   ];
 
   const allowAction = filteredTicketData.length > 0;
+
+  if (isErr) {
+    return (
+      <NotFound404
+        cta="Return to homepage"
+        header="Ticket Not Found"
+        subheader="Please check the URL and try again."
+      />
+    );
+  }
 
   return (
     <Box px="1" py={{ base: '3.25rem', md: '5rem' }}>
@@ -564,7 +611,7 @@ export default function EventManagerPage() {
       {/* Drop info section */}
       <VStack align="start" paddingTop="4" spacing="4">
         <HStack>
-          {!dropData?.drop_config.metadata.ticketInfo.artwork ? (
+          {!dropData?.drop_config.metadata.artwork ? (
             <Spinner />
           ) : (
             <Image
@@ -572,14 +619,14 @@ export default function EventManagerPage() {
               borderRadius="12px"
               boxSize="150px"
               objectFit="cover"
-              src={dropData?.drop_config.metadata.ticketInfo.artwork} // Use dropData.media or fallback to placeholder
+              src={dropData?.drop_config.metadata.artwork} // Use dropData.media or fallback to placeholder
             />
           )}
           <VStack align="start">
             <Heading fontFamily="" size="sm">
               Ticket name
             </Heading>
-            <Heading size="lg">{dropData?.drop_config.metadata.ticketInfo.name} </Heading>
+            <Heading size="lg">{dropData?.drop_config.metadata.name} </Heading>
           </VStack>
         </HStack>
         <HStack justify="space-between" w="100%">
@@ -714,7 +761,7 @@ export default function EventManagerPage() {
           columns={tableColumns}
           data={data}
           excludeMobileColumns={dataTableQuestionIds}
-          loading={isLoading || !eventMetadata}
+          loading={isLoading || !eventInfo}
           mt={{ base: '6', md: '4' }}
           showColumns={true}
           showMobileTitles={['ticketId']}
@@ -725,7 +772,7 @@ export default function EventManagerPage() {
           curPage={curPage}
           handleNextPage={handleNextPage}
           handlePrevPage={handlePrevPage}
-          isLoading={isAllKeysLoading || !eventMetadata}
+          isLoading={isAllKeysLoading || !eventInfo}
           numPages={numPages}
           pageSizeMenuItems={pageSizeMenuItems}
           rowsSelectPlaceholder={selectedFilters.pageSize.toString()}

@@ -6,7 +6,6 @@ import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
 import { DeleteIcon } from '@/components/Icons';
 import keypomInstance from '@/lib/keypom';
 import { ShareIcon } from '@/components/Icons/ShareIcon';
-import { type EventDropMetadata } from '@/lib/eventsHelpers';
 import { type ColumnItem } from '@/components/Table/types';
 
 import { type EventData, EventManager, type GetTicketDataFn } from '../../components/EventManager';
@@ -59,12 +58,11 @@ export default function EventManagerPage() {
     if (!eventId) return;
 
     const getEventData = async () => {
-      const drop = await keypomInstance.getEventDrop({ accountId, eventId });
-      const metadata: EventDropMetadata = JSON.parse(drop.drop_config.metadata);
+      const eventInfo = await keypomInstance.getEventInfo({ accountId, eventId });
       setEventData({
-        name: metadata.eventInfo?.name || 'Untitled',
-        artwork: metadata.eventInfo?.artwork || 'loading',
-        questions: metadata.eventInfo?.questions || [],
+        name: eventInfo.name || 'Untitled',
+        artwork: eventInfo.artwork || 'loading',
+        questions: eventInfo.questions || [],
       });
     };
     getEventData();
@@ -72,7 +70,6 @@ export default function EventManagerPage() {
 
   const getTableRows: GetTicketDataFn = (data, handleDeleteClick) => {
     if (data === undefined) return [];
-    console.log(data);
 
     return data.map((item) => ({
       id: item.id, // Assuming `item` has a `drop_id` property that can serve as `id`

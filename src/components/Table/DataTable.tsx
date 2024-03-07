@@ -40,6 +40,8 @@ interface DataTableProps extends TableProps {
     | 'no-filtered-drops'
     | 'event-manager'
     | 'all-tickets'
+    | 'no-filtered-events'
+    | 'all-events'
     | 'no-filtered-tickets';
   showColumns?: boolean;
   columns: ColumnItem[];

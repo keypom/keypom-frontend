@@ -114,7 +114,7 @@ export const EventManager = ({
   const handleGetAllTickets = useCallback(async () => {
     try {
       setIsLoading(true);
-      const ticketsForEvent: EventDrop[] = await keypomInstance.getTicketsForEvent({
+      const ticketsForEvent: EventDrop[] = await keypomInstance.getTicketsForEventId({
         accountId: accountId!,
         eventId,
       });
@@ -130,18 +130,21 @@ export const EventManager = ({
         const supply = await keypomInstance.getKeySupplyForTicket(ticket.drop_id);
         return {
           id: ticket.drop_id,
-          artwork: meta.ticketInfo.artwork,
-          name: meta.ticketInfo.name,
-          description: meta.ticketInfo.name,
-          salesValidThrough: meta.ticketInfo.salesValidThrough,
-          passValidThrough: meta.ticketInfo.passValidThrough,
-          maxTickets: meta.ticketInfo.maxSupply,
+          artwork: meta.artwork,
+          name: meta.name,
+          description: meta.name,
+          salesValidThrough: meta.salesValidThrough,
+          passValidThrough: meta.passValidThrough,
+          maxTickets: meta.maxSupply,
           soldTickets: supply,
-          priceNear: keypomInstance.yoctoToNear(meta.ticketInfo.price),
+          priceNear: keypomInstance.yoctoToNear(meta.price),
         };
       });
 
-      setTicketData(await Promise.all(promises));
+      const ticketData = await Promise.all(promises);
+      console.log('ticketData', ticketData);
+
+      setTicketData(ticketData);
 
       const totalPages = Math.ceil(ticketsForEvent.length / pageSize);
       setNumPages(totalPages);
@@ -190,7 +193,7 @@ export const EventManager = ({
       setExporting(true);
       for (let i = 0; i < ticketData.length; i++) {
         const ticket = ticketData[i];
-        const { dropName, dropKeyItems: data } = await keypomInstance.getAllKeysForTicket({
+        const { dropMeta, dropKeyItems: data } = await keypomInstance.getAllKeysForTicket({
           dropId: ticket.id,
         });
 
@@ -224,7 +227,7 @@ export const EventManager = ({
           link.setAttribute('href', encodedUri);
           link.setAttribute(
             'download',
-            `${(eventData?.name || '').toLowerCase().replaceAll(' ', '_')}-${dropName
+            `${(eventData?.name || '').toLowerCase().replaceAll(' ', '_')}-${dropMeta.name
               .toLowerCase()
               .replaceAll(' ', '_')}.csv`,
           );
@@ -263,6 +266,25 @@ export const EventManager = ({
 
         let deletedForTicket = 0;
         const deleteLimit = 50;
+
+        if (supplyForTicket === 0) {
+          await wallet.signAndSendTransaction({
+            signerId: accountId!,
+            receiverId: KEYPOM_EVENTS_CONTRACT,
+            actions: [
+              {
+                type: 'FunctionCall',
+                params: {
+                  methodName: 'delete_keys',
+                  args: { drop_id: dropId },
+                  gas: '300000000000000',
+                  deposit: '0',
+                },
+              },
+            ],
+          });
+        }
+
         for (let j = 0; j < supplyForTicket; j += deleteLimit) {
           const toDelete = Math.min(deleteLimit, supplyForTicket - deletedForTicket);
 
