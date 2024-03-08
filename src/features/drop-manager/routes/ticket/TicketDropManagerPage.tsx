@@ -8,6 +8,9 @@ import {
   Heading,
   Hide,
   HStack,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
   Image,
   InputGroup,
   InputLeftElement,
@@ -25,10 +28,15 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { SearchIcon } from '@chakra-ui/icons';
 
+import { get } from '@/utils/localStorage';
 import { truncateAddress } from '@/utils/truncateAddress';
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
 import keypomInstance, { type AttendeeKeyItem } from '@/lib/keypom';
-import { type QuestionInfo, type EventDropMetadata } from '@/lib/eventsHelpers';
+import {
+  type QuestionInfo,
+  type EventDropMetadata,
+  type FunderEventMetadata,
+} from '@/lib/eventsHelpers';
 import { type ColumnItem, type DataItem } from '@/components/Table/types';
 import { Breadcrumbs } from '@/components/Breadcrumbs';
 import { DropDownButton } from '@/features/all-drops/components/DropDownButton';
@@ -36,7 +44,7 @@ import { FilterOptionsMobileButton } from '@/features/all-drops/components/Filte
 import { DataTable } from '@/components/Table';
 import { DropManagerPagination } from '@/features/all-drops/components/DropManagerPagination';
 import { MobileDrawerMenu } from '@/features/all-drops/components/MobileDrawerMenu';
-import { PAGE_SIZE_LIMIT } from '@/constants/common';
+import { MASTER_KEY, PAGE_SIZE_LIMIT } from '@/constants/common';
 import {
   createMenuItems,
   PAGE_SIZE_ITEMS,
@@ -44,6 +52,9 @@ import {
   TICKET_CLAIM_STATUS_OPTIONS,
 } from '@/features/all-drops/config/menuItems';
 import { useAppContext } from '@/contexts/AppContext';
+import { NotFound404 } from '@/components/NotFound404';
+
+import { handleExportCSVClick } from '../../components/ExportToCsv';
 
 const ticketTableColumns: ColumnItem[] = [
   {
@@ -99,7 +110,9 @@ export default function EventManagerPage() {
   const { setAppModal } = useAppContext();
 
   const { id: dropId = '' } = useParams();
-  const [eventMetadata, setEventMetadata] = useState<EventDropMetadata>();
+  const [isErr, setIsErr] = useState(false);
+  const [isCorrectMasterKey, setIsCorrectMasterKey] = useState(true);
+  const [eventInfo, setEventInfo] = useState<FunderEventMetadata>();
   const [dataTableQuestionIds, setDataTableQuestionIds] = useState<string[]>([]);
   const [ticketsPurchased, setTicketsPurchased] = useState<number>(0);
   const [tableColumns, setTableColumns] = useState<ColumnItem[]>(ticketTableColumns);
@@ -117,6 +130,7 @@ export default function EventManagerPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isAllKeysLoading, setIsAllKeysLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState<string>('');
+  const [userKey, setUserKey] = useState();
   const [selectedFilters, setSelectedFilters] = useState<{
     search: string;
     status: string;
@@ -131,19 +145,60 @@ export default function EventManagerPage() {
 
   const { selector, accountId } = useAuthWalletContext();
 
+  const handleClosePwModal = () => {
+    setAppModal({ isOpen: false });
+    navigate(eventInfo ? `/events/${eventInfo.id}` : `/events`);
+  };
+
+  useEffect(() => {
+    if (!isCorrectMasterKey) {
+      setAppModal({
+        isOpen: true,
+        size: 'xl',
+        modalContent: (
+          <ModalContent maxH="90vh" overflowY="auto" p={6}>
+            <ModalHeader>Incorrect Site Password</ModalHeader>
+            <Divider borderColor="gray.300" />
+            <ModalBody>
+              <VStack align="left" spacing={6}>
+                <Text fontSize="md">
+                  The site password you entered is incorrect. Please change it in your user profile
+                  settings.
+                </Text>
+                <Text fontSize="md">
+                  Without the correct password, you will not be able to view attendee information.
+                </Text>
+              </VStack>
+            </ModalBody>
+            <ModalFooter>
+              <Button variant="secondary" onClick={handleClosePwModal}>
+                Close
+              </Button>
+            </ModalFooter>
+          </ModalContent>
+        ),
+      });
+    }
+  }, [isCorrectMasterKey]);
+
   useEffect(() => {
     if (dropId === '') navigate('/drops');
     if (!accountId) return;
     if (!dropId) return;
 
     const getDropData = async () => {
-      const drop: { drop_id: string; funder_id: string; drop_config: { metadata: string } } =
-        await keypomInstance.viewCall({
-          methodName: 'get_drop_information',
-          args: { drop_id: dropId },
-        });
-      const metadata: EventDropMetadata = JSON.parse(drop.drop_config.metadata);
-      setDropData({ ...drop, drop_config: { metadata } });
+      try {
+        const drop: { drop_id: string; funder_id: string; drop_config: { metadata: string } } =
+          await keypomInstance.viewCall({
+            methodName: 'get_drop_information',
+            args: { drop_id: dropId },
+          });
+        const metadata: EventDropMetadata = JSON.parse(drop.drop_config.metadata);
+        setDropData({ ...drop, drop_config: { metadata } });
+      } catch (e) {
+        console.error('error', e);
+        setIsErr(true);
+      }
     };
     getDropData();
   }, [dropId, selector, accountId]);
@@ -154,33 +209,51 @@ export default function EventManagerPage() {
     if (!dropId) return;
 
     const getEventData = async () => {
-      const drop: { drop_id: string; funder_id: string; drop_config: { metadata: string } } =
-        await keypomInstance.viewCall({
-          methodName: 'get_drop_information',
-          args: { drop_id: dropId },
+      try {
+        const drop: { drop_id: string; funder_id: string; drop_config: { metadata: string } } =
+          await keypomInstance.viewCall({
+            methodName: 'get_drop_information',
+            args: { drop_id: dropId },
+          });
+        const metadata: EventDropMetadata = JSON.parse(drop.drop_config.metadata);
+        setDropData({ ...drop, drop_config: { metadata } });
+
+        const eventInfo = await keypomInstance.getEventInfo({
+          accountId,
+          eventId: metadata.eventId,
         });
-      const metadata: EventDropMetadata = JSON.parse(drop.drop_config.metadata);
-      setDropData({ ...drop, drop_config: { metadata } });
-      const eventDrop = await keypomInstance.getEventDrop({
-        accountId,
-        eventId: metadata.ticketInfo.eventId,
-      });
-      const eventDropMetadata: EventDropMetadata = JSON.parse(eventDrop.drop_config.metadata);
-      setEventMetadata(eventDropMetadata);
+        setEventInfo(eventInfo);
+        if (eventInfo?.questions) {
+          try {
+            const privKey = await keypomInstance.getDerivedPrivKey({
+              encryptedPk: eventInfo.encPrivKey!,
+              ivBase64: eventInfo.iv!,
+              saltBase64: eventInfo.salt!,
+              pw: get(MASTER_KEY) as string,
+            });
+            setUserKey(privKey);
+          } catch (e) {
+            setIsCorrectMasterKey(false);
+          }
+        }
 
-      const questionColumns: ColumnItem[] =
-        eventDropMetadata.eventInfo?.questions
-          ?.filter((questionInfo: QuestionInfo) => showQuestion(questionInfo.question))
-          .map((questionInfo) => ({
-            id: questionInfo.question, // Using the question text as a unique ID
-            title: questionInfo.question, // The question text as the title
-            selector: (row) => row[questionInfo.question] || '-', // Accessing the response using the question
-            loadingElement: <Skeleton height="30px" />,
-          })) || [];
+        const questionColumns: ColumnItem[] =
+          eventInfo.questions
+            ?.filter((questionInfo: QuestionInfo) => showQuestion(questionInfo.question))
+            .map((questionInfo) => ({
+              id: questionInfo.question, // Using the question text as a unique ID
+              title: questionInfo.question, // The question text as the title
+              selector: (row) => row[questionInfo.question] || '-', // Accessing the response using the question
+              loadingElement: <Skeleton height="30px" />,
+            })) || [];
 
-      setDataTableQuestionIds(questionColumns.map((questionInfo) => questionInfo.id));
+        setDataTableQuestionIds(questionColumns.map((questionInfo) => questionInfo.id));
 
-      setTableColumns((prevColumns) => [...questionColumns, ...prevColumns]);
+        setTableColumns((prevColumns) => [...questionColumns, ...prevColumns]);
+      } catch (e) {
+        console.error('error in fooooooooo', e);
+        setIsErr(true);
+      }
     };
     getEventData();
   }, [dropId, selector, accountId]);
@@ -191,28 +264,46 @@ export default function EventManagerPage() {
     if (!dropId) return;
 
     const getTicketsPurchased = async () => {
-      const numKeys = await keypomInstance.viewCall({
-        methodName: 'get_key_supply_for_drop',
-        args: { drop_id: dropId },
-      });
-      setTicketsPurchased(numKeys);
+      try {
+        const numKeys = await keypomInstance.viewCall({
+          methodName: 'get_key_supply_for_drop',
+          args: { drop_id: dropId },
+        });
+        setTicketsPurchased(numKeys);
+      } catch (e) {
+        console.error('error', e);
+        setIsErr(true);
+      }
     };
     getTicketsPurchased();
   }, [dropId, selector, accountId]);
 
   useEffect(() => {
-    if (!accountId || !dropId) return;
+    if (!accountId || !dropId || !eventInfo) return;
+    if (eventInfo.questions && !userKey) return;
 
     // First get enough data with the current filters to fill the page size
-    handleGetInitialKeys();
-  }, [accountId]);
+    try {
+      handleGetInitialKeys(userKey);
+    } catch (e) {
+      console.error('error', e);
+      setIsErr(true);
+    }
+  }, [accountId, userKey, eventInfo]);
 
   useEffect(() => {
-    if (!accountId || !dropId) return;
+    if (!accountId || !dropId || !eventInfo) return;
+
+    if (eventInfo.questions && !userKey) return;
 
     // In parallel, fetch all the drops
-    handleGetAllKeys();
-  }, [accountId, selectedFilters]);
+    try {
+      handleGetAllKeys(userKey);
+    } catch (e) {
+      console.error('error', e);
+      setIsErr(true);
+    }
+  }, [userKey, eventInfo, accountId, selectedFilters]);
 
   const showQuestion = (question: string) => {
     return (
@@ -261,58 +352,102 @@ export default function EventManagerPage() {
     });
   };
 
-  const handleGetAllKeys = useCallback(async () => {
-    setIsAllKeysLoading(true);
-    const keyInfoReturn = await keypomInstance.getAllKeysForTicket({ dropId });
-    const { dropKeyItems } = keyInfoReturn;
+  const handleGetAllKeys = useCallback(
+    async (userPrivKey) => {
+      setIsAllKeysLoading(true);
+      const keyInfoReturn = await keypomInstance.getAllKeysForTicket({ dropId });
+      let { dropKeyItems } = keyInfoReturn;
 
-    const numScanned = dropKeyItems.filter((key) => {
-      return key.uses_remaining !== 2;
-    }).length;
-    setTicketsScanned(numScanned);
+      const numScanned = dropKeyItems.filter((key) => {
+        return key.uses_remaining !== 2;
+      }).length;
+      setTicketsScanned(numScanned);
 
-    const filteredKeys = handleFiltering(dropKeyItems);
+      if (eventInfo?.questions) {
+        dropKeyItems = await Promise.all(
+          dropKeyItems.map(async (key) => {
+            const newKey = key;
+            try {
+              const decryptedMeta = await keypomInstance.decryptMetadata({
+                data: key.metadata,
+                privKey: userPrivKey,
+              });
+              newKey.metadata = decryptedMeta;
+            } catch (e) {
+              console.error('error', e);
+              setIsCorrectMasterKey(false);
+            }
+            return newKey;
+          }),
+        );
+      }
 
-    const totalPages = Math.ceil(filteredKeys.length / selectedFilters.pageSize);
-    setNumPages(totalPages);
+      const filteredKeys = handleFiltering(dropKeyItems);
 
-    setCurPage(0);
-    setFilteredTicketData(filteredKeys);
-    setIsAllKeysLoading(false);
-  }, [accountId, selectedFilters, keypomInstance]);
+      const totalPages = Math.ceil(filteredKeys.length / selectedFilters.pageSize);
+      setNumPages(totalPages);
 
-  const handleGetInitialKeys = useCallback(async () => {
-    setIsLoading(true);
-
-    // Initialize or update the cache for this drop if it doesn't exist or if total keys have changed
-    const dropInfo = await keypomInstance.viewCall({
-      methodName: 'get_drop_information',
-      args: { drop_id: dropId },
-    });
-    const totalKeySupply = dropInfo.next_key_id;
-
-    // Loop until we have enough filtered drops to fill the page size
-    let keysFetched = 0;
-    let filteredKeys: AttendeeItem[] = [];
-    while (keysFetched < totalKeySupply && filteredKeys.length < selectedFilters.pageSize) {
-      const dropKeyItems: AttendeeKeyItem[] = await keypomInstance.getPaginatedKeysForTicket({
-        dropId,
-        start: keysFetched,
-        limit: selectedFilters.pageSize,
-      });
-
-      keysFetched += dropKeyItems.length;
-
-      const curFiltered = handleFiltering(dropKeyItems);
-      filteredKeys = filteredKeys.concat(curFiltered);
-    }
-
-    if (filteredTicketData.length !== 0) {
+      setCurPage(0);
       setFilteredTicketData(filteredKeys);
-    }
-    setCurPage(0);
-    setIsLoading(false);
-  }, [accountId, keypomInstance]);
+      setIsAllKeysLoading(false);
+    },
+    [accountId, selectedFilters, keypomInstance],
+  );
+
+  const handleGetInitialKeys = useCallback(
+    async (userPrivKey) => {
+      setIsLoading(true);
+
+      // Initialize or update the cache for this drop if it doesn't exist or if total keys have changed
+      const dropInfo = await keypomInstance.viewCall({
+        methodName: 'get_drop_information',
+        args: { drop_id: dropId },
+      });
+      const totalKeySupply = dropInfo.next_key_id;
+
+      // Loop until we have enough filtered drops to fill the page size
+      let keysFetched = 0;
+      let filteredKeys: AttendeeItem[] = [];
+      while (keysFetched < totalKeySupply && filteredKeys.length < selectedFilters.pageSize) {
+        let dropKeyItems: AttendeeKeyItem[] = await keypomInstance.getPaginatedKeysForTicket({
+          dropId,
+          start: keysFetched,
+          limit: selectedFilters.pageSize,
+        });
+
+        if (eventInfo?.questions) {
+          dropKeyItems = await Promise.all(
+            dropKeyItems.map(async (key) => {
+              const newKey = key;
+              try {
+                const decryptedMeta = await keypomInstance.decryptMetadata({
+                  data: key.metadata,
+                  privKey: userPrivKey,
+                });
+                newKey.metadata = decryptedMeta;
+              } catch (e) {
+                console.error('error', e);
+                setIsCorrectMasterKey(false);
+              }
+              return newKey;
+            }),
+          );
+        }
+
+        keysFetched += dropKeyItems.length;
+
+        const curFiltered = handleFiltering(dropKeyItems);
+        filteredKeys = filteredKeys.concat(curFiltered);
+      }
+
+      if (filteredTicketData.length !== 0) {
+        setFilteredTicketData(filteredKeys);
+      }
+      setCurPage(0);
+      setIsLoading(false);
+    },
+    [accountId, keypomInstance],
+  );
 
   const pageSizeMenuItems = createMenuItems({
     menuItems: PAGE_SIZE_ITEMS,
@@ -364,9 +499,15 @@ export default function EventManagerPage() {
     setCurPage((prev) => prev - 1);
   };
 
-  const openViewDetailsModal = ({ item, eventMetadata }) => {
-    const questionColumns = eventMetadata?.eventInfo?.questions ? (
-      eventMetadata?.eventInfo?.questions.map((questionInfo) => (
+  const openViewDetailsModal = ({
+    item,
+    eventInfo,
+  }: {
+    item: any;
+    eventInfo: FunderEventMetadata;
+  }) => {
+    const questionColumns = eventInfo?.questions ? (
+      eventInfo?.questions.map((questionInfo) => (
         <VStack key={questionInfo.question} align="left" spacing={0}>
           <Text color="black.800" fontWeight="medium">
             {questionInfo.question}
@@ -426,62 +567,10 @@ export default function EventManagerPage() {
         </ModalContent>
       ),
     });
-    console.log('View details for', item);
-  };
-
-  const handleExportCSVClick = async () => {
-    const { dropName, dropKeyItems: data } = await keypomInstance.getAllKeysForTicket({ dropId });
-    if (data.length > 0) {
-      setExporting(true);
-
-      try {
-        // Construct CSV header
-        const questions = eventMetadata?.eventInfo?.questions || [];
-        let csvContent = 'data:text/csv;charset=utf-8,';
-        csvContent +=
-          'Ticket ID,' + 'Claim Status' + questions.map((q) => q.question).join(',') + '\r\n';
-
-        // Construct CSV rows
-        data.forEach((item, i) => {
-          const responses = JSON.parse(item.metadata).questions || {};
-          const row = [item.pub_key.split('ed25519:')[1]];
-          row.push(CLAIM_STATUS[item.uses_remaining].name);
-
-          // Add answers in the same order as the questions
-          questions.forEach((q) => {
-            row.push(responses[q.question] || '-');
-          });
-
-          // Join the individual row's columns and push it to CSV content
-          csvContent += row.join(',') + '\r\n';
-        });
-
-        // Encode the CSV content
-        const encodedUri = encodeURI(csvContent);
-
-        // Create a link to download the CSV file
-        const link = document.createElement('a');
-        link.setAttribute('href', encodedUri);
-        link.setAttribute(
-          'download',
-          `${(eventMetadata?.eventInfo?.name || '').toLowerCase().replaceAll(' ', '_')}-${dropName
-            .toLowerCase()
-            .replaceAll(' ', '_')}.csv`,
-        );
-        document.body.appendChild(link); // Required for FF
-
-        link.click(); // This will download the CSV file
-        document.body.removeChild(link); // Clean up
-      } catch (e) {
-        console.error('error', e);
-      } finally {
-        setExporting(false);
-      }
-    }
   };
 
   const getTableRows: GetAttendeeDataFn = (data) => {
-    if (data === undefined || eventMetadata === undefined) return [];
+    if (data === undefined || eventInfo === undefined) return [];
     return data.map((item) => {
       const mapped = {
         id: item.id, // Assuming `item` has a `drop_id` property that can serve as `id`
@@ -509,7 +598,7 @@ export default function EventManagerPage() {
             fontSize="sm"
             fontWeight="medium"
             onClick={() => {
-              openViewDetailsModal({ item, eventMetadata });
+              openViewDetailsModal({ item, eventInfo });
             }}
           >
             View details
@@ -532,7 +621,7 @@ export default function EventManagerPage() {
       (curPage + 1) * selectedFilters.pageSize,
     );
     return getTableRows(rowsToShow);
-  }, [filteredTicketData, filteredTicketData.length, curPage, eventMetadata]);
+  }, [filteredTicketData, filteredTicketData.length, curPage, eventInfo]);
 
   const getTableType = () => {
     if (filteredTicketData.length === 0 && ticketsPurchased === 0) {
@@ -547,16 +636,26 @@ export default function EventManagerPage() {
       href: '/events',
     },
     {
-      name: eventMetadata?.eventInfo?.name || '',
-      href: `/events/event/${eventMetadata?.ticketInfo.eventId || ''}`,
+      name: eventInfo?.name || '',
+      href: `/events/event/${eventInfo?.id || ''}`,
     },
     {
-      name: dropData?.drop_config.metadata.ticketInfo.name || '',
+      name: dropData?.drop_config.metadata.name || '',
       href: '',
     },
   ];
 
   const allowAction = filteredTicketData.length > 0;
+
+  if (isErr) {
+    return (
+      <NotFound404
+        cta="Return to homepage"
+        header="Ticket Not Found"
+        subheader="Please check the URL and try again."
+      />
+    );
+  }
 
   return (
     <Box px="1" py={{ base: '3.25rem', md: '5rem' }}>
@@ -564,7 +663,7 @@ export default function EventManagerPage() {
       {/* Drop info section */}
       <VStack align="start" paddingTop="4" spacing="4">
         <HStack>
-          {!dropData?.drop_config.metadata.ticketInfo.artwork ? (
+          {!dropData?.drop_config.metadata.artwork ? (
             <Spinner />
           ) : (
             <Image
@@ -572,14 +671,14 @@ export default function EventManagerPage() {
               borderRadius="12px"
               boxSize="150px"
               objectFit="cover"
-              src={dropData?.drop_config.metadata.ticketInfo.artwork} // Use dropData.media or fallback to placeholder
+              src={dropData?.drop_config.metadata.artwork} // Use dropData.media or fallback to placeholder
             />
           )}
           <VStack align="start">
             <Heading fontFamily="" size="sm">
               Ticket name
             </Heading>
-            <Heading size="lg">{dropData?.drop_config.metadata.ticketInfo.name} </Heading>
+            <Heading size="lg">{dropData?.drop_config.metadata.name} </Heading>
           </VStack>
         </HStack>
         <HStack justify="space-between" w="100%">
@@ -671,7 +770,20 @@ export default function EventManagerPage() {
                 px="6"
                 variant="secondary"
                 w={{ sm: 'initial' }}
-                onClick={handleExportCSVClick}
+                onClick={async () => {
+                  await handleExportCSVClick({
+                    dropIds: [dropId],
+                    setExporting,
+                    keypomInstance,
+                    setIsCorrectMasterKey,
+                    userKey,
+                    eventData: {
+                      name: eventInfo?.name || '',
+                      artwork: eventInfo?.artwork || '',
+                      questions: eventInfo?.questions || [],
+                    },
+                  });
+                }}
               >
                 Export .CSV
               </Button>
@@ -701,7 +813,20 @@ export default function EventManagerPage() {
               px="6"
               variant="secondary"
               w={{ sm: 'initial' }}
-              onClick={handleExportCSVClick}
+              onClick={async () => {
+                await handleExportCSVClick({
+                  dropIds: [dropId],
+                  setExporting,
+                  keypomInstance,
+                  setIsCorrectMasterKey,
+                  userKey,
+                  eventData: {
+                    name: eventInfo?.name || '',
+                    artwork: eventInfo?.artwork || '',
+                    questions: eventInfo?.questions || [],
+                  },
+                });
+              }}
             >
               Export .CSV
             </Button>
@@ -714,7 +839,7 @@ export default function EventManagerPage() {
           columns={tableColumns}
           data={data}
           excludeMobileColumns={dataTableQuestionIds}
-          loading={isLoading || !eventMetadata}
+          loading={isLoading || !eventInfo}
           mt={{ base: '6', md: '4' }}
           showColumns={true}
           showMobileTitles={['ticketId']}
@@ -725,7 +850,7 @@ export default function EventManagerPage() {
           curPage={curPage}
           handleNextPage={handleNextPage}
           handlePrevPage={handlePrevPage}
-          isLoading={isAllKeysLoading || !eventMetadata}
+          isLoading={isAllKeysLoading || !eventInfo}
           numPages={numPages}
           pageSizeMenuItems={pageSizeMenuItems}
           rowsSelectPlaceholder={selectedFilters.pageSize.toString()}

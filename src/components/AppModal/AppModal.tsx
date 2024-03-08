@@ -28,23 +28,25 @@ export const AppModal = () => {
   const [values, setValues] = useState({});
   const [loading, setLoading] = useState(false);
 
+  const canClose = appModal.canClose !== undefined ? appModal.canClose : true;
   return (
     <Modal
       isCentered
-      closeOnOverlayClick={appModal.closeOnOverlayClick || false}
+      closeOnEsc={canClose}
+      closeOnOverlayClick={canClose && (appModal.closeOnOverlayClick || false)}
       isOpen={appModal.isOpen}
       size={appModal.size || 'md'}
       onClose={() => {
-        setAppModal({
-          isOpen: false,
-        });
+        if (canClose) {
+          setAppModal({ isOpen: false });
+        }
       }}
     >
       <ModalOverlay backdropFilter="blur(0px)" bg="blackAlpha.600" opacity="1" />
       {appModal.modalContent !== undefined ? (
         appModal.modalContent
       ) : (
-        <ModalContent p={{ base: '8', md: '16' }} textAlign="center" top={'-5rem'}>
+        <ModalContent p={{ base: '4', md: '8' }} textAlign="center" top={'-5rem'}>
           <ModalHeader
             alignItems="center"
             display="flex"
@@ -104,7 +106,7 @@ export const AppModal = () => {
 
           {appModal.options && appModal.options.length > 0 && (
             <ModalFooter>
-              <ButtonGroup justifyContent="center" w="full">
+              <ButtonGroup justifyContent="space-between" w="full">
                 {appModal.options.map(({ label, func, buttonProps, lazy }, i) => (
                   <Button
                     key={i}

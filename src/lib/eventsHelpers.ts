@@ -13,7 +13,7 @@ export interface QuestionInfo {
   question: string;
 }
 
-export interface EventInfo {
+export interface FunderEventMetadata {
   // Stage 1
   name: string;
   id: string;
@@ -21,12 +21,20 @@ export interface EventInfo {
   location: string;
   date: EventDateInfo;
   artwork: string;
+  dateCreated: string;
 
   // Stage 2
   questions?: QuestionInfo[];
+
+  // If there are some questions, then we need to encrypt the answers
+  pubKey?: string;
+  encPrivKey?: string;
+  iv?: string;
+  salt?: string;
 }
 
-interface TicketInfo {
+export interface EventDropMetadata {
+  dropName: string;
   name: string;
   eventId: string;
   description: string;
@@ -37,56 +45,8 @@ interface TicketInfo {
   maxSupply?: number;
 }
 
-export interface EventDropMetadata {
-  dropName: string;
-  dateCreated: string;
-  ticketInfo: TicketInfo;
-  eventInfo?: EventInfo;
-}
-
-function isValidDateInfo(dateInfo) {
-  // Check if date is a string (AllDayEvent)
-  if (typeof dateInfo.date === 'string') {
-    return true; // Valid AllDayEvent
-  }
-  // Check if date is a MultiDayEvent with valid from and to strings
-  else if (
-    typeof dateInfo.date === 'object' &&
-    typeof dateInfo.date.from === 'string' &&
-    typeof dateInfo.date.to === 'string'
-  ) {
-    return true; // Valid MultiDayEvent
-  }
-  return false; // Invalid date format
-}
-
-function isValidQuestionInfo(questionInfo) {
-  return typeof questionInfo.required === 'boolean' && typeof questionInfo.question === 'string';
-}
-
-export function isValidEventInfo(eventInfo) {
-  // Check basic properties
-  const isValidBasicInfo =
-    typeof eventInfo.name === 'string' &&
-    typeof eventInfo.id === 'string' &&
-    typeof eventInfo.description === 'string' &&
-    typeof eventInfo.location === 'string' &&
-    typeof eventInfo.artwork === 'string' &&
-    isValidDateInfo(eventInfo.date);
-
-  if (!isValidBasicInfo) return false;
-
-  // If questions are provided, check them
-  if (eventInfo.questions) {
-    for (const question of eventInfo.questions) {
-      if (!isValidQuestionInfo(question)) {
-        return false; // Invalid question info found
-      }
-    }
-  }
-
-  return true; // All checks passed
-}
+/// Maps UUID to Event Metadata
+export type FunderMetadata = Record<string, FunderEventMetadata>;
 
 export function isValidTicketInfo(ticketInfo) {
   // Check if all required properties exist and are of type 'string'

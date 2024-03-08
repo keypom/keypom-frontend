@@ -21,17 +21,20 @@ import {
 } from '@chakra-ui/react';
 import { SearchIcon } from '@chakra-ui/icons';
 import { useNavigate } from 'react-router-dom';
+import { type Wallet } from '@near-wallet-selector/core';
 
+import keypomInstance from '@/lib/keypom';
 import { PAGE_SIZE_LIMIT } from '@/constants/common';
 import { useAppContext } from '@/contexts/AppContext';
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
 import { type ColumnItem, type DataItem } from '@/components/Table/types';
 import { DataTable } from '@/components/Table';
-import keypomInstance, { type EventDrop } from '@/lib/keypom';
-import { type EventDropMetadata } from '@/lib/eventsHelpers';
+import { type FunderEventMetadata } from '@/lib/eventsHelpers';
 import { truncateAddress } from '@/utils/truncateAddress';
 import { ShareIcon } from '@/components/Icons/ShareIcon';
 import { DeleteIcon } from '@/components/Icons';
+import useDeletion from '@/components/AppModal/useDeletion';
+import { performDeletionLogic } from '@/components/AppModal/PerformDeletion';
 
 import {
   DROP_TYPE_OPTIONS,
@@ -44,7 +47,6 @@ import {
 
 import { DropDownButton } from './DropDownButton';
 import { MobileDrawerMenu } from './MobileDrawerMenu';
-import { setConfirmationModalHelper } from './ConfirmationModal';
 import { DropManagerPagination } from './DropManagerPagination';
 import { FilterOptionsMobileButton } from './FilterOptionsMobileButton';
 
@@ -65,9 +67,9 @@ const COLUMNS: ColumnItem[] = [
     loadingElement: <Skeleton height="30px" />,
   },
   {
-    id: 'numTickets',
-    title: 'Ticket Types',
-    selector: (drop) => drop.numTickets,
+    id: 'description',
+    title: 'Description',
+    selector: (drop) => drop.description,
     loadingElement: <Skeleton height="30px" />,
   },
   {
@@ -111,7 +113,7 @@ export default function AllEvents({ pageTitle, hasDateFilter, ctaButtonLabel }: 
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [numOwnedEvents, setNumOwnedEvents] = useState<number>(0);
   const [filteredDataItems, setFilteredDataItems] = useState<DataItem[]>([]);
-  const [wallet, setWallet] = useState({});
+  const [wallet, setWallet] = useState<Wallet>();
 
   const { selector, accountId } = useAuthWalletContext();
 
@@ -164,20 +166,21 @@ export default function AllEvents({ pageTitle, hasDateFilter, ctaButtonLabel }: 
     }
   };
 
-  const handleFiltering = async (drops: EventDrop[]) => {
+  const handleFiltering = async (events: FunderEventMetadata[]) => {
     if (selectedFilters.search.trim() !== '') {
-      drops = drops.filter((drop) => {
-        const { dropName } = JSON.parse(drop.drop_config.metadata);
-        return dropName.toLowerCase().includes(selectedFilters.search.toLowerCase());
+      events = events.filter((event) => {
+        return (
+          event.name.toLowerCase().includes(selectedFilters.search.toLowerCase()) ||
+          event.description.toLowerCase().includes(selectedFilters.search.toLowerCase())
+        );
       });
     }
 
     if (selectedFilters.date !== DATE_FILTER_OPTIONS.ANY) {
-      drops = drops
-        .filter((drop) => {
+      events = events
+        .filter((event) => {
           try {
-            const { dateCreated } = JSON.parse(drop.drop_config.metadata);
-            const date = new Date(dateCreated);
+            const date = new Date(event.dateCreated);
             return date && !isNaN(date.getTime()); // Ensures dateCreated is valid
           } catch (e) {
             return false; // Exclude drops with malformed metadata
@@ -185,46 +188,42 @@ export default function AllEvents({ pageTitle, hasDateFilter, ctaButtonLabel }: 
         })
         .sort((a, b) => {
           // Assuming metadata has been validated, no need for try-catch here
-          const dateA = new Date(JSON.parse(a.drop_config.metadata).dateCreated).getTime();
-          const dateB = new Date(JSON.parse(b.drop_config.metadata).dateCreated).getTime();
+          const dateA = new Date(a.dateCreated).getTime();
+          const dateB = new Date(b.dateCreated).getTime();
           return selectedFilters.date === DATE_FILTER_OPTIONS.NEWEST
             ? dateB - dateA
             : dateA - dateB;
         });
     }
 
-    return drops;
+    return events;
   };
 
   const handleGetAllEvents = useCallback(async () => {
     setIsLoading(true);
-    const eventDrops = await keypomInstance.getAllEventDrops({
-      accountId: accountId!,
-    });
+    let eventDrops: FunderEventMetadata[] = [];
+    try {
+      eventDrops = await keypomInstance.getEventsForAccount({
+        accountId: accountId!,
+      });
+    } catch (e) {
+      console.error('Error fetching events:', e);
+    }
 
     const numEvents = eventDrops.length;
     setNumOwnedEvents(numEvents);
 
     const filteredEvents = await handleFiltering(eventDrops);
-    const dropDataPromises = filteredEvents.map(async (drop: EventDrop) => {
-      const meta: EventDropMetadata = JSON.parse(drop.drop_config.metadata);
-      const tickets = await keypomInstance.getTicketsForEvent({
-        accountId: accountId!,
-        eventId: meta.ticketInfo.eventId,
-      });
-      const numTickets = tickets.length;
+    const dropData = filteredEvents.map((event: FunderEventMetadata) => {
       return {
-        id: drop.drop_id,
-        name: truncateAddress(meta.eventInfo?.name || 'Untitled', 'end', 48),
-        media: meta.eventInfo?.artwork,
-        dateCreated: formatDate(new Date(meta.dateCreated)), // Ensure drop has dateCreated or adjust accordingly
-        numTickets,
-        eventId: meta.ticketInfo.eventId,
+        id: event.id,
+        name: truncateAddress(event.name || 'Untitled', 'end', 48),
+        media: event.artwork,
+        dateCreated: formatDate(new Date(parseInt(event.dateCreated))), // Ensure drop has dateCreated or adjust accordingly
+        description: truncateAddress(event.description, 'end', 32),
+        eventId: event.id,
       };
     });
-
-    // Use Promise.all to wait for all promises to resolve
-    const dropData = await Promise.all(dropDataPromises);
 
     setFilteredDataItems(dropData);
 
@@ -271,14 +270,34 @@ export default function AllEvents({ pageTitle, hasDateFilter, ctaButtonLabel }: 
     },
   });
 
-  const handleDeleteClick = (dropId: string | number) => {
-    setConfirmationModalHelper(setAppModal, async () => {
-      await keypomInstance.deleteDrops({
-        wallet,
-        dropIds: [dropId],
-      });
-      window.location.reload();
+  const { openConfirmationModal } = useDeletion({
+    setAppModal,
+  });
+
+  const handleDeleteClick = async (eventId: string) => {
+    if (!wallet || !eventId) return;
+
+    const ticketData = await keypomInstance.getTicketsForEventId({
+      accountId: accountId!,
+      eventId,
     });
+
+    const deletionArgs = {
+      wallet,
+      accountId,
+      navigate,
+      eventId,
+      ticketData,
+      deleteAll: true,
+      setAppModal,
+    };
+
+    // Open the confirmation modal with customization if needed
+    openConfirmationModal(
+      deletionArgs,
+      'Are you sure you want to delete this event and all its tickets? This action cannot be undone.',
+      performDeletionLogic,
+    );
   };
 
   const getTableRows = (): DataItem[] => {
@@ -321,7 +340,7 @@ export default function AllEvents({ pageTitle, hasDateFilter, ctaButtonLabel }: 
                   variant="icon"
                   onClick={async (e) => {
                     e.stopPropagation();
-                    handleDeleteClick(drop.id);
+                    handleDeleteClick(drop.id.toString());
                   }}
                 >
                   <DeleteIcon color="red.400" />
@@ -349,9 +368,9 @@ export default function AllEvents({ pageTitle, hasDateFilter, ctaButtonLabel }: 
 
   const getTableType = () => {
     if (filteredDataItems.length === 0 && numOwnedEvents === 0) {
-      return 'all-drops';
+      return 'all-events';
     }
-    return 'no-filtered-drops';
+    return 'no-filtered-events';
   };
 
   return (
