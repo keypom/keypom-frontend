@@ -32,10 +32,6 @@ export const handleExportCSVClick = async ({
         });
 
       try {
-        console.log('data', data);
-        console.log('dropMeta', dropMeta);
-        console.log('eventData', eventData);
-        console.log('userKey', userKey);
         // Construct CSV header
         const questions = eventData?.questions || [];
         if (questions.length !== 0) {

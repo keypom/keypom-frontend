@@ -524,8 +524,6 @@ class KeypomJS {
         this.purchasedTicketsById[dropId].dropKeyItems = batchResults.flat(); // Use .flat()
       }
 
-      console.log('this.purchasedTicketsById[dropId]:', this.purchasedTicketsById[dropId]);
-
       return this.purchasedTicketsById[dropId];
     } catch (error) {
       console.error('Failed to get keys info:', error);

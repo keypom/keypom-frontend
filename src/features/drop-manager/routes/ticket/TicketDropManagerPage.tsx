@@ -152,17 +152,10 @@ export default function TicketManagerPage() {
   };
 
   useEffect(() => {
-    console.log(
-      'filteredTicketData',
-      filteredTicketData,
-      ' userKey',
-      userKey,
-      ' eventInfo',
-      eventInfo,
-    );
     setAllowExport(
-      filteredTicketData.length > 0 &&
-        (eventInfo.questions?.length > 0 ? userKey !== undefined : true),
+      filteredTicketData.length > 0 && (eventInfo!.questions || []).length > 0
+        ? userKey !== undefined
+        : true,
     );
   }, [filteredTicketData, userKey, eventInfo]);
 
