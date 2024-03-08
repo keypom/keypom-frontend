@@ -4,9 +4,10 @@ import QRCode from 'react-qr-code';
 interface QrDetailsProps {
   qrValue: string;
   ticketName: string;
+  eventName: string;
 }
 
-export const QrDetails = ({ qrValue, ticketName }: QrDetailsProps) => {
+export const QrDetails = ({ qrValue, ticketName, eventName }: QrDetailsProps) => {
   const handleDownloadQrCode = () => {
     const svg = document.getElementById('QRCode');
 
@@ -50,16 +51,11 @@ export const QrDetails = ({ qrValue, ticketName }: QrDetailsProps) => {
       >
         <QRCode id="QRCode" size={240} value={qrValue} />
       </Box>
-      <Text
-        color="gray.800"
-        fontWeight="500"
-        mb="4"
-        size={{ base: 'xl', md: '2xl' }}
-        textAlign="center"
-      >
-        {ticketName}
+      <Text color="gray.800" fontWeight="500" mb="1" size="xl" textAlign="center">
+        {eventName}
       </Text>
-      <Text color="gray.600" mb="6" size={{ base: 'sm', md: 'md' }} textAlign="center">
+
+      <Text color="gray.600" mb="6" size={{ base: 'sm', md: 'sm' }} textAlign="center">
         Save this QR code and show it at the event to gain entry.
       </Text>
       <Button variant="outline" w="full" onClick={handleDownloadQrCode}>

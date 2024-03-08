@@ -21,7 +21,7 @@ const AllDropsPage = React.lazy(
   async () => await import('./features/all-drops/routes/AllDropsPage'),
 );
 
-const TicketQRCodePage = React.lazy(async () => await import('./features/ticket-qr/TicketQRCode'));
+const TicketQRCodePage = React.lazy(async () => await import('./features/ticket-qr/TicketQRPage'));
 const AllEventsPage = React.lazy(
   async () => await import('./features/all-drops/routes/AllEventsPage'),
 );
