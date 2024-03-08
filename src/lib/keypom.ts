@@ -25,7 +25,13 @@ import * as nearAPI from 'near-api-js';
 import { type Wallet } from '@near-wallet-selector/core';
 
 import { truncateAddress } from '@/utils/truncateAddress';
-import { CLOUDFLARE_IPFS, DROP_TYPE, KEYPOM_EVENTS_CONTRACT, MASTER_KEY } from '@/constants/common';
+import {
+  CLOUDFLARE_IPFS,
+  DROP_TYPE,
+  KEYPOM_EVENTS_CONTRACT,
+  KEYPOM_MARKETPLACE_CONTRACT,
+  MASTER_KEY,
+} from '@/constants/common';
 import getConfig from '@/config/config';
 import { get } from '@/utils/localStorage';
 
@@ -142,10 +148,21 @@ class KeypomJS {
   yoctoToNear = (yocto: string) => nearAPI.utils.format.formatNearAmount(yocto, 4);
 
   viewCall = async ({ contractId = KEYPOM_EVENTS_CONTRACT, methodName, args }) => {
+    if (this.viewAccount === undefined) {
+      return;
+    }
     return await this.viewAccount.viewFunctionV2({
       contractId,
       methodName,
       args,
+    });
+  };
+
+  GetEventDetails = async ({ contractId = KEYPOM_MARKETPLACE_CONTRACT, limit, from_index }) => {
+    return await this.viewAccount.viewFunctionV2({
+      contractId,
+      methodName: 'get_events',
+      args: { limit, from_index },
     });
   };
 

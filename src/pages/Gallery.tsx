@@ -34,13 +34,12 @@ import {
   SORT_MENU_ITEMS,
   createMenuItems,
 } from '@/features/all-drops/config/menuItems';
-import keypomInstance, { type EventDrop } from '@/lib/keypom';
+import keypomInstance from '@/lib/keypom';
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
 import { GalleryGrid } from '@/features/gallery/components/GalleryGrid';
 import { DropDownButton } from '@/features/all-drops/components/DropDownButton';
 import { FilterOptionsMobileButton } from '@/features/all-drops/components/FilterOptionsMobileButton';
 import { MobileDrawerMenu } from '@/features/all-drops/components/MobileDrawerMenu';
-import { type EventDropMetadata } from '@/lib/eventsHelpers';
 import { truncateAddress } from '@/utils/truncateAddress';
 
 // import myData from '../data/db.json';
@@ -307,8 +306,13 @@ export default function Gallery() {
 
   const handleGetAllEvents = useCallback(async () => {
     setIsLoading(true);
-    const eventDrops = await keypomInstance.getAllEventDrops({
-      accountId: 'benjiman.testnet',
+    // const eventDrops = await keypomInstance.getAllEventDrops({
+    //   accountId: 'benjiman.testnet',
+    // });
+
+    const eventDrops = await keypomInstance.GetEventDetails({
+      limit: 50,
+      from_index: 0,
     });
 
     console.log('eventDrops123123; ', eventDrops);
@@ -317,8 +321,14 @@ export default function Gallery() {
     setNumOwnedEvents(numEvents);
 
     const filteredEvents = await handleFiltering(eventDrops);
-    const dropDataPromises = filteredEvents.map(async (drop: EventDrop) => {
-      const meta: EventDropMetadata = JSON.parse(drop.drop_config.metadata);
+    const dropDataPromises = filteredEvents.map(async (drop) => {
+      console.log('just boutta filter and ask for metadata');
+      // get metadata from drop.event_id and drop.funder_id
+      const meta = await keypomInstance.getEventInfo({
+        accountId: drop.funder_id,
+        eventId: drop.event_id,
+      });
+      console.log('metadata123: ', meta);
 
       console.log('meta.eventInfo?', meta.eventInfo);
 
@@ -330,10 +340,12 @@ export default function Gallery() {
             : `${meta.eventInfo?.date.date.from} to ${meta.eventInfo?.date.date.to}`;
       }
 
-      const tickets = await keypomInstance.getTicketsForEvent({
-        accountId: accountId!,
-        eventId: meta.ticketInfo.eventId,
+      console.log('just boutta ask for tickets');
+      const tickets = await keypomInstance.getTicketsForEventId({
+        accountId: drop.funder_id,
+        eventId: drop.ticket_info.eventId,
       });
+      console.log('just asked for tickets');
       const numTickets = tickets.length;
       return {
         location: meta.eventInfo?.location,
@@ -345,13 +357,13 @@ export default function Gallery() {
         numTickets,
         description: meta.eventInfo?.description,
         eventId: meta.ticketInfo.eventId,
-        navurl: String('benjiman.testnet') + ':' + meta.ticketInfo.eventId,
+        navurl: String(drop.funder_id) + ':' + meta.ticketInfo.eventId,
       };
     });
 
     // Use Promise.all to wait for all promises to resolve
     const dropData = await Promise.all(dropDataPromises);
-
+    console.log('just resolved');
     setFilteredDataItems(dropData);
 
     const totalPages = Math.ceil(filteredEvents.length / selectedFilters.pageSize);
@@ -365,38 +377,60 @@ export default function Gallery() {
     setIsLoading(true);
 
     // First get the total supply of drops so we know when to stop fetching
-    // const totalSupply = await keypomInstance.getDropSupplyForOwner({ accountId: accountId! });
-    // // setNumOwnedDrops(totalSupply);
+    const totalSupply = 1; // await keypomInstance.getDropSupplyForOwner({ accountId: accountId! });
 
-    // First get the total supply of drops so we know when to stop fetching
-    const totalSupply = await keypomInstance.getDropSupplyForOwner({ accountId: accountId! });
-
-    console.log('initialtotal' + totalSupply);
+    console.log('initialtotal', totalSupply);
 
     // Loop until we have enough filtered drops to fill the page size
     let dropsFetched = 0;
     let filteredDrops: ProtocolReturnedDrop[] = [];
     while (dropsFetched < totalSupply && filteredDrops.length < selectedFilters.pageSize) {
-      let drops = await keypomInstance.getAllEventDrops({
-        accountId: 'benjiman.testnet',
+      // let drops = await keypomInstance.getAllEventDrops({
+      //   accountId: 'benjiman.testnet',
+      // });
+
+      let drops = await keypomInstance.GetEventDetails({
+        limit: 100,
+        from_index: dropsFetched,
       });
 
-      drops = drops.filter((drop) => {
-        const meta: EventDropMetadata = JSON.parse(drop.drop_config.metadata);
+      dropsFetched += Number(drops.length);
+
+      console.log(
+        'All Event Drops: ',
+        drops,
+        'dropsFetched: ',
+        dropsFetched,
+        'totalSupply: ',
+        totalSupply,
+      );
+
+      drops = drops.filter(async (drop) => {
+        // get metadata from drop.event_id and drop.funder_id
+        const meta = await keypomInstance.getEventInfo({
+          accountId: drop.funder_id,
+          eventId: drop.event_id,
+        });
+        console.log('metadata: ', meta);
+        // const meta: EventDropMetadata = JSON.parse(metadata);
         return meta.eventInfo !== undefined;
       });
 
       console.log('All Event Drops drops: ', drops);
-      dropsFetched += drops.length;
 
       const curFiltered = await handleFiltering(drops);
+      console.log('All Eventjust filtered: ', curFiltered);
       filteredDrops = filteredDrops.concat(curFiltered);
     }
+
+    console.log('All Event boutta dropdata: ', dropData);
 
     // Now, map over the filtered drops and set the data
     const dropData = await Promise.all(
       filteredDrops.map(async (drop) => await keypomInstance.getDropData({ drop })),
     );
+    console.log('All Event dropdata: ', dropData);
+
     setFilteredDataItems(dropData);
     setCurPage(0);
     setIsLoading(false);
