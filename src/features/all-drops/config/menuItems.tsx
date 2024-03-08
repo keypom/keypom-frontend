@@ -98,7 +98,7 @@ export const DROP_TYPE_ITEMS: MenuItemProps[] = [
 
 export const GALLERY_PRICE_ITEMS: MenuItemProps[] = [
   {
-    label: 'Any',
+    label: 'NEAR',
   },
   {
     label: '<20',

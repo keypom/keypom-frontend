@@ -103,7 +103,7 @@ export const VerifyModal = ({ isOpen, onClose, event }: VerifyModalProps) => {
       });
       return;
     } catch (error) {
-      console.error('Error getting key information', error);
+      console.error('Invalid ticket sale');
       toast({
         title: 'Sale request failure',
         description: `This item may not be put for sale at this time since ${error}`,

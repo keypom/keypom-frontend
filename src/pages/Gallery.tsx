@@ -1,6 +1,5 @@
 import {
   Box,
-  Divider,
   Heading,
   Input,
   Image as ChakraImage,
@@ -144,62 +143,81 @@ export default function Gallery() {
     }
   };
 
-  const handleFiltering = async (drops) => {
+  const handleFiltering = async (events) => {
     // Apply the selected filters
 
+    let drops = events;
+
     if (selectedFilters.price !== GALLERY_PRICE_ITEMS[0].label) {
+      console.log('test selectedFilters.price: ', selectedFilters.price);
       // Apply price filters
       const priceFilter = selectedFilters.price;
       // Convert each drop to a promise that resolves to either the drop or null
-      const dropsPromises = drops.map(async (drop) => {
-        const data = await keypomInstance.getDropData({ drop });
-        const price = parseFloat(data.claimed);
-        console.log('price: ', price);
-        console.log('priceFilter: ', priceFilter);
+      console.log('test events: ', events);
+      const dropsPromises = events.map((event) => {
+        console.log('test event: ', event);
+        let price = -1;
+        for (const [key, value] of Object.entries(event.ticket_info)) {
+          price = parseFloat(keypomInstance.yoctoToNear(value.price));
+          console.log('test price: ', price);
+        }
+        if (price === -1) {
+          return null;
+        }
         if (priceFilter === GALLERY_PRICE_ITEMS[1].label) {
           if (price < 20) {
-            return drop;
+            return event;
           } else {
             return null;
           }
         } else if (priceFilter === GALLERY_PRICE_ITEMS[2].label) {
           if (price >= 20 && price < 50) {
-            return drop;
+            return event;
           } else {
             return null;
           }
         } else if (priceFilter === GALLERY_PRICE_ITEMS[3].label) {
           if (price >= 50 && price < 100) {
-            return drop;
+            return event;
           } else {
             return null;
           }
         } else if (priceFilter === GALLERY_PRICE_ITEMS[4].label) {
           if (price >= 100) {
-            return drop;
+            return event;
           } else {
             return null;
           }
         }
       });
 
+      console.log('test dropsPromises: ', dropsPromises);
+
       const resolvedDrops = await Promise.all(dropsPromises);
       drops = resolvedDrops.filter((drop): drop is ProtocolReturnedDrop => drop !== null);
+      console.log('test drops: ', drops);
     }
 
     if (selectedFilters.search.trim() !== '') {
       // Apply search filter
       // Convert each drop to a promise that resolves to either the drop or null
       const dropsPromises = drops.map(async (drop) => {
-        const data = await keypomInstance.getDropData({ drop });
-        const { dropName } = keypomInstance.getDropMetadata(drop.metadata);
+        console.log('12edrop: ', drop);
+        const data = await keypomInstance.getEventInfo({
+          accountId: drop.funder_id,
+          eventId: drop.event_id,
+        });
+        console.log('12edata: ', data);
+        if (data == undefined) return null;
+        // const data = await keypomInstance.getDropData({ drop });
+        // const { dropName } = keypomInstance.getDropMetadata(drop.metadata);
 
-        const description = data.type;
+        const description = data.description;
 
         // console.log('dropName: ', dropName);
         // console.log('description: ', description);
         if (
-          dropName.toLowerCase().includes(searchTerm) ||
+          data.name.toLowerCase().includes(searchTerm) ||
           description.toLowerCase().includes(searchTerm)
         ) {
           return drop;
@@ -217,10 +235,21 @@ export default function Gallery() {
     if (selectedFilters.startDate !== null) {
       // Convert each drop to a promise that resolves to either the drop or null
       const dropsPromises = drops.map(async (drop) => {
-        const data = await keypomInstance.getDropData({ drop });
-
-        const date = new Date(Number(data.id) * 1000);
-        console.log('date: ', date);
+        console.log('12fdrop: ', drop);
+        const data = await keypomInstance.getEventInfo({
+          accountId: drop.funder_id,
+          eventId: drop.event_id,
+        });
+        if (data == undefined) return null;
+        console.log('12fdata: ', data);
+        console.log('12fdate: ', data.date.date);
+        let dateString = data.date.date;
+        // take start date, check if it is a string or object
+        if (typeof data.date.date !== 'string') {
+          dateString = data.date.date.from;
+        }
+        const date = new Date(dateString);
+        console.log('12fdatee: ', date);
         if (date >= selectedFilters.startDate.toDate()) {
           return drop;
         } else return null;
@@ -233,9 +262,23 @@ export default function Gallery() {
     if (selectedFilters.endDate !== null) {
       // Convert each drop to a promise that resolves to either the drop or null
       const dropsPromises = drops.map(async (drop) => {
-        const data = await keypomInstance.getDropData({ drop });
-
-        const date = new Date(data.id);
+        console.log('12edrop: ', drop);
+        const data = await keypomInstance.getEventInfo({
+          accountId: drop.funder_id,
+          eventId: drop.event_id,
+        });
+        if (data == undefined) return null;
+        console.log('12edata: ', data);
+        console.log('12edate: ', data.date.date);
+        let dateString = data.date.date;
+        // take start date, check if it is a string or object
+        if (typeof data.date.date !== 'string') {
+          dateString = data.date.date.from;
+        }
+        const date = new Date(dateString);
+        console.log('12edatee: ', date);
+        console.log('12edatee2: ', selectedFilters.endDate.toDate());
+        console.log('12edatee3: ', date <= selectedFilters.endDate.toDate());
         if (date <= selectedFilters.endDate.toDate()) {
           return drop;
         } else return null;
@@ -246,13 +289,21 @@ export default function Gallery() {
     }
 
     // before returning drops, sort them if all drops are fetched
-    if (!isAllDropsLoading && selectedFilters.sort !== 'Any') {
+    if (!isAllDropsLoading) {
       // get data for each drop and pair it with the drop
       let dropData = await Promise.all(
-        drops.map(async (drop) => [drop, await keypomInstance.getDropData({ drop })]),
+        drops.map(async (drop) => {
+          const data = await keypomInstance.getEventInfo({
+            accountId: drop.funder_id,
+            eventId: drop.event_id,
+          });
+          return ([drop, data]);
+        }),
       );
+      //filter out all null entries
+      dropData = dropData.filter((drop) => drop[1] !== null && drop[1] !== undefined);
       console.log('before sortuing');
-      console.log(dropData);
+      console.log('12g:' dropData);
       // sort the drops based on the selected sort option
       // if (selectedFilters.sort === 'Date') {
       //   dropData = dropData.sort((a, b) => {
@@ -305,77 +356,74 @@ export default function Gallery() {
   const [numOwnedEvents, setNumOwnedEvents] = useState<number>(0);
 
   const handleGetAllEvents = useCallback(async () => {
-    setIsLoading(true);
-    // const eventDrops = await keypomInstance.getAllEventDrops({
-    //   accountId: 'benjiman.testnet',
-    // });
-
-    const eventDrops = await keypomInstance.GetEventDetails({
+    setIsAllDropsLoading(true);
+    let eventListings = await keypomInstance.GetMarketListings({
       limit: 50,
       from_index: 0,
     });
 
-    console.log('eventDrops123123; ', eventDrops);
-
-    const numEvents = eventDrops.length;
+    const numEvents = eventListings.length;
     setNumOwnedEvents(numEvents);
 
-    const filteredEvents = await handleFiltering(eventDrops);
-    const dropDataPromises = filteredEvents.map(async (drop) => {
-      console.log('just boutta filter and ask for metadata');
-      // get metadata from drop.event_id and drop.funder_id
-      const meta = await keypomInstance.getEventInfo({
-        accountId: drop.funder_id,
-        eventId: drop.event_id,
-      });
-      console.log('metadata123: ', meta);
+    eventListings = await handleFiltering(eventListings);
 
-      console.log('meta.eventInfo?', meta.eventInfo);
+    const dropDataPromises = eventListings.map(async (event) => {
+      // get metadata from drop.event_id and drop.funder_id
+      const eventInfo = await keypomInstance.getEventInfo({
+        accountId: event.funder_id,
+        eventId: event.event_id,
+      });
 
       let dateString = '';
-      if (meta.eventInfo?.date) {
+      if (eventInfo?.date) {
         dateString =
-          typeof meta.eventInfo?.date.date === 'string'
-            ? meta.eventInfo?.date.date
-            : `${meta.eventInfo?.date.date.from} to ${meta.eventInfo?.date.date.to}`;
+          typeof eventInfo.date.date === 'string'
+            ? eventInfo.date.date
+            : `${eventInfo.date.date.from} to ${eventInfo.date.date.to}`;
       }
 
-      console.log('just boutta ask for tickets');
-      const tickets = await keypomInstance.getTicketsForEventId({
-        accountId: drop.funder_id,
-        eventId: drop.ticket_info.eventId,
-      });
-      console.log('just asked for tickets');
-      const numTickets = tickets.length;
+      if (event == undefined || eventInfo == undefined) {
+        console.log('event or eventInfo is undefined');
+        return null;
+      }
+
+      const numTickets = Object.keys(event.ticket_info).length;
+      console.log('swef1: ', eventInfo.dateCreated);
+      const dateCreated = formatDate(new Date(parseInt(eventInfo.dateCreated)));
+      console.log('swef2: ', dateCreated);
       return {
-        location: meta.eventInfo?.location,
+        location: eventInfo.location,
         dateString,
-        id: drop.drop_id,
-        name: truncateAddress(meta.eventInfo?.name || 'Untitled', 'end', 48),
-        media: meta.eventInfo?.artwork,
-        dateCreated: formatDate(new Date(meta.dateCreated)), // Ensure drop has dateCreated or adjust accordingly
+        id: event.event_id,
+        name: truncateAddress(eventInfo.name || 'Untitled', 'end', 48),
+        media: eventInfo.artwork,
+        dateCreated, // Ensure drop has dateCreated or adjust accordingly
         numTickets,
-        description: meta.eventInfo?.description,
-        eventId: meta.ticketInfo.eventId,
-        navurl: String(drop.funder_id) + ':' + meta.ticketInfo.eventId,
+        description: eventInfo.description,
+        eventId: event.event_id,
+        navurl: String(event.funder_id) + ':' + event.event_id,
       };
     });
 
     // Use Promise.all to wait for all promises to resolve
-    const dropData = await Promise.all(dropDataPromises);
-    console.log('just resolved');
+    let dropData = await Promise.all(dropDataPromises);
+    console.log('just resolved', dropData);
+    // filter out all null entries
+    dropData = dropData.filter((drop) => drop !== null);
+    console.log('just resolved2', dropData);
+
     setFilteredDataItems(dropData);
 
-    const totalPages = Math.ceil(filteredEvents.length / selectedFilters.pageSize);
+    const totalPages = Math.ceil(dropDataPromises.length / selectedFilters.pageSize);
     setNumPages(totalPages);
 
     setCurPage(0);
-    setIsLoading(false);
+    console.log('just stopped loadgin for all', dropData);
+    setIsAllDropsLoading(false);
   }, [accountId, selectedFilters, keypomInstance]);
 
   const handleGetInitialDrops = useCallback(async () => {
     setIsLoading(true);
-
     // First get the total supply of drops so we know when to stop fetching
     const totalSupply = 1; // await keypomInstance.getDropSupplyForOwner({ accountId: accountId! });
 
@@ -385,12 +433,8 @@ export default function Gallery() {
     let dropsFetched = 0;
     let filteredDrops: ProtocolReturnedDrop[] = [];
     while (dropsFetched < totalSupply && filteredDrops.length < selectedFilters.pageSize) {
-      // let drops = await keypomInstance.getAllEventDrops({
-      //   accountId: 'benjiman.testnet',
-      // });
-
-      let drops = await keypomInstance.GetEventDetails({
-        limit: 100,
+      const drops = await keypomInstance.GetMarketListings({
+        limit: 50,
         from_index: dropsFetched,
       });
 
@@ -411,25 +455,36 @@ export default function Gallery() {
           accountId: drop.funder_id,
           eventId: drop.event_id,
         });
-        console.log('metadata: ', meta);
+        console.log('metadataaa: ', meta);
         // const meta: EventDropMetadata = JSON.parse(metadata);
-        return meta.eventInfo !== undefined;
+        return meta !== undefined;
       });
 
       console.log('All Event Drops drops: ', drops);
 
       const curFiltered = await handleFiltering(drops);
       console.log('All Eventjust filtered: ', curFiltered);
+
       filteredDrops = filteredDrops.concat(curFiltered);
     }
 
-    console.log('All Event boutta dropdata: ', dropData);
+    console.log('All Event boutta dropdata: ');
 
     // Now, map over the filtered drops and set the data
-    const dropData = await Promise.all(
-      filteredDrops.map(async (drop) => await keypomInstance.getDropData({ drop })),
+    let dropData = await Promise.all(
+      filteredDrops.map(async (drop) => {
+        return await keypomInstance.getEventInfo({
+          accountId: drop.funder_id,
+          eventId: drop.event_id,
+        });
+      }),
     );
     console.log('All Event dropdata: ', dropData);
+
+    console.log('just resolved3', dropData);
+    // filter out all null entries
+    dropData = dropData.filter((drop) => drop !== null && drop !== undefined);
+    console.log('just resolved4', dropData);
 
     setFilteredDataItems(dropData);
     setCurPage(0);
@@ -483,7 +538,38 @@ export default function Gallery() {
     console.log('currpage: ' + curPage);
     console.log('selectedFilters.pageSize: ' + selectedFilters.pageSize);
 
-    return filteredDataItems.slice(
+    let gridData = filteredDataItems;
+    //fix dates here and then pass them to the gallerygrid
+    //turn these into nice bois
+    //map over the filtered drops and clean the date
+    gridData = gridData.map((drop) => {
+      console.log('swefdrop: ', drop);
+      let dateString = drop.dateString;
+      if(drop.dateString == undefined) {
+        dateString = drop.date.date;
+        if(typeof drop.date.date !== 'string') {
+          dateString = drop.date.date.from + ' to ' + drop.date.date.to;
+        }
+      }
+      
+      console.log('swef3: ', dateString);
+      if(dateString.includes('to')) {
+        const dateArray = dateString.split('to');
+        dateString = formatDate(new Date(dateArray[0])) + ' to ' + formatDate(new Date(dateArray[1]));
+      } else {
+        dateString = formatDate(new Date(dateString));
+      }
+      console.log('swef4: ', dateString);
+      return {
+        ...drop,
+        dateString: dateString,
+      };
+    });
+
+    //preint everything in griddata
+    console.log('swefgridData: ', gridData);
+
+    return gridData.slice(
       curPage * selectedFilters.pageSize,
       (curPage + 1) * selectedFilters.pageSize,
     );
@@ -493,7 +579,6 @@ export default function Gallery() {
     <Box p="10">
       <ChakraImage alt={banner} height="300" objectFit="cover" src={banner} width="100%" />
       <Heading py="4">Browse Events</Heading>
-      <Divider bg="black" my="5" />
 
       <Show above="md">
         <HStack alignItems="center" display="flex" spacing="auto">
@@ -510,7 +595,7 @@ export default function Gallery() {
                 fontSize="md"
                 fontWeight="medium"
                 h="52px"
-                height="56px"
+                height="52px"
                 placeholder="Search..."
                 px="6"
                 sx={{
@@ -530,6 +615,7 @@ export default function Gallery() {
                 focusedInput={focusedInput}
                 format="MM/dd/yyyy HH:mm"
                 hideKeyboardShortcutsPanel={true}
+                showClearDates={true}
                 startDate={selectedFilters.startDate}
                 startDateId="your_unique_start_date_id"
                 onDatesChange={({ startDate, endDate }) => {
@@ -653,7 +739,6 @@ export default function Gallery() {
         onClose={onClose}
       />
 
-      <Divider bg="black" my="5" />
       <GalleryGrid data={getGalleryGridRows()} loading={isLoading} />
 
       <DropManagerPagination

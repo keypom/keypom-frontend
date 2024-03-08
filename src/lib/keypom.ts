@@ -158,7 +158,7 @@ class KeypomJS {
     });
   };
 
-  GetEventDetails = async ({ contractId = KEYPOM_MARKETPLACE_CONTRACT, limit, from_index }) => {
+  GetMarketListings = async ({ contractId = KEYPOM_MARKETPLACE_CONTRACT, limit, from_index }) => {
     return await this.viewAccount.viewFunctionV2({
       contractId,
       methodName: 'get_events',
@@ -389,11 +389,14 @@ class KeypomJS {
     eventId: string;
   }): Promise<FunderEventMetadata> => {
     try {
+      console.log('getEventInfo', accountId, eventId);
       const funderInfo = await this.viewCall({
         methodName: 'get_funder_info',
         args: { account_id: accountId },
       });
+      console.log('funderInfo', funderInfo);
       const funderMeta = JSON.parse(funderInfo.metadata);
+      console.log('funderMeta', funderMeta);
 
       return funderMeta[eventId];
     } catch (error) {

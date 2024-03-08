@@ -1,7 +1,5 @@
 import { type BoxProps, SimpleGrid, Box, Text } from '@chakra-ui/react';
 
-import { IconBox } from '@/components/IconBox';
-
 import { type DataItem } from './types';
 import { TicketCard } from './TicketCard';
 
@@ -30,7 +28,7 @@ export const GalleryGrid = ({ loading = false, data = [], ...props }: GalleryGri
 
   return (
     <>
-      <IconBox h="full" mt={{ base: '6', md: '7' }} p="20px" pb={{ base: '6', md: '16' }} w="full">
+      <Box h="full" mt="0" p="20px" pb={{ base: '6', md: '16' }} w="full">
         {(temp === undefined || temp.length === 0) && (
           <Box textAlign="center" w="full">
             <Text color="black.800" fontSize="xl" fontWeight="medium" mt="10">
@@ -43,7 +41,7 @@ export const GalleryGrid = ({ loading = false, data = [], ...props }: GalleryGri
             <TicketCard key={event.id} event={event} loading={loading} surroundingNavLink={true} />
           ))}
         </SimpleGrid>
-      </IconBox>
+      </Box>
     </>
   );
 };

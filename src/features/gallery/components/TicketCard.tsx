@@ -9,7 +9,6 @@ import {
   Skeleton,
   SkeletonText,
   Text,
-  VStack,
   Badge,
 } from '@chakra-ui/react';
 import { NavLink } from 'react-router-dom';
@@ -26,10 +25,12 @@ interface TicketCardProps {
   onSubmit: () => void;
   event: any;
   loading: boolean;
-  amount: number;
+  amount: [];
   incrementAmount: () => void;
   decrementAmount: () => void;
   surroundingNavLink: boolean;
+  cardArrayIndex: number;
+  changeTicketAmount: (amount: []) => void;
 }
 
 interface SurroundingLinkProps {
@@ -40,17 +41,43 @@ export const TicketCard = ({
   event,
   loading,
   amount,
-  incrementAmount,
-  decrementAmount,
+  changeTicketAmount,
   surroundingNavLink,
   onSubmit,
+  cardArrayIndex,
 }: TicketCardProps) => {
   const nav = '../gallery/' + String(event.navurl);
 
-  console.log('event', event);
-
   const SurroundingLink = ({ children }: SurroundingLinkProps) => {
     return surroundingNavLink ? <NavLink to={nav}>{children}</NavLink> : <>{children}</>;
+  };
+
+  const decrementAmount = (e) => {
+    e.preventDefault();
+    // change amount at index to be one less
+    if (amount[cardArrayIndex] <= 0) return;
+    changeTicketAmount((prevAmount) => {
+      // Create a new array from the previous amount
+      const newAmount = [...prevAmount];
+      newAmount[cardArrayIndex]--;
+      return newAmount;
+    });
+  };
+  const incrementAmount = (e) => {
+    e.preventDefault();
+    // change amount at index to be one more
+    // if (
+    //   event.numTickets !== 'unlimited' &&
+    //   event.numTickets !== '0' &&
+    //   amount[cardArrayIndex] >= event.numTickets
+    // )
+    //   return;
+    changeTicketAmount((prevAmount) => {
+      // Create a new array from the previous amount
+      const newAmount = [...prevAmount];
+      newAmount[cardArrayIndex]++;
+      return newAmount;
+    });
   };
 
   const navButton = onSubmit == null;
@@ -98,9 +125,10 @@ export const TicketCard = ({
   return (
     <IconBox
       key={event.id}
-      _hover={{ transform: 'scale(1.05)' }}
-      borderRadius={{ base: '1rem', md: '8xl' }}
+      _hover={{ transform: 'scale(1.02)' }}
+      borderRadius={{ base: '1rem', md: '6xl' }}
       m="0px"
+      maxW="320px"
       p="0px"
       pb="0px"
       style={{
@@ -112,7 +140,7 @@ export const TicketCard = ({
       transition="transform 0.2s"
     >
       <SurroundingLink>
-        <Box m="30px" position="relative">
+        <Box m="20px" position="relative">
           <ChakraImage
             alt={event.name}
             border="0px"
@@ -144,39 +172,37 @@ export const TicketCard = ({
                 </>
               ) : (
                 <Badge
-                  p={2}
-                  position="absolute"
-                  right="5"
-                  rounded="lg"
-                  top="25"
-                  variant="gray"
-                  //   border="1px solid black"
+                  borderRadius="full"
                   color="grey"
+                  fontSize="2xs"
+                  p={0.5}
+                  position="absolute"
+                  right="3"
+                  rounded="lg"
+                  top="15"
+                  variant="gray"
                 >
-                  {event.numTickets} available
+                  {event.numTickets} of {event.numTickets} available
                 </Badge>
               )}
             </>
           )}
 
           <Box align="left" color="black">
-            <Text as="h2" color="black.800" fontSize="xl" fontWeight="medium" my="2" size="sm">
+            <Text as="h2" color="black.800" fontSize="xl" fontWeight="medium" mt="3" size="sm">
               {event.name}
             </Text>
           </Box>
           <Box>
-            <VStack align="start" spacing={2}>
-              <Text color="grey" fontSize="sm" my="1px">
-                {event.dateString}
-              </Text>
-              <Text color="grey" fontSize="sm" my="1px">
-                {event.location}
-              </Text>
-
-              <Text align="left" color="black" fontSize="sm" my="1px">
-                {event.description}
-              </Text>
-            </VStack>
+            <Text align="left" color="gray.400" fontSize="xs" mt="2px">
+              {event.dateString}
+            </Text>
+            <Text align="left" color="gray.400" fontSize="sm">
+              {event.location}
+            </Text>
+            <Text align="left" color="black" fontSize="sm" mt="5px">
+              {event.description}
+            </Text>
           </Box>
           {amount ? (
             <TicketIncrementer
@@ -188,7 +214,7 @@ export const TicketCard = ({
           {navButton ? (
             <>
               <NavLink to={nav}>
-                <Button mt="5" w="100%">
+                <Button mt="2" w="100%">
                   {' '}
                   Browse Event
                 </Button>

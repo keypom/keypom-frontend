@@ -36,13 +36,17 @@ export default function Event() {
   const [noDrop, setNoDrop] = useState(false);
   const [input, setInput] = useState('');
   const [email, setEmail] = useState('');
-  const [ticketAmount, setTicketAmount] = useState(1);
+  const [ticketAmount, setTicketAmount] = useState([]);
   const [ticketList, setTicketList] = useState([]);
   const [areTicketsLoading, setAreTicketsLoading] = useState(true);
   const [doKeyModal, setDoKeyModal] = useState(false);
   const [sellDropInfo, setSellDropInfo] = useState(null);
 
   const { selector } = useAuthWalletContext();
+
+  const changeTicketAmount = (newAmount) => {
+    setTicketAmount(newAmount);
+  }
 
   // split up params into two parts, the accountID and the eventID'
   const eventURL = params.eventID.split(':');
@@ -67,6 +71,19 @@ export default function Event() {
 
     getKeyInformation();
   }, [secretKey, eventId]);
+
+  const formatDate = (date) => {
+    // Create an instance of Intl.DateTimeFormat for formatting
+    const formatter = new Intl.DateTimeFormat('en-US', {
+      month: 'short', // Full month name.
+      day: 'numeric', // Numeric day of the month.
+      year: 'numeric', // Numeric full year.
+      hour: 'numeric', // Numeric hour.
+      minute: 'numeric', // Numeric minute.
+      hour12: true, // Use 12-hour time.
+    });
+    return formatter.format(date);
+  };
 
   const getKeyInformation = useCallback(async () => {
     if (secretKey == null) {
@@ -95,7 +112,7 @@ export default function Event() {
       console.log('dropData: ', dropData);
 
       // parse dropData's metadata to get eventId
-      const meta: EventDropMetadata = JSON.parse(dropData.drop_config.metadata);
+      // const meta: EventDropMetadata = JSON.parse(dropData.metadata);
 
       var keyinfoEventId = meta.ticketInfo?.eventId;
       if (keyinfoEventId !== eventId) {
@@ -107,10 +124,10 @@ export default function Event() {
 
       // testing keyinfoEventId = "17f270df-fcee-4682-8b4b-673916cc65a9"
 
-      const drop = await keypomInstance.getEventDrop({ accountId, eventId:keyinfoEventId });
+      const drop = await keypomInstance.getEventInfo({ accountId, eventId:keyinfoEventId });
 
       console.log('drop: ', drop);
-      const meta2: EventDropMetadata = JSON.parse(drop.drop_config.metadata);
+      const meta2 = drop; //.metadata;//EventDropMetadata = JSON.parse(drop.metadata);
       let dateString = '';
       if (meta2.eventInfo?.date) {
         dateString =
@@ -122,12 +139,12 @@ export default function Event() {
       console.log('sooldmeta.ticketInfo: ', meta2.ticketInfo);
       console.log('sooldmeta.dokeymodal: ', doKeyModal);
       setSellDropInfo({
-        name: meta2.eventInfo?.name || 'Untitled',
-        artwork: meta2.eventInfo?.artwork || 'loading',
-        questions: meta2.eventInfo?.questions || [],
-        location: meta2.eventInfo?.location || 'loading',
+        name: meta2.name || 'Untitled',
+        artwork: meta2.artwork || 'loading',
+        questions: meta2.questions || [],
+        location: meta2.location || 'loading',
         date: dateString,
-        description: meta2.eventInfo?.description || 'loading',
+        description: meta2.description || 'loading',
         ticketInfo: meta2.ticketInfo,
       });
 
@@ -164,9 +181,9 @@ export default function Event() {
 
   console.log(event);
 
-  const res = '';
+  let res = '';
   if (event) {
-    event.location.trim().replace(/ /g, '+');
+    res = event.location.trim().replace(/ /g, '+');
   }
 
   const mapHref = 'https://www.google.com/maps/search/' + String(res);
@@ -174,15 +191,22 @@ export default function Event() {
   // purchase modal
 
   const incrementAmount = () => {
-    if (ticketAmount < event.tickets) {
-      setTicketAmount(ticketAmount + 1);
-    }
+    changeTicketAmount((prevAmount) => {
+      // Create a new array from the previous amount
+      const newAmount = [...prevAmount];
+      newAmount[cardArrayIndex]++;
+      return newAmount;
+    });
   };
 
   const decrementAmount = () => {
-    if (ticketAmount > 1) {
-      setTicketAmount(ticketAmount - 1);
-    }
+    if (amount[cardArrayIndex] <= 0) return;
+    changeTicketAmount((prevAmount) => {
+      // Create a new array from the previous amount
+      const newAmount = [...prevAmount];
+      newAmount[cardArrayIndex]--;
+      return newAmount;
+    });
   };
 
   const OpenPurchaseModal = () => {
@@ -264,7 +288,7 @@ export default function Event() {
 
   const handleGetAllTickets = useCallback(async () => {
     setIsLoading(true);
-    const ticketsForEvent: EventDrop[] = await keypomInstance.getTicketsForEvent({
+    const ticketsForEvent: EventDrop[] = await keypomInstance.getTicketsForEventId({
       accountId,
       eventId,
     });
@@ -272,35 +296,40 @@ export default function Event() {
     const promises = ticketsForEvent.map(async (ticket) => {
       const meta: EventDropMetadata = JSON.parse(ticket.drop_config.metadata);
       const supply = await keypomInstance.getKeySupplyForTicket(ticket.drop_id);
-      console.log('Valid Through', meta.ticketInfo.salesValidThrough);
+      console.log('ofc meta', meta);
       return {
         id: ticket.drop_id,
-        artwork: meta.ticketInfo.artwork,
-        name: meta.ticketInfo.name,
-        description: meta.ticketInfo.name,
-        salesValidThrough: meta.ticketInfo.salesValidThrough,
-        passValidThrough: meta.ticketInfo.passValidThrough,
-        maxTickets: meta.ticketInfo.maxSupply,
+        artwork: meta.artwork,
+        name: meta.name,
+        description: meta.description,
+        salesValidThrough: meta.salesValidThrough,
+        passValidThrough: meta.passValidThrough,
+        maxTickets: meta.maxSupply,
         soldTickets: supply,
-        priceNear: keypomInstance.yoctoToNear(meta.ticketInfo.price),
+        priceNear: keypomInstance.yoctoToNear(meta.price),
       };
     });
 
     let tickets = await Promise.all(promises);
 
     // map tickets
+    let ticketIndex = 0;
     tickets = tickets.map((ticket) => {
       let available = 'unlimited';
       if (ticket.maxTickets != undefined) {
         available = String(ticket.maxTickets - ticket.soldTickets);
       }
       let dateString = '';
+      console.log('ticket.passValidThrough', ticket);
       if (ticket.passValidThrough) {
-        dateString = ticket.passValidThrough;
+        dateString = formatDate(new Date(ticket.passValidThrough));
         // typeof ticket.passValidThrough === 'string'
         //   ? ticket.passValidThrough
         //   : `${ticket.date.from} to ${ticket.date.to}`;
       }
+      // dateString = formatDate(dateString);
+     
+      ticketIndex++;
       return {
         ...ticket,
         price: ticket.priceNear,
@@ -309,6 +338,7 @@ export default function Event() {
         dateString,
         location: '',
         description: ticket.description,
+        ticketIndex: ticketIndex,
       };
     });
 
@@ -326,6 +356,14 @@ export default function Event() {
   }, [keypomInstance, eventId, accountId]);
 
   useEffect(() => {
+    if (ticketList.length > 0) {
+      const initialAmount = ticketList.map(() => 1);
+      console.log('initialAmount: ', initialAmount);
+      setTicketAmount(initialAmount);
+    }
+  }, [ticketList]);
+
+  useEffect(() => {
     if (eventId === '') navigate('/drops');
     if (!accountId) return;
     if (!eventId) return;
@@ -333,28 +371,35 @@ export default function Event() {
     const getEventData = async () => {
       // console.log('eventID: ' + eventId);
       try {
-        const drop = await keypomInstance.getEventDrop({ accountId, eventId });
+        const drop = await keypomInstance.getEventInfo({ accountId, eventId });
 
-        const meta: EventDropMetadata = JSON.parse(drop.drop_config.metadata);
+        console.log('dropofc: ', drop)
+        // console.log('drop.metadataofc: ', drop.metadata)
+        const meta = drop; //EventDropMetadata = JSON.parse(drop.metadata);
         let dateString = '';
-        if (meta.eventInfo?.date) {
+        console.log('swaf1', meta.date)
+        if (meta.date) {
           dateString =
-            typeof meta.eventInfo?.date.date === 'string'
-              ? meta.eventInfo?.date.date
-              : `${meta.eventInfo?.date.date.from} to ${meta.eventInfo?.date.date.to}`;
+            typeof meta.date.date === 'string'
+              ? formatDate(new Date(meta.date.date))
+              : `${formatDate(new Date(meta.date.date.from))} to ${formatDate(new Date(meta.date.date.to))}`;
         }
+        console.log('swaf2', dateString)
+        console.log('swaf3', meta)
+        console.log('swaf4', formatDate(new Date(meta.date.date)))
 
         setEvent({
-          name: meta.eventInfo?.name || 'Untitled',
-          artwork: meta.eventInfo?.artwork || 'loading',
-          questions: meta.eventInfo?.questions || [],
-          location: meta.eventInfo?.location || 'loading',
+          name: meta.name || 'Untitled',
+          artwork: meta.artwork || 'loading',
+          questions: meta.questions || [],
+          location: meta.location || 'loading',
           date: dateString,
-          description: meta.eventInfo?.description || 'loading',
+          description: meta.description || 'loading',
           ticketInfo: meta.ticketInfo,
         });
         setIsLoading(false);
       } catch (error) {
+        console.error('Error getting event data', error);
         setNoDrop(true);
       }
     };
@@ -380,7 +425,6 @@ export default function Event() {
       </Box>
     );
   }
-
   return (
     <Box p="10">
       <Box
@@ -401,25 +445,6 @@ export default function Event() {
           src={event.artwork}
           width="100%"
         />
-        <Heading
-          as="h2"
-          color="black"
-          left="50%"
-          my="5"
-          position="absolute"
-          size="2xl"
-          textAlign="center"
-          textShadow="
-    -1px -1px 0 #fff,  
-    1px -1px 0 #fff,
-    -1px 1px 0 #fff,
-    1px 1px 0 #fff
-  "
-          top="33%"
-          transform="translate(-50%, -50%)"
-        >
-          {event.name}
-        </Heading>
       </Box>
       <Box my="5" />
 
@@ -436,14 +461,36 @@ export default function Event() {
         p="0"
       >
         <Box flex="2" mr="20" textAlign="left">
-          <Text color="black.800" fontSize="xl" fontWeight="medium" my="2">
+        <Heading
+          as="h2"
+          color="black"
+          my="5"
+          size="2xl"
+        >
+          {event.name}
+        </Heading>
+        <Text
+              as="h2"
+              color="black.800"
+              fontSize="l"
+              fontWeight="bold"
+              my="4px"
+              textAlign="left"
+            >
             Event Details
           </Text>
 
           <Text> {event.description} </Text>
         </Box>
         <Box flex="1" textAlign="left">
-          <Text color="black.800" fontSize="xl" fontWeight="medium" my="2">
+        <Text
+              as="h2"
+              color="black.800"
+              fontSize="l"
+              fontWeight="bold"
+              my="4px"
+              textAlign="left"
+            >
             Location
           </Text>
 
@@ -453,10 +500,17 @@ export default function Event() {
             Open in Google Maps <ExternalLinkIcon mx="2px" />
           </a>
 
-          <Text color="black.800" fontSize="xl" fontWeight="medium" my="2">
+          <Text
+              as="h2"
+              color="black.800"
+              fontSize="l"
+              fontWeight="bold"
+              my="4px"
+              textAlign="left"
+            >
             Date
           </Text>
-          <Text>{event.date}</Text>
+          <Text color="gray.400">{event.date}</Text>
 
           <Button mt="4" variant="primary" onClick={verifyOnOpen}>
             Verify Ticket
@@ -472,7 +526,10 @@ export default function Event() {
           ? ticketList.map((ticket) => (
               <TicketCard
                 key={ticket.id}
-                amount={ticketAmount}
+                amount={ticketAmount[ticket.ticketIndex]}
+                changeTicketAmount={
+                  changeTicketAmount
+                }
                 decrementAmount={decrementAmount}
                 event={ticket}
                 incrementAmount={incrementAmount}
@@ -484,10 +541,9 @@ export default function Event() {
           : loadingdata.map((ticket) => (
               <TicketCard
                 key={loadingdata.id}
-                amount={ticketAmount}
-                decrementAmount={decrementAmount}
+                cardArrayIndex={loadingdata.id}
+                amount={ticketAmount[loadingdata.id]}
                 event={loadingdata[0]}
-                incrementAmount={incrementAmount}
                 loading={true}
                 surroundingNavLink={false}
                 onSubmit={OpenPurchaseModal}
