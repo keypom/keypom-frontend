@@ -37,7 +37,7 @@ import useDeletion from '@/components/AppModal/useDeletion';
 import { performDeletionLogic } from '@/components/AppModal/PerformDeletion';
 import { createMenuItems, PAGE_SIZE_ITEMS } from '@/features/all-drops/config/menuItems';
 
-import { CLAIM_STATUS } from '../ticket/TicketDropManagerPage';
+import { handleExportCSVClick } from '../../components/ExportToCsv';
 
 export interface EventData {
   name: string;
@@ -245,75 +245,6 @@ export default function EventManagerPage() {
     setCurPage((prev) => prev - 1);
   };
 
-  const handleExportCSVClick = async () => {
-    if (ticketData.length > 0) {
-      setExporting(true);
-      for (let i = 0; i < ticketData.length; i++) {
-        const ticket = ticketData[i];
-        const { dropMeta, dropKeyItems: data } = await keypomInstance.getAllKeysForTicket({
-          dropId: ticket.id,
-        });
-
-        try {
-          // Construct CSV header
-          const questions = eventData?.questions || [];
-          if (questions.length !== 0) {
-            if (!userKey) {
-              setIsCorrectMasterKey(false);
-              return;
-            }
-          }
-          let csvContent = 'data:text/csv;charset=utf-8,';
-          csvContent +=
-            'Ticket ID,' + 'Claim Status,' + questions.map((q) => q.question).join(',') + '\r\n';
-          console.log('questions', questions);
-
-          // Construct CSV rows
-          await Promise.all(
-            data.map(async (item, i) => {
-              const decryptedMeta = await keypomInstance.decryptMetadata({
-                data: item.metadata,
-                privKey: userKey,
-              });
-              const responses = JSON.parse(decryptedMeta).questions || {};
-              const row = [item.pub_key.split('ed25519:')[1]];
-              row.push(CLAIM_STATUS[item.uses_remaining].name);
-
-              // Add answers in the same order as the questions
-              questions.forEach((q) => {
-                row.push(responses[q.question] || '-');
-              });
-
-              // Join the individual row's columns and push it to CSV content
-              csvContent += row.join(',') + '\r\n';
-            }),
-          );
-
-          // Encode the CSV content
-          const encodedUri = encodeURI(csvContent);
-
-          // Create a link to download the CSV file
-          const link = document.createElement('a');
-          link.setAttribute('href', encodedUri);
-          link.setAttribute(
-            'download',
-            `${(eventData?.name || '').toLowerCase().replaceAll(' ', '_')}-${dropMeta.name
-              .toLowerCase()
-              .replaceAll(' ', '_')}.csv`,
-          );
-          document.body.appendChild(link); // Required for FF
-
-          link.click(); // This will download the CSV file
-          document.body.removeChild(link); // Clean up
-        } catch (e) {
-          console.error('error', e);
-        } finally {
-          setExporting(false);
-        }
-      }
-    }
-  };
-
   const handleGetAllTickets = useCallback(async () => {
     try {
       setIsLoading(true);
@@ -345,7 +276,6 @@ export default function EventManagerPage() {
       });
 
       const ticketData = await Promise.all(promises);
-      console.log('ticketData', ticketData);
 
       setTicketData(ticketData);
 
@@ -598,7 +528,16 @@ export default function EventManagerPage() {
               py="3"
               variant="secondary"
               w={{ base: '100%', sm: 'initial' }}
-              onClick={handleExportCSVClick}
+              onClick={async () => {
+                await handleExportCSVClick({
+                  dropIds: ticketData.map((ticket) => ticket.id),
+                  setExporting,
+                  keypomInstance,
+                  setIsCorrectMasterKey,
+                  userKey,
+                  eventData,
+                });
+              }}
             >
               Export .CSV
             </Button>
@@ -634,7 +573,16 @@ export default function EventManagerPage() {
               px="6"
               variant="secondary"
               w={{ sm: 'initial' }}
-              onClick={handleExportCSVClick}
+              onClick={async () => {
+                await handleExportCSVClick({
+                  dropIds: ticketData.map((ticket) => ticket.id),
+                  setExporting,
+                  keypomInstance,
+                  setIsCorrectMasterKey,
+                  userKey,
+                  eventData,
+                });
+              }}
             >
               Export .CSV
             </Button>

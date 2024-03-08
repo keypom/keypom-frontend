@@ -139,7 +139,6 @@ class KeypomJS {
   yoctoToNear = (yocto: string) => nearAPI.utils.format.formatNearAmount(yocto, 4);
 
   viewCall = async ({ contractId = KEYPOM_EVENTS_CONTRACT, methodName, args }) => {
-    console.log('viewCall', contractId, methodName, args);
     return await this.viewAccount.viewFunctionV2({
       contractId,
       methodName,
@@ -380,7 +379,6 @@ class KeypomJS {
   };
 
   groupDropsByEvent = (drops: EventDrop[]) => {
-    console.log('groupDropsByEvent', drops);
     for (const eventDrop of drops) {
       const metadata: EventDropMetadata = JSON.parse(eventDrop.drop_config.metadata);
 

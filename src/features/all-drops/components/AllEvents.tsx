@@ -67,9 +67,9 @@ const COLUMNS: ColumnItem[] = [
     loadingElement: <Skeleton height="30px" />,
   },
   {
-    id: 'numTickets',
-    title: 'Ticket Types',
-    selector: (drop) => drop.numTickets,
+    id: 'description',
+    title: 'Description',
+    selector: (drop) => drop.description,
     loadingElement: <Skeleton height="30px" />,
   },
   {
@@ -169,7 +169,10 @@ export default function AllEvents({ pageTitle, hasDateFilter, ctaButtonLabel }: 
   const handleFiltering = async (events: FunderEventMetadata[]) => {
     if (selectedFilters.search.trim() !== '') {
       events = events.filter((event) => {
-        return event.name.toLowerCase().includes(selectedFilters.search.toLowerCase());
+        return (
+          event.name.toLowerCase().includes(selectedFilters.search.toLowerCase()) ||
+          event.description.toLowerCase().includes(selectedFilters.search.toLowerCase())
+        );
       });
     }
 
@@ -211,24 +214,16 @@ export default function AllEvents({ pageTitle, hasDateFilter, ctaButtonLabel }: 
     setNumOwnedEvents(numEvents);
 
     const filteredEvents = await handleFiltering(eventDrops);
-    const dropDataPromises = filteredEvents.map(async (event: FunderEventMetadata) => {
-      const tickets = await keypomInstance.getTicketsForEventId({
-        accountId: accountId!,
-        eventId: event.id,
-      });
-      const numTickets = tickets.length;
+    const dropData = filteredEvents.map((event: FunderEventMetadata) => {
       return {
         id: event.id,
         name: truncateAddress(event.name || 'Untitled', 'end', 48),
         media: event.artwork,
         dateCreated: formatDate(new Date(parseInt(event.dateCreated))), // Ensure drop has dateCreated or adjust accordingly
-        numTickets,
+        description: truncateAddress(event.description, 'end', 32),
         eventId: event.id,
       };
     });
-
-    // Use Promise.all to wait for all promises to resolve
-    const dropData = await Promise.all(dropDataPromises);
 
     setFilteredDataItems(dropData);
 

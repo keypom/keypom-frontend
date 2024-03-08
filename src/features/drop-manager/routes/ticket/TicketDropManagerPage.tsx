@@ -54,6 +54,8 @@ import {
 import { useAppContext } from '@/contexts/AppContext';
 import { NotFound404 } from '@/components/NotFound404';
 
+import { handleExportCSVClick } from '../../components/ExportToCsv';
+
 const ticketTableColumns: ColumnItem[] = [
   {
     id: 'ticketId',
@@ -145,7 +147,7 @@ export default function EventManagerPage() {
 
   const handleClosePwModal = () => {
     setAppModal({ isOpen: false });
-    navigate(eventInfo ? `/events/event/${eventInfo.id}` : `/events`);
+    navigate(eventInfo ? `/events/${eventInfo.id}` : `/events`);
   };
 
   useEffect(() => {
@@ -221,17 +223,14 @@ export default function EventManagerPage() {
           eventId: metadata.eventId,
         });
         setEventInfo(eventInfo);
-        console.log('eventInfo', eventInfo);
         if (eventInfo?.questions) {
           try {
-            console.log('Decrypting priv key');
             const privKey = await keypomInstance.getDerivedPrivKey({
               encryptedPk: eventInfo.encPrivKey!,
               ivBase64: eventInfo.iv!,
               saltBase64: eventInfo.salt!,
               pw: get(MASTER_KEY) as string,
             });
-            console.log('Decrypted Priv Key:', privKey);
             setUserKey(privKey);
           } catch (e) {
             setIsCorrectMasterKey(false);
@@ -280,7 +279,8 @@ export default function EventManagerPage() {
   }, [dropId, selector, accountId]);
 
   useEffect(() => {
-    if (!accountId || !dropId || !userKey) return;
+    if (!accountId || !dropId || !eventInfo) return;
+    if (eventInfo.questions && !userKey) return;
 
     // First get enough data with the current filters to fill the page size
     try {
@@ -289,10 +289,12 @@ export default function EventManagerPage() {
       console.error('error', e);
       setIsErr(true);
     }
-  }, [accountId, userKey]);
+  }, [accountId, userKey, eventInfo]);
 
   useEffect(() => {
-    if (!accountId || !dropId || !userKey) return;
+    if (!accountId || !dropId || !eventInfo) return;
+
+    if (eventInfo.questions && !userKey) return;
 
     // In parallel, fetch all the drops
     try {
@@ -301,7 +303,7 @@ export default function EventManagerPage() {
       console.error('error', e);
       setIsErr(true);
     }
-  }, [userKey, accountId, selectedFilters]);
+  }, [userKey, eventInfo, accountId, selectedFilters]);
 
   const showQuestion = (question: string) => {
     return (
@@ -361,22 +363,24 @@ export default function EventManagerPage() {
       }).length;
       setTicketsScanned(numScanned);
 
-      dropKeyItems = await Promise.all(
-        dropKeyItems.map(async (key) => {
-          const newKey = key;
-          try {
-            const decryptedMeta = await keypomInstance.decryptMetadata({
-              data: key.metadata,
-              privKey: userPrivKey,
-            });
-            newKey.metadata = decryptedMeta;
-          } catch (e) {
-            console.error('error', e);
-            setIsCorrectMasterKey(false);
-          }
-          return newKey;
-        }),
-      );
+      if (eventInfo?.questions) {
+        dropKeyItems = await Promise.all(
+          dropKeyItems.map(async (key) => {
+            const newKey = key;
+            try {
+              const decryptedMeta = await keypomInstance.decryptMetadata({
+                data: key.metadata,
+                privKey: userPrivKey,
+              });
+              newKey.metadata = decryptedMeta;
+            } catch (e) {
+              console.error('error', e);
+              setIsCorrectMasterKey(false);
+            }
+            return newKey;
+          }),
+        );
+      }
 
       const filteredKeys = handleFiltering(dropKeyItems);
 
@@ -410,22 +414,25 @@ export default function EventManagerPage() {
           start: keysFetched,
           limit: selectedFilters.pageSize,
         });
-        dropKeyItems = await Promise.all(
-          dropKeyItems.map(async (key) => {
-            const newKey = key;
-            try {
-              const decryptedMeta = await keypomInstance.decryptMetadata({
-                data: key.metadata,
-                privKey: userPrivKey,
-              });
-              newKey.metadata = decryptedMeta;
-            } catch (e) {
-              console.error('error', e);
-              setIsCorrectMasterKey(false);
-            }
-            return newKey;
-          }),
-        );
+
+        if (eventInfo?.questions) {
+          dropKeyItems = await Promise.all(
+            dropKeyItems.map(async (key) => {
+              const newKey = key;
+              try {
+                const decryptedMeta = await keypomInstance.decryptMetadata({
+                  data: key.metadata,
+                  privKey: userPrivKey,
+                });
+                newKey.metadata = decryptedMeta;
+              } catch (e) {
+                console.error('error', e);
+                setIsCorrectMasterKey(false);
+              }
+              return newKey;
+            }),
+          );
+        }
 
         keysFetched += dropKeyItems.length;
 
@@ -560,58 +567,6 @@ export default function EventManagerPage() {
         </ModalContent>
       ),
     });
-    console.log('View details for', item);
-  };
-
-  const handleExportCSVClick = async () => {
-    const { dropMeta, dropKeyItems: data } = await keypomInstance.getAllKeysForTicket({ dropId });
-    if (data.length > 0) {
-      setExporting(true);
-
-      try {
-        // Construct CSV header
-        const questions = eventInfo?.questions || [];
-        let csvContent = 'data:text/csv;charset=utf-8,';
-        csvContent +=
-          'Ticket ID,' + 'Claim Status' + questions.map((q) => q.question).join(',') + '\r\n';
-
-        // Construct CSV rows
-        data.forEach((item, i) => {
-          const responses = JSON.parse(item.metadata).questions || {};
-          const row = [item.pub_key.split('ed25519:')[1]];
-          row.push(CLAIM_STATUS[item.uses_remaining].name);
-
-          // Add answers in the same order as the questions
-          questions.forEach((q) => {
-            row.push(responses[q.question] || '-');
-          });
-
-          // Join the individual row's columns and push it to CSV content
-          csvContent += row.join(',') + '\r\n';
-        });
-
-        // Encode the CSV content
-        const encodedUri = encodeURI(csvContent);
-
-        // Create a link to download the CSV file
-        const link = document.createElement('a');
-        link.setAttribute('href', encodedUri);
-        link.setAttribute(
-          'download',
-          `${(eventInfo?.name || '').toLowerCase().replaceAll(' ', '_')}-${dropMeta.name
-            .toLowerCase()
-            .replaceAll(' ', '_')}.csv`,
-        );
-        document.body.appendChild(link); // Required for FF
-
-        link.click(); // This will download the CSV file
-        document.body.removeChild(link); // Clean up
-      } catch (e) {
-        console.error('error', e);
-      } finally {
-        setExporting(false);
-      }
-    }
   };
 
   const getTableRows: GetAttendeeDataFn = (data) => {
@@ -815,7 +770,20 @@ export default function EventManagerPage() {
                 px="6"
                 variant="secondary"
                 w={{ sm: 'initial' }}
-                onClick={handleExportCSVClick}
+                onClick={async () => {
+                  await handleExportCSVClick({
+                    dropIds: [dropId],
+                    setExporting,
+                    keypomInstance,
+                    setIsCorrectMasterKey,
+                    userKey,
+                    eventData: {
+                      name: eventInfo?.name || '',
+                      artwork: eventInfo?.artwork || '',
+                      questions: eventInfo?.questions || [],
+                    },
+                  });
+                }}
               >
                 Export .CSV
               </Button>
@@ -845,7 +813,20 @@ export default function EventManagerPage() {
               px="6"
               variant="secondary"
               w={{ sm: 'initial' }}
-              onClick={handleExportCSVClick}
+              onClick={async () => {
+                await handleExportCSVClick({
+                  dropIds: [dropId],
+                  setExporting,
+                  keypomInstance,
+                  setIsCorrectMasterKey,
+                  userKey,
+                  eventData: {
+                    name: eventInfo?.name || '',
+                    artwork: eventInfo?.artwork || '',
+                    questions: eventInfo?.questions || [],
+                  },
+                });
+              }}
             >
               Export .CSV
             </Button>
