@@ -44,6 +44,7 @@ const CreateTicketDropPage = React.lazy(
 const TokenDropManagerPage = React.lazy(
   async () => await import('@/features/drop-manager/routes/token/TokenDropManagerPage'),
 );
+const TicketQRCodePage = React.lazy(async () => await import('./features/ticket-qr/TicketQRCode'));
 const NFTDropManagerPage = React.lazy(
   async () => await import('@/features/drop-manager/routes/nft/NFTDropManagerPage'),
 );
@@ -81,6 +82,16 @@ export const router = createBrowserRouter([
                 <AllDropsPage />
               </ProtectedRoute>
             ),
+          },
+          {
+            path: 'tickets',
+            children: [
+            {
+              path: 'ticket/:ticketKey', // Match /tickets/ticket/:id
+              element: <TicketQRCodePage />,
+            },
+            // Add other paths as needed...
+          ],
           },
           {
             path: 'drop',
