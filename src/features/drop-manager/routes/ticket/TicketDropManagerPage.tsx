@@ -104,7 +104,7 @@ export interface AttendeeItem {
 
 export type GetAttendeeDataFn = (data: AttendeeItem[]) => DataItem[];
 
-export default function EventManagerPage() {
+export default function TicketManagerPage() {
   const navigate = useNavigate();
   const { isOpen, onOpen, onClose } = useDisclosure();
   const { setAppModal } = useAppContext();
@@ -216,13 +216,13 @@ export default function EventManagerPage() {
             args: { drop_id: dropId },
           });
         const metadata: EventDropMetadata = JSON.parse(drop.drop_config.metadata);
-        setDropData({ ...drop, drop_config: { metadata } });
 
         const eventInfo = await keypomInstance.getEventInfo({
           accountId,
           eventId: metadata.eventId,
         });
         setEventInfo(eventInfo);
+
         if (eventInfo?.questions) {
           try {
             const privKey = await keypomInstance.getDerivedPrivKey({
@@ -279,12 +279,20 @@ export default function EventManagerPage() {
   }, [dropId, selector, accountId]);
 
   useEffect(() => {
-    if (!accountId || !dropId || !eventInfo) return;
+    if (
+      accountId === undefined ||
+      accountId === null ||
+      dropId === undefined ||
+      dropId === null ||
+      eventInfo === null ||
+      eventInfo === undefined
+    )
+      return;
     if (eventInfo.questions && !userKey) return;
 
     // First get enough data with the current filters to fill the page size
     try {
-      handleGetInitialKeys(userKey);
+      handleGetInitialKeys(userKey, eventInfo);
     } catch (e) {
       console.error('error', e);
       setIsErr(true);
@@ -292,13 +300,21 @@ export default function EventManagerPage() {
   }, [accountId, userKey, eventInfo]);
 
   useEffect(() => {
-    if (!accountId || !dropId || !eventInfo) return;
+    if (
+      accountId === undefined ||
+      accountId === null ||
+      dropId === undefined ||
+      dropId === null ||
+      eventInfo === null ||
+      eventInfo === undefined
+    )
+      return;
 
     if (eventInfo.questions && !userKey) return;
 
     // In parallel, fetch all the drops
     try {
-      handleGetAllKeys(userKey);
+      handleGetAllKeys(userKey, eventInfo);
     } catch (e) {
       console.error('error', e);
       setIsErr(true);
@@ -353,25 +369,32 @@ export default function EventManagerPage() {
   };
 
   const handleGetAllKeys = useCallback(
-    async (userPrivKey) => {
+    async (userPrivKey, curEventInfo) => {
       setIsAllKeysLoading(true);
       const keyInfoReturn = await keypomInstance.getAllKeysForTicket({ dropId });
+      console.log('keyInfoReturn', keyInfoReturn);
+      console.log('curEventInfo', curEventInfo);
+      console.log('userPrivKey', userPrivKey);
       let { dropKeyItems } = keyInfoReturn;
+      console.log('dropKeyItems', dropKeyItems);
 
       const numScanned = dropKeyItems.filter((key) => {
         return key.uses_remaining !== 2;
       }).length;
       setTicketsScanned(numScanned);
 
-      if (eventInfo?.questions) {
+      if (curEventInfo.questions) {
         dropKeyItems = await Promise.all(
-          dropKeyItems.map(async (key) => {
-            const newKey = key;
+          dropKeyItems.map(async (key123456) => {
+            console.log('key: ', key123456);
+            const newKey = key123456;
             try {
+              console.log('key.metadata: ', key123456.metadata, ' KEY: ', key123456);
               const decryptedMeta = await keypomInstance.decryptMetadata({
-                data: key.metadata,
+                data: key123456.metadata,
                 privKey: userPrivKey,
               });
+              console.log('decryptedMeta: ', decryptedMeta);
               newKey.metadata = decryptedMeta;
             } catch (e) {
               console.error('error', e);
@@ -395,7 +418,7 @@ export default function EventManagerPage() {
   );
 
   const handleGetInitialKeys = useCallback(
-    async (userPrivKey) => {
+    async (userPrivKey, curEventInfo) => {
       setIsLoading(true);
 
       // Initialize or update the cache for this drop if it doesn't exist or if total keys have changed
@@ -415,7 +438,7 @@ export default function EventManagerPage() {
           limit: selectedFilters.pageSize,
         });
 
-        if (eventInfo?.questions) {
+        if (curEventInfo.questions) {
           dropKeyItems = await Promise.all(
             dropKeyItems.map(async (key) => {
               const newKey = key;
@@ -776,7 +799,6 @@ export default function EventManagerPage() {
                     setExporting,
                     keypomInstance,
                     setIsCorrectMasterKey,
-                    userKey,
                     eventData: {
                       name: eventInfo?.name || '',
                       artwork: eventInfo?.artwork || '',
@@ -819,7 +841,6 @@ export default function EventManagerPage() {
                   setExporting,
                   keypomInstance,
                   setIsCorrectMasterKey,
-                  userKey,
                   eventData: {
                     name: eventInfo?.name || '',
                     artwork: eventInfo?.artwork || '',

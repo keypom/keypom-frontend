@@ -139,11 +139,13 @@ class KeypomJS {
   yoctoToNear = (yocto: string) => nearAPI.utils.format.formatNearAmount(yocto, 4);
 
   viewCall = async ({ contractId = KEYPOM_EVENTS_CONTRACT, methodName, args }) => {
-    return await this.viewAccount.viewFunctionV2({
+    const res = await this.viewAccount.viewFunctionV2({
       contractId,
       methodName,
       args,
     });
+    console.log('Calling view function:', { contractId, methodName, args, res });
+    return res;
   };
 
   validateAccountId = async (accountId: string) => {
@@ -520,8 +522,11 @@ class KeypomJS {
 
         // Wait for all batches to resolve and process the results
         const batchResults = await Promise.all(batchPromises);
+        console.log('batchResults:', batchResults);
         this.purchasedTicketsById[dropId].dropKeyItems = batchResults.flat(); // Use .flat()
       }
+
+      console.log('this.purchasedTicketsById[dropId]:', this.purchasedTicketsById[dropId]);
 
       return this.purchasedTicketsById[dropId];
     } catch (error) {
