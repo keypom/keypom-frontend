@@ -19,7 +19,6 @@ export default function TicketQrCode() {
             <Text paddingTop="5rem" paddingBottom="1rem" fontWeight="500" size="xl">Your QR code ticket is below. Enjoy your event!</Text>
             <Center>
                 <Image alt="keypom-logo" src={getQRCodeBase64(ticketKey)} w={{ base: '150px', md: '300px' }} />
-                {/* <CoinIcon h={{ base: '4', md: '5' }} symbol={coin} w={{ base: '4', md: '5' }} /> */}
             </Center>
         </VStack>
     ) : (
