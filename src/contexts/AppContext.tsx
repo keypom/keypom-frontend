@@ -88,7 +88,6 @@ export const openMasterKeyModal = (setAppModal, confirm, cancel) => {
       {
         label: 'Set Password',
         func: ({ masterKey }) => {
-          console.log(masterKey);
           if (!masterKey || masterKey.length === 0) {
             alert('Master Key must be specified. Please try again.');
             if (cancel) cancel();

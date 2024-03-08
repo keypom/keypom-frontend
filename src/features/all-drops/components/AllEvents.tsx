@@ -180,7 +180,7 @@ export default function AllEvents({ pageTitle, hasDateFilter, ctaButtonLabel }: 
       events = events
         .filter((event) => {
           try {
-            const date = new Date(event.dateCreated);
+            const date = new Date(parseInt(event.dateCreated));
             return date && !isNaN(date.getTime()); // Ensures dateCreated is valid
           } catch (e) {
             return false; // Exclude drops with malformed metadata
@@ -188,8 +188,8 @@ export default function AllEvents({ pageTitle, hasDateFilter, ctaButtonLabel }: 
         })
         .sort((a, b) => {
           // Assuming metadata has been validated, no need for try-catch here
-          const dateA = new Date(a.dateCreated).getTime();
-          const dateB = new Date(b.dateCreated).getTime();
+          const dateA = new Date(parseInt(a.dateCreated)).getTime();
+          const dateB = new Date(parseInt(b.dateCreated)).getTime();
           return selectedFilters.date === DATE_FILTER_OPTIONS.NEWEST
             ? dateB - dateA
             : dateA - dateB;
