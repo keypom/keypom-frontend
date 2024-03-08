@@ -32,8 +32,18 @@ export const handleExportCSVClick = async ({
         });
 
       try {
+        console.log('data', data);
+        console.log('dropMeta', dropMeta);
+        console.log('eventData', eventData);
+        console.log('userKey', userKey);
         // Construct CSV header
         const questions = eventData?.questions || [];
+        if (questions.length !== 0) {
+          if (!userKey) {
+            setIsCorrectMasterKey(false);
+            return;
+          }
+        }
         let csvContent = 'data:text/csv;charset=utf-8,';
         csvContent +=
           'Ticket ID,' + 'Claim Status,' + questions.map((q) => q.question).join(',') + '\r\n';
@@ -43,28 +53,17 @@ export const handleExportCSVClick = async ({
           data.map(async (item, i) => {
             const row = [item.pub_key.split('ed25519:')[1]];
             row.push(CLAIM_STATUS[item.uses_remaining].name);
-            let responses = {};
-
-            // If there's a user key then we're coming from event manager page
             if (userKey) {
-              try {
-                const decryptedMeta = await keypomInstance.decryptMetadata({
-                  data: item.metadata,
-                  privKey: userKey,
-                });
-                responses = JSON.parse(decryptedMeta).questions || {};
-              } catch (e) {
-                setIsCorrectMasterKey(false);
-                return;
-              }
-            } else {
-              responses = JSON.parse(item.metadata).questions;
+              const decryptedMeta = await keypomInstance.decryptMetadata({
+                data: item.metadata,
+                privKey: userKey,
+              });
+              const responses = JSON.parse(decryptedMeta).questions || {};
+              // Add answers in the same order as the questions
+              questions.forEach((q) => {
+                row.push(responses[q.question] || '-');
+              });
             }
-
-            questions.forEach((q) => {
-              row.push(responses[q.question] || '-');
-            });
-
             // Join the individual row's columns and push it to CSV content
             csvContent += row.join(',') + '\r\n';
           }),

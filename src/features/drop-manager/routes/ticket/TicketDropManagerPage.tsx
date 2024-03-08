@@ -129,6 +129,7 @@ export default function TicketManagerPage() {
   const [filteredTicketData, setFilteredTicketData] = useState<AttendeeItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isAllKeysLoading, setIsAllKeysLoading] = useState(true);
+  const [allowExport, setAllowExport] = useState(false);
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [userKey, setUserKey] = useState();
   const [selectedFilters, setSelectedFilters] = useState<{
@@ -147,8 +148,23 @@ export default function TicketManagerPage() {
 
   const handleClosePwModal = () => {
     setAppModal({ isOpen: false });
-    navigate(eventInfo ? `/events/${eventInfo.id}` : `/events`);
+    navigate(eventInfo ? `/events/event/${eventInfo.id}` : `/events`);
   };
+
+  useEffect(() => {
+    console.log(
+      'filteredTicketData',
+      filteredTicketData,
+      ' userKey',
+      userKey,
+      ' eventInfo',
+      eventInfo,
+    );
+    setAllowExport(
+      filteredTicketData.length > 0 &&
+        (eventInfo.questions?.length > 0 ? userKey !== undefined : true),
+    );
+  }, [filteredTicketData, userKey, eventInfo]);
 
   useEffect(() => {
     if (!isCorrectMasterKey) {
@@ -372,11 +388,7 @@ export default function TicketManagerPage() {
     async (userPrivKey, curEventInfo) => {
       setIsAllKeysLoading(true);
       const keyInfoReturn = await keypomInstance.getAllKeysForTicket({ dropId });
-      console.log('keyInfoReturn', keyInfoReturn);
-      console.log('curEventInfo', curEventInfo);
-      console.log('userPrivKey', userPrivKey);
       let { dropKeyItems } = keyInfoReturn;
-      console.log('dropKeyItems', dropKeyItems);
 
       const numScanned = dropKeyItems.filter((key) => {
         return key.uses_remaining !== 2;
@@ -385,16 +397,13 @@ export default function TicketManagerPage() {
 
       if (curEventInfo.questions) {
         dropKeyItems = await Promise.all(
-          dropKeyItems.map(async (key123456) => {
-            console.log('key: ', key123456);
-            const newKey = key123456;
+          dropKeyItems.map(async (key) => {
+            const newKey = JSON.parse(JSON.stringify(key));
             try {
-              console.log('key.metadata: ', key123456.metadata, ' KEY: ', key123456);
               const decryptedMeta = await keypomInstance.decryptMetadata({
-                data: key123456.metadata,
+                data: key.metadata,
                 privKey: userPrivKey,
               });
-              console.log('decryptedMeta: ', decryptedMeta);
               newKey.metadata = decryptedMeta;
             } catch (e) {
               console.error('error', e);
@@ -441,7 +450,7 @@ export default function TicketManagerPage() {
         if (curEventInfo.questions) {
           dropKeyItems = await Promise.all(
             dropKeyItems.map(async (key) => {
-              const newKey = key;
+              const newKey = JSON.parse(JSON.stringify(key));
               try {
                 const decryptedMeta = await keypomInstance.decryptMetadata({
                   data: key.metadata,
@@ -668,8 +677,6 @@ export default function TicketManagerPage() {
     },
   ];
 
-  const allowAction = filteredTicketData.length > 0;
-
   if (isErr) {
     return (
       <NotFound404
@@ -787,7 +794,7 @@ export default function TicketManagerPage() {
               </Menu>
               <Button
                 height="auto"
-                isDisabled={!allowAction}
+                isDisabled={!allowExport}
                 isLoading={exporting}
                 lineHeight=""
                 px="6"
@@ -799,6 +806,7 @@ export default function TicketManagerPage() {
                     setExporting,
                     keypomInstance,
                     setIsCorrectMasterKey,
+                    userKey: userKey!,
                     eventData: {
                       name: eventInfo?.name || '',
                       artwork: eventInfo?.artwork || '',
@@ -829,7 +837,7 @@ export default function TicketManagerPage() {
             />
             <Button
               height="auto"
-              isDisabled={!allowAction}
+              isDisabled={!allowExport}
               isLoading={exporting}
               lineHeight=""
               px="6"
@@ -839,6 +847,7 @@ export default function TicketManagerPage() {
                 await handleExportCSVClick({
                   dropIds: [dropId],
                   setExporting,
+                  userKey,
                   keypomInstance,
                   setIsCorrectMasterKey,
                   eventData: {

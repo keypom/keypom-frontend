@@ -144,7 +144,6 @@ class KeypomJS {
       methodName,
       args,
     });
-    console.log('Calling view function:', { contractId, methodName, args, res });
     return res;
   };
 
@@ -522,7 +521,6 @@ class KeypomJS {
 
         // Wait for all batches to resolve and process the results
         const batchResults = await Promise.all(batchPromises);
-        console.log('batchResults:', batchResults);
         this.purchasedTicketsById[dropId].dropKeyItems = batchResults.flat(); // Use .flat()
       }
 
