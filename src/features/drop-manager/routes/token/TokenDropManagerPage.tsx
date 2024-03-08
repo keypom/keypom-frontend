@@ -67,7 +67,7 @@ export default function TokenDropManagerPage() {
                 await handleDeleteClick(item.publicKey);
               }}
             >
-              <DeleteIcon color="red" />
+              <DeleteIcon color="red.400" />
             </Button>
           )}
         </>

@@ -15,7 +15,7 @@ export const DropDownButton = ({
   <MenuButton
     as={Button}
     color={variant === 'primary' ? 'white' : 'gray.400'}
-    height="auto"
+    height="full"
     isActive={isOpen}
     lineHeight=""
     px="6"

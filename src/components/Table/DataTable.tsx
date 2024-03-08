@@ -33,11 +33,22 @@ import { type ColumnItem, type DataItem } from './types';
  */
 
 interface DataTableProps extends TableProps {
-  type?: 'all-drops' | 'drop-manager' | 'no-filtered-keys' | 'no-filtered-drops';
+  type?:
+    | 'all-drops'
+    | 'drop-manager'
+    | 'no-filtered-keys'
+    | 'no-filtered-drops'
+    | 'event-manager'
+    | 'all-tickets'
+    | 'no-filtered-events'
+    | 'all-events'
+    | 'no-filtered-tickets';
   showColumns?: boolean;
   columns: ColumnItem[];
   data: DataItem[];
   loading?: boolean;
+  showMobileTitles: string[];
+  excludeMobileColumns: string[];
 }
 
 export const DataTable = ({
@@ -46,6 +57,8 @@ export const DataTable = ({
   columns = [],
   data = [],
   loading = false,
+  showMobileTitles = [],
+  excludeMobileColumns = [],
   ...props
 }: DataTableProps) => {
   const navigate = useNavigate();
@@ -126,7 +139,14 @@ export const DataTable = ({
 
           {/* Mobile table */}
           <Hide above="md">
-            <MobileDataTable columns={columns} data={data} loading={loading} {...props} />
+            <MobileDataTable
+              columns={columns}
+              data={data}
+              excludeMobileTitles={excludeMobileColumns}
+              loading={loading}
+              showMobileTitles={showMobileTitles}
+              {...props}
+            />
           </Hide>
         </>
       ) : (

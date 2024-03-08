@@ -22,11 +22,20 @@ import {
   type ProtocolReturnedKeyInfo,
 } from 'keypom-js';
 import * as nearAPI from 'near-api-js';
+import { type Wallet } from '@near-wallet-selector/core';
 
 import { truncateAddress } from '@/utils/truncateAddress';
-import { CLOUDFLARE_IPFS, DROP_TYPE, MASTER_KEY } from '@/constants/common';
+import { CLOUDFLARE_IPFS, DROP_TYPE, KEYPOM_EVENTS_CONTRACT, MASTER_KEY } from '@/constants/common';
 import getConfig from '@/config/config';
 import { get } from '@/utils/localStorage';
+
+import {
+  type EventDropMetadata,
+  isValidTicketInfo,
+  type FunderEventMetadata,
+  type FunderMetadata,
+} from './eventsHelpers';
+import { decryptPrivateKey, decryptWithPrivateKey, deriveKeyFromPassword } from './cryptoHelpers';
 
 let instance: KeypomJS;
 const ACCOUNT_ID_REGEX = /^(([a-z\d]+[-_])*[a-z\d]+\.)*([a-z\d]+[-_])*[a-z\d]+$/;
@@ -44,6 +53,14 @@ const connectionConfig = {
   explorerUrl: config.explorerUrl,
 };
 
+export interface EventDrop {
+  drop_id: string;
+  funder_id: string;
+  drop_config: {
+    metadata: string;
+  };
+}
+
 export interface DropKeyItem {
   id: number;
   publicKey: string;
@@ -53,12 +70,37 @@ export interface DropKeyItem {
   keyInfo: ProtocolReturnedKeyInfo | undefined;
 }
 
+export interface AttendeeKeyItem {
+  drop_id: string;
+  pub_key: string;
+  owner_id: string;
+  metadata: string;
+  uses_remaining: number;
+  message_nonce: number;
+}
+
 const KEY_ITEMS_PER_QUERY = 30;
 const DROP_ITEMS_PER_QUERY = 5;
 class KeypomJS {
   static instance: KeypomJS;
   nearConnection: nearAPI.Near;
+  viewAccount: nearAPI.Account;
 
+  // Map the event ID to a set of drop IDs
+  ticketDropsByEventId: Record<string, EventDrop[]> = {};
+  // Maps the event ID to its metadata
+  eventInfoById: Record<string, FunderEventMetadata> = {};
+  // Map a drop ID to a set of keys
+  purchasedTicketsById: Record<
+    string,
+    {
+      totalKeys: number;
+      dropMeta: EventDropMetadata;
+      dropKeyItems: AttendeeKeyItem[];
+    }
+  > = {};
+
+  // Drops
   totalDrops: number;
   dropStore: Record<string, ProtocolReturnedDrop[]> = {};
   keyStore: Record<
@@ -79,15 +121,30 @@ class KeypomJS {
   async init() {
     await initKeypom({ network: networkId });
     this.nearConnection = await nearAPI.connect(connectionConfig);
+    this.viewAccount = await this.nearConnection.account(config.contractId);
   }
 
   public static getInstance(): KeypomJS {
-    if (!KeypomJS.instance) {
+    if (
+      !KeypomJS.instance ||
+      !(KeypomJS.instance instanceof KeypomJS) ||
+      this.instance === undefined
+    ) {
       KeypomJS.instance = new KeypomJS();
     }
 
     return KeypomJS.instance;
   }
+
+  yoctoToNear = (yocto: string) => nearAPI.utils.format.formatNearAmount(yocto, 4);
+
+  viewCall = async ({ contractId = KEYPOM_EVENTS_CONTRACT, methodName, args }) => {
+    return await this.viewAccount.viewFunctionV2({
+      contractId,
+      methodName,
+      args,
+    });
+  };
 
   validateAccountId = async (accountId: string) => {
     if (!(accountId.length >= 2 && accountId.length <= 64 && ACCOUNT_ID_REGEX.test(accountId))) {
@@ -250,6 +307,294 @@ class KeypomJS {
     }
   };
 
+  getKeySupplyForTicket = async (dropId: string) => {
+    return await this.viewCall({
+      contractId: KEYPOM_EVENTS_CONTRACT,
+      methodName: 'get_key_supply_for_drop',
+      args: { drop_id: dropId },
+    });
+  };
+
+  deleteEventFromFunderMetadata = async ({
+    wallet,
+    eventId,
+    accountId,
+  }: {
+    wallet: Wallet;
+    eventId: string;
+    accountId: string;
+  }) => {
+    const funderInfo = await this.viewCall({
+      methodName: 'get_funder_info',
+      args: { account_id: accountId },
+    });
+    const meta: FunderMetadata = JSON.parse(funderInfo.metadata);
+    // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+    delete meta[eventId];
+
+    await wallet.signAndSendTransaction({
+      signerId: accountId,
+      receiverId: KEYPOM_EVENTS_CONTRACT,
+      actions: [
+        {
+          type: 'FunctionCall',
+          params: {
+            methodName: 'set_funder_metadata',
+            args: { metadata: JSON.stringify(meta) },
+            gas: '300000000000000',
+            deposit: '0',
+          },
+        },
+      ],
+    });
+  };
+
+  deleteEventFromCache = ({ eventId }: { eventId: string }) => {
+    // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+    delete this.eventInfoById[eventId];
+    // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+    delete this.ticketDropsByEventId[eventId];
+  };
+
+  deleteTicketFromCache = ({ dropId }: { dropId: string }) => {
+    // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+    delete this.purchasedTicketsById[dropId];
+  };
+
+  getEventInfo = async ({
+    accountId,
+    eventId,
+  }: {
+    accountId: string;
+    eventId: string;
+  }): Promise<FunderEventMetadata> => {
+    try {
+      const funderInfo = await this.viewCall({
+        methodName: 'get_funder_info',
+        args: { account_id: accountId },
+      });
+      const funderMeta = JSON.parse(funderInfo.metadata);
+
+      return funderMeta[eventId];
+    } catch (error) {
+      console.error('Error getting event info:', error);
+      throw new Error('Error getting event info');
+    }
+  };
+
+  groupDropsByEvent = (drops: EventDrop[]) => {
+    for (const eventDrop of drops) {
+      const metadata: EventDropMetadata = JSON.parse(eventDrop.drop_config.metadata);
+
+      if (!Object.hasOwn(this.ticketDropsByEventId, metadata.eventId)) {
+        this.ticketDropsByEventId[metadata.eventId] = [];
+      }
+      this.ticketDropsByEventId[metadata.eventId].push(eventDrop);
+    }
+  };
+
+  groupAllDropsForAccount = async ({ accountId }: { accountId: string }) => {
+    const numDrops = await this.viewCall({
+      methodName: 'get_drop_supply_for_funder',
+      args: { account_id: accountId },
+    });
+
+    const totalQueries = Math.ceil(numDrops / DROP_ITEMS_PER_QUERY);
+    const pageIndices = Array.from({ length: totalQueries }, (_, index) => index);
+
+    const allPagesDrops = await Promise.all(
+      pageIndices.map(
+        async (pageIndex) =>
+          await this.viewCall({
+            contractId: KEYPOM_EVENTS_CONTRACT,
+            methodName: 'get_drops_for_funder',
+            args: {
+              account_id: accountId,
+              from_index: (pageIndex * DROP_ITEMS_PER_QUERY).toString(),
+              limit: DROP_ITEMS_PER_QUERY,
+            },
+          }),
+      ),
+    );
+
+    let allDrops: EventDrop[] = allPagesDrops.flat(); // Assuming allPagesDrops is already defined and flattened.
+    allDrops = allDrops.filter((drop) => {
+      if (!drop.drop_id || !drop.funder_id || !drop.drop_config || !drop.drop_config.metadata) {
+        return false; // Drop does not have the required top-level structure
+      }
+
+      try {
+        const metadata = JSON.parse(drop.drop_config.metadata);
+
+        // Check ticketInfo's structure
+        if (!isValidTicketInfo(metadata)) {
+          return false; // TicketInfo is invalid
+        }
+
+        return true; // Drop passes all checks
+      } catch (e) {
+        // JSON.parse failed, metadata is not a valid JSON string
+        return false;
+      }
+    });
+
+    this.groupDropsByEvent(allDrops);
+  };
+
+  getTicketsForEventId = async ({ accountId, eventId }: { accountId: string; eventId: string }) => {
+    if (!Object.hasOwn(this.ticketDropsByEventId, eventId)) {
+      await this.groupAllDropsForAccount({ accountId });
+    }
+
+    return this.ticketDropsByEventId[eventId] || [];
+  };
+
+  getEventsForAccount = async ({ accountId }: { accountId: string }) => {
+    try {
+      const funderInfo = await this.viewCall({
+        methodName: 'get_funder_info',
+        args: { account_id: accountId },
+      });
+      const funderMeta: FunderMetadata = JSON.parse(funderInfo.metadata);
+
+      const events: FunderEventMetadata[] = [];
+      for (const eventId in funderMeta) {
+        events.push(funderMeta[eventId]);
+        this.eventInfoById[eventId] = funderMeta[eventId];
+      }
+
+      return events;
+    } catch (error) {
+      console.error('Error fetching drops:', error);
+      throw new Error('Failed to fetch drops.');
+    }
+  };
+
+  getDerivedPrivKey = async ({ encryptedPk, pw, saltBase64, ivBase64 }) => {
+    // Step 3: Derive a symmetric key from the password
+    const symmetricKey = await deriveKeyFromPassword(pw, saltBase64);
+    // Step 5: Decrypt the private key using the symmetric key
+    const decryptedPrivateKey = await decryptPrivateKey(encryptedPk, ivBase64, symmetricKey);
+    return decryptedPrivateKey;
+  };
+
+  decryptMetadata = async ({ privKey, data }) => {
+    // Step 6: Decrypt the encrypted data using the decrypted private key
+    const decryptedData = await decryptWithPrivateKey(data, privKey);
+    return decryptedData;
+  };
+
+  getAllKeysForTicket = async ({ dropId }) => {
+    try {
+      const dropInfo = await this.viewCall({
+        methodName: 'get_drop_information',
+        args: { drop_id: dropId },
+      });
+      const totalKeys = dropInfo.next_key_id;
+      if (
+        !Object.hasOwn(this.purchasedTicketsById, dropId) ||
+        this.purchasedTicketsById[dropId]?.totalKeys !== totalKeys
+      ) {
+        // Initialize the cache for this drop
+        this.purchasedTicketsById[dropId] = {
+          dropKeyItems: new Array(totalKeys).fill(null),
+          dropMeta: JSON.parse(dropInfo.drop_config.metadata),
+          totalKeys,
+        };
+
+        // Define how many batches are needed based on KEY_ITEMS_PER_QUERY
+        const totalBatches = Math.ceil(totalKeys / KEY_ITEMS_PER_QUERY);
+        const batchPromises: Array<Promise<AttendeeKeyItem[]>> = [];
+
+        for (let i = 0; i < totalBatches; i++) {
+          const start = i * KEY_ITEMS_PER_QUERY;
+          const limit = Math.min(KEY_ITEMS_PER_QUERY, totalKeys - start);
+
+          batchPromises.push(
+            this.viewCall({
+              methodName: 'get_keys_for_drop',
+              args: { drop_id: dropId, from_index: start.toString(), limit },
+            }),
+          );
+        }
+
+        // Wait for all batches to resolve and process the results
+        const batchResults = await Promise.all(batchPromises);
+        this.purchasedTicketsById[dropId].dropKeyItems = batchResults.flat(); // Use .flat()
+      }
+
+      return this.purchasedTicketsById[dropId];
+    } catch (error) {
+      console.error('Failed to get keys info:', error);
+      throw new Error('Failed to get keys info.');
+    }
+  };
+
+  getPaginatedKeysForTicket = async ({
+    dropId,
+    start,
+    limit,
+  }: {
+    dropId: string;
+    start: number;
+    limit: number;
+  }) => {
+    try {
+      // Initialize or update the cache for this drop if it doesn't exist or if total keys have changed
+      const dropInfo = await this.viewCall({
+        methodName: 'get_drop_information',
+        args: { drop_id: dropId },
+      });
+      const meta: EventDropMetadata = JSON.parse(dropInfo.drop_config.metadata);
+      const totalKeys = dropInfo.next_key_id;
+
+      if (
+        !Object.hasOwn(this.purchasedTicketsById, dropId) ||
+        this.purchasedTicketsById[dropId]?.totalKeys !== totalKeys
+      ) {
+        this.purchasedTicketsById[dropId] = {
+          dropMeta: meta,
+          dropKeyItems: new Array(totalKeys).fill(null),
+          totalKeys,
+        };
+      }
+
+      // Calculate the end index for the requested keys
+      const endIndex = Math.min(start + limit, this.purchasedTicketsById[dropId].totalKeys);
+
+      // Fetch and cache only the needed batches
+      for (let i = start; i < endIndex; i += KEY_ITEMS_PER_QUERY) {
+        const batchStart = i;
+        const batchEnd = Math.min(i + KEY_ITEMS_PER_QUERY, endIndex);
+        if (
+          this.purchasedTicketsById[dropId].dropKeyItems
+            .slice(batchStart, batchEnd)
+            .some((item) => item === null)
+        ) {
+          // If any item in the range is null, fetch the batch
+          const fetchedKeys = await this.viewCall({
+            methodName: 'get_keys_for_drop',
+            args: {
+              drop_id: dropId,
+              from_index: batchStart.toString(),
+              limit: batchEnd - batchStart,
+            },
+          });
+          // Assume fetchedKeys is an array of keys; adjust based on actual structure
+          for (let j = 0; j < fetchedKeys.length; j++) {
+            this.purchasedTicketsById[dropId].dropKeyItems[batchStart + j] = fetchedKeys[j];
+          }
+        }
+      }
+
+      // Return the requested slice from the cache
+      return this.purchasedTicketsById[dropId].dropKeyItems.slice(start, endIndex);
+    } catch (e) {
+      console.error('Failed to get paginated keys info:', e);
+      throw new Error('Failed to get paginated keys info.');
+    }
+  };
+
   // Main function to get drops, with caching logic for paginated values
   getPaginatedDrops = async ({
     accountId,
@@ -282,7 +627,6 @@ class KeypomJS {
 
         // Only fetch if this page hasn't been cached yet
         if (!this.dropStore[accountId][pageStart]) {
-          console.log('cache miss for: ', pageStart); // eslint-disable-line no-console
           const pageDrops = await this.fetchDropsPage(accountId, pageIndex);
 
           // Cache each item from the page with its index as the key

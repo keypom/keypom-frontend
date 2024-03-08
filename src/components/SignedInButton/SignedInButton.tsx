@@ -125,7 +125,7 @@ export const SignedInButton = () => {
             </MenuItem>
 
             <MenuItem icon={<KeyIcon height="15px" width="14px" />} onClick={handleMasterKey}>
-              Master Key
+              Site Password
             </MenuItem>
             <MenuItem icon={<SignOutIcon />} onClick={handleSignOut}>
               Sign out
