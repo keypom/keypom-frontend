@@ -44,8 +44,10 @@ export const CreateTicketDropForm = () => {
   return (
     <IconBox
       icon={<LinkIcon h={{ base: '7', md: '9' }} />}
-      maxW={{ base: '21.5rem', md: '36rem' }}
+      maxW="full"
       mx="auto"
+      px={{ base: '6', md: '8' }}
+      py={{ base: '6', md: '12' }}
     >
       <HStack
         flexWrap="nowrap"

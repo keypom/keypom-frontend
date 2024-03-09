@@ -4,12 +4,23 @@ import { MAX_FILE_SIZE } from '@/constants/common';
 
 const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
 
+const EventDateSchema = z
+  .object({
+    startDate: z.date(),
+    endDate: z.date(),
+    startTime: z.string().optional(),
+    endTime: z.string().optional(),
+  })
+  .refine((data) => data.endDate > data.startDate, {
+    message: 'End date must be after the start date.',
+    path: ['endDate'], // this indicates which field the error should be associated with
+  });
+
 export const EventInfoSchema = z.object({
   eventName: z.string().min(1, 'Event name required'),
-  totalTickets: z
-    .number({ invalid_type_error: 'Number of tickets required' })
-    .positive()
-    .min(1, 'Required'),
+  eventDescription: z.string().optional(),
+  eventLocation: z.string().optional(),
+  date: EventDateSchema, // Use the nested schema
 });
 
 export const SignUpInfoSchema = z.object({

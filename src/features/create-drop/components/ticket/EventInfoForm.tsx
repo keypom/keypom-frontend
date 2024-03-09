@@ -1,57 +1,121 @@
-import { Box, Input } from '@chakra-ui/react';
+import { Input, HStack, VStack } from '@chakra-ui/react';
 import { Controller, useFormContext } from 'react-hook-form';
 
 import { FormControl } from '@/components/FormControl';
-import { type CreateTicketFieldsSchema } from '@/features/create-drop/contexts/CreateTicketDropContext/CreateTicketDropContext';
+import CustomDateRangePicker from '@/components/DateRangePicker/DateRangePicker';
+
+import { type CreateTicketFieldsSchema } from '../../contexts/CreateTicketDropContext';
 
 export const EventInfoForm = () => {
-  const { control } = useFormContext<CreateTicketFieldsSchema>();
+  const { control, watch } = useFormContext<CreateTicketFieldsSchema>();
+
+  // Watch start and end dates to pass to the CustomDateRangePicker
+  const startDate = watch('startDate');
+  const endDate = watch('endDate');
+  const startTime = watch('startTime');
+  const endTime = watch('endTime');
 
   return (
-    <Box>
-      <Controller
-        control={control}
-        name="eventName"
-        render={({ field, fieldState: { error } }) => {
-          return (
-            <FormControl
-              errorText={error?.message}
-              helperText="Will be shown on the claim page"
-              label="Event name"
-            >
-              <Input
-                isInvalid={Boolean(error?.message)}
-                placeholder="Friday night movies"
-                type="text"
-                {...field}
-              />
-            </FormControl>
-          );
-        }}
-      />
-      <Controller
-        control={control}
-        name="totalTickets"
-        render={({ field, fieldState: { error } }) => {
-          return (
-            <FormControl
-              errorText={error?.message}
-              helperText="How many links will be generated?"
-              label="Number of tickets"
-            >
-              <Input
-                isInvalid={Boolean(error?.message)}
-                placeholder="1 - 10,000"
-                type="number"
-                {...field}
-                onChange={(e) => {
-                  field.onChange(parseInt(e.target.value), 10);
+    <HStack justifyContent="space-between">
+      <VStack w="50%">
+        <Controller
+          control={control}
+          name="eventName"
+          render={({ field, fieldState: { error } }) => {
+            return (
+              <FormControl errorText={error?.message} label="Event name*">
+                <Input
+                  isInvalid={Boolean(error?.message)}
+                  placeholder="Vandelay Industries Networking Event"
+                  type="text"
+                  {...field}
+                />
+              </FormControl>
+            );
+          }}
+        />
+        <Controller
+          control={control}
+          name="eventDescription"
+          render={({ field }) => {
+            return (
+              <FormControl label="Event description">
+                <Input
+                  placeholder="Meet witht he best latex salesmen in the industry."
+                  type="text"
+                  {...field}
+                />
+              </FormControl>
+            );
+          }}
+        />
+        <Controller
+          control={control}
+          name="date" // This should match the structure of your form state
+          render={({ field, fieldState: { error } }) => {
+            // Destructuring with a default value to avoid undefined access
+            const { startDate, endDate, startTime, endTime } = field.value || {
+              startDate: null,
+              endDate: null,
+              startTime: null,
+              endTime: null,
+            };
+
+            return (
+              <CustomDateRangePicker
+                endDate={endDate}
+                endTime={endTime}
+                error={error}
+                startDate={startDate}
+                startTime={startTime}
+                onDateChange={(startDate, endDate) => {
+                  field.onChange({ ...field.value, startDate, endDate });
+                }}
+                onTimeChange={(startTime, endTime) => {
+                  field.onChange({ ...field.value, startTime, endTime });
                 }}
               />
-            </FormControl>
-          );
-        }}
-      />
-    </Box>
+            );
+          }}
+          rules={{ required: 'A date range is required.' }}
+        />
+      </VStack>
+      <VStack w="50%">
+        <Controller
+          control={control}
+          name="eventName"
+          render={({ field, fieldState: { error } }) => {
+            return (
+              <FormControl errorText={error?.message} label="Event name*">
+                <Input
+                  isInvalid={Boolean(error?.message)}
+                  placeholder="Vandelay Industries Networking Event"
+                  type="text"
+                  {...field}
+                />
+              </FormControl>
+            );
+          }}
+        />
+        <Controller
+          control={control}
+          name="eventDescription"
+          render={({ field }) => {
+            return (
+              <FormControl label="Event description">
+                <Input
+                  placeholder="Meet with some of the best latex salesmen in the industry."
+                  type="text"
+                  {...field}
+                  onChange={(e) => {
+                    field.onChange(parseInt(e.target.value), 10);
+                  }}
+                />
+              </FormControl>
+            );
+          }}
+        />
+      </VStack>
+    </HStack>
   );
 };
