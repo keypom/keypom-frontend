@@ -31,13 +31,13 @@ const CustomFooter = ({
   onApplyClick,
   onCancelClick,
 }: CustomFooterProps) => (
-  <HStack
+  <VStack
     align="flex-end"
     backgroundColor="#fdfdfd"
     borderRadius="0.3rem"
     justifyContent="space-between"
   >
-    <HStack p={3} w="50%">
+    <HStack p={3} w="100%">
       <VStack align="left" spacing={1} w="50%">
         <Text color="gray.800" fontWeight="bold">
           Start time
@@ -75,7 +75,13 @@ const CustomFooter = ({
         />
       </VStack>
     </HStack>
-    <HStack p={3} w="50%">
+    <HStack
+      p={3}
+      style={{
+        borderTop: '1px solid #E2E8F0', // Replace with your desired color
+      }}
+      w="100%"
+    >
       <Button
         height="48px"
         lineHeight=""
@@ -98,7 +104,7 @@ const CustomFooter = ({
         Apply
       </Button>
     </HStack>
-  </HStack>
+  </VStack>
 );
 
 const checkAndSetTime = (inputValue, setTimeText, setIsErr) => {
@@ -143,7 +149,7 @@ interface CustomDateRangePickerProps {
   error?: FieldError;
 }
 
-function CustomDateRangePicker({
+function CustomDateRangePickerMobile({
   startDate,
   endDate,
   startTime,
@@ -213,9 +219,9 @@ function CustomDateRangePicker({
         dateFormat="MM/dd/yyyy h:mm aa"
         endDate={endDate}
         minDate={new Date()}
-        monthsShown={2}
+        monthsShown={1}
         open={isDatePickerOpen}
-        popperPlacement="top-start"
+        popperPlacement="top-end"
         startDate={startDate}
         onCalendarClose={() => {
           setIsDatePickerOpen(false);
@@ -227,4 +233,4 @@ function CustomDateRangePicker({
   );
 }
 
-export default CustomDateRangePicker;
+export default CustomDateRangePickerMobile;

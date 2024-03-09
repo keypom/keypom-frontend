@@ -21,6 +21,7 @@ export const EventInfoSchema = z.object({
   eventDescription: z.string().optional(),
   eventLocation: z.string().optional(),
   date: EventDateSchema, // Use the nested schema
+  eventArtwork: z.string().min(1, 'Event artwork required'),
 });
 
 export const SignUpInfoSchema = z.object({
