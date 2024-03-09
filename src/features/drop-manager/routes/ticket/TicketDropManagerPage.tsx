@@ -104,7 +104,7 @@ export interface AttendeeItem {
 
 export type GetAttendeeDataFn = (data: AttendeeItem[]) => DataItem[];
 
-export default function EventManagerPage() {
+export default function TicketManagerPage() {
   const navigate = useNavigate();
   const { isOpen, onOpen, onClose } = useDisclosure();
   const { setAppModal } = useAppContext();
@@ -129,6 +129,7 @@ export default function EventManagerPage() {
   const [filteredTicketData, setFilteredTicketData] = useState<AttendeeItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isAllKeysLoading, setIsAllKeysLoading] = useState(true);
+  const [allowExport, setAllowExport] = useState(false);
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [userKey, setUserKey] = useState();
   const [selectedFilters, setSelectedFilters] = useState<{
@@ -147,8 +148,16 @@ export default function EventManagerPage() {
 
   const handleClosePwModal = () => {
     setAppModal({ isOpen: false });
-    navigate(eventInfo ? `/events/${eventInfo.id}` : `/events`);
+    navigate(eventInfo ? `/events/event/${eventInfo.id}` : `/events`);
   };
+
+  useEffect(() => {
+    setAllowExport(
+      filteredTicketData.length > 0 && (eventInfo!.questions || []).length > 0
+        ? userKey !== undefined
+        : true,
+    );
+  }, [filteredTicketData, userKey, eventInfo]);
 
   useEffect(() => {
     if (!isCorrectMasterKey) {
@@ -216,13 +225,13 @@ export default function EventManagerPage() {
             args: { drop_id: dropId },
           });
         const metadata: EventDropMetadata = JSON.parse(drop.drop_config.metadata);
-        setDropData({ ...drop, drop_config: { metadata } });
 
         const eventInfo = await keypomInstance.getEventInfo({
           accountId,
           eventId: metadata.eventId,
         });
         setEventInfo(eventInfo);
+
         if (eventInfo?.questions) {
           try {
             const privKey = await keypomInstance.getDerivedPrivKey({
@@ -279,12 +288,20 @@ export default function EventManagerPage() {
   }, [dropId, selector, accountId]);
 
   useEffect(() => {
-    if (!accountId || !dropId || !eventInfo) return;
+    if (
+      accountId === undefined ||
+      accountId === null ||
+      dropId === undefined ||
+      dropId === null ||
+      eventInfo === null ||
+      eventInfo === undefined
+    )
+      return;
     if (eventInfo.questions && !userKey) return;
 
     // First get enough data with the current filters to fill the page size
     try {
-      handleGetInitialKeys(userKey);
+      handleGetInitialKeys(userKey, eventInfo);
     } catch (e) {
       console.error('error', e);
       setIsErr(true);
@@ -292,13 +309,21 @@ export default function EventManagerPage() {
   }, [accountId, userKey, eventInfo]);
 
   useEffect(() => {
-    if (!accountId || !dropId || !eventInfo) return;
+    if (
+      accountId === undefined ||
+      accountId === null ||
+      dropId === undefined ||
+      dropId === null ||
+      eventInfo === null ||
+      eventInfo === undefined
+    )
+      return;
 
     if (eventInfo.questions && !userKey) return;
 
     // In parallel, fetch all the drops
     try {
-      handleGetAllKeys(userKey);
+      handleGetAllKeys(userKey, eventInfo);
     } catch (e) {
       console.error('error', e);
       setIsErr(true);
@@ -353,7 +378,7 @@ export default function EventManagerPage() {
   };
 
   const handleGetAllKeys = useCallback(
-    async (userPrivKey) => {
+    async (userPrivKey, curEventInfo) => {
       setIsAllKeysLoading(true);
       const keyInfoReturn = await keypomInstance.getAllKeysForTicket({ dropId });
       let { dropKeyItems } = keyInfoReturn;
@@ -363,10 +388,10 @@ export default function EventManagerPage() {
       }).length;
       setTicketsScanned(numScanned);
 
-      if (eventInfo?.questions) {
+      if (curEventInfo.questions) {
         dropKeyItems = await Promise.all(
           dropKeyItems.map(async (key) => {
-            const newKey = key;
+            const newKey = JSON.parse(JSON.stringify(key));
             try {
               const decryptedMeta = await keypomInstance.decryptMetadata({
                 data: key.metadata,
@@ -395,7 +420,7 @@ export default function EventManagerPage() {
   );
 
   const handleGetInitialKeys = useCallback(
-    async (userPrivKey) => {
+    async (userPrivKey, curEventInfo) => {
       setIsLoading(true);
 
       // Initialize or update the cache for this drop if it doesn't exist or if total keys have changed
@@ -415,10 +440,10 @@ export default function EventManagerPage() {
           limit: selectedFilters.pageSize,
         });
 
-        if (eventInfo?.questions) {
+        if (curEventInfo.questions) {
           dropKeyItems = await Promise.all(
             dropKeyItems.map(async (key) => {
-              const newKey = key;
+              const newKey = JSON.parse(JSON.stringify(key));
               try {
                 const decryptedMeta = await keypomInstance.decryptMetadata({
                   data: key.metadata,
@@ -645,8 +670,6 @@ export default function EventManagerPage() {
     },
   ];
 
-  const allowAction = filteredTicketData.length > 0;
-
   if (isErr) {
     return (
       <NotFound404
@@ -764,7 +787,7 @@ export default function EventManagerPage() {
               </Menu>
               <Button
                 height="auto"
-                isDisabled={!allowAction}
+                isDisabled={!allowExport}
                 isLoading={exporting}
                 lineHeight=""
                 px="6"
@@ -776,7 +799,7 @@ export default function EventManagerPage() {
                     setExporting,
                     keypomInstance,
                     setIsCorrectMasterKey,
-                    userKey,
+                    userKey: userKey!,
                     eventData: {
                       name: eventInfo?.name || '',
                       artwork: eventInfo?.artwork || '',
@@ -807,7 +830,7 @@ export default function EventManagerPage() {
             />
             <Button
               height="auto"
-              isDisabled={!allowAction}
+              isDisabled={!allowExport}
               isLoading={exporting}
               lineHeight=""
               px="6"
@@ -817,9 +840,9 @@ export default function EventManagerPage() {
                 await handleExportCSVClick({
                   dropIds: [dropId],
                   setExporting,
+                  userKey,
                   keypomInstance,
                   setIsCorrectMasterKey,
-                  userKey,
                   eventData: {
                     name: eventInfo?.name || '',
                     artwork: eventInfo?.artwork || '',

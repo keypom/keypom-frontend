@@ -57,7 +57,7 @@ export const TicketQRPage = () => {
           {isShowSummary ? (
             <Box>
               <BoxWithShape bg="white" borderTopRadius="8xl" w="full ">
-                <QrDetails qrValue={qrValue} ticketName={title} />
+                <QrDetails eventName={title} qrValue={qrValue} ticketName={title} />
               </BoxWithShape>
               <Flex
                 align="center"

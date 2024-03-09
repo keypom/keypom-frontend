@@ -148,14 +148,12 @@ class KeypomJS {
   yoctoToNear = (yocto: string) => nearAPI.utils.format.formatNearAmount(yocto, 4);
 
   viewCall = async ({ contractId = KEYPOM_EVENTS_CONTRACT, methodName, args }) => {
-    if (this.viewAccount === undefined) {
-      return;
-    }
-    return await this.viewAccount.viewFunctionV2({
+    const res = await this.viewAccount.viewFunctionV2({
       contractId,
       methodName,
       args,
     });
+    return res;
   };
 
   GetMarketListings = async ({ contractId = KEYPOM_MARKETPLACE_CONTRACT, limit, from_index }) => {
