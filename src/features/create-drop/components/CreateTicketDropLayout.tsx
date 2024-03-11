@@ -12,7 +12,7 @@ export const CreateTicketDropLayout = ({ children }: PropsWithChildren) => {
     currentFlowPage: { description },
   } = useDropFlowContext();
   return (
-    <Box>
+    <Box transform="scale(0.85)" transformOrigin="center">
       <Box flexGrow="1" maxW="full">
         <Breadcrumbs items={breadcrumbs} />
         <Heading mt={{ base: '2', md: '4' }} paddingBottom="14">

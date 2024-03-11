@@ -1,5 +1,5 @@
 import { useFormContext } from 'react-hook-form';
-import { Button, Divider, HStack } from '@chakra-ui/react';
+import { Button, HStack } from '@chakra-ui/react';
 
 import { IconBox } from '@/components/IconBox';
 import { LinkIcon } from '@/components/Icons';
@@ -28,6 +28,7 @@ export const CreateTicketDropForm = () => {
   };
 
   const handleNextStepClick = () => {
+    console.log('currentStep', currentStep);
     if (currentIndex === formSteps.length - 1) {
       handleSubmitClick();
       return;
@@ -42,38 +43,39 @@ export const CreateTicketDropForm = () => {
   const isDirty = Object.keys(dirtyFields).length > 0;
 
   return (
-    <IconBox
-      icon={<LinkIcon h={{ base: '7', md: '9' }} />}
-      maxW="full"
-      mx="auto"
-      px={{ base: '6', md: '8' }}
-      py={{ base: '6', md: '12' }}
-    >
-      <HStack
-        flexWrap="nowrap"
-        justifyContent={{ base: 'flex-start', md: 'center' }}
-        mt={{ base: '8', md: '0' }}
-        overflowX={{ base: 'scroll', md: 'visible' }}
-        spacing={{ base: '2', md: '4' }}
-        sx={{
-          '&::-webkit-scrollbar': {
-            display: 'none',
-          },
-          scrollbarWidth: 'none',
-        }}
+    <>
+      <IconBox
+        icon={<LinkIcon h={{ base: '7', md: '9' }} />}
+        maxW="full"
+        mx="auto"
+        px={{ base: '6', md: '8' }}
+        py={{ base: '6', md: '12' }}
       >
-        {stepsDisplay}
-      </HStack>
-      {currentStep.component}
-      <Divider my={{ base: '6', md: '8' }} />
-      <HStack justifyContent="flex-end" spacing="auto">
+        <HStack
+          flexWrap="nowrap"
+          justifyContent={{ base: 'flex-start', sm: 'center' }}
+          mt={{ base: '8', md: '0' }}
+          overflowX={{ base: 'scroll', md: 'visible' }}
+          spacing={{ base: '2', md: '4' }}
+          sx={{
+            '&::-webkit-scrollbar': {
+              display: 'none',
+            },
+            scrollbarWidth: 'none',
+          }}
+        >
+          {stepsDisplay}
+        </HStack>
+        {currentStep.component}
+      </IconBox>
+      <HStack justifyContent="flex-end" py={{ base: '4' }} spacing="auto">
         {currentIndex > 0 && (
           <Button
             fontSize={{ base: 'sm', md: 'base' }}
             variant="secondary"
             onClick={onPreviousStep}
           >
-            Go back
+            Back
           </Button>
         )}
         {currentStep.isSkipable && !isDirty ? (
@@ -82,7 +84,7 @@ export const CreateTicketDropForm = () => {
             variant="secondary"
             onClick={handleNextStepClick}
           >
-            Skip this step
+            Skip
           </Button>
         ) : (
           <Button
@@ -90,10 +92,10 @@ export const CreateTicketDropForm = () => {
             fontSize={{ base: 'sm', md: 'base' }}
             onClick={handleNextStepClick}
           >
-            Continue
+            Next
           </Button>
         )}
       </HStack>
-    </IconBox>
+    </>
   );
 };

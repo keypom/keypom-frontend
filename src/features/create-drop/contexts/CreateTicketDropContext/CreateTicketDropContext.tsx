@@ -125,7 +125,6 @@ export const CreateTicketDropProvider = ({ children }: PropsWithChildren) => {
     mode: 'onChange',
     defaultValues: {
       eventName: '',
-      totalTickets: undefined,
       firstName: false,
       secondName: false,
       emailAddress: false,
@@ -142,18 +141,13 @@ export const CreateTicketDropProvider = ({ children }: PropsWithChildren) => {
   });
 
   const getSummaryData = (): SummaryItem[] => {
-    const { eventName, totalTickets, additionalGift } = methods.getValues();
+    const { eventName, additionalGift } = methods.getValues();
 
     const results: SummaryItem[] = [
       {
         type: 'text',
         name: 'Event name',
         value: eventName,
-      },
-      {
-        type: 'text',
-        name: 'Number of tickets',
-        value: totalTickets,
       },
     ];
 

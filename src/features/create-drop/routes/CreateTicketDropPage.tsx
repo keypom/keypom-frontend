@@ -28,14 +28,14 @@ const breadcrumbs: IBreadcrumbItem[] = [
     href: '/events',
   },
   {
-    name: 'New Ticket Drop',
+    name: 'Create Event',
     href: '/drops/ticket/new',
   },
 ];
 
 export default function NewTicketDrop() {
   return (
-    <Box mb={{ base: '5', md: '14' }} minH="100%" minW="100%" mt={{ base: '52px' }}>
+    <Box mb={{ base: '5', md: '14' }} minH="100%" minW="100%" mt={{ base: '-10px' }}>
       <DropFlowProvider breadcrumbs={breadcrumbs} flowPages={flowPages}>
         <CreateTicketDropProvider>
           <CreateTicketDropFlow />

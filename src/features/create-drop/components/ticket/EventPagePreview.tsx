@@ -1,5 +1,7 @@
 import { Box, VStack, Image, Heading, HStack } from '@chakra-ui/react';
 
+import TicketPreview from './TicketPreview';
+
 interface EventPagePreviewProps {
   eventName: string;
   eventDescription?: string;
@@ -16,8 +18,7 @@ function EventPagePreview({
   eventArtwork,
 }: EventPagePreviewProps) {
   return (
-    <VStack align="start" paddingTop={5} position="relative" w="50%">
-      {' '}
+    <>
       {/* Adjust height as needed */}
       <Box
         alignSelf="stretch"
@@ -103,18 +104,18 @@ function EventPagePreview({
             </VStack>
           </VStack>
         </HStack>
+        <Heading
+          color="gray.600"
+          fontSize="lg"
+          fontWeight="700"
+          paddingTop={3}
+          style={{ textAlign: 'left' }}
+        >
+          Tickets
+        </Heading>
+        <TicketPreview />
       </VStack>
-      <Heading
-        color="gray.600"
-        fontSize="lg"
-        fontWeight="700"
-        paddingBottom={1}
-        paddingLeft={16}
-        paddingTop={3}
-      >
-        Tickets
-      </Heading>
-    </VStack>
+    </>
   );
 }
 

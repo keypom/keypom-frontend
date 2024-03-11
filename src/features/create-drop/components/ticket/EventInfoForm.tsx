@@ -96,7 +96,7 @@ export const EventInfoForm = () => {
 
   return (
     <HStack align="top" justifyContent="space-between">
-      <VStack spacing="4" w="50%">
+      <VStack spacing="4" w="100%">
         <Controller
           control={control}
           name="eventName"
@@ -117,6 +117,7 @@ export const EventInfoForm = () => {
               </FormControl>
             );
           }}
+          rules={{ required: 'An event name is required.' }}
         />
         <Controller
           control={control}
@@ -228,13 +229,17 @@ export const EventInfoForm = () => {
           }}
         />
       </VStack>
-      <EventPagePreview
-        eventArtwork={eventArtwork}
-        eventDate={datePreviewText}
-        eventDescription={eventDescription}
-        eventLocation={eventLocation}
-        eventName={eventName}
-      />
+      <Hide below="md">
+        <VStack align="start" paddingTop={5} w="100%">
+          <EventPagePreview
+            eventArtwork={eventArtwork}
+            eventDate={datePreviewText}
+            eventDescription={eventDescription}
+            eventLocation={eventLocation}
+            eventName={eventName}
+          />
+        </VStack>
+      </Hide>
     </HStack>
   );
 };
