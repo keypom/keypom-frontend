@@ -7,9 +7,9 @@ import DatePicker from 'react-datepicker';
 import { type FieldError } from 'react-hook-form';
 
 interface CustomFooterProps {
-  startTime: string | null;
+  startTime: string | undefined;
   startTimeError: boolean;
-  endTime: string | null;
+  endTime: string | undefined;
   endTimeError: boolean;
   onChangeStartTime: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onChangeEndTime: (e: React.ChangeEvent<HTMLInputElement>) => void;
@@ -137,13 +137,13 @@ const checkAndSetTime = (inputValue, setTimeText, setIsErr) => {
 };
 
 interface CustomDateRangePickerProps {
-  onDateChange: (startDate: Date | null, endDate: Date | null) => void;
-  onTimeChange: (startTime: string | null, endTime: string | null) => void;
+  onDateChange: (startDate: Date, endDate: Date) => void;
+  onTimeChange: (startTime: string | undefined, endTime: string | undefined) => void;
   isDatePickerOpen: boolean;
   setIsDatePickerOpen: (isOpen: boolean) => void;
   ctaComponent?: React.ReactNode;
-  startDate?: Date;
-  endDate?: Date;
+  startDate: Date | null;
+  endDate: Date | null;
   startTime?: string;
   endTime?: string;
   error?: FieldError;
@@ -159,11 +159,10 @@ function CustomDateRangePickerMobile({
   ctaComponent,
   isDatePickerOpen,
   setIsDatePickerOpen,
-  error,
 }: CustomDateRangePickerProps) {
-  const [startTimeText, setStartTimeText] = useState<string | null>(null);
+  const [startTimeText, setStartTimeText] = useState<string | undefined>();
   const [startTimeError, setStartTimeError] = useState(false);
-  const [endTimeText, setEndTimeText] = useState<string | null>(null);
+  const [endTimeText, setEndTimeText] = useState<string | undefined>();
   const [endTimeError, setEndTimeError] = useState(false);
 
   // handle changes inside date picker

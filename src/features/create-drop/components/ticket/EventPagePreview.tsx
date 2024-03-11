@@ -20,23 +20,23 @@ function EventPagePreview({
   return (
     <>
       {/* Adjust height as needed */}
-      <Box
-        alignSelf="stretch"
-        bgGradient="linear(to right, rgba(255, 255, 255, 0), rgba(115, 214, 243, 0.2))"
-        height="120px"
-        left="0"
-        right="0"
-        top="0"
-        width="100%"
-        zIndex={eventArtwork ? 1 : 'auto'} // If there's an image, it should be below the image layer
-      />
-      {eventArtwork && (
+      {!eventArtwork ? (
+        <Box
+          alignSelf="stretch"
+          bgGradient="linear(to right, rgba(255, 255, 255, 0), rgba(115, 214, 243, 0.2))"
+          height="120px"
+          left="0"
+          right="0"
+          top="0"
+          width="100%"
+          zIndex={eventArtwork ? 1 : 'auto'} // If there's an image, it should be below the image layer
+        />
+      ) : (
         <Image
           alt="Event Artwork"
-          height="500px"
+          height="120px"
           left="0"
-          objectFit="cover" // This ensures the image covers the allotted area
-          position="absolute" // Position the image absolutely within the VStack
+          objectFit="contain" // This ensures the image covers the allotted area
           right="0"
           src={eventArtwork}
           top="0"

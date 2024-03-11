@@ -1,16 +1,18 @@
 // Generic layout for all drop
 
 import { Box, Heading } from '@chakra-ui/react';
-import { type PropsWithChildren } from 'react';
 
-import { Breadcrumbs } from '@/components/Breadcrumbs';
-import { useDropFlowContext } from '@/features/create-drop/contexts/DropFlowContext';
+import { Breadcrumbs, type IBreadcrumbItem } from '@/components/Breadcrumbs';
 
-export const CreateTicketDropLayout = ({ children }: PropsWithChildren) => {
-  const {
-    breadcrumbs,
-    currentFlowPage: { description },
-  } = useDropFlowContext();
+export const CreateTicketDropLayout = ({
+  breadcrumbs,
+  description,
+  children,
+}: {
+  breadcrumbs: IBreadcrumbItem[];
+  description: string;
+  children: React.ReactNode;
+}) => {
   return (
     <Box transform="scale(0.85)" transformOrigin="center">
       <Box flexGrow="1" maxW="full">
