@@ -6,9 +6,10 @@ import { IconBox } from '@/components/IconBox';
 import { LinkIcon } from '@/components/Icons';
 import { Step } from '@/components/Step';
 
-import { EventInfoForm } from '../components/ticket';
+import { ClearEventInfoForm, EventInfoForm, EventInfoFormValidation } from '../components/ticket';
 import { EventInfoSchema } from '../contexts/CreateTicketDropContext/FormValidations';
 import { CreateTicketDropLayout } from '../components/CreateTicketDropLayout';
+import { CollectInfoForm } from '../components/ticket/CollectInfoForm';
 
 interface TicketStep {
   title: string;
@@ -30,11 +31,15 @@ export interface EventStepFormProps {
 }
 
 export interface TicketDropFormData {
+  // Step 1
   eventName: { value: string; error?: string };
   eventDescription: { value: string; error?: string };
   eventLocation: { value: string; error?: string };
   date: { value: EventDate; error?: string };
-  eventArtwork: { value: string; error?: string };
+  eventArtwork: { value: File | undefined; error?: string };
+
+  // Step 2
+  questions: Array<{ question: string; isRequired: boolean }>;
 }
 
 const breadcrumbs: IBreadcrumbItem[] = [
@@ -58,7 +63,7 @@ const formSteps: TicketStep[] = [
   {
     name: 'collectInfo',
     title: 'Collect info',
-    component: (props: EventStepFormProps) => <EventInfoForm {...props} />,
+    component: (props: EventStepFormProps) => <CollectInfoForm {...props} />,
     schema: EventInfoSchema,
   },
   {
@@ -78,8 +83,9 @@ const formSteps: TicketStep[] = [
 export default function NewTicketDrop() {
   const [currentStep, setCurrentStep] = useState(0);
   const [formData, setFormData] = useState<TicketDropFormData>({
+    // Step 1
     eventName: { value: '' },
-    eventArtwork: { value: '' },
+    eventArtwork: { value: undefined },
     eventDescription: { value: '' },
     eventLocation: { value: '' },
     date: {
@@ -88,7 +94,31 @@ export default function NewTicketDrop() {
         endDate: null,
       },
     },
+
+    // Step 2
+    questions: [
+      { question: 'Full name', isRequired: true },
+      { question: 'Email address', isRequired: false },
+      { question: 'How did you find out about this event?', isRequired: false },
+    ],
   });
+
+  const handleClearForm = () => {
+    switch (currentStep) {
+      case 0:
+        setFormData((prev) => ({ ...prev, ...ClearEventInfoForm() }));
+        break;
+      case 1:
+        setFormData((prev) => ({ ...prev, questions: [] }));
+        break;
+      case 2:
+        break;
+      case 3:
+        break;
+      default:
+        break;
+    }
+  };
 
   const stepsDisplay = formSteps.map((step, index) => (
     <Step key={step.name} index={index + 1} isActive={currentStep === index} stepItem={step} />
@@ -97,43 +127,14 @@ export default function NewTicketDrop() {
   const nextStep = () => {
     let isErr = false;
     if (currentStep === 0) {
-      const newFormData = { ...formData };
-      if (formData.eventName.value === '') {
-        newFormData.eventName = { ...formData.eventName, error: 'Event name is required' };
-        isErr = true;
-      }
-      if (formData.eventArtwork.value === '') {
-        newFormData.eventArtwork = { ...formData.eventArtwork, error: 'Event artwork is required' };
-        isErr = true;
-      }
-      if (formData.eventDescription.value === '') {
-        newFormData.eventDescription = {
-          ...formData.eventDescription,
-          error: 'Event description is required',
-        };
-        isErr = true;
-      }
-      if (formData.eventLocation.value === '') {
-        newFormData.eventLocation = {
-          ...formData.eventLocation,
-          error: 'Event location is required',
-        };
-        isErr = true;
-      }
-      if (formData.date.value.startDate === null) {
-        newFormData.date = { ...formData.date, error: 'Event date is required' };
-        isErr = true;
-      }
+      const { isErr: eventInfoErr, newFormData } = EventInfoFormValidation(formData);
+      isErr = eventInfoErr;
       setFormData(newFormData);
     }
     if (!isErr) {
       setCurrentStep((prevStep) => (prevStep < formSteps.length - 1 ? prevStep + 1 : prevStep));
     }
   };
-
-  // const nextStep = () => {
-  //   setCurrentStep((prevStep) => (prevStep < steps.length - 1 ? prevStep + 1 : prevStep));
-  // };
 
   const prevStep = () => {
     setCurrentStep((prevStep) => (prevStep > 0 ? prevStep - 1 : prevStep));
@@ -170,14 +171,33 @@ export default function NewTicketDrop() {
         {CurrentStepComponent}
       </IconBox>
       <HStack justifyContent="flex-end" py={{ base: '4' }} spacing="auto">
-        {currentStep > 0 && (
-          <Button fontSize={{ base: 'sm', md: 'base' }} variant="secondary" onClick={prevStep}>
-            Back
+        <HStack>
+          {currentStep > 0 && (
+            <Button fontSize={{ base: 'sm', md: 'base' }} variant="secondary" onClick={prevStep}>
+              Back
+            </Button>
+          )}
+          <Button fontSize={{ base: 'sm', md: 'base' }} variant="ghost" onClick={handleClearForm}>
+            Clear all details
           </Button>
-        )}
-        <Button disabled={false} fontSize={{ base: 'sm', md: 'base' }} onClick={nextStep}>
-          Next
-        </Button>
+        </HStack>
+        <HStack>
+          {currentStep === 1 && (
+            <Button
+              fontSize={{ base: 'sm', md: 'base' }}
+              variant="secondary"
+              onClick={() => {
+                setFormData((prev) => ({ ...prev, questions: [] }));
+                setCurrentStep(2);
+              }}
+            >
+              Skip
+            </Button>
+          )}
+          <Button disabled={false} fontSize={{ base: 'sm', md: 'base' }} onClick={nextStep}>
+            Next
+          </Button>
+        </HStack>
       </HStack>
     </CreateTicketDropLayout>
   );

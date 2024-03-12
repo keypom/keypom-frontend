@@ -6,9 +6,61 @@ import { ImageFileInput } from '@/components/ImageFileInput';
 import CustomDateRangePickerMobile from '@/components/DateRangePicker/MobileDateRangePicker';
 import { FormControlComponent } from '@/components/FormControl';
 
-import { type EventStepFormProps } from '../../routes/CreateTicketDropPage';
+import {
+  type TicketDropFormData,
+  type EventStepFormProps,
+} from '../../routes/CreateTicketDropPage';
 
 import EventPagePreview from './EventPagePreview';
+
+export const ClearEventInfoForm = () => {
+  return {
+    eventName: { value: '' },
+    eventArtwork: { value: undefined },
+    eventDescription: { value: '' },
+    eventLocation: { value: '' },
+    date: {
+      value: {
+        startDate: null,
+        endDate: null,
+      },
+    },
+  };
+};
+
+export const EventInfoFormValidation = (formData: TicketDropFormData) => {
+  const newFormData = { ...formData };
+  let isErr = false;
+  return { isErr, newFormData };
+  if (formData.eventName.value === '') {
+    newFormData.eventName = { ...formData.eventName, error: 'Event name is required' };
+    isErr = true;
+  }
+  if (formData.eventArtwork.value === undefined) {
+    newFormData.eventArtwork = { ...formData.eventArtwork, error: 'Event artwork is required' };
+    isErr = true;
+  }
+  if (formData.eventDescription.value === '') {
+    newFormData.eventDescription = {
+      ...formData.eventDescription,
+      error: 'Event description is required',
+    };
+    isErr = true;
+  }
+  if (formData.eventLocation.value === '') {
+    newFormData.eventLocation = {
+      ...formData.eventLocation,
+      error: 'Event location is required',
+    };
+    isErr = true;
+  }
+  if (formData.date.value.startDate === null) {
+    newFormData.date = { ...formData.date, error: 'Event date is required' };
+    isErr = true;
+  }
+
+  return { isErr, newFormData };
+};
 
 const EventInfoForm = (props: EventStepFormProps) => {
   const { formData, setFormData } = props;
@@ -17,31 +69,29 @@ const EventInfoForm = (props: EventStepFormProps) => {
   const [datePlaceholer, setDatePlaceholder] = useState('Select date and time');
   const [datePreviewText, setDatePreviewText] = useState<string>('');
 
-  const [selectedFile, setSelectedFile] = useState();
   const [preview, setPreview] = useState<string>();
 
   useEffect(() => {
+    const selectedFile = formData.eventArtwork.value;
     if (selectedFile === undefined) {
       setPreview(undefined);
-      setFormData({ ...formData, eventArtwork: { value: '' } });
       return;
     }
     const objectUrl = URL.createObjectURL(selectedFile[0]);
     setPreview(objectUrl);
-    setFormData({ ...formData, eventArtwork: { value: objectUrl } });
 
     return () => {
       URL.revokeObjectURL(objectUrl);
     };
-  }, [selectedFile, name]);
+  }, [formData.eventArtwork.value]);
 
   const onSelectFile = (e) => {
     if (!e.target.files || e.target.files.length === 0) {
-      setSelectedFile(undefined);
+      setFormData({ ...formData, eventArtwork: { value: undefined } });
       return;
     }
 
-    setSelectedFile(e.target.files);
+    setFormData({ ...formData, eventArtwork: { value: e.target.files } });
   };
 
   useEffect(() => {
@@ -119,7 +169,11 @@ const EventInfoForm = (props: EventStepFormProps) => {
   return (
     <HStack align="top" justifyContent="space-between">
       <VStack spacing="4" w="100%">
-        <FormControlComponent errorText={formData.eventName.error} label="Event name*">
+        <FormControlComponent
+          errorText={formData.eventName.error}
+          label="Event name*"
+          marginBottom="0"
+        >
           <Input
             isInvalid={!!formData.eventName.error}
             placeholder="Vandelay Industries Networking Event"
@@ -129,6 +183,7 @@ const EventInfoForm = (props: EventStepFormProps) => {
               },
             }}
             type="text"
+            value={formData.eventName.value}
             onChange={(e) => {
               setFormData({ ...formData, eventName: { value: e.target.value } });
             }}
@@ -147,6 +202,7 @@ const EventInfoForm = (props: EventStepFormProps) => {
               },
             }}
             type="text"
+            value={formData.eventDescription.value}
             onChange={(e) => {
               setFormData({ ...formData, eventDescription: { value: e.target.value } });
             }}
@@ -162,6 +218,7 @@ const EventInfoForm = (props: EventStepFormProps) => {
               },
             }}
             type="text"
+            value={formData.eventLocation.value}
             onChange={(e) => {
               setFormData({ ...formData, eventLocation: { value: e.target.value } });
             }}
@@ -219,7 +276,7 @@ const EventInfoForm = (props: EventStepFormProps) => {
             errorMessage={formData.eventArtwork.error}
             isInvalid={!!formData.eventArtwork.error}
             preview={preview}
-            selectedFile={selectedFile}
+            selectedFile={formData.eventArtwork.value}
             onChange={(e) => {
               onSelectFile(e);
             }}
@@ -229,7 +286,7 @@ const EventInfoForm = (props: EventStepFormProps) => {
       <Hide below="md">
         <VStack align="start" paddingTop={5} w="100%">
           <EventPagePreview
-            eventArtwork={formData.eventArtwork.value}
+            eventArtwork={preview}
             eventDate={datePreviewText}
             eventDescription={formData.eventDescription.value}
             eventLocation={formData.eventLocation.value}

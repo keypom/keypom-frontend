@@ -42,7 +42,8 @@ interface DataTableProps extends TableProps {
     | 'all-tickets'
     | 'no-filtered-events'
     | 'all-events'
-    | 'no-filtered-tickets';
+    | 'no-filtered-tickets'
+    | 'collect-info';
   showColumns?: boolean;
   columns: ColumnItem[];
   data: DataItem[];
