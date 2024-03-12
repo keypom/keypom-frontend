@@ -12,6 +12,7 @@ import {
   Badge,
 } from '@chakra-ui/react';
 import { NavLink } from 'react-router-dom';
+import { useState } from 'react';
 
 import { IconBox } from '@/components/IconBox';
 
@@ -25,59 +26,41 @@ interface TicketCardProps {
   onSubmit: () => void;
   event: any;
   loading: boolean;
-  amount: [];
-  incrementAmount: () => void;
-  decrementAmount: () => void;
   surroundingNavLink: boolean;
-  cardArrayIndex: number;
-  changeTicketAmount: (amount: []) => void;
 }
 
 interface SurroundingLinkProps {
   children: React.ReactNode;
 }
 
-export const TicketCard = ({
-  event,
-  loading,
-  amount,
-  changeTicketAmount,
-  surroundingNavLink,
-  onSubmit,
-  cardArrayIndex,
-}: TicketCardProps) => {
+export const TicketCard = ({ event, loading, surroundingNavLink, onSubmit }: TicketCardProps) => {
   const nav = '../gallery/' + String(event.navurl);
+  console.log('event.navurl', event.navurl);
 
-  const SurroundingLink = ({ children }: SurroundingLinkProps) => {
-    return surroundingNavLink ? <NavLink to={nav}>{children}</NavLink> : <>{children}</>;
-  };
+  const [amount, setAmount] = useState(1);
 
-  const decrementAmount = (e) => {
-    e.preventDefault();
-    // change amount at index to be one less
-    if (amount[cardArrayIndex] <= 0) return;
-    changeTicketAmount((prevAmount) => {
-      // Create a new array from the previous amount
-      const newAmount = [...prevAmount];
-      newAmount[cardArrayIndex]--;
-      return newAmount;
-    });
+  const decrementAmount = () => {
+    if (amount === 1) return;
+    setAmount(amount - 1);
   };
   const incrementAmount = (e) => {
-    e.preventDefault();
-    // change amount at index to be one more
-    // if (
-    //   event.numTickets !== 'unlimited' &&
-    //   event.numTickets !== '0' &&
-    //   amount[cardArrayIndex] >= event.numTickets
-    // )
-    //   return;
-    changeTicketAmount((prevAmount) => {
-      // Create a new array from the previous amount
-      const newAmount = [...prevAmount];
-      newAmount[cardArrayIndex]++;
-      return newAmount;
-    });
+    const availableTickets = event.maxTickets - event.soldTickets;
+    if (availableTickets <= 0) return;
+
+    if (amount >= availableTickets) return;
+
+    if (event.numTickets !== 'unlimited' && amount >= event.numTickets) return;
+    setAmount(amount + 1);
+  };
+
+  const SurroundingLink = ({ children }: SurroundingLinkProps) => {
+    return surroundingNavLink ? (
+      <NavLink height="100%" to={nav}>
+        {children}
+      </NavLink>
+    ) : (
+      <Box height="100%">{children}</Box>
+    );
   };
 
   const navButton = onSubmit == null;
@@ -127,6 +110,7 @@ export const TicketCard = ({
       key={event.id}
       _hover={{ transform: 'scale(1.02)' }}
       borderRadius={{ base: '1rem', md: '6xl' }}
+      h="full"
       m="0px"
       maxW="320px"
       p="0px"
@@ -140,7 +124,7 @@ export const TicketCard = ({
       transition="transform 0.2s"
     >
       <SurroundingLink>
-        <Box m="20px" position="relative">
+        <Box height="full" m="20px" position="relative">
           <ChakraImage
             alt={event.name}
             border="0px"
@@ -152,20 +136,33 @@ export const TicketCard = ({
           />
 
           {event.numTickets === 'unlimited' ? (
-            <></>
+            <>
+              <Badge
+                borderRadius="full"
+                p={2}
+                position="absolute"
+                right="5"
+                top="25"
+                variant="gray"
+                //   border="1px solid black"
+                color="grey"
+              >
+                ∞ of {event.numTickets} available
+              </Badge>
+            </>
           ) : (
             <>
               {event.numTickets === '0' ? (
                 <>
                   <Badge
-                    p={2}
-                    position="absolute"
-                    right="5"
-                    rounded="lg"
-                    top="25"
-                    variant="gray"
-                    //   border="1px solid black"
+                    borderRadius="full"
                     color="grey"
+                    fontSize="2xs"
+                    p={0.5}
+                    position="absolute"
+                    right="3"
+                    top="15"
+                    variant="gray"
                   >
                     Sold out
                   </Badge>
@@ -178,7 +175,6 @@ export const TicketCard = ({
                   p={0.5}
                   position="absolute"
                   right="3"
-                  rounded="lg"
                   top="15"
                   variant="gray"
                 >
@@ -202,9 +198,11 @@ export const TicketCard = ({
             </Text>
             <Text align="left" color="black" fontSize="sm" mt="5px">
               {event.description}
+              {/* sdfkal j udasfljkhdh ijoadsijkou rfhadijkls fjklhadshijklf asdhjklfh klajdshf
+              oikadshfklj hadskljf halksdjhfl jkh */}
             </Text>
           </Box>
-          {amount ? (
+          {amount && event.numTickets !== '0' && event.numTickets !== '1' ? (
             <TicketIncrementer
               amount={amount}
               decrementAmount={decrementAmount}
@@ -213,8 +211,10 @@ export const TicketCard = ({
           ) : null}
           {navButton ? (
             <>
-              <NavLink to={nav}>
-                <Button mt="2" w="100%">
+              <Box h="14"></Box>
+              <NavLink display="flex" flexDirection="column" height="100%" to={nav}>
+                <Box flexGrow={1} />
+                <Button bottom="35" left="0" mt="2" position="absolute" w="100%">
                   {' '}
                   Browse Event
                 </Button>
@@ -222,9 +222,19 @@ export const TicketCard = ({
             </>
           ) : (
             <>
-              <Button mt="5" w="100%" onClick={onSubmit}>
-                {' '}
-                Buy for {event.price} NEAR
+              <Box h="14"></Box>
+              <Button
+                bottom="35"
+                isDisabled={event.numTickets === '0'}
+                left="0"
+                mt="2"
+                position="absolute"
+                w="100%"
+                onClick={() => {
+                  onSubmit(event, amount);
+                }}
+              >
+                Buy for {event.price * amount} NEAR
               </Button>
             </>
           )}

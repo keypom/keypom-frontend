@@ -76,9 +76,9 @@ export const VerifyModal = ({ isOpen, onClose, event }: VerifyModalProps) => {
       const meta: EventDropMetadata = JSON.parse(dropData.drop_config.metadata);
 
       const keyinfoEventId = meta.ticketInfo?.eventId;
-      // if (keyinfoEventId !== eventId) {
-      //   console.log('Event ID mismatch', keyinfoEventId, eventId);
-      // }
+      if (keyinfoEventId !== eventId) {
+        console.error('Event ID mismatch', keyinfoEventId, eventId);
+      }
       console.log('keyinfoeventID: ', keyinfoEventId);
       const drop = await keypomInstance.getEventDrop({ accountId, eventId: keyinfoEventId });
 

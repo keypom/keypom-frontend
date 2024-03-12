@@ -98,7 +98,7 @@ export const DROP_TYPE_ITEMS: MenuItemProps[] = [
 
 export const GALLERY_PRICE_ITEMS: MenuItemProps[] = [
   {
-    label: 'NEAR',
+    label: 'Any',
   },
   {
     label: '<20',
@@ -215,11 +215,11 @@ export const SORT_MENU_ITEMS: MenuItemProps[] = [
   //   // color: 'gray.600',
   // },
   {
-    label: 'Tickets ascending',
+    label: 'ascending',
     // color: 'gray.600',
   },
   {
-    label: 'Tickets descending',
+    label: 'descending',
     // color: 'gray.600',
   },
 ];

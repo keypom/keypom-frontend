@@ -24,6 +24,7 @@ import { TicketCard } from '@/features/gallery/components/TicketCard';
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
 import { type EventDropMetadata } from '@/lib/eventsHelpers';
 import keypomInstance from '@/lib/keypom';
+import { KEYPOM_EVENTS_CONTRACT } from '@/constants/common';
 
 export default function Event() {
   const params = useParams();
@@ -36,7 +37,6 @@ export default function Event() {
   const [noDrop, setNoDrop] = useState(false);
   const [input, setInput] = useState('');
   const [email, setEmail] = useState('');
-  const [ticketAmount, setTicketAmount] = useState([]);
   const [ticketList, setTicketList] = useState([]);
   const [areTicketsLoading, setAreTicketsLoading] = useState(true);
   const [doKeyModal, setDoKeyModal] = useState(false);
@@ -44,17 +44,15 @@ export default function Event() {
 
   const { selector } = useAuthWalletContext();
 
-  const changeTicketAmount = (newAmount) => {
-    setTicketAmount(newAmount);
-  }
-
   // split up params into two parts, the accountID and the eventID'
   const eventURL = params.eventID.split(':');
   const accountId = eventURL[0];
   const eventId = eventURL[1];
 
-  // modal
+  // purchase modal
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const [ticketBeingPurchased, setTicketBeingPurchased] = useState(null);
+  const [ticketAmount, setTicketAmount] = useState(1);
 
   // verify
   const { isOpen: verifyIsOpen, onOpen: verifyOnOpen, onClose: verifyOnClose } = useDisclosure();
@@ -65,6 +63,24 @@ export default function Event() {
   // const privateKeyExample =
   //   'ed25519:5KGpNrFRuiesHr6kMTinyEr9w33CDESdi5B4mpWJngaHY1S2kQU8mdy2J5Hr9o1p7yUWYFNrLEWfJsaix1R7tadA';
   // test getting the public key from the private key
+
+  const [wallet, setWallet] = useState(null);
+
+  useEffect(() => {
+    async function fetchWallet() {
+      if (!selector) return;
+      try {
+        const wallet = await selector.wallet();
+        setWallet(wallet);
+      } catch (error) {
+        console.error('Error fetching wallet:', error);
+        // Handle the error appropriately
+      }
+    }
+
+    fetchWallet();
+  }, [selector]);
+
 
   useEffect(() => {
     if (!keypomInstance || !eventId || !accountId) return;
@@ -189,27 +205,11 @@ export default function Event() {
   const mapHref = 'https://www.google.com/maps/search/' + String(res);
 
   // purchase modal
-
-  const incrementAmount = () => {
-    changeTicketAmount((prevAmount) => {
-      // Create a new array from the previous amount
-      const newAmount = [...prevAmount];
-      newAmount[cardArrayIndex]++;
-      return newAmount;
-    });
-  };
-
-  const decrementAmount = () => {
-    if (amount[cardArrayIndex] <= 0) return;
-    changeTicketAmount((prevAmount) => {
-      // Create a new array from the previous amount
-      const newAmount = [...prevAmount];
-      newAmount[cardArrayIndex]--;
-      return newAmount;
-    });
-  };
-
-  const OpenPurchaseModal = () => {
+     
+  const OpenPurchaseModal = (ticket, ticketAmount) => {
+    console.log('ticket: ', ticket);
+    setTicketBeingPurchased(ticket);
+    setTicketAmount(ticketAmount);
     setEmail('');
     onOpen();
   };
@@ -220,10 +220,198 @@ export default function Event() {
     onClose();
   };
 
-  const PurchaseTicket = (e) => {
-    e.preventDefault();
-    // sell the ticket with the secret key, give toast, and sell
+  function uint8ArrayToBase64(u8Arr: Uint8Array): string {
+    const string = u8Arr.reduce(
+      (data, byte) => data + String.fromCharCode(byte),
+      "",
+    );
+    return btoa(string);
+  }
+
+  async function encryptWithPublicKey(
+      data: string,
+      publicKey: any,
+    ): Promise<string> {
+      const encoded = new TextEncoder().encode(data);
+      const encrypted = await window.crypto.subtle.encrypt(
+        {
+          name: "RSA-OAEP",
+        },
+        publicKey,
+        encoded,
+      );
+    
+      return uint8ArrayToBase64(new Uint8Array(encrypted));
+    }
+
+    async function base64ToPublicKey(base64Key: string) {
+      // Decode the Base64 string to an ArrayBuffer
+      const binaryString = atob(base64Key);
+      const len = binaryString.length;
+      const bytes = new Uint8Array(len);
+      for (let i = 0; i < len; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+    
+      // Import the key from the ArrayBuffer
+      const publicKey = await window.crypto.subtle.importKey(
+        "spki",
+        bytes.buffer,
+        {
+          name: "RSA-OAEP",
+          hash: { name: "SHA-256" },
+        },
+        true,
+        ["encrypt"],
+      );
+    
+      return publicKey;
+    }
+
+  const PurchaseTicket = async (questionValues, purchaseType) => {
     navigate('./');
+
+    console.log('sasaticket: ', ticketBeingPurchased);
+    console.log('sasaamount: ', ticketAmount);
+    console.log('sasaemail: ', email);
+    console.log('sasaquestionValues: ', questionValues);
+    console.log('sasapurchaseType: ', purchaseType);
+
+    const dropData = await keypomInstance.getTicketDropInformation({ dropID: ticketBeingPurchased.id });
+
+    console.log('sasadropData: ', dropData);
+
+    // parse dropData's metadata to get eventId
+    const meta: EventDropMetadata = JSON.parse(dropData.drop_config.metadata);
+
+    console.log('sasameta: ', meta);
+
+    const keyinfoEventId = meta.eventId;
+
+    console.log('sasakeyinfoeventID: ', keyinfoEventId);
+
+    const drop = await keypomInstance.getEventInfo({ accountId: dropData.funder_id, eventId:keyinfoEventId });
+
+    const publicKeyBase64 = drop.pubKey;
+
+    const publicKey = await base64ToPublicKey(publicKeyBase64);
+
+    console.log('sasapublicKey: ', publicKey);
+    
+    console.log('sasakeyinfodrop: ', drop);
+    //encrypt the questionValues
+    
+    console.log('sasaquestionValues: ', questionValues);
+
+    console.log('sasaquestionValues: ', JSON.stringify(questionValues));
+
+    const data = JSON.stringify(questionValues);
+
+    const encryptedValues = await encryptWithPublicKey(
+      data,
+      publicKey
+    )
+
+    console.log('sasaencryptedValues: ', encryptedValues);
+
+    //fold the userinfo into a pretty json.stringify
+    let userInfo = {
+      email: email,
+      answers: encryptedValues,
+      ticketAmount: ticketAmount,
+      dropID: ticketBeingPurchased.id,
+    };
+
+    console.log('sasauserInfo: ', userInfo);
+        
+    const userInfoJson = JSON.stringify(userInfo);
+
+    console.log('sasauserInfosds: ', userInfoJson);
+
+    if(purchaseType == "free"){
+      const response = await fetch('http://localhost:8787/stripe/create-account', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userInfo,
+        }),
+      });
+      if (response.ok) {
+        // Account created successfully
+        const responseBody = await response.json();
+        const accountLinkUrl = responseBody.accountLinkUrl;
+        // set('STRIPE_ACCOUNT_ID', responseBody.accountId);
+        // set('STRIPE_ACCOUNT_LINK_URL', accountLinkUrl);
+        window.location.href = accountLinkUrl;
+      } else {
+        // Error creating account
+        console.log(response.json());
+      }
+    }
+    else if (purchaseType == "near") {
+      await wallet.signAndSendTransaction({
+        signerId: accountId,
+        receiverId: KEYPOM_EVENTS_CONTRACT,
+        actions: [
+          {
+            type: 'FunctionCall',
+            params: {
+              methodName: 'delete_keys',
+              args: { drop_id: 'tester' },
+              gas: '300000000000000',
+              deposit: '0',
+            },
+          },
+        ],
+      });
+      const response = await fetch('http://localhost:8787/stripe/create-account', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userInfo,
+        }),
+      });
+      if (response.ok) {
+        // Account created successfully
+        const responseBody = await response.json();
+        const accountLinkUrl = responseBody.accountLinkUrl;
+        // set('STRIPE_ACCOUNT_ID', responseBody.accountId);
+        // set('STRIPE_ACCOUNT_LINK_URL', accountLinkUrl);
+        window.location.href = accountLinkUrl;
+      } else {
+        // Error creating account
+        console.log(response.json());
+      }
+    }
+    else if (purchaseType == "stripe") {
+      const response = await fetch('http://localhost:8787/stripe/create-account', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userInfo,
+        }),
+      });
+      if (response.ok) {
+        // Account created successfully
+        const responseBody = await response.json();
+        const accountLinkUrl = responseBody.accountLinkUrl;
+        // set('STRIPE_ACCOUNT_ID', responseBody.accountId);
+        // set('STRIPE_ACCOUNT_LINK_URL', accountLinkUrl);
+        window.location.href = accountLinkUrl;
+      } else {
+        // Error creating account
+        console.log(response.json());
+      }
+    }
+    
+
+    //put placeholder here for the purchase
 
     const buySuccessful = Math.random();
     if (buySuccessful <= 0.5) {
@@ -356,14 +544,6 @@ export default function Event() {
   }, [keypomInstance, eventId, accountId]);
 
   useEffect(() => {
-    if (ticketList.length > 0) {
-      const initialAmount = ticketList.map(() => 1);
-      console.log('initialAmount: ', initialAmount);
-      setTicketAmount(initialAmount);
-    }
-  }, [ticketList]);
-
-  useEffect(() => {
     if (eventId === '') navigate('/drops');
     if (!accountId) return;
     if (!eventId) return;
@@ -386,7 +566,7 @@ export default function Event() {
         }
         console.log('swaf2', dateString)
         console.log('swaf3', meta)
-        console.log('swaf4', formatDate(new Date(meta.date.date)))
+        // console.log('swaf4', formatDate(new Date(meta.date.date)))
 
         setEvent({
           name: meta.name || 'Untitled',
@@ -439,6 +619,7 @@ export default function Event() {
 
       <Box position="relative">
         <ChakraImage
+          pt="0"
           alt={event.title}
           height="300"
           objectFit="cover"
@@ -453,6 +634,14 @@ export default function Event() {
       <Text>Event ID: {eventID}</Text> */}
 
       {/* <Box backgroundColor={'white'} h="100vh" left="0" ml="0" position="absolute" w="100vw"></Box> */}
+      <Heading
+          as="h2"
+          color="black"
+          my="5"
+          size="2xl"
+        >
+          {event.name}
+        </Heading>
       <Stack
         align="start"
         // bg="linear-gradient(180deg, rgba(255, 207, 234, 0) 0%, #30c9f34b 100%)"
@@ -461,14 +650,7 @@ export default function Event() {
         p="0"
       >
         <Box flex="2" mr="20" textAlign="left">
-        <Heading
-          as="h2"
-          color="black"
-          my="5"
-          size="2xl"
-        >
-          {event.name}
-        </Heading>
+        
         <Text
               as="h2"
               color="black.800"
@@ -507,6 +689,7 @@ export default function Event() {
               fontWeight="bold"
               my="4px"
               textAlign="left"
+              mt="12px"
             >
             Date
           </Text>
@@ -521,47 +704,43 @@ export default function Event() {
       <Heading as="h3" my="5" size="lg">
         Tickets
       </Heading>
-      <SimpleGrid minChildWidth="250px" spacing={5}>
-        {!areTicketsLoading
-          ? ticketList.map((ticket) => (
-              <TicketCard
-                key={ticket.id}
-                amount={ticketAmount[ticket.ticketIndex]}
-                changeTicketAmount={
-                  changeTicketAmount
-                }
-                decrementAmount={decrementAmount}
-                event={ticket}
-                incrementAmount={incrementAmount}
-                loading={false}
-                surroundingNavLink={false}
-                onSubmit={OpenPurchaseModal}
-              />
-            ))
-          : loadingdata.map((ticket) => (
-              <TicketCard
-                key={loadingdata.id}
-                cardArrayIndex={loadingdata.id}
-                amount={ticketAmount[loadingdata.id]}
-                event={loadingdata[0]}
-                loading={true}
-                surroundingNavLink={false}
-                onSubmit={OpenPurchaseModal}
-              />
-            ))}
-      </SimpleGrid>
+      <Box h="full" mt="0" p="0px" pb={{ base: '6', md: '16' }} w="full">
+        <SimpleGrid minChildWidth="280px" spacing={5}>
+          {!areTicketsLoading
+            ? ticketList.map((ticket) => (
+                <TicketCard
+                  key={ticket.id}
+                  event={ticket}
+                  loading={false}
+                  surroundingNavLink={false}
+                  onSubmit={OpenPurchaseModal}
+                />
+              ))
+            : loadingdata.map((ticket) => (
+                <TicketCard
+                  key={loadingdata.id}
+                  event={loadingdata[0]}
+                  loading={true}
+                  surroundingNavLink={false}
+                  onSubmit={OpenPurchaseModal}
+                />
+              ))}
+        </SimpleGrid>
+      </Box>
 
       <PurchaseModal
         amount={ticketAmount}
-        decrementAmount={decrementAmount}
+        setAmount={setTicketAmount}
         email={email}
-        event={event}
-        incrementAmount={incrementAmount}
+        ticket={ticketBeingPurchased}
         isOpen={isOpen}
         setEmail={setEmail}
         onClose={ClosePurchaseModal}
         onSubmit={PurchaseTicket}
+        event={event}
+        selector={selector}
       />
+
       {doKeyModal && sellDropInfo != null && ( 
         <SellModal
         event={sellDropInfo}

@@ -26,9 +26,12 @@ export const GalleryGrid = ({ loading = false, data = [], ...props }: GalleryGri
 
   const temp = loading ? [...loadingdata] : [...data];
 
+  // print temp navurl
+  console.log('temp navurl', temp[0].navurl);
+
   return (
     <>
-      <Box h="full" mt="0" p="20px" pb={{ base: '6', md: '16' }} w="full">
+      <Box h="full" mt="5" p="0px" pb="0px" w="full">
         {(temp === undefined || temp.length === 0) && (
           <Box textAlign="center" w="full">
             <Text color="black.800" fontSize="xl" fontWeight="medium" mt="10">
@@ -36,7 +39,7 @@ export const GalleryGrid = ({ loading = false, data = [], ...props }: GalleryGri
             </Text>
           </Box>
         )}
-        <SimpleGrid minChildWidth="250px" spacing={5}>
+        <SimpleGrid minChildWidth="280px" spacing={5}>
           {temp?.map((event) => (
             <TicketCard key={event.id} event={event} loading={loading} surroundingNavLink={true} />
           ))}

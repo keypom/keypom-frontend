@@ -287,7 +287,7 @@ export default function AllDrops({ pageTitle, hasDateFilter, ctaButtonLabel }: A
       filteredDrops.map(async (drop) => await keypomInstance.getDropData({ drop })),
     );
 
-    if (dropData.length !== 0) {
+    if (filteredDataItems.length === 0) {
       setFilteredDataItems(dropData);
     }
     setCurPage(0);

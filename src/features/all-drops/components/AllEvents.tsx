@@ -220,7 +220,7 @@ export default function AllEvents({ pageTitle, hasDateFilter, ctaButtonLabel }: 
         name: truncateAddress(event.name || 'Untitled', 'end', 48),
         media: event.artwork,
         dateCreated: formatDate(new Date(parseInt(event.dateCreated))), // Ensure drop has dateCreated or adjust accordingly
-        description: truncateAddress(event.description, 'end', 32),
+        description: truncateAddress(event.description, 'end', 12),
         eventId: event.id,
       };
     });

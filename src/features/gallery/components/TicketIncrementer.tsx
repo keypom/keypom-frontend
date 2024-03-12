@@ -13,7 +13,7 @@ export const TicketIncrementer = ({
 }: TicketIncrementerProps) => {
   return (
     <>
-      <HStack mt="5">
+      <HStack mt="2">
         <Button type="button" variant="secondary" w="7px" onClick={decrementAmount}>
           -
         </Button>
