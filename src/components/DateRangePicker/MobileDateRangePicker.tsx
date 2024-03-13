@@ -144,10 +144,13 @@ interface CustomDateRangePickerProps {
   ctaComponent?: React.ReactNode;
   startDate: Date | null;
   endDate: Date | null;
+  minDate: Date | null;
+  maxDate: Date | null;
   startTime?: string;
   endTime?: string;
   error?: FieldError;
   openDirection?: string;
+  scale?: string;
 }
 
 function CustomDateRangePickerMobile({
@@ -160,7 +163,10 @@ function CustomDateRangePickerMobile({
   ctaComponent,
   isDatePickerOpen,
   setIsDatePickerOpen,
+  minDate,
+  maxDate,
   openDirection = 'top-start',
+  scale = '1',
 }: CustomDateRangePickerProps) {
   const [startTimeText, setStartTimeText] = useState<string | undefined>();
   const [startTimeError, setStartTimeError] = useState(false);
@@ -200,35 +206,45 @@ function CustomDateRangePickerMobile({
 
   return (
     <>
-      <DatePicker
-        selectsRange
-        showTimeInput
-        customTimeInput={
-          <CustomFooter
-            endTime={endTimeText}
-            endTimeError={endTimeError}
-            startTime={startTimeText}
-            startTimeError={startTimeError}
-            onApplyClick={handleApplyClick}
-            onBlurEndTime={onBlurEndTime}
-            onBlurStartTime={onBlurStartTime}
-            onCancelClick={handleCancelClick}
-            onChangeEndTime={onChangeEndTime}
-            onChangeStartTime={onChangeStartTime}
-          />
-        }
-        dateFormat="MM/dd/yyyy h:mm aa"
-        endDate={endDate}
-        minDate={new Date()}
-        monthsShown={1}
-        open={isDatePickerOpen}
-        popperPlacement={openDirection}
-        startDate={startDate}
-        onCalendarClose={() => {
-          setIsDatePickerOpen(false);
+      <div
+        style={{
+          transform: scale === '1' ? undefined : `scale(${scale})`,
+          transformOrigin: 'top right',
+          zIndex: 1000,
+          height: 0,
         }}
-        onChange={handleDateChange}
-      />
+      >
+        <DatePicker
+          selectsRange
+          showTimeInput
+          customTimeInput={
+            <CustomFooter
+              endTime={endTimeText}
+              endTimeError={endTimeError}
+              startTime={startTimeText}
+              startTimeError={startTimeError}
+              onApplyClick={handleApplyClick}
+              onBlurEndTime={onBlurEndTime}
+              onBlurStartTime={onBlurStartTime}
+              onCancelClick={handleCancelClick}
+              onChangeEndTime={onChangeEndTime}
+              onChangeStartTime={onChangeStartTime}
+            />
+          }
+          dateFormat="MM/dd/yyyy h:mm aa"
+          endDate={endDate}
+          maxDate={maxDate}
+          minDate={minDate || new Date()}
+          monthsShown={1}
+          open={isDatePickerOpen}
+          popperPlacement={openDirection}
+          startDate={startDate}
+          onCalendarClose={() => {
+            setIsDatePickerOpen(false);
+          }}
+          onChange={handleDateChange}
+        />
+      </div>
       {ctaComponent}
     </>
   );

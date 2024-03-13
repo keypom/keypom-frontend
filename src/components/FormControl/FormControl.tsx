@@ -13,6 +13,7 @@ export interface FormControlProps extends CFormControlProps {
   helperText?: string;
   errorText?: string;
   labelProps?: FormLabelProps;
+  helperTextProps?: Record<string, unknown>;
 }
 
 export const FormControlComponent = ({
@@ -21,6 +22,7 @@ export const FormControlComponent = ({
   errorText,
   children,
   labelProps,
+  helperTextProps,
   ...props
 }: PropsWithChildren<FormControlProps>) => {
   return (
@@ -29,7 +31,7 @@ export const FormControlComponent = ({
         {label}
       </FormLabel>
       {helperText && (
-        <Text color="gray.400" mt="0.5">
+        <Text color="gray.400" mt="0.5" {...helperTextProps}>
           {helperText}
         </Text>
       )}

@@ -10,6 +10,7 @@ import {
   VStack,
 } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
+import { parse, isAfter } from 'date-fns';
 
 import { FormControlComponent } from '@/components/FormControl';
 import CustomDateRangePicker from '@/components/DateRangePicker/DateRangePicker';
@@ -23,14 +24,6 @@ import TicketPriceSelector from './TicketPriceSelector';
 
 import { eventDateToPlaceholder } from '.';
 
-interface ModifyTicketModalProps {
-  isOpen: boolean;
-  onClose: (shouldAdd: boolean, editedTicket?: TicketInfoFormMetadata) => void;
-  currentTicket: TicketInfoFormMetadata;
-  setCurrentTicket: (ticket: TicketInfoFormMetadata) => void;
-  editedTicket?: TicketInfoFormMetadata;
-}
-
 const defaultErrors = {
   name: '',
   description: '',
@@ -41,9 +34,31 @@ const defaultErrors = {
   artwork: '',
 };
 
+export const isValidNonNegativeNumber = (value) => {
+  return /^\d*\.?\d+$/.test(value);
+};
+
+// Helper function to parse time strings
+const parseTime = (timeString) => {
+  // Assuming timeString is in format "XX:XX AM" or "XX:XX PM"
+  return parse(timeString, 'hh:mm aa', new Date());
+};
+
+interface ModifyTicketModalProps {
+  isOpen: boolean;
+  onClose: (shouldAdd: boolean, editedTicket?: TicketInfoFormMetadata) => void;
+  eventDate: EventDate;
+  allTickets: TicketInfoFormMetadata[];
+  currentTicket: TicketInfoFormMetadata;
+  setCurrentTicket: (ticket: TicketInfoFormMetadata) => void;
+  editedTicket?: TicketInfoFormMetadata;
+}
+
 export const ModifyTicketModal = ({
   isOpen,
   onClose,
+  eventDate,
+  allTickets,
   currentTicket,
   setCurrentTicket,
   editedTicket,
@@ -64,6 +79,11 @@ export const ModifyTicketModal = ({
       isErr = true;
     }
 
+    if (allTickets.some((ticket) => ticket.name === currentTicket.name)) {
+      newErrors.name = 'Name must be unique';
+      isErr = true;
+    }
+
     if (!currentTicket.description) {
       newErrors.description = 'Description is required';
       isErr = true;
@@ -79,12 +99,33 @@ export const ModifyTicketModal = ({
       isErr = true;
     }
 
+    if (currentTicket.salesValidThrough.endTime && currentTicket.salesValidThrough.startTime) {
+      const startTime = parseTime(currentTicket.salesValidThrough.startTime);
+      const endTime = parseTime(currentTicket.salesValidThrough.endTime);
+      console.log('startTime', startTime, 'endTime', endTime);
+
+      if (!isAfter(endTime, startTime)) {
+        newErrors.salesValidThrough = 'End time must be greater than start time';
+        isErr = true;
+      }
+    }
+
+    if (currentTicket.passValidThrough.endTime && currentTicket.passValidThrough.startTime) {
+      const startTime = parseTime(currentTicket.passValidThrough.startTime);
+      const endTime = parseTime(currentTicket.passValidThrough.endTime);
+
+      if (!isAfter(endTime, startTime)) {
+        newErrors.salesValidThrough = 'End time must be greater than start time';
+        isErr = true;
+      }
+    }
+
     if (currentTicket.maxSupply < 1) {
       newErrors.maxSupply = 'Max supply is required';
       isErr = true;
     }
 
-    if (!parseInt(currentTicket.price)) {
+    if (!isValidNonNegativeNumber(currentTicket.price)) {
       newErrors.price = 'Price is required';
       isErr = true;
     }
@@ -104,15 +145,23 @@ export const ModifyTicketModal = ({
   };
 
   const datePickerCTA = (label: string, errorField: string, dateObject: EventDate, onClick) => (
-    <FormControlComponent errorText={errorField} label={label}>
+    <FormControlComponent
+      errorText={errorField}
+      label={label}
+      labelProps={{ fontSize: { base: 'xs', md: 'sm' } }}
+      marginBottom="4 !important"
+    >
       <Input
         readOnly
+        borderRadius="5xl"
         isInvalid={!!errorField}
         placeholder={eventDateToPlaceholder('Event date', dateObject)}
+        size="sm"
         style={{ cursor: 'pointer' }}
         sx={{
           '::placeholder': {
             color: 'gray.400', // Placeholder text color
+            fontSize: 'xs',
           },
           _invalid: {
             borderColor: 'red.300',
@@ -160,6 +209,13 @@ export const ModifyTicketModal = ({
     };
   }, [currentTicket.artwork]);
 
+  useEffect(() => {
+    // Reset errors when the modal is closed (i.e., isOpen changes from true to false)
+    if (!isOpen) {
+      setErrors(defaultErrors);
+    }
+  }, [isOpen]);
+
   const onSelectFile = (e) => {
     if (!e.target.files || e.target.files.length === 0) {
       setCurrentTicket({ ...currentTicket, artwork: undefined });
@@ -173,22 +229,29 @@ export const ModifyTicketModal = ({
     <Modal
       isOpen={isOpen}
       size="xl"
-      transform="scale(0.85)"
-      transformOrigin="center"
       onClose={() => {
         onClose(false, editedTicket);
       }}
     >
       <ModalOverlay backdropFilter="blur(0px)" bg="blackAlpha.600" opacity="1" />
       <ModalContent maxH="90vh" overflowY="auto" padding={6} paddingY={1}>
-        <VStack align="left" spacing={2} textAlign="left">
-          <FormControlComponent errorText={errors.name} label="Ticket name*">
+        <VStack align="left" spacing={0} textAlign="left">
+          <FormControlComponent
+            errorText={errors.name}
+            label="Ticket name*"
+            labelProps={{ fontSize: { base: 'xs', md: 'sm' } }}
+            marginBottom="4"
+          >
             <Input
+              borderRadius="5xl"
+              height="35px"
               isInvalid={!!errors.name}
               placeholder="Red Wedding VIP Ticket"
+              size="sm"
               sx={{
                 '::placeholder': {
                   color: 'gray.400', // Placeholder text color
+                  fontSize: 'xs',
                 },
               }}
               type="text"
@@ -199,15 +262,23 @@ export const ModifyTicketModal = ({
               }}
             />
           </FormControlComponent>
-          <FormControlComponent errorText={errors.description} label="Description*">
+          <FormControlComponent
+            errorText={errors.description}
+            label="Description*"
+            labelProps={{ fontSize: { base: 'xs', md: 'sm' } }}
+            marginBottom="4 !important"
+          >
             <Textarea
-              height="100px"
+              borderRadius="5xl"
+              height="80px"
               isInvalid={!!errors.description}
               placeholder="129 West 81st Street, Apartment 5A"
+              size="sm"
               sx={{
                 '::placeholder': {
                   textAlign: 'top',
                   color: 'gray.400', // Placeholder text color
+                  fontSize: 'xs',
                 },
               }}
               value={currentTicket.description}
@@ -230,7 +301,9 @@ export const ModifyTicketModal = ({
               endDate={currentTicket.salesValidThrough.endDate}
               endTime={currentTicket.salesValidThrough.endTime}
               isDatePickerOpen={isSalesValidModalOpen}
-              openDirection="top"
+              maxDate={eventDate.endDate}
+              minDate={new Date()}
+              scale="0.85"
               setIsDatePickerOpen={setIsSalesValidModalOpen}
               startDate={currentTicket.salesValidThrough.startDate}
               startTime={currentTicket.salesValidThrough.startTime}
@@ -261,6 +334,9 @@ export const ModifyTicketModal = ({
               endDate={currentTicket.salesValidThrough.endDate}
               endTime={currentTicket.salesValidThrough.endTime}
               isDatePickerOpen={isSalesValidModalOpen}
+              maxDate={eventDate.endDate}
+              minDate={new Date()}
+              scale="0.85"
               setIsDatePickerOpen={setIsSalesValidModalOpen}
               startDate={currentTicket.salesValidThrough.startDate}
               startTime={currentTicket.salesValidThrough.startTime}
@@ -291,6 +367,9 @@ export const ModifyTicketModal = ({
               endDate={currentTicket.passValidThrough.endDate}
               endTime={currentTicket.passValidThrough.endTime}
               isDatePickerOpen={isPassValidModalOpen}
+              maxDate={eventDate.endDate}
+              minDate={eventDate.startDate}
+              scale="0.85"
               setIsDatePickerOpen={setIsPassValidModalOpen}
               startDate={currentTicket.passValidThrough.startDate}
               startTime={currentTicket.passValidThrough.startTime}
@@ -321,6 +400,9 @@ export const ModifyTicketModal = ({
               endDate={currentTicket.passValidThrough.endDate}
               endTime={currentTicket.passValidThrough.endTime}
               isDatePickerOpen={isPassValidModalOpen}
+              maxDate={eventDate.endDate}
+              minDate={eventDate.startDate}
+              scale="0.85"
               setIsDatePickerOpen={setIsPassValidModalOpen}
               startDate={currentTicket.passValidThrough.startDate}
               startTime={currentTicket.passValidThrough.startTime}
@@ -341,14 +423,21 @@ export const ModifyTicketModal = ({
           <FormControlComponent
             errorText={errors.maxSupply}
             helperText="The maximum number of guests that can purchase this ticket type"
+            helperTextProps={{ fontSize: { base: 'xs', md: 'xs' }, marginY: '-1' }}
             label="Number of tickets*"
+            labelProps={{ fontSize: { base: 'xs', md: 'sm' } }}
+            marginBottom="4 !important"
           >
             <Input
+              borderRadius="5xl"
               isInvalid={!!errors.maxSupply}
+              marginY="0"
               placeholder="Number of tickets"
+              size="sm"
               sx={{
                 '::placeholder': {
                   color: 'gray.400', // Placeholder text color
+                  fontSize: 'xs',
                 },
               }}
               type="number"
@@ -369,9 +458,14 @@ export const ModifyTicketModal = ({
             errors={errors}
             setCurrentTicket={setCurrentTicket}
           />
-          <FormControlComponent label="Ticket artwork*">
+          <FormControlComponent
+            label="Ticket artwork*"
+            labelProps={{ fontSize: { base: 'xs', md: 'sm' } }}
+            marginBottom="4 !important"
+          >
             <ImageFileInput
               accept=" image/jpeg, image/png, image/gif"
+              ctaText="Upload artwork"
               errorMessage={errors.artwork}
               isInvalid={!!errors.artwork}
               preview={preview}

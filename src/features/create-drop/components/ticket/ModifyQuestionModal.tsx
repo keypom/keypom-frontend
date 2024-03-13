@@ -1,6 +1,7 @@
 import { Button, Input, Modal, ModalContent, ModalOverlay, Text, VStack } from '@chakra-ui/react';
 
 interface ModifyQuestionModalProps {
+  allQuestions: Array<{ id: string; isRequired: boolean }>;
   isOpen: boolean;
   onClose: (shouldAdd: boolean, originalQuestion?: string) => void;
   userInput: string;
@@ -9,12 +10,14 @@ interface ModifyQuestionModalProps {
 }
 
 export const ModifyQuestionModal = ({
+  allQuestions,
   isOpen,
   onClose,
   userInput,
   setUserInput,
   originalQuestion,
 }: ModifyQuestionModalProps) => {
+  const canAddQuestion = !allQuestions.some((question) => question.id === userInput);
   return (
     <Modal
       isOpen={isOpen}
@@ -45,6 +48,7 @@ export const ModifyQuestionModal = ({
           <VStack align="left" spacing={3} textAlign="left">
             <Button
               autoFocus={false}
+              isDisabled={!canAddQuestion}
               variant="primary"
               width="full"
               onClick={() => {

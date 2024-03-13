@@ -151,6 +151,7 @@ const EventInfoForm = (props: EventStepFormProps) => {
           },
         }}
         type="text"
+        width="100%"
         onClick={() => {
           setIsDatePickerOpen(true);
         }}
@@ -222,6 +223,8 @@ const EventInfoForm = (props: EventStepFormProps) => {
             endDate={formData.date.value.endDate}
             endTime={formData.date.value.endTime}
             isDatePickerOpen={isDatePickerOpen}
+            maxDate={null}
+            minDate={new Date()}
             setIsDatePickerOpen={setIsDatePickerOpen}
             startDate={formData.date.value.startDate}
             startTime={formData.date.value.startTime}
@@ -245,6 +248,9 @@ const EventInfoForm = (props: EventStepFormProps) => {
             endDate={formData.date.value.endDate}
             endTime={formData.date.value.endTime}
             isDatePickerOpen={isDatePickerOpen}
+            maxDate={null}
+            minDate={new Date()}
+            openDirection="top-right"
             setIsDatePickerOpen={setIsDatePickerOpen}
             startDate={formData.date.value.startDate}
             startTime={formData.date.value.startTime}

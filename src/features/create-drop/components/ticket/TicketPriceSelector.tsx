@@ -1,4 +1,5 @@
 import { Box, HStack, Input, Text, VStack } from '@chakra-ui/react';
+import { useState } from 'react';
 
 import { FormControlComponent } from '@/components/FormControl';
 
@@ -15,73 +16,90 @@ export default function TicketPriceSelector({
   currentTicket,
   setCurrentTicket,
 }: TicketPriceSelectorProps) {
+  const [customPrice, setCustomPrice] = useState('');
   const presetPrices = [0, 5, 10, 50];
 
+  const handleCustomPriceSubmit = () => {
+    setCurrentTicket({ ...currentTicket, price: customPrice });
+  };
+
   const handlePresetPriceClick = (price: number) => {
+    setCustomPrice('');
     setCurrentTicket({ ...currentTicket, price: String(price) });
   };
 
-  const handleCustomPriceChange = (e: any) => {
-    setCurrentTicket({ ...currentTicket, price: e.target.value });
+  const handleCustomPriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newPrice = e.target.value;
+    setCustomPrice(newPrice);
   };
 
   return (
-    <FormControlComponent errorText={errors.price} label="Price per ticket (NEAR)*">
+    <FormControlComponent
+      errorText={errors.price}
+      label="Price per ticket (NEAR)*"
+      labelProps={{ fontSize: { base: 'xs', md: 'sm' } }}
+      marginBottom="4 !important"
+    >
       <VStack alignItems="flex-start">
         <HStack justifyContent="space-between" width="100%">
-          {presetPrices.map((price) => (
-            <Box
-              key={price}
-              alignItems="center"
-              border="2px solid transparent"
-              borderRadius="12px"
-              color={currentTicket.price === String(price) ? 'blue.500' : 'gray.500'}
-              display="flex"
-              height="40px"
-              justifyContent="center"
-              sx={{
-                bg:
-                  currentTicket.price === String(price)
-                    ? 'linear-gradient(to bottom, var(--chakra-colors-blue-100), var(--chakra-colors-blue-100)) padding-box, linear-gradient(0deg, rgba(255,207,234,1) 0%, rgba(182,232,247,1) 100%) border-box'
-                    : 'gray.100', // Selected item background
-                cursor: 'pointer',
-                ':hover': {
-                  background:
-                    'linear-gradient(to bottom, var(--chakra-colors-blue-100), var(--chakra-colors-blue-100)) padding-box, linear-gradient(0deg, rgba(255,207,234,1) 0%, rgba(182,232,247,1) 100%) border-box',
-                },
-              }}
-              width="15%"
-              onClick={() => {
-                handlePresetPriceClick(price);
-              }}
-            >
-              {price}
-            </Box>
-          ))}
+          <HStack width="75%">
+            {presetPrices.map((price) => (
+              <Box
+                key={price}
+                alignItems="center"
+                border="2px solid transparent"
+                borderRadius="5xl"
+                color={currentTicket.price === String(price) ? 'blue.500' : 'gray.500'}
+                display="flex"
+                fontSize="sm"
+                height="30px"
+                justifyContent="center"
+                sx={{
+                  bg:
+                    currentTicket.price === String(price)
+                      ? 'linear-gradient(to bottom, var(--chakra-colors-blue-100), var(--chakra-colors-blue-100)) padding-box, linear-gradient(0deg, rgba(255,207,234,1) 0%, rgba(182,232,247,1) 100%) border-box'
+                      : 'gray.100', // Selected item background
+                  cursor: 'pointer',
+                  ':hover': {
+                    background:
+                      'linear-gradient(to bottom, var(--chakra-colors-blue-100), var(--chakra-colors-blue-100)) padding-box, linear-gradient(0deg, rgba(255,207,234,1) 0%, rgba(182,232,247,1) 100%) border-box',
+                  },
+                }}
+                width="20%"
+                onClick={() => {
+                  handlePresetPriceClick(price);
+                }}
+              >
+                {price}
+              </Box>
+            ))}
+          </HStack>
           <Input
             key="custom"
             _hover={{
               borderColor: 'blue.500 !important', // Change to your preferred border color on hover
             }}
             border="2px solid transparent"
-            borderRadius="12px"
+            borderRadius="5xl"
             color={presetPrices.includes(Number(currentTicket.price)) ? 'gray.500' : 'blue.500'}
-            height="40px"
+            height="30px"
             id="customPriceInput"
             placeholder="Custom"
-            size="md"
+            size="sm"
             sx={{
               bg: !presetPrices.includes(Number(currentTicket.price))
                 ? 'linear-gradient(to bottom, var(--chakra-colors-blue-100), var(--chakra-colors-blue-100)) padding-box, linear-gradient(0deg, rgba(255,207,234,1) 0%, rgba(182,232,247,1) 100%) border-box'
                 : 'gray.100', // Selected item background
             }}
             textAlign="center"
-            value={presetPrices.includes(Number(currentTicket.price)) ? '' : currentTicket.price}
+            type="number"
+            value={customPrice}
             width="30%"
+            onBlur={handleCustomPriceSubmit}
             onChange={handleCustomPriceChange}
           />
         </HStack>
-        <Text color="gray.400" fontSize="sm" fontWeight="400">
+        <Text color="gray.400" fontSize="xs" fontWeight="400" marginTop="0 !important">
           {parseInt(currentTicket.price) > 0
             ? `You receive ${parseInt(currentTicket.price) - 0.15} NEAR. Buyer pays ${parseInt(
                 currentTicket.price,

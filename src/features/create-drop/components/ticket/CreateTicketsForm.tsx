@@ -1,7 +1,9 @@
 import {
   Box,
   Button,
+  Show,
   Heading,
+  Hide,
   HStack,
   Image,
   ModalContent,
@@ -24,8 +26,6 @@ import {
 } from '../../routes/CreateTicketDropPage';
 
 import { ModifyTicketModal } from './ModifyTicketModal';
-
-import { eventDateToPlaceholder } from '.';
 
 const columns: ColumnItem[] = [
   {
@@ -177,42 +177,49 @@ const CreateTicketsForm = (props: EventStepFormProps) => {
 
     return data.map((item: TicketInfoFormMetadata) => ({
       id: item.name,
+      price: item.price === '0' ? 'Free' : item.price,
+      numTickets: item.maxSupply,
       name: (
-        <HStack spacing={4}>
-          <Image
-            alt={`Event image for ${item.name}`}
-            borderRadius="12px"
-            boxSize="48px"
-            objectFit="contain"
-            src={item.artwork && URL.createObjectURL(item.artwork[0])}
-          />
-          <VStack align="left">
-            <Heading fontFamily="body" fontSize={{ md: 'lg' }} fontWeight="bold">
-              {item.name}
-            </Heading>
-            <Heading fontFamily="body" fontSize={{ md: 'md' }} fontWeight="light">
-              {item.description}
-            </Heading>
-            <VStack align="left" spacing={0}>
-              <Heading
-                color="gray.400"
-                fontFamily="body"
-                fontSize={{ md: 'md' }}
-                fontWeight="light"
-              >
-                Purchase through: {eventDateToPlaceholder('Error?', item.salesValidThrough)}
-              </Heading>
-              <Heading
-                color="gray.400"
-                fontFamily="body"
-                fontSize={{ md: 'md' }}
-                fontWeight="light"
-              >
-                Valid through: {eventDateToPlaceholder('Error?', item.passValidThrough)}
-              </Heading>
+        <>
+          <Show above="md">
+            <HStack spacing={4}>
+              <Image
+                alt={`Event image for ${item.name}`}
+                borderRadius="12px"
+                boxSize="48px"
+                objectFit="contain"
+                src={item.artwork && URL.createObjectURL(item.artwork[0])}
+              />
+              <VStack align="left">
+                <Heading fontFamily="body" fontSize={{ md: 'lg' }} fontWeight="bold">
+                  {item.name}
+                </Heading>
+                <Heading fontFamily="body" fontSize={{ md: 'md' }} fontWeight="light">
+                  {item.description}
+                </Heading>
+              </VStack>
+            </HStack>
+          </Show>
+          <Hide above="md">
+            <VStack spacing={4}>
+              <Image
+                alt={`Event image for ${item.name}`}
+                borderRadius="12px"
+                boxSize="48px"
+                objectFit="contain"
+                src={item.artwork && URL.createObjectURL(item.artwork[0])}
+              />
+              <VStack align="left">
+                <Heading fontFamily="body" fontSize={{ md: 'lg' }} fontWeight="bold">
+                  {item.name}
+                </Heading>
+                <Heading fontFamily="body" fontSize={{ md: 'md' }} fontWeight="light">
+                  {item.description}
+                </Heading>
+              </VStack>
             </VStack>
-          </VStack>
-        </HStack>
+          </Hide>
+        </>
       ),
       previewTicket: (
         <Heading
@@ -279,8 +286,10 @@ const CreateTicketsForm = (props: EventStepFormProps) => {
   return (
     <>
       <ModifyTicketModal
+        allTickets={formData.tickets}
         currentTicket={currentTicket}
         editedTicket={editedTicket}
+        eventDate={formData.date.value}
         isOpen={isModalOpen}
         setCurrentTicket={setCurrentTicket}
         onClose={handleModalClose}
@@ -296,7 +305,7 @@ const CreateTicketsForm = (props: EventStepFormProps) => {
             excludeMobileColumns={[]}
             mt={{ base: '6', md: '4' }}
             showColumns={true}
-            showMobileTitles={['isRequired']}
+            showMobileTitles={[]}
             type="create-tickets"
           />
         </FormControlComponent>

@@ -1,4 +1,4 @@
-import { Button, HStack, Skeleton, VStack } from '@chakra-ui/react';
+import { Button, HStack, Skeleton, Text, VStack } from '@chakra-ui/react';
 import { useMemo, useState } from 'react';
 import { EditIcon } from '@chakra-ui/icons';
 
@@ -132,6 +132,7 @@ const CollectInfoForm = (props: EventStepFormProps) => {
   return (
     <>
       <ModifyQuestionModal
+        allQuestions={data}
         isOpen={isModalOpen}
         originalQuestion={originalQuestion}
         setUserInput={setUserInput}
@@ -156,6 +157,7 @@ const CollectInfoForm = (props: EventStepFormProps) => {
         <Button
           borderRadius="12px"
           fontSize="sm"
+          isDisabled={data.length >= 5}
           padding="7px 16px 8px 16px"
           size="md"
           w="168px"
@@ -167,6 +169,11 @@ const CollectInfoForm = (props: EventStepFormProps) => {
         >
           + Add custom field
         </Button>
+        {data.length >= 5 && (
+          <Text color="red.400" fontSize="sm" fontWeight="500" textAlign="left">
+            You can only add up to 5 custom fields
+          </Text>
+        )}
       </VStack>
     </>
   );
