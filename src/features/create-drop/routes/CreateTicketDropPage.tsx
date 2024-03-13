@@ -10,6 +10,10 @@ import { ClearEventInfoForm, EventInfoForm, EventInfoFormValidation } from '../c
 import { EventInfoSchema } from '../contexts/CreateTicketDropContext/FormValidations';
 import { CreateTicketDropLayout } from '../components/CreateTicketDropLayout';
 import { CollectInfoForm } from '../components/ticket/CollectInfoForm';
+import {
+  CreateTicketsForm,
+  type TicketInfoFormMetadata,
+} from '../components/ticket/CreateTicketsForm';
 
 interface TicketStep {
   title: string;
@@ -18,7 +22,7 @@ interface TicketStep {
   schema: typeof EventInfoSchema;
 }
 
-interface EventDate {
+export interface EventDate {
   startDate: Date | null;
   endDate: Date | null;
   startTime?: string;
@@ -40,6 +44,9 @@ export interface TicketDropFormData {
 
   // Step 2
   questions: Array<{ question: string; isRequired: boolean }>;
+
+  // Step 3
+  tickets: TicketInfoFormMetadata[];
 }
 
 const breadcrumbs: IBreadcrumbItem[] = [
@@ -69,7 +76,7 @@ const formSteps: TicketStep[] = [
   {
     name: 'tickets',
     title: 'Tickets',
-    component: (props: EventStepFormProps) => <EventInfoForm {...props} />,
+    component: (props: EventStepFormProps) => <CreateTicketsForm {...props} />,
     schema: EventInfoSchema,
   },
   {
@@ -101,6 +108,9 @@ export default function NewTicketDrop() {
       { question: 'Email address', isRequired: false },
       { question: 'How did you find out about this event?', isRequired: false },
     ],
+
+    // Step 3
+    tickets: [],
   });
 
   const handleClearForm = () => {
@@ -112,6 +122,7 @@ export default function NewTicketDrop() {
         setFormData((prev) => ({ ...prev, questions: [] }));
         break;
       case 2:
+        setFormData((prev) => ({ ...prev, tickets: [] }));
         break;
       case 3:
         break;
@@ -172,11 +183,14 @@ export default function NewTicketDrop() {
       </IconBox>
       <HStack justifyContent="flex-end" py={{ base: '4' }} spacing="auto">
         <HStack>
-          {currentStep > 0 && (
-            <Button fontSize={{ base: 'sm', md: 'base' }} variant="secondary" onClick={prevStep}>
-              Back
-            </Button>
-          )}
+          <Button
+            fontSize={{ base: 'sm', md: 'base' }}
+            isDisabled={currentStep === 0}
+            variant="secondary"
+            onClick={prevStep}
+          >
+            Back
+          </Button>
           <Button fontSize={{ base: 'sm', md: 'base' }} variant="ghost" onClick={handleClearForm}>
             Clear all details
           </Button>
@@ -194,7 +208,11 @@ export default function NewTicketDrop() {
               Skip
             </Button>
           )}
-          <Button disabled={false} fontSize={{ base: 'sm', md: 'base' }} onClick={nextStep}>
+          <Button
+            fontSize={{ base: 'sm', md: 'base' }}
+            isDisabled={currentStep === 2 ? formData.tickets.length < 1 : false}
+            onClick={nextStep}
+          >
             Next
           </Button>
         </HStack>

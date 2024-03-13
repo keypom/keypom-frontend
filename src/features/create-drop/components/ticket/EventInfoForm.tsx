@@ -9,6 +9,7 @@ import { FormControlComponent } from '@/components/FormControl';
 import {
   type TicketDropFormData,
   type EventStepFormProps,
+  type EventDate,
 } from '../../routes/CreateTicketDropPage';
 
 import EventPagePreview from './EventPagePreview';
@@ -62,6 +63,37 @@ export const EventInfoFormValidation = (formData: TicketDropFormData) => {
   return { isErr, newFormData };
 };
 
+export const eventDateToPlaceholder = (defaultTo: string, date: EventDate) => {
+  let formattedDate: string = defaultTo;
+  if (date.startDate) {
+    const start = new Date(date.startDate);
+    formattedDate = start.toLocaleDateString(undefined, {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      timeZoneName: 'short',
+    });
+    if (date.startTime) {
+      formattedDate += ` (${date.startTime})`;
+    }
+  }
+
+  if (date.endDate) {
+    const end = new Date(date.endDate);
+    formattedDate += ` - ${end.toLocaleDateString(undefined, {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      timeZoneName: 'short',
+    })}`;
+
+    if (date.endTime) {
+      formattedDate += ` (${date.endTime})`;
+    }
+  }
+  return formattedDate;
+};
+
 const EventInfoForm = (props: EventStepFormProps) => {
   const { formData, setFormData } = props;
 
@@ -95,48 +127,8 @@ const EventInfoForm = (props: EventStepFormProps) => {
   };
 
   useEffect(() => {
-    let datePlaceholder = 'Select date and time';
-    let datePreviewText = '';
-    if (formData.date.value.startDate) {
-      const start = new Date(formData.date.value.startDate);
-      datePlaceholder = start.toLocaleDateString(undefined, {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-        timeZoneName: 'short',
-      });
-      datePreviewText = start.toLocaleDateString(undefined, {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-        timeZoneName: 'short',
-      });
-      if (formData.date.value.startTime) {
-        datePlaceholder += ` (${formData.date.value.startTime})`;
-        datePreviewText += ` (${formData.date.value.startTime})`;
-      }
-    }
-
-    if (formData.date.value.endDate) {
-      const end = new Date(formData.date.value.endDate);
-      datePlaceholder += ` - ${end.toLocaleDateString(undefined, {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-        timeZoneName: 'short',
-      })}`;
-      datePreviewText += ` - ${end.toLocaleDateString(undefined, {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-        timeZoneName: 'short',
-      })}`;
-
-      if (formData.date.value.endTime) {
-        datePlaceholder += ` (${formData.date.value.endTime})`;
-        datePreviewText += ` (${formData.date.value.endTime})`;
-      }
-    }
+    const datePlaceholder = eventDateToPlaceholder('Select date and time', formData.date.value);
+    const datePreviewText = eventDateToPlaceholder('', formData.date.value);
 
     setDatePlaceholder(datePlaceholder);
     setDatePreviewText(datePreviewText);

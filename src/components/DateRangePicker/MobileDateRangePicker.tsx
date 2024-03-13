@@ -147,6 +147,7 @@ interface CustomDateRangePickerProps {
   startTime?: string;
   endTime?: string;
   error?: FieldError;
+  openDirection?: string;
 }
 
 function CustomDateRangePickerMobile({
@@ -159,6 +160,7 @@ function CustomDateRangePickerMobile({
   ctaComponent,
   isDatePickerOpen,
   setIsDatePickerOpen,
+  openDirection = 'top-start',
 }: CustomDateRangePickerProps) {
   const [startTimeText, setStartTimeText] = useState<string | undefined>();
   const [startTimeError, setStartTimeError] = useState(false);
@@ -220,7 +222,7 @@ function CustomDateRangePickerMobile({
         minDate={new Date()}
         monthsShown={1}
         open={isDatePickerOpen}
-        popperPlacement="top-end"
+        popperPlacement={openDirection}
         startDate={startDate}
         onCalendarClose={() => {
           setIsDatePickerOpen(false);
