@@ -1,57 +1,299 @@
-import { Box, Input } from '@chakra-ui/react';
-import { Controller, useFormContext } from 'react-hook-form';
+import { Input, HStack, VStack, Show, Hide } from '@chakra-ui/react';
+import { useEffect, useState } from 'react';
 
-import { FormControl } from '@/components/FormControl';
-import { type CreateTicketFieldsSchema } from '@/features/create-drop/contexts/CreateTicketDropContext/CreateTicketDropContext';
+import CustomDateRangePicker from '@/components/DateRangePicker/DateRangePicker';
+import { ImageFileInput } from '@/components/ImageFileInput';
+import CustomDateRangePickerMobile from '@/components/DateRangePicker/MobileDateRangePicker';
+import { FormControlComponent } from '@/components/FormControl';
 
-export const EventInfoForm = () => {
-  const { control } = useFormContext<CreateTicketFieldsSchema>();
+import {
+  type TicketDropFormData,
+  type EventStepFormProps,
+  type EventDate,
+} from '../../routes/CreateTicketDropPage';
+
+import EventPagePreview from './EventPagePreview';
+
+export const ClearEventInfoForm = () => {
+  return {
+    eventName: { value: '' },
+    eventArtwork: { value: undefined },
+    eventDescription: { value: '' },
+    eventLocation: { value: '' },
+    date: {
+      value: {
+        startDate: null,
+        endDate: null,
+      },
+    },
+  };
+};
+
+export const EventInfoFormValidation = (formData: TicketDropFormData) => {
+  const newFormData = { ...formData };
+  let isErr = false;
+  return { isErr, newFormData };
+  if (formData.eventName.value === '') {
+    newFormData.eventName = { ...formData.eventName, error: 'Event name is required' };
+    isErr = true;
+  }
+  if (formData.eventArtwork.value === undefined) {
+    newFormData.eventArtwork = { ...formData.eventArtwork, error: 'Event artwork is required' };
+    isErr = true;
+  }
+  if (formData.eventDescription.value === '') {
+    newFormData.eventDescription = {
+      ...formData.eventDescription,
+      error: 'Event description is required',
+    };
+    isErr = true;
+  }
+  if (formData.eventLocation.value === '') {
+    newFormData.eventLocation = {
+      ...formData.eventLocation,
+      error: 'Event location is required',
+    };
+    isErr = true;
+  }
+  if (formData.date.value.startDate === null) {
+    newFormData.date = { ...formData.date, error: 'Event date is required' };
+    isErr = true;
+  }
+
+  return { isErr, newFormData };
+};
+
+export const eventDateToPlaceholder = (defaultTo: string, date: EventDate) => {
+  let formattedDate: string = defaultTo;
+  if (date.startDate) {
+    const start = new Date(date.startDate);
+    formattedDate = start.toLocaleDateString(undefined, {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      timeZoneName: 'short',
+    });
+    if (date.startTime) {
+      formattedDate += ` (${date.startTime})`;
+    }
+  }
+
+  if (date.endDate) {
+    const end = new Date(date.endDate);
+    formattedDate += ` - ${end.toLocaleDateString(undefined, {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      timeZoneName: 'short',
+    })}`;
+
+    if (date.endTime) {
+      formattedDate += ` (${date.endTime})`;
+    }
+  }
+  return formattedDate;
+};
+
+const EventInfoForm = (props: EventStepFormProps) => {
+  const { formData, setFormData } = props;
+
+  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
+  const [datePlaceholer, setDatePlaceholder] = useState('Select date and time');
+  const [datePreviewText, setDatePreviewText] = useState<string>('');
+
+  const [preview, setPreview] = useState<string>();
+
+  useEffect(() => {
+    const selectedFile = formData.eventArtwork.value;
+    if (selectedFile === undefined) {
+      setPreview(undefined);
+      return;
+    }
+    const objectUrl = URL.createObjectURL(selectedFile[0]);
+    setPreview(objectUrl);
+
+    return () => {
+      URL.revokeObjectURL(objectUrl);
+    };
+  }, [formData.eventArtwork.value]);
+
+  const onSelectFile = (e) => {
+    if (!e.target.files || e.target.files.length === 0) {
+      setFormData({ ...formData, eventArtwork: { value: undefined } });
+      return;
+    }
+
+    setFormData({ ...formData, eventArtwork: { value: e.target.files } });
+  };
+
+  useEffect(() => {
+    const datePlaceholder = eventDateToPlaceholder('Select date and time', formData.date.value);
+    const datePreviewText = eventDateToPlaceholder('', formData.date.value);
+
+    setDatePlaceholder(datePlaceholder);
+    setDatePreviewText(datePreviewText);
+  }, [formData.date]);
+
+  const datePickerCTA = (
+    <FormControlComponent errorText={formData.date.error} label="Date*">
+      <Input
+        readOnly
+        isInvalid={!!formData.date.error}
+        placeholder={datePlaceholer}
+        style={{ cursor: 'pointer' }}
+        sx={{
+          '::placeholder': {
+            color: 'gray.400', // Placeholder text color
+          },
+          _invalid: {
+            borderColor: 'red.300',
+            boxShadow: '0 0 0 1px #EF4444 !important',
+          },
+        }}
+        type="text"
+        width="100%"
+        onClick={() => {
+          setIsDatePickerOpen(true);
+        }}
+      />
+    </FormControlComponent>
+  );
 
   return (
-    <Box>
-      <Controller
-        control={control}
-        name="eventName"
-        render={({ field, fieldState: { error } }) => {
-          return (
-            <FormControl
-              errorText={error?.message}
-              helperText="Will be shown on the claim page"
-              label="Event name"
-            >
-              <Input
-                isInvalid={Boolean(error?.message)}
-                placeholder="Friday night movies"
-                type="text"
-                {...field}
-              />
-            </FormControl>
-          );
-        }}
-      />
-      <Controller
-        control={control}
-        name="totalTickets"
-        render={({ field, fieldState: { error } }) => {
-          return (
-            <FormControl
-              errorText={error?.message}
-              helperText="How many links will be generated?"
-              label="Number of tickets"
-            >
-              <Input
-                isInvalid={Boolean(error?.message)}
-                placeholder="1 - 10,000"
-                type="number"
-                {...field}
-                onChange={(e) => {
-                  field.onChange(parseInt(e.target.value), 10);
-                }}
-              />
-            </FormControl>
-          );
-        }}
-      />
-    </Box>
+    <HStack align="top" justifyContent="space-between">
+      <VStack spacing="4" w="100%">
+        <FormControlComponent
+          errorText={formData.eventName.error}
+          label="Event name*"
+          marginBottom="0"
+        >
+          <Input
+            isInvalid={!!formData.eventName.error}
+            placeholder="Vandelay Industries Networking Event"
+            sx={{
+              '::placeholder': {
+                color: 'gray.400', // Placeholder text color
+              },
+            }}
+            type="text"
+            value={formData.eventName.value}
+            onChange={(e) => {
+              setFormData({ ...formData, eventName: { value: e.target.value } });
+            }}
+          />
+        </FormControlComponent>
+        <FormControlComponent
+          errorText={formData.eventDescription.error}
+          label="Event description*"
+        >
+          <Input
+            isInvalid={!!formData.eventDescription.error}
+            placeholder="Meet with the best latex salesmen in the industry."
+            sx={{
+              '::placeholder': {
+                color: 'gray.400', // Placeholder text color
+              },
+            }}
+            type="text"
+            value={formData.eventDescription.value}
+            onChange={(e) => {
+              setFormData({ ...formData, eventDescription: { value: e.target.value } });
+            }}
+          />
+        </FormControlComponent>
+        <FormControlComponent errorText={formData.eventLocation.error} label="Event location*">
+          <Input
+            isInvalid={!!formData.eventLocation.error}
+            placeholder="129 West 81st Street, Apartment 5A"
+            sx={{
+              '::placeholder': {
+                color: 'gray.400', // Placeholder text color
+              },
+            }}
+            type="text"
+            value={formData.eventLocation.value}
+            onChange={(e) => {
+              setFormData({ ...formData, eventLocation: { value: e.target.value } });
+            }}
+          />
+        </FormControlComponent>
+        <Show above="md">
+          <CustomDateRangePicker
+            ctaComponent={datePickerCTA}
+            endDate={formData.date.value.endDate}
+            endTime={formData.date.value.endTime}
+            isDatePickerOpen={isDatePickerOpen}
+            maxDate={null}
+            minDate={new Date()}
+            setIsDatePickerOpen={setIsDatePickerOpen}
+            startDate={formData.date.value.startDate}
+            startTime={formData.date.value.startTime}
+            onDateChange={(startDate, endDate) => {
+              setFormData({
+                ...formData,
+                date: { value: { ...formData.date, startDate, endDate } },
+              });
+            }}
+            onTimeChange={(startTime, endTime) => {
+              setFormData({
+                ...formData,
+                date: { value: { ...formData.date.value, startTime, endTime } },
+              });
+            }}
+          />
+        </Show>
+        <Hide above="md">
+          <CustomDateRangePickerMobile
+            ctaComponent={datePickerCTA}
+            endDate={formData.date.value.endDate}
+            endTime={formData.date.value.endTime}
+            isDatePickerOpen={isDatePickerOpen}
+            maxDate={null}
+            minDate={new Date()}
+            openDirection="top-right"
+            setIsDatePickerOpen={setIsDatePickerOpen}
+            startDate={formData.date.value.startDate}
+            startTime={formData.date.value.startTime}
+            onDateChange={(startDate, endDate) => {
+              setFormData({
+                ...formData,
+                date: { value: { ...formData.date.value, startDate, endDate } },
+              });
+            }}
+            onTimeChange={(startTime, endTime) => {
+              setFormData({
+                ...formData,
+                date: { value: { ...formData.date.value, startTime, endTime } },
+              });
+            }}
+          />
+        </Hide>
+        <FormControlComponent helperText="Customize your event page" label="Event artwork">
+          <ImageFileInput
+            accept=" image/jpeg, image/png, image/gif"
+            errorMessage={formData.eventArtwork.error}
+            isInvalid={!!formData.eventArtwork.error}
+            preview={preview}
+            selectedFile={formData.eventArtwork.value}
+            onChange={(e) => {
+              onSelectFile(e);
+            }}
+          />
+        </FormControlComponent>
+      </VStack>
+      <Hide below="md">
+        <VStack align="start" paddingTop={5} w="100%">
+          <EventPagePreview
+            eventArtwork={preview}
+            eventDate={datePreviewText}
+            eventDescription={formData.eventDescription.value}
+            eventLocation={formData.eventLocation.value}
+            eventName={formData.eventName.value}
+          />
+        </VStack>
+      </Hide>
+    </HStack>
   );
 };
+
+export { EventInfoForm };

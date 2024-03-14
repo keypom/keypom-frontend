@@ -465,7 +465,7 @@ export default function TicketManagerPage() {
         filteredKeys = filteredKeys.concat(curFiltered);
       }
 
-      if (filteredTicketData.length !== 0) {
+      if (filteredTicketData.length === 0) {
         setFilteredTicketData(filteredKeys);
       }
       setCurPage(0);

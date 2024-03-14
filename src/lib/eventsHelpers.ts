@@ -33,10 +33,13 @@ export interface FunderEventMetadata {
   salt?: string;
 }
 
-export interface EventDropMetadata {
+export interface EventDropMetadata extends TicketInfoMetadata {
   dropName: string;
-  name: string;
   eventId: string;
+}
+
+export interface TicketInfoMetadata {
+  name: string;
   description: string;
   salesValidThrough: string;
   passValidThrough: string;

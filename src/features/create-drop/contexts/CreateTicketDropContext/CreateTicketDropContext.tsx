@@ -12,9 +12,12 @@ import {
   type SummaryItem,
 } from '@/features/create-drop/types/types';
 import { EventInfoForm } from '@/features/create-drop/components/ticket/EventInfoForm';
-import { AdditionalGiftsForm } from '@/features/create-drop/components/ticket/AdditionalGiftsForm/AdditionalGiftsForm';
 
-import { AdditionalGiftSchema, EventInfoSchema, type SignUpInfoSchema } from './FormValidations';
+import {
+  type AdditionalGiftSchema,
+  EventInfoSchema,
+  type SignUpInfoSchema,
+} from './FormValidations';
 
 interface FormStep extends StepItem {
   isSkipable: boolean;
@@ -83,20 +86,26 @@ const formSteps: FormStep[] = [
     isSkipable: false,
     schema: EventInfoSchema,
   },
-  /** commented in case there's a need for sign-up info in the future */
-  // {
-  //   name: 'signUpInfo',
-  //   title: 'Sign-up info',
-  //   component: <SignUpInfoForm />,
-  //   isSkipable: true,
-  //   schema: SignUpInfoSchema,
-  // },
   {
-    name: 'additionalGifts',
-    title: 'Additional gifts',
-    component: <AdditionalGiftsForm />,
-    isSkipable: true,
-    schema: AdditionalGiftSchema,
+    name: 'collectInfo',
+    title: 'Collect info',
+    component: <EventInfoForm />,
+    isSkipable: false,
+    schema: EventInfoSchema,
+  },
+  {
+    name: 'tickets',
+    title: 'Tickets',
+    component: <EventInfoForm />,
+    isSkipable: false,
+    schema: EventInfoSchema,
+  },
+  {
+    name: 'review',
+    title: 'Review',
+    component: <EventInfoForm />,
+    isSkipable: false,
+    schema: EventInfoSchema,
   },
 ];
 
@@ -116,7 +125,6 @@ export const CreateTicketDropProvider = ({ children }: PropsWithChildren) => {
     mode: 'onChange',
     defaultValues: {
       eventName: '',
-      totalTickets: undefined,
       firstName: false,
       secondName: false,
       emailAddress: false,
@@ -133,18 +141,13 @@ export const CreateTicketDropProvider = ({ children }: PropsWithChildren) => {
   });
 
   const getSummaryData = (): SummaryItem[] => {
-    const { eventName, totalTickets, additionalGift } = methods.getValues();
+    const { eventName, additionalGift } = methods.getValues();
 
     const results: SummaryItem[] = [
       {
         type: 'text',
         name: 'Event name',
         value: eventName,
-      },
-      {
-        type: 'text',
-        name: 'Number of tickets',
-        value: totalTickets,
       },
     ];
 
