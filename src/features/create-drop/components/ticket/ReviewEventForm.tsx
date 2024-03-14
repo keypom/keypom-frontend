@@ -166,10 +166,6 @@ const ReviewEventForm = (props: EventStepFormProps) => {
 
   const data = useMemo(() => getTableRows(formData.tickets), [getTableRows, formData.tickets]);
 
-  const ticketPrices = () => {
-    formData.tickets.forEach((item) => <HStack>{item.name}</HStack>);
-  };
-
   return (
     <>
       <PreviewTicketModal

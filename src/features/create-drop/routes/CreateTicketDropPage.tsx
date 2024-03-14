@@ -147,29 +147,29 @@ const placeholderData = {
   ],
 };
 
-const defaultFormData: TicketDropFormData = {
-  // Step 1
-  eventName: { value: '' },
-  eventArtwork: { value: undefined },
-  eventDescription: { value: '' },
-  eventLocation: { value: '' },
-  date: {
-    value: {
-      startDate: null,
-      endDate: null,
-    },
-  },
-
-  // Step 2
-  questions: [
-    { question: 'Full name', isRequired: true },
-    { question: 'Email address', isRequired: true },
-    { question: 'How did you find out about this event?', isRequired: false },
-  ],
-
-  // Step 3
-  tickets: [],
-};
+// const defaultFormData: TicketDropFormData = {
+//   // Step 1
+//   eventName: { value: '' },
+//   eventArtwork: { value: undefined },
+//   eventDescription: { value: '' },
+//   eventLocation: { value: '' },
+//   date: {
+//     value: {
+//       startDate: null,
+//       endDate: null,
+//     },
+//   },
+//
+//   // Step 2
+//   questions: [
+//     { question: 'Full name', isRequired: true },
+//     { question: 'Email address', isRequired: true },
+//     { question: 'How did you find out about this event?', isRequired: false },
+//   ],
+//
+//   // Step 3
+//   tickets: [],
+// };
 
 export default function NewTicketDrop() {
   const [currentStep, setCurrentStep] = useState(0);
