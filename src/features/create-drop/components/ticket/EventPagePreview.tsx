@@ -36,7 +36,7 @@ function EventPagePreview({
           alt="Event Artwork"
           height="120px"
           left="0"
-          objectFit="contain" // This ensures the image covers the allotted area
+          objectFit="cover" // This ensures the image covers the allotted area
           right="0"
           src={eventArtwork}
           top="0"

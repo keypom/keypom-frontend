@@ -1,14 +1,13 @@
 import {
-  Box,
   Button,
   Show,
   Heading,
   Hide,
   HStack,
   Image,
-  ModalContent,
   Skeleton,
   VStack,
+  Text,
 } from '@chakra-ui/react';
 import { useMemo, useState } from 'react';
 import { EditIcon } from '@chakra-ui/icons';
@@ -17,7 +16,7 @@ import { FormControlComponent } from '@/components/FormControl';
 import { type ColumnItem } from '@/components/Table/types';
 import { CopyIcon, DeleteIcon } from '@/components/Icons';
 import { DataTable } from '@/components/Table';
-import { useAppContext } from '@/contexts/AppContext';
+import { truncateAddress } from '@/utils/truncateAddress';
 
 import {
   type TicketDropFormData,
@@ -26,6 +25,7 @@ import {
 } from '../../routes/CreateTicketDropPage';
 
 import { ModifyTicketModal } from './ModifyTicketModal';
+import { PreviewTicketModal } from './PreviewTicketModal';
 
 const columns: ColumnItem[] = [
   {
@@ -67,6 +67,23 @@ export const CollectInfoFormValidation = (formData: TicketDropFormData) => {
   return { isErr, newFormData };
 };
 
+const defaultTicket2 = {
+  name: 'Bonj Official VIP Ticket',
+  description:
+    'This ticket grants access to a free beer and exclusive items on-the-ground. Buy while supplies last!',
+  artwork: undefined,
+  price: '0',
+  salesValidThrough: {
+    startDate: null,
+    endDate: null,
+  },
+  passValidThrough: {
+    startDate: null,
+    endDate: null,
+  },
+  maxSupply: 0,
+};
+
 const defaultTicket = {
   name: '',
   description: '',
@@ -95,10 +112,10 @@ export interface TicketInfoFormMetadata {
 
 const CreateTicketsForm = (props: EventStepFormProps) => {
   const { formData, setFormData } = props;
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isModifyTicketModalOpen, setIsModifyTicketModalOpen] = useState(false);
+  const [isPreviewTicketModalOpen, setIsPreviewTicketModalOpen] = useState(false);
   const [currentTicket, setCurrentTicket] = useState<TicketInfoFormMetadata>(defaultTicket);
   const [editedTicket, setEditedTicket] = useState<TicketInfoFormMetadata | undefined>();
-  const { setAppModal } = useAppContext();
 
   const handleDeleteClick = (id) => {
     const newTickets = formData.tickets.filter((item) => item.name !== id);
@@ -108,19 +125,33 @@ const CreateTicketsForm = (props: EventStepFormProps) => {
   const handleCopyItem = (id) => {
     const ticket = formData.tickets.find((item) => item.name === id);
     if (!ticket) return;
-    const newTicket = { ...ticket, name: `${ticket.name} (copy)` };
+
+    // Function to generate a new unique ticket name
+    const generateNewTicketName = (baseName: string) => {
+      let copyNumber = 1;
+      let newTicketName = `${baseName} (${copyNumber})`;
+      // As long as the new ticket name already exists, increase the number
+      while (formData.tickets.some((item) => item.name === newTicketName)) {
+        copyNumber += 1;
+        newTicketName = `${baseName} (${copyNumber})`;
+      }
+      return newTicketName;
+    };
+
+    // Generate a unique name for the new copied ticket
+    const newTicketName = generateNewTicketName(ticket.name);
+    const newTicket = { ...ticket, name: newTicketName };
+    // Add the new unique ticket to the list of tickets
     setFormData({ ...formData, tickets: [...formData.tickets, newTicket] });
   };
 
   const handleModalClose = (shouldAdd: boolean, editedQuestion?: TicketInfoFormMetadata) => {
-    console.log('editedQuestion', editedQuestion);
-    console.log('shouldAdd', shouldAdd);
     if (shouldAdd) {
       let newTickets = formData.tickets;
       if (editedQuestion) {
         newTickets = newTickets.map((item) => {
           if (item.name === editedQuestion.name) {
-            return editedQuestion;
+            return currentTicket;
           }
           return item;
         });
@@ -131,45 +162,12 @@ const CreateTicketsForm = (props: EventStepFormProps) => {
       setFormData({ ...formData, tickets: newTickets });
     }
 
-    setIsModalOpen(false);
+    setIsModifyTicketModalOpen(false);
   };
 
   const openPreviewModal = (item: TicketInfoFormMetadata) => {
-    setAppModal({
-      isOpen: true,
-      size: 'xl',
-      modalContent: (
-        <ModalContent maxH="90vh" overflowY="auto" padding={6}>
-          <VStack
-            align="stretch"
-            bg="border.box"
-            border="2px solid transparent"
-            borderRadius="xl"
-            borderWidth="1px"
-            overflow="hidden"
-            p={2}
-            w="130px"
-          >
-            <Box
-              alignSelf="stretch"
-              bgGradient="linear(to right bottom, rgba(255, 255, 255, 0), rgba(115, 214, 243, 0.2))"
-              borderRadius="xl"
-              height="75px"
-              left="0"
-              right="0"
-              top="0"
-              width="100%"
-            />
-            <VStack align="left" spacing="3px">
-              <Box bg="gray.100" borderRadius="100px" h="13px" w="70%" />
-              <Box bg="gray.100" borderRadius="100px" h="5px" w="100%" />
-              <Box bg="gray.100" borderRadius="3px" h="50px" w="100%" />
-            </VStack>
-            <Box bg="gray.800" borderRadius="3px" h="12px" w="100%" />
-          </VStack>
-        </ModalContent>
-      ),
-    });
+    setCurrentTicket(item);
+    setIsPreviewTicketModalOpen(true);
   };
 
   const getTableRows = (data) => {
@@ -191,12 +189,17 @@ const CreateTicketsForm = (props: EventStepFormProps) => {
                 src={item.artwork && URL.createObjectURL(item.artwork[0])}
               />
               <VStack align="left">
-                <Heading fontFamily="body" fontSize={{ md: 'lg' }} fontWeight="bold">
-                  {item.name}
+                <Heading
+                  fontFamily="body"
+                  fontSize={{ md: 'lg' }}
+                  fontWeight="bold"
+                  overflowX="auto"
+                >
+                  {truncateAddress(item.name, 'end', 35)}
                 </Heading>
-                <Heading fontFamily="body" fontSize={{ md: 'md' }} fontWeight="light">
-                  {item.description}
-                </Heading>
+                <Text fontFamily="body" fontSize={{ md: 'md' }} fontWeight="light">
+                  {truncateAddress(item.description, 'end', 35)}
+                </Text>
               </VStack>
             </HStack>
           </Show>
@@ -213,9 +216,9 @@ const CreateTicketsForm = (props: EventStepFormProps) => {
                 <Heading fontFamily="body" fontSize={{ md: 'lg' }} fontWeight="bold">
                   {item.name}
                 </Heading>
-                <Heading fontFamily="body" fontSize={{ md: 'md' }} fontWeight="light">
+                <Text fontFamily="body" fontSize={{ md: 'md' }} fontWeight="light" noOfLines={1}>
                   {item.description}
-                </Heading>
+                </Text>
               </VStack>
             </VStack>
           </Hide>
@@ -236,7 +239,7 @@ const CreateTicketsForm = (props: EventStepFormProps) => {
             openPreviewModal(item);
           }}
         >
-          View details
+          Preview ticket
         </Heading>
       ),
       action: (
@@ -246,7 +249,6 @@ const CreateTicketsForm = (props: EventStepFormProps) => {
             size="md"
             variant="icon"
             onClick={async (e) => {
-              e.stopPropagation();
               handleDeleteClick(item.name); // Pass the correct id here
             }}
           >
@@ -257,7 +259,6 @@ const CreateTicketsForm = (props: EventStepFormProps) => {
             size="md"
             variant="icon"
             onClick={async (e) => {
-              e.stopPropagation();
               handleCopyItem(item.name); // Pass the correct id here
             }}
           >
@@ -271,7 +272,7 @@ const CreateTicketsForm = (props: EventStepFormProps) => {
               e.stopPropagation();
               setEditedTicket(item);
               setCurrentTicket(item);
-              setIsModalOpen(true);
+              setIsModifyTicketModalOpen(true);
             }}
           >
             <EditIcon />
@@ -290,10 +291,16 @@ const CreateTicketsForm = (props: EventStepFormProps) => {
         currentTicket={currentTicket}
         editedTicket={editedTicket}
         eventDate={formData.date.value}
-        isOpen={isModalOpen}
+        isOpen={isModifyTicketModalOpen}
         setCurrentTicket={setCurrentTicket}
         onClose={handleModalClose}
       />
+      <PreviewTicketModal
+        currentTicket={currentTicket}
+        isOpen={isPreviewTicketModalOpen}
+        setIsOpen={setIsPreviewTicketModalOpen}
+      />
+
       <VStack align="top" justifyContent="space-between">
         <FormControlComponent
           helperText={`Create custom tickets for ${formData.eventName.value}.`}
@@ -318,7 +325,7 @@ const CreateTicketsForm = (props: EventStepFormProps) => {
           onClick={() => {
             setEditedTicket(undefined);
             setCurrentTicket(defaultTicket);
-            setIsModalOpen(true);
+            setIsModifyTicketModalOpen(true);
           }}
         >
           + Create ticket
