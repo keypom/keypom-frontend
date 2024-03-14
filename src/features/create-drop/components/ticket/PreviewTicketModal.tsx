@@ -15,8 +15,7 @@ import { PlusButtonIcon } from '@/components/Icons/PlusButtonIcon';
 import { MinusButtonIcon } from '@/components/Icons/MinusButtonIcon';
 
 import { type TicketInfoFormMetadata } from './CreateTicketsForm';
-
-import { eventDateToPlaceholder } from '.';
+import { eventDateToPlaceholder } from './EventInfoForm';
 
 interface PreviewTicketModalProps {
   isOpen: boolean;

@@ -67,23 +67,6 @@ export const CollectInfoFormValidation = (formData: TicketDropFormData) => {
   return { isErr, newFormData };
 };
 
-const defaultTicket2 = {
-  name: 'Bonj Official VIP Ticket',
-  description:
-    'This ticket grants access to a free beer and exclusive items on-the-ground. Buy while supplies last!',
-  artwork: undefined,
-  price: '0',
-  salesValidThrough: {
-    startDate: null,
-    endDate: null,
-  },
-  passValidThrough: {
-    startDate: null,
-    endDate: null,
-  },
-  maxSupply: 0,
-};
-
 const defaultTicket = {
   name: '',
   description: '',
@@ -214,10 +197,10 @@ const CreateTicketsForm = (props: EventStepFormProps) => {
               />
               <VStack align="left">
                 <Heading fontFamily="body" fontSize={{ md: 'lg' }} fontWeight="bold">
-                  {item.name}
+                  {truncateAddress(item.name, 'end', 35)}
                 </Heading>
                 <Text fontFamily="body" fontSize={{ md: 'md' }} fontWeight="light" noOfLines={1}>
-                  {item.description}
+                  {truncateAddress(item.description, 'end', 35)}
                 </Text>
               </VStack>
             </VStack>

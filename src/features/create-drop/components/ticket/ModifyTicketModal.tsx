@@ -21,8 +21,7 @@ import { type EventDate } from '../../routes/CreateTicketDropPage';
 
 import { type TicketInfoFormMetadata } from './CreateTicketsForm';
 import TicketPriceSelector from './TicketPriceSelector';
-
-import { eventDateToPlaceholder } from '.';
+import { eventDateToPlaceholder } from './EventInfoForm';
 
 const defaultErrors = {
   name: '',

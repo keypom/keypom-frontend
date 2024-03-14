@@ -30,6 +30,7 @@ export const MobileDataTable = ({
   ...props
 }: MobileDataTableProps) => {
   const navigate = useNavigate();
+  console.log('Data: ', data);
 
   const actionColumn = columns[columns.length - 1];
   const getMobileTableBody = () => {
@@ -69,7 +70,7 @@ export const MobileDataTable = ({
             {columns
               .filter(
                 (column) =>
-                  actionColumn.title !== column.title && !excludeMobileTitles.includes(column.id),
+                  actionColumn.id !== column.id && !excludeMobileTitles.includes(column.id),
               ) // exclude action column
               .map((column) => (
                 <Box key={`${drop.id}-${column.id}`}>

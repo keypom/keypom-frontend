@@ -6,20 +6,22 @@ import { IconBox } from '@/components/IconBox';
 import { LinkIcon } from '@/components/Icons';
 import { Step } from '@/components/Step';
 
-import { ClearEventInfoForm, EventInfoForm, EventInfoFormValidation } from '../components/ticket';
-import { EventInfoSchema } from '../contexts/CreateTicketDropContext/FormValidations';
 import { CreateTicketDropLayout } from '../components/CreateTicketDropLayout';
 import { CollectInfoForm } from '../components/ticket/CollectInfoForm';
 import {
   CreateTicketsForm,
   type TicketInfoFormMetadata,
 } from '../components/ticket/CreateTicketsForm';
+import {
+  ClearEventInfoForm,
+  EventInfoForm,
+  EventInfoFormValidation,
+} from '../components/ticket/EventInfoForm';
 
 interface TicketStep {
   title: string;
   name: string;
   component: (props: EventStepFormProps) => ReactElement;
-  schema: typeof EventInfoSchema;
 }
 
 export interface EventDate {
@@ -65,25 +67,21 @@ const formSteps: TicketStep[] = [
     name: 'eventInfo',
     title: 'Event info',
     component: (props: EventStepFormProps) => <EventInfoForm {...props} />,
-    schema: EventInfoSchema,
   },
   {
     name: 'collectInfo',
     title: 'Collect info',
     component: (props: EventStepFormProps) => <CollectInfoForm {...props} />,
-    schema: EventInfoSchema,
   },
   {
     name: 'tickets',
     title: 'Tickets',
     component: (props: EventStepFormProps) => <CreateTicketsForm {...props} />,
-    schema: EventInfoSchema,
   },
   {
     name: 'review',
     title: 'Review',
     component: (props: EventStepFormProps) => <EventInfoForm {...props} />,
-    schema: EventInfoSchema,
   },
 ];
 
