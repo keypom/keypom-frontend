@@ -92,6 +92,8 @@ class KeypomJS {
   nearConnection: nearAPI.Near;
   viewAccount: nearAPI.Account;
 
+  allEventsGallery: [];
+
   // Map the event ID to a set of drop IDs
   ticketDropsByEventId: Record<string, EventDrop[]> = {};
   // Maps the event ID to its metadata
@@ -156,12 +158,48 @@ class KeypomJS {
     return res;
   };
 
-  GetMarketListings = async ({ contractId = KEYPOM_MARKETPLACE_CONTRACT, limit, from_index }) => {
+  SellTicket = async ({ accountId, message }) => {};
+
+  getResalesForEvent = async ({ eventId }) => {
     return await this.viewAccount.viewFunctionV2({
+      contractId: KEYPOM_MARKETPLACE_CONTRACT,
+      methodName: 'get_resales_per_event',
+      args: { event_id: eventId },
+    });
+  };
+
+  GetMarketListings = async ({ contractId = KEYPOM_MARKETPLACE_CONTRACT, limit, from_index }) => {
+    if (limit > 50) {
+      limit = 50;
+    }
+    if (!this.allEventsGallery || this.allEventsGallery.length === 0) {
+      supply = await this.getEventSupply();
+      // initialize to length supply
+      this.allEventsGallery = new Array(supply).fill(null);
+    }
+
+    cached = this.allEventsGallery.slice(from_index, from_index + limit);
+
+    const hasNoNulls = cached.every((item) => item !== null);
+    const hasNoUndefineds = cached.every((item) => item !== undefined);
+
+    console.log('cache hasNoNulls', hasNoNulls && hasNoUndefineds);
+
+    if (hasNoNulls && hasNoUndefineds) {
+      // just return from cache
+      console.log('returning from cache');
+      return cached;
+    }
+
+    answer = await this.viewAccount.viewFunctionV2({
       contractId,
       methodName: 'get_events',
       args: { limit, from_index },
     });
+
+    this.allEventsGallery.splice(from_index, limit, ...answer);
+
+    return answer;
   };
 
   validateAccountId = async (accountId: string) => {
@@ -333,6 +371,30 @@ class KeypomJS {
     });
   };
 
+  getEventSupply = async () => {
+    return await this.viewAccount.viewFunctionV2({
+      contractId: KEYPOM_MARKETPLACE_CONTRACT,
+      methodName: 'get_event_supply',
+      args: {},
+    });
+  };
+
+  getStripeAccountId = async (accountId: string) => {
+    return await this.viewCall({
+      contractId: KEYPOM_MARKETPLACE_CONTRACT,
+      methodName: 'get_stripe_id_for_account',
+      args: { account_id: accountId },
+    });
+  };
+
+  getStripeEnabledEvents = async () => {
+    return await this.viewCall({
+      contractId: KEYPOM_MARKETPLACE_CONTRACT,
+      methodName: 'get_stripe_enabled_events',
+      args: {},
+    });
+  };
+
   deleteEventFromFunderMetadata = async ({
     wallet,
     eventId,
@@ -387,11 +449,12 @@ class KeypomJS {
     eventId: string;
   }): Promise<FunderEventMetadata> => {
     try {
-      console.log('getEventInfo', accountId, eventId);
+      console.log('getEventInfo2', accountId, eventId);
       const funderInfo = await this.viewCall({
         methodName: 'get_funder_info',
         args: { account_id: accountId },
       });
+
       console.log('funderInfo', funderInfo);
       const funderMeta = JSON.parse(funderInfo.metadata);
       console.log('funderMeta', funderMeta);

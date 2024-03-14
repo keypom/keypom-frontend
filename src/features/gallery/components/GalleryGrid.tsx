@@ -26,9 +26,6 @@ export const GalleryGrid = ({ loading = false, data = [], ...props }: GalleryGri
 
   const temp = loading ? [...loadingdata] : [...data];
 
-  // print temp navurl
-  console.log('temp navurl', temp[0].navurl);
-
   return (
     <>
       <Box h="full" mt="5" p="0px" pb="0px" w="full">
@@ -39,7 +36,7 @@ export const GalleryGrid = ({ loading = false, data = [], ...props }: GalleryGri
             </Text>
           </Box>
         )}
-        <SimpleGrid minChildWidth="280px" spacing={5}>
+        <SimpleGrid minChildWidth="340px" spacing={5}>
           {temp?.map((event) => (
             <TicketCard key={event.id} event={event} loading={loading} surroundingNavLink={true} />
           ))}

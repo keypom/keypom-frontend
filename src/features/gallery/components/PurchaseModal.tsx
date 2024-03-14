@@ -4,7 +4,6 @@ import {
   FormControl,
   FormErrorMessage,
   FormHelperText,
-  HStack,
   Input,
   Modal,
   ModalCloseButton,
@@ -30,7 +29,9 @@ interface PurchaseModalProps {
   event: any;
   amount: number;
   setAmount: (amount: number) => void;
-  selector: string;
+  selector: any;
+  stripeEnabledEvent: boolean;
+  stripeAccountId: string;
 }
 
 export const PurchaseModal = ({
@@ -44,16 +45,26 @@ export const PurchaseModal = ({
   amount,
   setAmount,
   selector,
+  stripeEnabledEvent,
+  stripeAccountId,
 }: PurchaseModalProps) => {
   // email input
   const handleInputChange = (e) => {
     setEmail(e.target.value);
   };
 
-
   const [questionValues, setQuestionValues] = useState({});
+  const [showErrors, setShowErrors] = useState(false);
 
   const focusedInputRef = useRef(null);
+
+  const preOnSubmit = (questions, type, anyError) => {
+    if (anyError) {
+      setShowErrors(true);
+      return;
+    }
+    onSubmit(questions, type);
+  };
 
   const handleQuestionInputChange = (index, e) => {
     const newValue = e.target.value;
@@ -116,18 +127,18 @@ export const PurchaseModal = ({
   const EventQuestions = () => {
     return (
       <>
-        we have some questions for you
         {event.questions.map((question, index) => {
           const isError = question.required && !questionValues[index]; // isError is true if the question is required and the input is empty
 
           return (
-            <FormControl key={index} isInvalid={isError}>
+            <FormControl key={index} isInvalid={isError && showErrors}>
               <Text color="black" mt="4" textAlign="left">
                 {question.question}
               </Text>
               <Input
                 key={index}
                 defaultValue={questionValues[index] || ''}
+                maxLength={50}
                 mt="2"
                 type="text"
                 onBlur={(e) => {
@@ -154,7 +165,88 @@ export const PurchaseModal = ({
     }
   }
 
-  const isFree = ticket.price === 0;
+  // purchase button version
+  const stripeRegistered = stripeEnabledEvent;
+  console.log('selecto123r', selector);
+  const signedIn = selector.isSignedIn();
+  const isFree = ticket.price === 0 || ticket.price === '0';
+
+  const PurchaseButton = <></>;
+
+  if (isFree) {
+    // purchaseType = 3;
+    PurchaseButton = (
+      <Button
+        w="100%"
+        onClick={() => {
+          preOnSubmit(questionValues, 'free', isAnyError);
+        }}
+      >
+        Get Free Ticket
+      </Button>
+    );
+  } else if (stripeRegistered && signedIn) {
+    // purchaseType = 2;
+    PurchaseButton = (
+      <>
+        <Button
+          w="100%"
+          onClick={() => {
+            preOnSubmit(questionValues, 'stripe', isAnyError);
+          }}
+        >
+          Checkout with Stripe
+        </Button>
+        <Text my="2"> ──────── OR ──────── </Text>
+        <Button
+          w="100%"
+          onClick={() => {
+            preOnSubmit(questionValues, 'stripe', isAnyError);
+          }}
+        >
+          Purchase with NEAR
+        </Button>
+      </>
+    );
+  } else if (stripeRegistered) {
+    // purchaseType = 1;
+    PurchaseButton = (
+      <>
+        <Button
+          w="100%"
+          onClick={() => {
+            preOnSubmit(questionValues, 'stripe', isAnyError);
+          }}
+        >
+          Checkout with Stripe
+        </Button>
+        <Text my="2"> ──────── OR ──────── </Text>
+        <Text>Sign in to purchase with NEAR</Text>
+      </>
+    );
+  } else if (signedIn) {
+    // purchaseType = 5;
+    PurchaseButton = (
+      <>
+        <Button
+          w="100%"
+          onClick={() => {
+            preOnSubmit(questionValues, 'stripe', isAnyError);
+          }}
+        >
+          Purchase with NEAR
+        </Button>
+      </>
+    );
+  } else {
+    // purchaseType = 4;
+    PurchaseButton = (
+      <>
+        <Text>Sign in to purchase with NEAR</Text>
+      </>
+    );
+  }
+
   return (
     <Modal isCentered closeOnOverlayClick={false} isOpen={isOpen} size={'xl'} onClose={onClose}>
       <ModalOverlay />
@@ -204,7 +296,16 @@ export const PurchaseModal = ({
             Location
           </Text>
           <Text textAlign="left">{ticket.location}</Text>
-
+          <Text
+            as="h2"
+            color="black.800"
+            fontSize="l"
+            fontWeight="medium"
+            mt="8px"
+            textAlign="left"
+          >
+            Ticket Amount
+          </Text>
           <Form>
             {availableTickets > 1 ? (
               <TicketIncrementer
@@ -217,67 +318,26 @@ export const PurchaseModal = ({
             )}
             {/* slot in all event questions here */}
             <EventQuestions />
-            <FormControl isInvalid={isError}>
+            <FormControl isInvalid={isError && showErrors}>
               <Text color="black" mt="4" textAlign="left">
                 Email
               </Text>
-              <Input mt="2" type="email" value={email} onChange={handleInputChange} />
-              {!isError ? (
-                <FormHelperText>
+              <Input
+                maxLength={500}
+                mt="2"
+                type="email"
+                value={email}
+                onChange={handleInputChange}
+              />
+              {!(isError && showErrors) ? (
+                <FormHelperText my="2">
                   No account will be created, ensure your email is correct
                 </FormHelperText>
               ) : (
-                <FormErrorMessage> Email is required. </FormErrorMessage>
+                <FormErrorMessage my="2"> Email is required. </FormErrorMessage>
               )}
             </FormControl>
-            {isFree ? (
-                <Button
-                isDisabled={isAnyError}
-                mt="4"
-                w="100%"
-                onClick={() => {
-                  onSubmit(questionValues, "free");
-                }}
-              >
-                Checkout for free
-              </Button>
-              ) : (
-                <HStack mt="4" justifyContent="space-between">
-                  {selector.isSignedIn() ? (
-                  <Button
-                    isDisabled={isAnyError}
-                    w="40%"
-                    onClick={() => {
-                      onSubmit(questionValues, "near");
-                    }}
-                  >
-                    Buy with NEAR
-                  </Button>
-                  ) : (
-                  <></>
-                    )}
-                  <Button
-                    isDisabled={isAnyError}
-                    w={selector.isSignedIn() ? "40%" : "100%"}
-                    onClick={() => {
-                      onSubmit(questionValues, "stripe");
-                    }}
-                  >
-                    Buy with Stripe
-                  </Button>
-                </Hstack>
-              )}
-{!selector.isSignedIn() ? (
-                    <Text
-                    mt="2"
-                    w="100%"
-                    >
-                    Sign in to buy with NEAR
-                    </Text>
-                  ) : (
-                    <></>
-                  )}
-            
+            {PurchaseButton}
           </Form>
           <ModalFooter>
             <Button variant={'secondary'} w="100%" onClick={onClose}>

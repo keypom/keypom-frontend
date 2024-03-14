@@ -210,10 +210,10 @@ export const GALLERY_PAGE_SIZE_ITEMS: MenuItemProps[] = [
 ];
 
 export const SORT_MENU_ITEMS: MenuItemProps[] = [
-  // {
-  //   label: 'Any',
-  //   // color: 'gray.600',
-  // },
+  {
+    label: 'no sort',
+    // color: 'gray.600',
+  },
   {
     label: 'ascending',
     // color: 'gray.600',

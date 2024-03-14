@@ -34,8 +34,10 @@ interface SurroundingLinkProps {
 }
 
 export const TicketCard = ({ event, loading, surroundingNavLink, onSubmit }: TicketCardProps) => {
-  const nav = '../gallery/' + String(event.navurl);
-  console.log('event.navurl', event.navurl);
+  let nav = '../gallery/';
+  if (event?.navurl) {
+    nav = '../gallery/' + String(event.navurl);
+  }
 
   const [amount, setAmount] = useState(1);
 
@@ -70,9 +72,9 @@ export const TicketCard = ({ event, loading, surroundingNavLink, onSubmit }: Tic
       <IconBox
         key={event.id}
         h="full"
+        maxW="340px"
         mt={{ base: '6', md: '7' }}
         pb={{ base: '6', md: '16' }}
-        w="full"
       >
         <Card
           borderRadius={{ base: '1rem', md: '8xl' }}
@@ -112,7 +114,7 @@ export const TicketCard = ({ event, loading, surroundingNavLink, onSubmit }: Tic
       borderRadius={{ base: '1rem', md: '6xl' }}
       h="full"
       m="0px"
-      maxW="320px"
+      maxW="340px"
       p="0px"
       pb="0px"
       style={{
@@ -139,7 +141,7 @@ export const TicketCard = ({ event, loading, surroundingNavLink, onSubmit }: Tic
             <>
               <Badge
                 borderRadius="full"
-                p={2}
+                p={1}
                 position="absolute"
                 right="5"
                 top="25"
@@ -158,7 +160,7 @@ export const TicketCard = ({ event, loading, surroundingNavLink, onSubmit }: Tic
                     borderRadius="full"
                     color="grey"
                     fontSize="2xs"
-                    p={0.5}
+                    p={1}
                     position="absolute"
                     right="3"
                     top="15"
@@ -172,13 +174,13 @@ export const TicketCard = ({ event, loading, surroundingNavLink, onSubmit }: Tic
                   borderRadius="full"
                   color="grey"
                   fontSize="2xs"
-                  p={0.5}
+                  p={1}
                   position="absolute"
                   right="3"
                   top="15"
                   variant="gray"
                 >
-                  {event.numTickets} of {event.numTickets} available
+                  {event.maxTickets - event.supply} of {event.maxTickets} available
                 </Badge>
               )}
             </>
@@ -202,7 +204,7 @@ export const TicketCard = ({ event, loading, surroundingNavLink, onSubmit }: Tic
               oikadshfklj hadskljf halksdjhfl jkh */}
             </Text>
           </Box>
-          {amount && event.numTickets !== '0' && event.numTickets !== '1' ? (
+          {!navButton && amount && event.numTickets !== '0' && event.numTickets !== '1' ? (
             <TicketIncrementer
               amount={amount}
               decrementAmount={decrementAmount}

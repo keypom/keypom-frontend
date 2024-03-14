@@ -17,7 +17,7 @@ import {
   Show,
   useDisclosure,
 } from '@chakra-ui/react';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { SearchIcon } from '@chakra-ui/icons';
 import { DateRangePicker } from 'react-dates';
 import 'react-dates/initialize';
@@ -79,7 +79,7 @@ export default function Gallery() {
     price: GALLERY_PRICE_ITEMS[0].label,
     startDate: null,
     endDate: null,
-    sort: 'descending',
+    sort: 'no sort',
     // reversed: false,
   });
   const [searchTerm, setSearchTerm] = useState<string>('');
@@ -87,7 +87,7 @@ export default function Gallery() {
   const [filteredDataItems, setFilteredDataItems] = useState<DataItem[]>([]);
   // const [wallet, setWallet] = useState({});
 
-  const [banner, setBanner] = useState('defaultbanner');
+  const [banner, setBanner] = useState('');
 
   const handleSortMenuSelect = (item) => {
     // if you select the same item, reverse the order
@@ -140,171 +140,102 @@ export default function Gallery() {
     }
   };
 
-  const handleFiltering = async (events) => {
+  const handleFiltering = async (drops) => {
     // Apply the selected filters
 
-    let drops = events;
+    drops = drops.filter((drop) => drop !== null);
+
+    console.log('wawawdrops', drops);
 
     if (selectedFilters.price !== GALLERY_PRICE_ITEMS[0].label) {
-      // Apply price filters
       const priceFilter = selectedFilters.price;
-      // Convert each drop to a promise that resolves to either the drop or null
-      const dropsPromises = events.map((event) => {
-        let price = -1;
-        for (const [key, value] of Object.entries(event.ticket_info)) {
-          price = parseFloat(keypomInstance.yoctoToNear(value.price));
-        }
-        if (price === -1) {
-          return null;
-        }
-        if (priceFilter === GALLERY_PRICE_ITEMS[1].label) {
-          if (price < 20) {
-            return event;
-          } else {
-            return null;
-          }
-        } else if (priceFilter === GALLERY_PRICE_ITEMS[2].label) {
-          if (price >= 20 && price < 50) {
-            return event;
-          } else {
-            return null;
-          }
-        } else if (priceFilter === GALLERY_PRICE_ITEMS[3].label) {
-          if (price >= 50 && price < 100) {
-            return event;
-          } else {
-            return null;
-          }
-        } else if (priceFilter === GALLERY_PRICE_ITEMS[4].label) {
-          if (price >= 100) {
-            return event;
-          } else {
-            return null;
-          }
-        }
-      });
 
-      const resolvedDrops = await Promise.all(dropsPromises);
-      drops = resolvedDrops.filter((drop): drop is ProtocolReturnedDrop => drop !== null);
+      // Apply price filter
+      drops = drops.filter((drop) => {
+        let price = -1;
+        for (let key in drop.prices) {
+          let value = drop.prices[key];
+          price = parseFloat(keypomInstance.yoctoToNear(value));
+          if (priceFilter === GALLERY_PRICE_ITEMS[1].label) {
+            if (price < 20) {
+              return true;
+            }
+          } else if (priceFilter === GALLERY_PRICE_ITEMS[2].label) {
+            if (price >= 20 && price < 50){
+              return true;
+            }
+          } else if (priceFilter === GALLERY_PRICE_ITEMS[3].label) {
+            if (price >= 50 && price < 100){
+              return true;
+            }
+  
+          } else if (priceFilter === GALLERY_PRICE_ITEMS[4].label) {
+            if (price >= 100){
+              return true;
+            }
+        }
+        return false;
+        });
+        
     }
 
     if (selectedFilters.search.trim() !== '') {
       // Apply search filter
-      // Convert each drop to a promise that resolves to either the drop or null
-      const dropsPromises = drops.map(async (drop) => {
-        const data = await keypomInstance.getEventInfo({
-          accountId: drop.funder_id,
-          eventId: drop.event_id,
-        });
-        if (data == undefined) return null;
-        // const data = await keypomInstance.getDropData({ drop });
-        // const { dropName } = keypomInstance.getDropMetadata(drop.metadata);
-
-        const description = data.description;
-
-        if (
-          data.name.toLowerCase().includes(searchTerm) ||
-          description.toLowerCase().includes(searchTerm)
-        ) {
-          return drop;
-        } else return null;
+      drops = drops.filter((drop) => {
+        return (
+          drop.name.toLowerCase().includes(searchTerm) ||
+          drop.description.toLowerCase().includes(searchTerm)
+        );
       });
-
-      const resolvedDrops = await Promise.all(dropsPromises);
-      drops = resolvedDrops.filter((drop): drop is ProtocolReturnedDrop => drop !== null);
     }
 
     // apply start and end date filters
 
     if (selectedFilters.startDate !== null) {
-      // Convert each drop to a promise that resolves to either the drop or null
-      const dropsPromises = drops.map(async (drop) => {
-        const data = await keypomInstance.getEventInfo({
-          accountId: drop.funder_id,
-          eventId: drop.event_id,
-        });
-        if (data == undefined) return null;
-        let dateString = data.date.date;
+      drops = drops.filter((drop) => {
+        if (drop == undefined) return false;
+        let dateString = drop.date.date;
         // take start date, check if it is a string or object
-        if (typeof data.date.date !== 'string') {
-          dateString = data.date.date.from;
+        if (typeof drop.date.date !== 'string') {
+          dateString = drop.date.date.from;
         }
         const date = new Date(dateString);
-        if (date >= selectedFilters.startDate.toDate()) {
-          return drop;
-        } else return null;
-      });
+        return (date >= selectedFilters.startDate.toDate());
 
-      const resolvedDrops = await Promise.all(dropsPromises);
-      drops = resolvedDrops.filter((drop): drop is ProtocolReturnedDrop => drop !== null);
+      });
     }
 
     if (selectedFilters.endDate !== null) {
-      // Convert each drop to a promise that resolves to either the drop or null
-      const dropsPromises = drops.map(async (drop) => {
-        const data = await keypomInstance.getEventInfo({
-          accountId: drop.funder_id,
-          eventId: drop.event_id,
-        });
-        if (data == undefined) return null;
-        let dateString = data.date.date;
+      drops = drops.filter((drop) => {
+        if (drop == undefined) return false;
+        let dateString = drop.date.date;
         // take start date, check if it is a string or object
-        if (typeof data.date.date !== 'string') {
-          dateString = data.date.date.from;
+        if (typeof drop.date.date !== 'string') {
+          dateString = drop.date.date.to;
         }
         const date = new Date(dateString);
-        if (date <= selectedFilters.endDate.toDate()) {
-          return drop;
-        } else return null;
+        return (date <= selectedFilters.endDate.toDate());
       });
-
-      const resolvedDrops = await Promise.all(dropsPromises);
-      drops = resolvedDrops.filter((drop): drop is ProtocolReturnedDrop => drop !== null);
     }
 
     // before returning drops, sort them if all drops are fetched
-    if (!isAllDropsLoading) {
-      // get data for each drop and pair it with the drop
-      let dropData = await Promise.all(
-        drops.map(async (drop) => {
-          const data = await keypomInstance.getEventInfo({
-            accountId: drop.funder_id,
-            eventId: drop.event_id,
-          });
-          return [drop, data];
-        }),
-      );
-      // filter out all null entries
-      dropData = dropData.filter((drop) => drop[1] !== null && drop[1] !== undefined);
-      // sort the drops based on the selected sort option
-      // if (selectedFilters.sort === 'Date') {
-      //   dropData = dropData.sort((a, b) => {
-      //     if (selectedFilters.reversed) {
-      //       return b[1].type.localeCompare(a[1].type);
-      //     }
-      //     return a[1].type.localeCompare(b[1].type);
-      //   });
-      // }
-      // if (selectedFilters.sort === 'Price') {
-      //   dropData = dropData.sort((a, b) => {
-      //     if (selectedFilters.reversed) {
-      //       return b[1].claimed.localeCompare(a[1].claimed);
-      //     }
-      //     return a[1].claimed.localeCompare(b[1].claimed);
-      //   });
-      // }
+    if (selectedFilters.sort !== 'no sort') {
       if (selectedFilters.sort === 'ascending') {
-        dropData = dropData.sort((a, b) => {
-          return a[1].id.localeCompare(b[1].id);
+        drops = drops.sort((a, b) => {
+          console.log('wawadata', a);
+          const availableA = a.maxTickets - a.supply;
+          const availableB = b.maxTickets - b.supply;
+          return availableA - availableB;
         });
       }
       if (selectedFilters.sort === 'descending') {
-        dropData = dropData.sort((a, b) => {
-          return b[1].id.localeCompare(a[1].id);
+        drops = drops.sort((a, b) => {
+          console.log('wawadata', a);
+          const availableA = a.maxTickets - a.supply;
+          const availableB = b.maxTickets - b.supply;
+          return availableB - availableA;
         });
       }
-      // extract the drops from the sorted array
-      drops = dropData.map((drop) => drop[0]);
     }
 
     return drops;
@@ -325,17 +256,17 @@ export default function Gallery() {
 
   const [numOwnedEvents, setNumOwnedEvents] = useState<number>(0);
 
-  const handleGetAllEvents = useCallback(async () => {
+  const handleGetAllEvents = async () => {
     setIsAllDropsLoading(true);
-    let eventListings = await keypomInstance.GetMarketListings({
+    const eventListings = await keypomInstance.GetMarketListings({
       limit: 50,
       from_index: 0,
     });
 
+    console.log('wawaeventListings', eventListings);
+
     const numEvents = eventListings.length;
     setNumOwnedEvents(numEvents);
-
-    eventListings = await handleFiltering(eventListings);
 
     const dropDataPromises = eventListings.map(async (event) => {
       // get metadata from drop.event_id and drop.funder_id
@@ -343,6 +274,20 @@ export default function Gallery() {
         accountId: event.funder_id,
         eventId: event.event_id,
       });
+
+      // for each ticket in the event, get the supply
+      let supply = 0;
+      let maxTickets = 0;
+      let prices = [];
+
+      for (const [name, ticketdata] of Object.entries(event.ticket_info)) {
+        console.log('wawaticket1', ticketdata);
+        console.log('wawaticketname1', name);
+        const thissupply = await keypomInstance.getKeySupplyForTicket(name);
+        supply += thissupply;
+        maxTickets += ticketdata.max_tickets;
+        prices.push(ticketdata.price);
+      }
 
       let dateString = '';
       if (eventInfo?.date) {
@@ -360,8 +305,12 @@ export default function Gallery() {
       const dateCreated = formatDate(new Date(parseInt(eventInfo.dateCreated)));
       console.log('navurl', String(event.funder_id) + ':' + event.event_id);
       return {
+        prices,
+        maxTickets,
+        supply,
         location: eventInfo.location,
         dateString,
+        date: eventInfo.date,
         id: event.event_id,
         name: truncateAddress(eventInfo.name, 'middle', 32),
         media: eventInfo.artwork,
@@ -373,10 +322,14 @@ export default function Gallery() {
       };
     });
 
-    // Use Promise.all to wait for all promises to resolve
     let dropData = await Promise.all(dropDataPromises);
+
+    console.log('wawadropData', dropData);
+
+    dropData = await handleFiltering(dropData);
+
+    // Use Promise.all to wait for all promises to resolve
     // filter out all null entries
-    dropData = dropData.filter((drop) => drop !== null);
 
     console.log('MEGAFILTER DATA ALL DROPS');
     setFilteredDataItems(dropData);
@@ -386,35 +339,27 @@ export default function Gallery() {
 
     setCurPage(0);
     setIsAllDropsLoading(false);
-  }, [selectedFilters, keypomInstance]);
+  };
 
-  const handleGetInitialDrops = useCallback(async () => {
+  const handleGetInitialDrops = async () => {
     // setIsLoading(true);
     // First get the total supply of drops so we know when to stop fetching
-    const totalSupply = 1; // await keypomInstance.getDropSupplyForOwner({ accountId: accountId! });
+    const totalSupply = await keypomInstance.getEventSupply();
+
+    console.log('totalSupply123todofixthis', totalSupply);
 
     // Loop until we have enough filtered drops to fill the page size
     let dropsFetched = 0;
     let filteredDrops: ProtocolReturnedDrop[] = [];
     while (dropsFetched < totalSupply && filteredDrops.length < selectedFilters.pageSize) {
       const eventListings = await keypomInstance.GetMarketListings({
-        limit: 5,
+        limit: 6,
         from_index: dropsFetched,
       });
 
+      console.log('wawaintiitialeventListings2', eventListings);
+
       dropsFetched += Number(eventListings.length);
-
-      // drops = drops.filter(async (drop) => {
-      //   // get metadata from drop.event_id and drop.funder_id
-      //   const meta = await keypomInstance.getEventInfo({
-      //     accountId: drop.funder_id,
-      //     eventId: drop.event_id,
-      //   });
-      //   // const meta: EventDropMetadata = JSON.parse(metadata);
-      //   return meta !== undefined;
-      // });
-
-      const eventListings = await handleFiltering(eventListings);
 
       filteredDrops = filteredDrops.concat(eventListings);
     }
@@ -427,6 +372,18 @@ export default function Gallery() {
         eventId: event.event_id,
       });
 
+      // for each ticket in the event, get the supply
+      let supply = 0;
+      let maxTickets = 0;
+
+      for (const [name, ticketdata] of Object.entries(event.ticket_info)) {
+        console.log('wawaticket1', ticketdata);
+        console.log('wawaticketname1', name);
+        const thissupply = await keypomInstance.getKeySupplyForTicket(name);
+        supply += thissupply;
+        maxTickets += ticketdata.max_tickets;
+      }
+
       let dateString = '';
       if (eventInfo?.date) {
         dateString =
@@ -443,8 +400,11 @@ export default function Gallery() {
       const dateCreated = formatDate(new Date(parseInt(eventInfo.dateCreated)));
       console.log('navurl', String(event.funder_id) + ':' + event.event_id);
       return {
+        maxTickets,
+        supply,
         location: eventInfo.location,
         dateString,
+        date: eventInfo.date,
         id: event.event_id,
         name: truncateAddress(eventInfo.name, 'middle', 32),
         media: eventInfo.artwork,
@@ -462,33 +422,35 @@ export default function Gallery() {
     // filter out all null entries
     dropData = dropData.filter((drop) => drop !== null);
 
-    console.log('MEGAFILTER DATA INITIAL DROPS FAKE');
-
     if (filteredDataItems.length === 0) {
-      console.log('MEGAFILTER DATA INITIAL DROPS');
-
+      // not actually filtered lol
       setFilteredDataItems(dropData);
     }
     setCurPage(0);
     setIsLoading(false);
-  }, [selectedFilters, keypomInstance]);
+  };
 
   useEffect(() => {
-    if (filteredDataItems.length == 0) return;
+    if (filteredDataItems.length == 0 || banner !== '') return;
     const randomElement = filteredDataItems[Math.floor(Math.random() * filteredDataItems.length)];
 
     setBanner(randomElement.media);
   }, [filteredDataItems]);
 
   useEffect(() => {
+    console.log('gonna call handlegetinitialdrops');
+
+    if (keypomInstance == undefined) return;
     // First get enough data with the current filters to fill the page size
     handleGetInitialDrops();
-  }, []);
+  }, [keypomInstance]);
 
   useEffect(() => {
+    console.log('gonna call handleGetAllEvents');
+    if (keypomInstance == undefined) return;
     // In parallel, fetch all the events
     handleGetAllEvents();
-  }, [selectedFilters]);
+  }, [selectedFilters, keypomInstance]);
 
   const pageSizeMenuItems = createMenuItems({
     menuItems: GALLERY_PAGE_SIZE_ITEMS,
@@ -727,6 +689,7 @@ export default function Gallery() {
         type={'Events'}
         onClickRowsSelect={() => (popoverClicked.current += 1)}
       />
+      <Box h="100px"></Box>
     </Box>
   );
 }

@@ -33,11 +33,14 @@ export default function Event() {
 
   // GET SINGLE EVENT DATA USING URL
   const [event, setEvent] = useState(null);
+  const [stripeEnabledEvent, setStripeEnabledEvent] = useState(false);
+  const [stripeAccountId, setStripeAccountId] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [noDrop, setNoDrop] = useState(false);
   const [input, setInput] = useState('');
   const [email, setEmail] = useState('');
   const [ticketList, setTicketList] = useState([]);
+  const [resaleTicketList, setResaleTicketList] = useState([]);
   const [areTicketsLoading, setAreTicketsLoading] = useState(true);
   const [doKeyModal, setDoKeyModal] = useState(false);
   const [sellDropInfo, setSellDropInfo] = useState(null);
@@ -206,7 +209,7 @@ export default function Event() {
 
   // purchase modal
      
-  const OpenPurchaseModal = (ticket, ticketAmount) => {
+  const OpenPurchaseModal = async (ticket, ticketAmount) => {
     console.log('ticket: ', ticket);
     setTicketBeingPurchased(ticket);
     setTicketAmount(ticketAmount);
@@ -278,7 +281,7 @@ export default function Event() {
     console.log('sasapurchaseType: ', purchaseType);
 
     const dropData = await keypomInstance.getTicketDropInformation({ dropID: ticketBeingPurchased.id });
-
+    
     console.log('sasadropData: ', dropData);
 
     // parse dropData's metadata to get eventId
@@ -315,16 +318,72 @@ export default function Event() {
     console.log('sasaencryptedValues: ', encryptedValues);
 
     //fold the userinfo into a pretty json.stringify
-    let userInfo = {
-      email: email,
-      answers: encryptedValues,
-      ticketAmount: ticketAmount,
-      dropID: ticketBeingPurchased.id,
-    };
+    // let userInfo = {
+    //   email: email,
+    //   answers: encryptedValues,
+    //   ticketAmount: ticketAmount,
+    //   dropID: ticketBeingPurchased.id,
+    //   eventName: drop.name,
+    //   baseURL: window.location.origin,
+    //   stripeAccountId: stripeAccountId,
+    // };
 
-    console.log('sasauserInfo: ', userInfo);
+    var attendeeName = null;
+    
+    if(drop && drop.questions && drop?.questions.length != 0){
+      //filter each question to find the list of ones that contain "name"
+      var indexlist = [];
+      for (var i = 0; i < drop?.questions.length; i++) {
+        if (drop?.questions[i]?.question.toLowerCase().replaceAll(' ', '').includes('name')) {
+          indexlist.push(i);
+        }
+      }
+
+      //get the shortest question in indexlist
+      var shortestIndex = -1;
+      var shortestLength = 1000;
+      for (var i = 0; i < indexlist.length; i++) {
+        if (drop?.questions[indexlist[i]].question.length < shortestLength) {
+          shortestIndex = indexlist[i];
+          shortestLength = drop?.questions[indexlist[i]].question.length;
+        }
+      }
+      if (shortestIndex != -1) {
+        attendeeName = questionValues[shortestIndex];
+      }
+    }
+
+    //limit the number of characters in the email and name to 500
+    if(attendeeName && attendeeName.length > 500){
+      attendeeName = attendeeName.substring(0, 500);
+    }
+    let trimmedEmail = email
+    if(trimmedEmail && trimmedEmail.length > 500){
+      trimmedEmail = trimmedEmail.substring(0, 500);
+    }
+    
+
+    const workerPayload =  {
+      name: attendeeName,
+      ticketAmount: ticketAmount, //(number of tickets being purchase)
+      buyerAnswers: encryptedValues, //(encrypted user answers)
+      ticket_info: {
+        location: drop.location,
+        eventName: drop.name,
+        ticketType: meta.name,
+        eventDate: drop.date,
+        ticketOwner: accountId ? accountId : null, //(if signed in, this is signed in account, otherwise its none/empty)
+        eventId: meta.eventId,
+        dropId: ticketBeingPurchased.id,
+      },
+      purchaseEmail: trimmedEmail, // (currently just called email in userInfo)
+      stripeaccountId: stripeAccountId,
+    }
+
+    
+    console.log('sasaworkerPayload: ', workerPayload);
         
-    const userInfoJson = JSON.stringify(userInfo);
+    const userInfoJson = JSON.stringify(workerPayload);
 
     console.log('sasauserInfosds: ', userInfoJson);
 
@@ -481,6 +540,85 @@ export default function Event() {
       eventId,
     });
 
+    console.log('ttticketsForEvent', ticketsForEvent);
+
+    console.log('WARNING TODO: get resales instead of placeholders');
+
+    const resalesForEvent = await keypomInstance.getResalesForEvent({
+      eventId,
+    });
+
+    console.log('tttresalesForEvent', resalesForEvent);
+
+    const iseventavailable = await keypomInstance.getStripeEnabledEvents();
+    //check if this event is stripe enabled
+    const iseventstripeenabled = iseventavailable.includes(eventId);
+
+    console.log('iseventstripeenabled', iseventstripeenabled);
+    setStripeEnabledEvent(iseventstripeenabled);
+
+    //get stripe id for account
+    const stripeAccountId = await keypomInstance.getStripeAccountId(accountId);
+    console.log('stripeAccountId', stripeAccountId);
+    setStripeAccountId(stripeAccountId);
+
+    const resaleArrays = Object.values(resalesForEvent);
+
+    const resalePromises = resaleArrays.forEach(async (ticket) => {
+      console.log('ofcc ticket', ticket);
+      const meta: EventDropMetadata = JSON.parse(ticket.drop_config.metadata);
+      const supply = await keypomInstance.getKeySupplyForTicket(ticket.drop_id);
+      console.log('ofcc meta', meta);
+      return {
+        id: ticket.drop_id,
+        artwork: meta.artwork,
+        name: meta.name,
+        description: meta.description,
+        salesValidThrough: meta.salesValidThrough,
+        passValidThrough: meta.passValidThrough,
+        supply,
+        maxTickets: meta.maxSupply,
+        soldTickets: supply,
+        priceNear: keypomInstance.yoctoToNear(meta.price),
+      };
+    });
+
+    let resaleTickets = await Promise.all(resalePromises);
+
+    // map resaleTickets
+    let resaleticketIndex = 0;
+    resaleTickets = resaleTickets.map((ticket) => {
+      let available = 'unlimited';
+      if (ticket.maxTickets != undefined) {
+        available = String(ticket.maxTickets - ticket.soldTickets);
+      }
+      let dateString = '';
+      console.log('ticket.passValidThrough', ticket);
+      if (ticket.passValidThrough) {
+        dateString = formatDate(new Date(ticket.passValidThrough));
+        // typeof ticket.passValidThrough === 'string'
+        //   ? ticket.passValidThrough
+        //   : `${ticket.date.from} to ${ticket.date.to}`;
+      }
+      // dateString = formatDate(dateString);
+     
+      resaleticketIndex++;
+      return {
+        ...ticket,
+        price: ticket.priceNear,
+        media: ticket.artwork,
+        numTickets: available,
+        dateString,
+        location: '',
+        description: ticket.description,
+        resaleticketIndex: resaleticketIndex,
+      };
+    });
+
+    console.log('resaletickets: ', resaleTickets);
+
+    setResaleTicketList(resaleTickets);
+
     const promises = ticketsForEvent.map(async (ticket) => {
       const meta: EventDropMetadata = JSON.parse(ticket.drop_config.metadata);
       const supply = await keypomInstance.getKeySupplyForTicket(ticket.drop_id);
@@ -492,6 +630,7 @@ export default function Event() {
         description: meta.description,
         salesValidThrough: meta.salesValidThrough,
         passValidThrough: meta.passValidThrough,
+        supply,
         maxTickets: meta.maxSupply,
         soldTickets: supply,
         priceNear: keypomInstance.yoctoToNear(meta.price),
@@ -541,6 +680,7 @@ export default function Event() {
     if (!keypomInstance || !eventId || !accountId) return;
 
     handleGetAllTickets();
+    
   }, [keypomInstance, eventId, accountId]);
 
   useEffect(() => {
@@ -728,6 +868,34 @@ export default function Event() {
         </SimpleGrid>
       </Box>
 
+      <Heading as="h3" my="5" size="lg">
+        Secondary Tickets
+      </Heading>
+
+      <Box h="full" mt="0" p="0px" pb={{ base: '6', md: '16' }} w="full">
+        <SimpleGrid minChildWidth="280px" spacing={5}>
+          {!areTicketsLoading
+            ? resaleTicketList.map((ticket) => (
+                <TicketCard
+                  key={ticket.id}
+                  event={ticket}
+                  loading={false}
+                  surroundingNavLink={false}
+                  onSubmit={OpenPurchaseModal}
+                />
+              ))
+            : loadingdata.map((ticket) => (
+                <TicketCard
+                  key={loadingdata.id}
+                  event={loadingdata[0]}
+                  loading={true}
+                  surroundingNavLink={false}
+                  onSubmit={OpenPurchaseModal}
+                />
+              ))}
+        </SimpleGrid>
+      </Box>
+
       <PurchaseModal
         amount={ticketAmount}
         setAmount={setTicketAmount}
@@ -739,6 +907,8 @@ export default function Event() {
         onSubmit={PurchaseTicket}
         event={event}
         selector={selector}
+        stripeEnabledEvent={stripeEnabledEvent}
+        stripeAccountId={stripeAccountId}
       />
 
       {doKeyModal && sellDropInfo != null && ( 
