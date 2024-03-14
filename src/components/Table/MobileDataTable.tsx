@@ -30,7 +30,6 @@ export const MobileDataTable = ({
   ...props
 }: MobileDataTableProps) => {
   const navigate = useNavigate();
-  console.log('Data: ', data);
 
   const actionColumn = columns[columns.length - 1];
   const getMobileTableBody = () => {

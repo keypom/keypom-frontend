@@ -78,7 +78,7 @@ export const ModifyTicketModal = ({
       isErr = true;
     }
 
-    if (allTickets.some((ticket) => ticket.name === currentTicket.name)) {
+    if (!editedTicket && allTickets.some((ticket) => ticket.name === currentTicket.name)) {
       newErrors.name = 'Name must be unique';
       isErr = true;
     }
@@ -154,6 +154,7 @@ export const ModifyTicketModal = ({
         readOnly
         borderRadius="5xl"
         isInvalid={!!errorField}
+        maxLength={500}
         placeholder={eventDateToPlaceholder('Event date', dateObject)}
         size="sm"
         style={{ cursor: 'pointer' }}
@@ -245,6 +246,7 @@ export const ModifyTicketModal = ({
               borderRadius="5xl"
               height="35px"
               isInvalid={!!errors.name}
+              maxLength={500}
               placeholder="Red Wedding VIP Ticket"
               size="sm"
               sx={{
@@ -271,6 +273,7 @@ export const ModifyTicketModal = ({
               borderRadius="5xl"
               height="80px"
               isInvalid={!!errors.description}
+              maxLength={500}
               placeholder="129 West 81st Street, Apartment 5A"
               size="sm"
               sx={{
@@ -431,6 +434,7 @@ export const ModifyTicketModal = ({
               borderRadius="5xl"
               isInvalid={!!errors.maxSupply}
               marginY="0"
+              maxLength={500}
               placeholder="Number of tickets"
               size="sm"
               sx={{

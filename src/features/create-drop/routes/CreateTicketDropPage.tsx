@@ -17,6 +17,7 @@ import {
   EventInfoForm,
   EventInfoFormValidation,
 } from '../components/ticket/EventInfoForm';
+import { ReviewEventForm } from '../components/ticket/ReviewEventForm';
 
 interface TicketStep {
   title: string;
@@ -81,35 +82,98 @@ const formSteps: TicketStep[] = [
   {
     name: 'review',
     title: 'Review',
-    component: (props: EventStepFormProps) => <EventInfoForm {...props} />,
+    component: (props: EventStepFormProps) => <ReviewEventForm {...props} />,
   },
 ];
 
-export default function NewTicketDrop() {
-  const [currentStep, setCurrentStep] = useState(0);
-  const [formData, setFormData] = useState<TicketDropFormData>({
-    // Step 1
-    eventName: { value: '' },
-    eventArtwork: { value: undefined },
-    eventDescription: { value: '' },
-    eventLocation: { value: '' },
-    date: {
+const placeholderData = {
+  eventName: { value: 'Vandelay Industries Networking Event' },
+  eventArtwork: { value: undefined },
+  eventDescription: {
+    value:
+      'Meet with the best latex salesmen in the industry! This will be a once-in-a-lifetime opportunity to network and meet with people that you enjoy being with. Drink beer, laugh, have fun, and have a great time at this networking event! This will be a once-in-a-lifetime opportunity!',
+  },
+  eventLocation: { value: '129 West 81st Street, Apartment Suite 288.' },
+  date: {
+    value: {
       value: {
-        startDate: null,
+        value: { startDate: null, endDate: null },
+        startDate: '2024-03-16T04:00:00.000Z',
         endDate: null,
       },
+      startDate: new Date('2024-03-16T04:00:00.000Z'),
+      endDate: new Date('2024-03-23T04:00:00.000Z'),
+      startTime: '09:00 AM',
+      endTime: '09:00 PM',
     },
+  },
+  questions: [
+    { question: 'Full name', isRequired: true },
+    { question: 'Email address', isRequired: true },
+    { question: 'How did you find out about this event?', isRequired: false },
+  ],
+  tickets: [
+    {
+      name: 'VIP Ticket',
+      description:
+        'Get exclusive access to beer, fun, and games. Network with people, grant priority access to lines and skip the wait with this amazing ticket tier!',
+      price: '5',
+      artwork: undefined,
+      salesValidThrough: {
+        startDate: new Date('2024-03-13T04:00:00.000Z'),
+        endDate: new Date('2024-03-23T04:00:00.000Z'),
+      },
+      passValidThrough: {
+        startDate: new Date('2024-03-18T04:00:00.000Z'),
+        endDate: new Date('2024-03-22T04:00:00.000Z'),
+      },
+      maxSupply: 5000,
+    },
+    {
+      name: 'Standard Ticket',
+      description: 'Get standard access to the networking event',
+      artwork: undefined,
+      price: '0',
+      salesValidThrough: {
+        startDate: new Date('2024-03-13T04:00:00.000Z'),
+        endDate: new Date('2024-03-23T04:00:00.000Z'),
+      },
+      passValidThrough: {
+        startDate: new Date('2024-03-18T04:00:00.000Z'),
+        endDate: new Date('2024-03-22T04:00:00.000Z'),
+      },
+      maxSupply: 5000,
+    },
+  ],
+};
 
-    // Step 2
-    questions: [
-      { question: 'Full name', isRequired: true },
-      { question: 'Email address', isRequired: false },
-      { question: 'How did you find out about this event?', isRequired: false },
-    ],
+const defaultFormData: TicketDropFormData = {
+  // Step 1
+  eventName: { value: '' },
+  eventArtwork: { value: undefined },
+  eventDescription: { value: '' },
+  eventLocation: { value: '' },
+  date: {
+    value: {
+      startDate: null,
+      endDate: null,
+    },
+  },
 
-    // Step 3
-    tickets: [],
-  });
+  // Step 2
+  questions: [
+    { question: 'Full name', isRequired: true },
+    { question: 'Email address', isRequired: true },
+    { question: 'How did you find out about this event?', isRequired: false },
+  ],
+
+  // Step 3
+  tickets: [],
+};
+
+export default function NewTicketDrop() {
+  const [currentStep, setCurrentStep] = useState(0);
+  const [formData, setFormData] = useState<TicketDropFormData>(placeholderData);
 
   const handleClearForm = () => {
     switch (currentStep) {
@@ -143,6 +207,7 @@ export default function NewTicketDrop() {
     if (!isErr) {
       setCurrentStep((prevStep) => (prevStep < formSteps.length - 1 ? prevStep + 1 : prevStep));
     }
+    console.log(JSON.stringify(formData));
   };
 
   const prevStep = () => {

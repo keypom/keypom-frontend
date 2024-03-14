@@ -157,7 +157,7 @@ const CollectInfoForm = (props: EventStepFormProps) => {
         <Button
           borderRadius="12px"
           fontSize="sm"
-          isDisabled={data.length >= 5}
+          isDisabled={data.length >= 4}
           padding="7px 16px 8px 16px"
           size="md"
           w="168px"
@@ -169,9 +169,9 @@ const CollectInfoForm = (props: EventStepFormProps) => {
         >
           + Add custom field
         </Button>
-        {data.length >= 5 && (
+        {data.length >= 4 && (
           <Text color="red.400" fontSize="sm" fontWeight="500" textAlign="left">
-            You can only add up to 5 custom fields
+            You can only add up to 4 custom fields
           </Text>
         )}
       </VStack>

@@ -67,7 +67,7 @@ export const CollectInfoFormValidation = (formData: TicketDropFormData) => {
   return { isErr, newFormData };
 };
 
-const defaultTicket = {
+export const defaultTicket = {
   name: '',
   description: '',
   artwork: undefined,
