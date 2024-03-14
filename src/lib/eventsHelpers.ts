@@ -72,9 +72,9 @@ const SUBSEQUENT_DROP_BASE_COST = BigInt('14460000000000200000000');
 const FUNDER_METADATA_BASE_COST = BigInt('840000000000000000000');
 const FIRST_MARKET_DROP_BASE_COST = BigInt('11790000000000000000000');
 const SUBSEQUENT_MARKET_DROP_BASE_COST = BigInt('6810000000000000000000');
-const YOCTO_PER_BYTE = BigInt('20000000000000000000'); // Includes a 200% safety margin
+const YOCTO_PER_BYTE = BigInt('12500000000000000000'); // Includes a 200% safety margin
 
-const BASE_MARKET_BYTES_PER_KEY = BigInt('1500');
+const BASE_MARKET_BYTES_PER_KEY = BigInt('750');
 const METADATA_MARKET_BYTES_PER_KEY = BigInt('512');
 
 export function getByteSize(str: string) {
@@ -125,5 +125,11 @@ export const calculateDepositCost = ({
   return {
     marketDeposit: marketDeposit.toString(),
     dropDeposit: (dropDeposit + funderMetaCost).toString(),
+    costBreakdown: {
+      perDrop: (dropDeposit / BigInt(eventTickets.length)).toString(),
+      perEvent: funderMetaCost.toString(),
+      marketListing: marketDeposit.toString(),
+      total: (dropDeposit + funderMetaCost + marketDeposit).toString(),
+    },
   };
 };

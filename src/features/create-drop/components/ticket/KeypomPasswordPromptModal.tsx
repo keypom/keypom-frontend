@@ -23,11 +23,13 @@ import { EyeIcon } from '@/components/Icons/EyeIcon';
 
 interface KeypomPasswordPromptModalProps {
   isOpen: boolean;
+  isSetting: boolean;
   onModalClose: () => void;
 }
 
 export const KeypomPasswordPromptModal = ({
   isOpen,
+  isSetting,
   onModalClose,
 }: KeypomPasswordPromptModalProps) => {
   const [password, setPassword] = useState('');
@@ -129,7 +131,12 @@ export const KeypomPasswordPromptModal = ({
             </VStack>
           </ModalBody>
           <ModalFooter width="100%">
-            <Button colorScheme="blue" width="100%" onClick={handlePasswordSubmit}>
+            <Button
+              colorScheme="blue"
+              isLoading={isSetting}
+              width="100%"
+              onClick={handlePasswordSubmit}
+            >
               Set Password and Pay
             </Button>
           </ModalFooter>

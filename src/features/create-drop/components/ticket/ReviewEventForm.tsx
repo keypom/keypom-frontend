@@ -16,6 +16,7 @@ import {
 } from '@chakra-ui/react';
 import { Fragment, useMemo, useState } from 'react';
 
+import keypomInstance from '@/lib/keypom';
 import { type ColumnItem } from '@/components/Table/types';
 import { DeleteIcon } from '@/components/Icons';
 import { DataTable } from '@/components/Table';
@@ -245,13 +246,25 @@ const ReviewEventForm = (props: EventStepFormProps) => {
         />
         <Flex alignItems="flex-end" justifyContent="flex-end" w="full">
           <Grid alignItems="center" gap={2} templateColumns="1fr auto">
+            <GridItem>
+              <Text fontWeight="bold">Event Setup</Text>
+            </GridItem>
+            <GridItem justifySelf="end">
+              <Text>{keypomInstance.yoctoToNear(formData.costBreakdown.perEvent)} NEAR</Text>
+            </GridItem>
+            <GridItem>
+              <Text fontWeight="bold">Market Listing</Text>
+            </GridItem>
+            <GridItem justifySelf="end">
+              <Text>{keypomInstance.yoctoToNear(formData.costBreakdown.marketListing)} NEAR</Text>
+            </GridItem>
             {formData.tickets.map((item, index) => (
               <Fragment key={item.name || index}>
                 <GridItem>
                   <Text fontWeight="bold">{item.name}</Text>
                 </GridItem>
                 <GridItem justifySelf="end">
-                  <Text>{item.price} NEAR</Text>
+                  <Text>{keypomInstance.yoctoToNear(formData.costBreakdown.perDrop)} NEAR</Text>
                 </GridItem>
               </Fragment>
             ))}
@@ -269,10 +282,7 @@ const ReviewEventForm = (props: EventStepFormProps) => {
             </GridItem>
             <GridItem justifySelf="end" pt={0}>
               <Text fontWeight="bold">
-                {formData.tickets
-                  .reduce((total, item) => total + parseFloat(item.price), 0)
-                  .toFixed(4)}{' '}
-                NEAR
+                {`${keypomInstance.yoctoToNear(formData.costBreakdown.total)} NEAR`}
               </Text>
             </GridItem>
           </Grid>

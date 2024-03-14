@@ -1,6 +1,6 @@
 import { Button, HStack } from '@chakra-ui/react';
 import { type ReactElement, useState, useEffect } from 'react';
-import { type Wallet } from '@near-wallet-selector/core';
+import { type Action, type Wallet } from '@near-wallet-selector/core';
 
 import { get } from '@/utils/localStorage';
 import keypomInstance from '@/lib/keypom';
@@ -69,6 +69,15 @@ export interface TicketDropFormData {
 
   // Step 3
   tickets: TicketInfoFormMetadata[];
+
+  // Step 4
+  actions: Action[];
+  costBreakdown: {
+    marketListing: string;
+    total: string;
+    perDrop: string;
+    perEvent: string;
+  };
 }
 
 const breadcrumbs: IBreadcrumbItem[] = [
@@ -164,6 +173,13 @@ const placeholderData = {
       maxSupply: 5000,
     },
   ],
+  actions: [],
+  costBreakdown: {
+    perEvent: '0',
+    perDrop: '0',
+    total: '0',
+    marketListing: '0',
+  },
 };
 
 const placeholderData2: TicketDropFormData = {
@@ -188,11 +204,19 @@ const placeholderData2: TicketDropFormData = {
 
   // Step 3
   tickets: [],
+  actions: [],
+  costBreakdown: {
+    perEvent: '0',
+    perDrop: '0',
+    total: '0',
+    marketListing: '0',
+  },
 };
 
 export default function NewTicketDrop() {
   const [currentStep, setCurrentStep] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSettingKey, setIsSettingKey] = useState(false);
   const [formData, setFormData] = useState<TicketDropFormData>(placeholderData);
   const { selector, accountId } = useAuthWalletContext();
   const [wallet, setWallet] = useState<Wallet>();
@@ -223,8 +247,6 @@ export default function NewTicketDrop() {
       case 2:
         setFormData((prev) => ({ ...prev, tickets: [] }));
         break;
-      case 3:
-        break;
       default:
         break;
     }
@@ -234,13 +256,15 @@ export default function NewTicketDrop() {
     <Step key={step.name} index={index + 1} isActive={currentStep === index} stepItem={step} />
   ));
 
-  const handleModalClose = () => {
+  const handleModalClose = async () => {
     console.log('Modal closed');
+    setIsSettingKey(true);
+    await createPayloadAndEstimateCosts();
+    setIsSettingKey(false);
     setIsModalOpen(false);
-    payAndCreateEvent();
   };
 
-  const payAndCreateEvent = async () => {
+  const createPayloadAndEstimateCosts = async () => {
     if (!wallet) return;
     const eventId = Date.now().toString();
     console.log('Event ID: ', eventId);
@@ -350,15 +374,15 @@ export default function NewTicketDrop() {
     const funderMetadataString = JSON.stringify(funderMetadata);
     console.log('Funder Metadata: ', funderMetadataString);
 
-    const { marketDeposit, dropDeposit } = calculateDepositCost({
+    const { marketDeposit, dropDeposit, costBreakdown } = calculateDepositCost({
       eventMetadata,
       eventTickets: formData.tickets,
       marketTicketInfo: ticket_information,
     });
 
-    await wallet.signAndSendTransaction({
-      signerId: accountId!,
-      receiverId: KEYPOM_EVENTS_CONTRACT,
+    setFormData((prev) => ({
+      ...prev,
+      costBreakdown,
       actions: [
         {
           type: 'FunctionCall',
@@ -381,20 +405,38 @@ export default function NewTicketDrop() {
               },
             },
             gas: '300000000000000',
-            deposit: dropDeposit,
+            deposit: costBreakdown.total,
           },
         },
       ],
+    }));
+
+    setCurrentStep((prevStep) => (prevStep < formSteps.length - 1 ? prevStep + 1 : prevStep));
+  };
+
+  const payAndCreateEvent = async () => {
+    if (!wallet) return;
+
+    await wallet.signAndSendTransaction({
+      signerId: accountId!,
+      receiverId: KEYPOM_EVENTS_CONTRACT,
+      actions: formData.actions,
     });
   };
 
-  const nextStep = () => {
+  const nextStep = async () => {
     console.log(JSON.stringify(formData));
     if (currentStep === 3) {
+      payAndCreateEvent();
+    }
+
+    if (currentStep === 2) {
       const curMasterKey = get('MASTER_KEY');
       console.log('curMasterKey', curMasterKey);
       if (curMasterKey) {
-        payAndCreateEvent();
+        setIsSettingKey(true);
+        await createPayloadAndEstimateCosts();
+        setIsSettingKey(false);
       } else {
         setIsModalOpen(true);
       }
@@ -418,7 +460,11 @@ export default function NewTicketDrop() {
   const CurrentStepComponent = formSteps[currentStep].component({ formData, setFormData });
   return (
     <>
-      <KeypomPasswordPromptModal isOpen={isModalOpen} onModalClose={handleModalClose} />
+      <KeypomPasswordPromptModal
+        isOpen={isModalOpen}
+        isSetting={isSettingKey}
+        onModalClose={handleModalClose}
+      />
       <CreateTicketDropLayout
         breadcrumbs={breadcrumbs}
         description="Enter the details for your new event"
@@ -477,6 +523,7 @@ export default function NewTicketDrop() {
             <Button
               fontSize={{ base: 'sm', md: 'base' }}
               isDisabled={currentStep === 2 ? formData.tickets.length < 1 : false}
+              isLoading={isSettingKey}
               onClick={nextStep}
             >
               {currentStep === formSteps.length - 1 ? 'Create event' : 'Next'}
