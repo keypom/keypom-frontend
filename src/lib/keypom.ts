@@ -399,6 +399,7 @@ class KeypomJS {
       methodName: 'get_drop_supply_for_funder',
       args: { account_id: accountId },
     });
+    console.log('numDrops', numDrops);
 
     const totalQueries = Math.ceil(numDrops / DROP_ITEMS_PER_QUERY);
     const pageIndices = Array.from({ length: totalQueries }, (_, index) => index);
@@ -419,6 +420,7 @@ class KeypomJS {
     );
 
     let allDrops: EventDrop[] = allPagesDrops.flat(); // Assuming allPagesDrops is already defined and flattened.
+    console.log('allDrops', allDrops);
     allDrops = allDrops.filter((drop) => {
       if (!drop.drop_id || !drop.funder_id || !drop.drop_config || !drop.drop_config.metadata) {
         return false; // Drop does not have the required top-level structure
@@ -434,6 +436,7 @@ class KeypomJS {
 
         return true; // Drop passes all checks
       } catch (e) {
+        console.error('Error parsing metadata:', e);
         // JSON.parse failed, metadata is not a valid JSON string
         return false;
       }

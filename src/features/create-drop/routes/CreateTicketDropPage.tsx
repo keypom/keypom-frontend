@@ -1,7 +1,6 @@
 import { Button, HStack } from '@chakra-ui/react';
 import { type ReactElement, useState, useEffect } from 'react';
 import { type Wallet } from '@near-wallet-selector/core';
-import { parseNearAmount } from 'keypom-js';
 
 import { get } from '@/utils/localStorage';
 import keypomInstance from '@/lib/keypom';
@@ -10,7 +9,11 @@ import { IconBox } from '@/components/IconBox';
 import { LinkIcon } from '@/components/Icons';
 import { Step } from '@/components/Step';
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
-import { type FunderEventMetadata, type FunderMetadata } from '@/lib/eventsHelpers';
+import {
+  calculateDepositCost,
+  type FunderEventMetadata,
+  type FunderMetadata,
+} from '@/lib/eventsHelpers';
 import {
   deriveKeyFromPassword,
   encryptPrivateKey,
@@ -163,7 +166,7 @@ const placeholderData = {
   ],
 };
 
-const defaultFormData: TicketDropFormData = {
+const placeholderData2: TicketDropFormData = {
   // Step 1
   eventName: { value: '' },
   eventArtwork: { value: undefined },
@@ -190,7 +193,7 @@ const defaultFormData: TicketDropFormData = {
 export default function NewTicketDrop() {
   const [currentStep, setCurrentStep] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [formData, setFormData] = useState<TicketDropFormData>(defaultFormData);
+  const [formData, setFormData] = useState<TicketDropFormData>(placeholderData);
   const { selector, accountId } = useAuthWalletContext();
   const [wallet, setWallet] = useState<Wallet>();
 
@@ -302,7 +305,10 @@ export default function NewTicketDrop() {
     const drop_ids: string[] = [];
     const drop_configs: any = [];
     const asset_datas: any = [];
-    const ticket_information: Record<string, any> = {};
+    const ticket_information: Record<
+      string,
+      { max_tickets: number; price: string; sale_start?: number; sale_end?: number }
+    > = {};
 
     for (const ticket of formData.tickets) {
       const dropId = `${Date.now().toString()}-${ticket.name
@@ -312,6 +318,12 @@ export default function NewTicketDrop() {
       ticket_information[`${dropId}`] = {
         max_tickets: ticket.maxSupply,
         price: ticket.price,
+        sale_start: ticket.salesValidThrough.startDate
+          ? ticket.salesValidThrough.startDate.getTime()
+          : undefined,
+        sale_end: ticket.salesValidThrough.endDate
+          ? ticket.salesValidThrough.endDate.getTime()
+          : undefined,
       };
 
       const dropConfig = {
@@ -338,6 +350,12 @@ export default function NewTicketDrop() {
     const funderMetadataString = JSON.stringify(funderMetadata);
     console.log('Funder Metadata: ', funderMetadataString);
 
+    const { marketDeposit, dropDeposit } = calculateDepositCost({
+      eventMetadata,
+      eventTickets: formData.tickets,
+      marketTicketInfo: ticket_information,
+    });
+
     await wallet.signAndSendTransaction({
       signerId: accountId!,
       receiverId: KEYPOM_EVENTS_CONTRACT,
@@ -359,11 +377,11 @@ export default function NewTicketDrop() {
                   funder_id: accountId!,
                   ticket_information,
                 }),
-                attached_deposit: parseNearAmount('1'),
+                attached_deposit: marketDeposit,
               },
             },
             gas: '300000000000000',
-            deposit: parseNearAmount('10')!,
+            deposit: dropDeposit,
           },
         },
       ],
@@ -371,6 +389,7 @@ export default function NewTicketDrop() {
   };
 
   const nextStep = () => {
+    console.log(JSON.stringify(formData));
     if (currentStep === 3) {
       const curMasterKey = get('MASTER_KEY');
       console.log('curMasterKey', curMasterKey);

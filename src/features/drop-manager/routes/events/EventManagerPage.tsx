@@ -129,6 +129,7 @@ export default function EventManagerPage() {
         setIsErr(true);
         return;
       }
+      console.log('eventInfo', eventInfo);
       if (eventInfo?.questions) {
         try {
           const privKey = await keypomInstance.getDerivedPrivKey({
@@ -138,7 +139,9 @@ export default function EventManagerPage() {
             pw: get(MASTER_KEY) as string,
           });
           setUserKey(privKey);
-        } catch (e) {}
+        } catch (e) {
+          console.error(e);
+        }
       }
       setEventData({
         name: eventInfo.name || 'Untitled',
@@ -252,6 +255,7 @@ export default function EventManagerPage() {
         accountId: accountId!,
         eventId,
       });
+      console.log('ticketsForEvent', ticketsForEvent);
 
       if (ticketsForEvent == null || ticketsForEvent.length === 0) {
         setIsErr(true);
