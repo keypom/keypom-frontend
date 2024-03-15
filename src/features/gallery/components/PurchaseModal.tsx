@@ -68,7 +68,6 @@ export const PurchaseModal = ({
 
   const handleQuestionInputChange = (index, e) => {
     const newValue = e.target.value;
-    console.log('123123e', e);
 
     // Store the currently focused input field
     focusedInputRef.current = e.target;
@@ -76,7 +75,7 @@ export const PurchaseModal = ({
       // Create a new object with the previous values
       const newValues = { ...prevValues };
       // Update the value for the current index
-      newValues[index] = newValue;
+      newValues[event.questions[index].question] = newValue;
       // Return the new object
       return newValues;
     });
@@ -128,7 +127,7 @@ export const PurchaseModal = ({
     return (
       <>
         {event.questions.map((question, index) => {
-          const isError = question.required && !questionValues[index]; // isError is true if the question is required and the input is empty
+          const isError = question.required && !Object.values(questionValues)[index]; // isError is true if the question is required and the input is empty
 
           return (
             <FormControl key={index} isInvalid={isError && showErrors}>
@@ -137,7 +136,7 @@ export const PurchaseModal = ({
               </Text>
               <Input
                 key={index}
-                defaultValue={questionValues[index] || ''}
+                defaultValue={Object.values(questionValues)[index] || ''}
                 maxLength={50}
                 mt="2"
                 type="text"
@@ -159,7 +158,7 @@ export const PurchaseModal = ({
   // if there are any errors, the button is disabled
   // so increment the amount of tickets and check for errors again
   for (let i = 0; i < event.questions.length; i++) {
-    if (event.questions[i].required && !questionValues[i]) {
+    if (event.questions[i].required && !Object.values(questionValues)[i]) {
       isAnyError = true;
       break;
     }

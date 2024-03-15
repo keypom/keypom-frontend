@@ -302,6 +302,7 @@ export default function NewTicketDrop() {
         setCurrentStep,
         shouldSet: false,
       });
+      console.log('Actions: ', actions);
       await wallet.signAndSendTransaction({
         signerId: accountId!,
         receiverId: KEYPOM_EVENTS_CONTRACT,

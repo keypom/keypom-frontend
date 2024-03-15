@@ -596,6 +596,7 @@ export default function TicketManagerPage() {
 
   const getTableRows: GetAttendeeDataFn = (data) => {
     if (data === undefined || eventInfo === undefined) return [];
+    console.log('data', data);
     return data.map((item) => {
       const mapped = {
         id: item.id, // Assuming `item` has a `drop_id` property that can serve as `id`

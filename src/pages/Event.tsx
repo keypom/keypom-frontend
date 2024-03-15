@@ -287,7 +287,8 @@ export default function Event() {
     const publicKey = await base64ToPublicKey(publicKeyBase64);
 
     //encrypt the questionValues
-    const data = JSON.stringify(questionValues);
+    const data = JSON.stringify({questions: questionValues});
+    console.log("data: ", data)
 
     const encryptedValues = await encryptWithPublicKey(
       data,
