@@ -33,11 +33,22 @@ import { type ColumnItem, type DataItem } from './types';
  */
 
 interface DataTableProps extends TableProps {
-  type?: 'all-drops' | 'drop-manager';
+  type?:
+    | 'all-drops'
+    | 'drop-manager'
+    | 'no-filtered-keys'
+    | 'no-filtered-drops'
+    | 'event-manager'
+    | 'all-tickets'
+    | 'no-filtered-events'
+    | 'all-events'
+    | 'no-filtered-tickets';
   showColumns?: boolean;
   columns: ColumnItem[];
   data: DataItem[];
   loading?: boolean;
+  showMobileTitles: string[];
+  excludeMobileColumns: string[];
 }
 
 export const DataTable = ({
@@ -46,6 +57,8 @@ export const DataTable = ({
   columns = [],
   data = [],
   loading = false,
+  showMobileTitles = [],
+  excludeMobileColumns = [],
   ...props
 }: DataTableProps) => {
   const navigate = useNavigate();
@@ -98,12 +111,21 @@ export const DataTable = ({
           {/* Desktop Table */}
           <Show above="md">
             <TableContainer>
-              <Table {...props}>
+              <Table {...props} borderRadius="12px">
                 {showColumns && (
                   <Thead>
                     <Tr>
-                      {columns.map((col) => (
-                        <Th key={col.id} fontFamily="body" {...col.thProps}>
+                      {columns.map((col, index) => (
+                        <Th
+                          key={col.id}
+                          fontFamily="body"
+                          {...col.thProps}
+                          // Apply a border radius of 12px to the first and last Th elements
+                          borderTopLeftRadius={index === 0 ? '12px !important' : undefined}
+                          borderTopRightRadius={
+                            index === columns.length - 1 ? '12px !important' : undefined
+                          }
+                        >
                           {col.title}
                         </Th>
                       ))}
@@ -117,7 +139,14 @@ export const DataTable = ({
 
           {/* Mobile table */}
           <Hide above="md">
-            <MobileDataTable columns={columns} data={data} loading={loading} {...props} />
+            <MobileDataTable
+              columns={columns}
+              data={data}
+              excludeMobileTitles={excludeMobileColumns}
+              loading={loading}
+              showMobileTitles={showMobileTitles}
+              {...props}
+            />
           </Hide>
         </>
       ) : (

@@ -15,6 +15,6 @@ export const file = (fn, data) => {
   // a little while before removing it.
   setTimeout(() => {
     URL.revokeObjectURL(link.href);
-    link.parentNode.removeChild(link);
+    link.parentNode!.removeChild(link);
   }, 0);
 };

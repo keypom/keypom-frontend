@@ -7,6 +7,7 @@ import { DropManager, type GetDataFn } from '@/features/drop-manager/components/
 import keypomInstance from '@/lib/keypom';
 
 import { tableColumns } from '../../components/TableColumn';
+import placeholderImage from '../../constants/token-placeholder.png';
 
 export default function TokenDropManagerPage() {
   const navigate = useNavigate();
@@ -47,8 +48,9 @@ export default function TokenDropManagerPage() {
       action: (
         <>
           <Button
+            borderRadius="6xl"
             mr="1"
-            size="sm"
+            size="md"
             variant="icon"
             onClick={() => {
               handleCopyClick(item.link);
@@ -58,13 +60,14 @@ export default function TokenDropManagerPage() {
           </Button>
           {!item.hasClaimed && (
             <Button
-              size="sm"
+              borderRadius="6xl"
+              size="md"
               variant="icon"
               onClick={async () => {
                 await handleDeleteClick(item.publicKey);
               }}
             >
-              <DeleteIcon color="red" />
+              <DeleteIcon color="red.400" />
             </Button>
           )}
         </>
@@ -74,9 +77,10 @@ export default function TokenDropManagerPage() {
 
   return (
     <DropManager
-      claimedHeaderText="Opened"
+      dropImageSize="100px"
       getClaimedText={(dropSize) => `${dropSize - availableKeys} / ${dropSize}`}
       getData={getTableRows}
+      placeholderImage={placeholderImage}
       showColumns={false}
       tableColumns={tableColumns}
     />

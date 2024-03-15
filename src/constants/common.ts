@@ -6,6 +6,7 @@ export const CLOUDFLARE_IPFS = 'https://cloudflare-ipfs.com/ipfs';
 export const DROP_TYPE = {
   TOKEN: 'TOKEN',
   TICKET: 'TICKET',
+  EVENT: 'EVENT',
   TRIAL: 'TRIAL',
   NFT: 'NFT',
   SIMPLE: 'SIMPLE',
@@ -19,6 +20,7 @@ export const MASTER_KEY = 'MASTER_KEY';
 
 export const MAX_FILE_SIZE = 10000000;
 
-export const PAGE_SIZE_LIMIT = 10;
+export const PAGE_SIZE_LIMIT = 5;
 export const NFT_ATTEMPT_KEY = 'NFT_ATTEMPT';
 export const PAGE_QUERY_PARAM = 'page';
+export const KEYPOM_EVENTS_CONTRACT = '1709933659487-kp-ticketing.testnet';
