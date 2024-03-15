@@ -98,7 +98,8 @@ export const createDropsForNFT = async (dropId, returnTransactions, data, setApp
   if (file) {
     const { networkId } = getEnv();
     const url = `${WORKER_BASE_URL}?network=${networkId as string}&secretKey=${
-    const url = `${WORKER_BASE_URL}?siteBaseUrl=${localhost | keypom.xyz}`
+      data.seriesSecret as string
+    }`;
     let res;
     try {
       console.log('uploading to worker', url);

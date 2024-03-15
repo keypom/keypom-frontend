@@ -104,12 +104,11 @@ const EventInfoForm = (props: EventStepFormProps) => {
   const [preview, setPreview] = useState<string>();
 
   useEffect(() => {
-    const selectedFile = formData.eventArtwork.value;
-    if (selectedFile === undefined) {
+    if (formData.eventArtwork.value === undefined) {
       setPreview(undefined);
       return;
     }
-    const objectUrl = URL.createObjectURL(selectedFile[0]);
+    const objectUrl = URL.createObjectURL(formData.eventArtwork.value);
     setPreview(objectUrl);
 
     return () => {
@@ -119,11 +118,13 @@ const EventInfoForm = (props: EventStepFormProps) => {
 
   const onSelectFile = (e) => {
     if (!e.target.files || e.target.files.length === 0) {
+      setPreview(undefined);
       setFormData({ ...formData, eventArtwork: { value: undefined } });
       return;
     }
 
-    setFormData({ ...formData, eventArtwork: { value: e.target.files } });
+    const file = e.target.files[0];
+    setFormData({ ...formData, eventArtwork: { value: file } });
   };
 
   useEffect(() => {
@@ -139,6 +140,7 @@ const EventInfoForm = (props: EventStepFormProps) => {
       <Input
         readOnly
         isInvalid={!!formData.date.error}
+        maxLength={500}
         placeholder={datePlaceholer}
         style={{ cursor: 'pointer' }}
         sx={{
@@ -169,6 +171,7 @@ const EventInfoForm = (props: EventStepFormProps) => {
         >
           <Input
             isInvalid={!!formData.eventName.error}
+            maxLength={500}
             placeholder="Vandelay Industries Networking Event"
             sx={{
               '::placeholder': {
@@ -188,6 +191,7 @@ const EventInfoForm = (props: EventStepFormProps) => {
         >
           <Input
             isInvalid={!!formData.eventDescription.error}
+            maxLength={500}
             placeholder="Meet with the best latex salesmen in the industry."
             sx={{
               '::placeholder': {
@@ -204,6 +208,7 @@ const EventInfoForm = (props: EventStepFormProps) => {
         <FormControlComponent errorText={formData.eventLocation.error} label="Event location*">
           <Input
             isInvalid={!!formData.eventLocation.error}
+            maxLength={500}
             placeholder="129 West 81st Street, Apartment 5A"
             sx={{
               '::placeholder': {

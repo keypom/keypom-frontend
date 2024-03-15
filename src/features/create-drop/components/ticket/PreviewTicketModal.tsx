@@ -15,8 +15,7 @@ import { PlusButtonIcon } from '@/components/Icons/PlusButtonIcon';
 import { MinusButtonIcon } from '@/components/Icons/MinusButtonIcon';
 
 import { type TicketInfoFormMetadata } from './CreateTicketsForm';
-
-import { eventDateToPlaceholder } from '.';
+import { eventDateToPlaceholder } from './EventInfoForm';
 
 interface PreviewTicketModalProps {
   isOpen: boolean;
@@ -81,7 +80,7 @@ export const PreviewTicketModal = ({
               left="0"
               objectFit="cover" // This ensures the image covers the allotted area
               right="0"
-              src={currentTicket.artwork && URL.createObjectURL(currentTicket.artwork[0])}
+              src={currentTicket.artwork && URL.createObjectURL(currentTicket.artwork)}
               top="0"
               width="100%"
               zIndex={2} // The zIndex ensures the image is above the gradient layer

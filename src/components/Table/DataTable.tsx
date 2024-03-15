@@ -1,7 +1,6 @@
 import {
   TableContainer,
   Show,
-  Hide,
   Tbody,
   Table,
   type TableProps,
@@ -140,7 +139,7 @@ export const DataTable = ({
           </Show>
 
           {/* Mobile table */}
-          <Hide above="md">
+          <Show below="md">
             <MobileDataTable
               columns={columns}
               data={data}
@@ -149,7 +148,7 @@ export const DataTable = ({
               showMobileTitles={showMobileTitles}
               {...props}
             />
-          </Hide>
+          </Show>
         </>
       ) : (
         <IconBox h="full" mt={{ base: '6', md: '7' }} pb={{ base: '6', md: '16' }} w="full">

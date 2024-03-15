@@ -36,6 +36,7 @@ export const ModifyQuestionModal = ({
               Add a question you'd like attendees to fill out for this event
             </Text>
             <Input
+              maxLength={50}
               placeholder={originalQuestion ? 'Modify question' : 'Enter a question'}
               value={userInput}
               variant="outline"

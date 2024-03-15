@@ -44,7 +44,7 @@ function EventPagePreview({
           zIndex={2} // The zIndex ensures the image is above the gradient layer
         />
       )}
-      <VStack alignItems="left" px={16} spacing={4} w="100%">
+      <VStack alignItems="left" px={16} spacing={4} textAlign="left" w="100%">
         <Heading
           color="gray.600"
           fontSize="lg"

@@ -69,7 +69,7 @@ export const MobileDataTable = ({
             {columns
               .filter(
                 (column) =>
-                  actionColumn.title !== column.title && !excludeMobileTitles.includes(column.id),
+                  actionColumn.id !== column.id && !excludeMobileTitles.includes(column.id),
               ) // exclude action column
               .map((column) => (
                 <Box key={`${drop.id}-${column.id}`}>
