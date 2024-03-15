@@ -57,11 +57,41 @@ const StripeConnectPage = () => {
 
     };
 
+    const handleSubmitClick2 = async () => {
+      console.log("logged in")
+      // Wallet is connected, check if account already exists, if not then create account for them
+
+      // make a fetch request to localhost:8787 to create a new account
+      const response = await fetch('http://localhost:8787/test-key', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          num: 5
+        })
+      });
+      if (response.ok) {
+        // Account created successfully
+        const responseBody = await response.json();
+        const num_events = responseBody.num_events;
+        console.log("num_events: " + num_events);
+      } else {
+        // Error creating account
+        const responseBody = await response.json();
+        console.log(responseBody.error)
+      }
+
+  };
+
     if(isLoggedIn){
     return (
         <Center height="100vh">
           <VStack spacing={4}>
             <StripeUserInfoForm handleSubmitClick={handleSubmitClick} setFirstName={setFirstName} setLastName={setLastName} setEmail={setEmail} />
+            <Button mt="4" type="submit" onClick={handleSubmitClick2}>
+                Test
+            </Button>
           </VStack>
         </Center>
     );

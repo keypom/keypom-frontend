@@ -18,9 +18,12 @@ export const gas = '100000000000000';
 
 const StripeUtilityTest = () => {
     // Some of these should be enums
-    const [eventName, setEventName] = useState('');
-    const [stripeAccountId, setStripeAccountId] = useState('');
-    const [ticketTiers, setTicketTiers] = useState([["General Admission", 2000], ["VIP", 5000]]);
+    const [eventName, setEventName] = useState('Tired Tired Farty Party');
+    const [stripeAccountId, setStripeAccountId] = useState('acct_1OpbrxPhXWiaemzu');
+    const [ticketTiers, setTicketTiers] = useState([
+      ["1710464229453-Platinum Ticket-4", 1000], 
+    ]);
+    const [eventId, setEventId] = useState('7b366e75-35fc-46c7-9deb-6024b36b31d7')
     
     const { isLoggedIn } = useAuthWalletContext();
 
@@ -35,9 +38,10 @@ const StripeUtilityTest = () => {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            eventName,
             stripeAccountId,
-            ticketTiersAndPrices: ticketTiers
+            eventName,
+            eventId,
+            dropIDsAndPrices: ticketTiers
           }),
         });
         if (response.ok) {

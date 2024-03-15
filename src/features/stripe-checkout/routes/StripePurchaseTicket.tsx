@@ -16,6 +16,16 @@ import { StripePurchaseTicketForm } from '../components/StripePurchaseTicketForm
 export const gas = '100000000000000';
 
 
+function generateRandomString(length: number): string {
+  const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()";
+  let result = "";
+  for (let i = 0; i < length; i++) {
+      const randomIndex = Math.floor(Math.random() * characters.length);
+      result += characters.charAt(randomIndex);
+  }
+  return result;
+}
+
 // To stop concurrent scan result handling
 
 const StripePurchaseTicket = () => {
@@ -29,23 +39,91 @@ const StripePurchaseTicket = () => {
     
     const { isLoggedIn } = useAuthWalletContext();
 
+    const handleFreeClick = async () => {
+      const workerPayload = {
+        name: "Min",
+        ticketAmount: 1,
+        buyerAnswers: generateRandomString(512),
+        ticket_info: {
+          location: 'Freeterloo',
+          eventName: "Tired Boss Event",
+          ticketType: "FREE BALLERS",
+          eventDate: 'February 31 2024',
+          ticketOwner: 'min-ticket-test.testnet',
+          eventId: 'beca3fed-9661-4408-b988-475e7f822ee0',
+          dropId: '1710446192034-All-Day Ticket-4',
+        },
+        purchaseEmail: "mq2lu@uwaterloo.ca",
+        stripeAccountId: "acct_1OpbrxPhXWiaemzu",
+        baseUrl: "http://localhost:3000"
+      };
+
+      const response = await fetch('http://localhost:8787/purchase-free-tickets', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(workerPayload),
+      });
+      if (response.ok) {
+        // Account created successfully
+        const responseBody = await response.json();
+        console.log(responseBody)
+        const stripeCheckoutUrl = responseBody.stripe_url;
+        window.location.href = stripeCheckoutUrl;
+
+      } else {
+        // Error creating account
+        const responseBody = await response.json();
+        console.log(responseBody.error);
+      }
+
+  };
+
     const handleSubmitClick = async () => {
-        const metadata = {
-          customer_name: customerName,
-          customer_email: customerEmail,
-        }
+        const workerPayload = {
+          name: "Min",
+          ticketAmount: 2,
+          buyerAnswers: generateRandomString(512),
+          ticket_info: {
+            location: 'Waterloo',
+            eventName: "Big Party",
+            ticketType: "VIP",
+            eventDate: 'February 31 2024',
+            ticketOwner: 'min-ticket-test.testnet',
+            eventId: '7b366e75-35fc-46c7-9deb-6024b36b31d7',
+            dropId: '1710464229453-Platinum Ticket-4',
+          },
+          purchaseEmail: "mq2lu@uwaterloo.ca",
+          stripeAccountId: "acct_1OpbrxPhXWiaemzu",
+          baseUrl: "http://localhost:3000"
+        };
+
+        //  EXPECTED PAYLOAD
+        // workerPayload: {
+        //   name: string | undefined,
+        //   ticketAmount,                                                    //(number of tickets being purchase)
+        //   buyerAnswers string | undefined,                                 //(encrypted user answers)
+        //   ticket_info: {
+        //     location: string | undefined,
+        //     eventName,
+        //     ticketType,
+        //     eventDate,
+        //     ticketOwner: string | undefined                               //(if signed in, this is signed in account, otherwise its none/empty)
+        //     eventId,
+        //     dropId,
+        //   }
+        //   purchaseEmail,
+        //   stripeAccountId: string | undefined                            //(only undefined if funder is not stripe registered),
+        //   baseUrl
+        // }
         // make a fetch request to localhost:8787 to create a new account
         const response = await fetch('http://localhost:8787/stripe/create-checkout-session', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({
-            stripeAccountId,
-            eventName,
-            ticketTier,
-            metadata
-          }),
+          body: JSON.stringify(workerPayload),
         });
         if (response.ok) {
           // Account created successfully
@@ -56,7 +134,8 @@ const StripePurchaseTicket = () => {
 
         } else {
           // Error creating account
-          console.log(response.json());
+          const responseBody = await response.json();
+          console.log(responseBody.error);
         }
 
     };
@@ -66,6 +145,9 @@ const StripePurchaseTicket = () => {
         <Center height="100vh">
           <VStack spacing={4}>
             <StripePurchaseTicketForm handleSubmitClick={handleSubmitClick} setEventName={setEventName} setStripeId={setStripeAccountId} setTicketTier={setTicketTier} setCustomerEmail={setCustomerEmail} setCustomerName={setCustomerName} />
+            <Button mt="4" type="submit" onClick={handleFreeClick}>
+                Free Ticket
+            </Button>
           </VStack>
         </Center>
     );
