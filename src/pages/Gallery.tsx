@@ -40,7 +40,7 @@ import { FormControlComponent } from '@/components/FormControl';
 import CustomDateRangePickerMobile from '@/components/DateRangePicker/MobileDateRangePicker';
 import CustomDateRangePicker from '@/components/DateRangePicker/DateRangePicker';
 import { EventDate } from '@/features/create-drop/routes/CreateTicketDropPage';
-import { eventDateToPlaceholder } from '@/features/create-drop/components/ticket';
+import { eventDateToPlaceholder } from '@/features/create-drop/components/ticket/EventInfoForm';
 
 // import myData from '../data/db.json';
 
