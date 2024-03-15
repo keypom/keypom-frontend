@@ -169,7 +169,7 @@ const CreateTicketsForm = (props: EventStepFormProps) => {
                 borderRadius="12px"
                 boxSize="48px"
                 objectFit="contain"
-                src={item.artwork && URL.createObjectURL(item.artwork[0])}
+                src={item.artwork && URL.createObjectURL(item.artwork)}
               />
               <VStack align="left">
                 <Heading
@@ -193,7 +193,7 @@ const CreateTicketsForm = (props: EventStepFormProps) => {
                 borderRadius="12px"
                 boxSize="48px"
                 objectFit="contain"
-                src={item.artwork && URL.createObjectURL(item.artwork[0])}
+                src={item.artwork && URL.createObjectURL(item.artwork)}
               />
               <VStack align="left">
                 <Heading fontFamily="body" fontSize={{ md: 'lg' }} fontWeight="bold">

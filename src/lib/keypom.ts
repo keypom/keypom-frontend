@@ -441,6 +441,7 @@ class KeypomJS {
         return false;
       }
     });
+    console.log('allDrops filtered', allDrops);
 
     this.groupDropsByEvent(allDrops);
   };

@@ -201,7 +201,7 @@ export const ModifyTicketModal = ({
       setPreview(undefined);
       return;
     }
-    const objectUrl = URL.createObjectURL(selectedFile[0]);
+    const objectUrl = URL.createObjectURL(selectedFile);
     setPreview(objectUrl);
 
     return () => {
@@ -222,7 +222,7 @@ export const ModifyTicketModal = ({
       return;
     }
 
-    setCurrentTicket({ ...currentTicket, artwork: e.target.files });
+    setCurrentTicket({ ...currentTicket, artwork: e.target.files[0] });
   };
 
   return (

@@ -104,12 +104,11 @@ const EventInfoForm = (props: EventStepFormProps) => {
   const [preview, setPreview] = useState<string>();
 
   useEffect(() => {
-    const selectedFile = formData.eventArtwork.value;
-    if (selectedFile === undefined) {
+    if (formData.eventArtwork.value === undefined) {
       setPreview(undefined);
       return;
     }
-    const objectUrl = URL.createObjectURL(selectedFile[0]);
+    const objectUrl = URL.createObjectURL(formData.eventArtwork.value);
     setPreview(objectUrl);
 
     return () => {
@@ -119,11 +118,13 @@ const EventInfoForm = (props: EventStepFormProps) => {
 
   const onSelectFile = (e) => {
     if (!e.target.files || e.target.files.length === 0) {
+      setPreview(undefined);
       setFormData({ ...formData, eventArtwork: { value: undefined } });
       return;
     }
 
-    setFormData({ ...formData, eventArtwork: { value: e.target.files } });
+    const file = e.target.files[0];
+    setFormData({ ...formData, eventArtwork: { value: file } });
   };
 
   useEffect(() => {

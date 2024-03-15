@@ -92,7 +92,7 @@ const ReviewEventForm = (props: EventStepFormProps) => {
                 borderRadius="12px"
                 boxSize="48px"
                 objectFit="contain"
-                src={item.artwork && URL.createObjectURL(item.artwork[0])}
+                src={item.artwork && URL.createObjectURL(item.artwork)}
               />
               <VStack align="left">
                 <Heading
@@ -116,7 +116,7 @@ const ReviewEventForm = (props: EventStepFormProps) => {
                 borderRadius="12px"
                 boxSize="48px"
                 objectFit="contain"
-                src={item.artwork && URL.createObjectURL(item.artwork[0])}
+                src={item.artwork && URL.createObjectURL(item.artwork)}
               />
               <VStack align="left">
                 <Heading fontFamily="body" fontSize={{ md: 'lg' }} fontWeight="bold">
@@ -190,9 +190,7 @@ const ReviewEventForm = (props: EventStepFormProps) => {
           borderRadius="12px"
           height="120px"
           objectFit="cover"
-          src={URL.createObjectURL(
-            formData.eventArtwork.value ? formData.eventArtwork.value[0] : '',
-          )}
+          src={URL.createObjectURL(formData.eventArtwork.value!)}
           width="full"
         />
         <HStack align="top" spacing="6">

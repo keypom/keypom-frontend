@@ -3,25 +3,12 @@ import { type ReactElement, useState, useEffect } from 'react';
 import { type Action, type Wallet } from '@near-wallet-selector/core';
 
 import { get } from '@/utils/localStorage';
-import keypomInstance from '@/lib/keypom';
 import { type IBreadcrumbItem } from '@/components/Breadcrumbs';
 import { IconBox } from '@/components/IconBox';
 import { LinkIcon } from '@/components/Icons';
 import { Step } from '@/components/Step';
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
-import {
-  calculateDepositCost,
-  type FunderEventMetadata,
-  type FunderMetadata,
-} from '@/lib/eventsHelpers';
-import {
-  deriveKeyFromPassword,
-  encryptPrivateKey,
-  exportPublicKeyToBase64,
-  generateKeyPair,
-  uint8ArrayToBase64,
-} from '@/lib/cryptoHelpers';
-import { KEYPOM_EVENTS_CONTRACT, KEYPOM_MARKET_CONTRACT } from '@/constants/common';
+import { CLOUDFLARE_IPFS, KEYPOM_EVENTS_CONTRACT } from '@/constants/common';
 
 import { CreateTicketDropLayout } from '../components/CreateTicketDropLayout';
 import { CollectInfoForm } from '../components/ticket/CollectInfoForm';
@@ -31,12 +18,15 @@ import {
 } from '../components/ticket/CreateTicketsForm';
 import {
   ClearEventInfoForm,
-  eventDateToPlaceholder,
   EventInfoForm,
   EventInfoFormValidation,
 } from '../components/ticket/EventInfoForm';
 import { ReviewEventForm } from '../components/ticket/ReviewEventForm';
 import { KeypomPasswordPromptModal } from '../components/ticket/KeypomPasswordPromptModal';
+import {
+  createPayloadAndEstimateCosts,
+  serializeMediaForWorker,
+} from '../components/ticket/helpers';
 
 interface TicketStep {
   title: string;
@@ -114,75 +104,75 @@ const formSteps: TicketStep[] = [
   },
 ];
 
-const placeholderData = {
-  eventName: { value: 'Vandelay Industries Networking Event' },
-  eventArtwork: { value: undefined },
-  eventDescription: {
-    value:
-      'Meet with the best latex salesmen in the industry! This will be a once-in-a-lifetime opportunity to network and meet with people that you enjoy being with. Drink beer, laugh, have fun, and have a great time at this networking event! This will be a once-in-a-lifetime opportunity!',
-  },
-  eventLocation: { value: '129 West 81st Street, Apartment Suite 288.' },
-  date: {
-    value: {
-      value: {
-        value: { startDate: null, endDate: null },
-        startDate: '2024-03-16T04:00:00.000Z',
-        endDate: null,
-      },
-      startDate: new Date('2024-03-16T04:00:00.000Z'),
-      endDate: new Date('2024-03-23T04:00:00.000Z'),
-      startTime: '09:00 AM',
-      endTime: '09:00 PM',
-    },
-  },
-  questions: [
-    { question: 'Full name', isRequired: true },
-    { question: 'Email address', isRequired: true },
-    { question: 'How did you find out about this event?', isRequired: false },
-  ],
-  tickets: [
-    {
-      name: 'VIP Ticket',
-      description:
-        'Get exclusive access to beer, fun, and games. Network with people, grant priority access to lines and skip the wait with this amazing ticket tier!',
-      price: '5',
-      artwork: undefined,
-      salesValidThrough: {
-        startDate: new Date('2024-03-13T04:00:00.000Z'),
-        endDate: new Date('2024-03-23T04:00:00.000Z'),
-      },
-      passValidThrough: {
-        startDate: new Date('2024-03-18T04:00:00.000Z'),
-        endDate: new Date('2024-03-22T04:00:00.000Z'),
-      },
-      maxSupply: 5000,
-    },
-    {
-      name: 'Standard Ticket',
-      description: 'Get standard access to the networking event',
-      artwork: undefined,
-      price: '0',
-      salesValidThrough: {
-        startDate: new Date('2024-03-13T04:00:00.000Z'),
-        endDate: new Date('2024-03-23T04:00:00.000Z'),
-      },
-      passValidThrough: {
-        startDate: new Date('2024-03-18T04:00:00.000Z'),
-        endDate: new Date('2024-03-22T04:00:00.000Z'),
-      },
-      maxSupply: 5000,
-    },
-  ],
-  actions: [],
-  costBreakdown: {
-    perEvent: '0',
-    perDrop: '0',
-    total: '0',
-    marketListing: '0',
-  },
-};
+// const placeholderData = {
+//   eventName: { value: 'Vandelay Industries Networking Event' },
+//   eventArtwork: { value: undefined },
+//   eventDescription: {
+//     value:
+//       'Meet with the best latex salesmen in the industry! This will be a once-in-a-lifetime opportunity to network and meet with people that you enjoy being with. Drink beer, laugh, have fun, and have a great time at this networking event! This will be a once-in-a-lifetime opportunity!',
+//   },
+//   eventLocation: { value: '129 West 81st Street, Apartment Suite 288.' },
+//   date: {
+//     value: {
+//       value: {
+//         value: { startDate: null, endDate: null },
+//         startDate: '2024-03-16T04:00:00.000Z',
+//         endDate: null,
+//       },
+//       startDate: new Date('2024-03-16T04:00:00.000Z'),
+//       endDate: new Date('2024-03-23T04:00:00.000Z'),
+//       startTime: '09:00 AM',
+//       endTime: '09:00 PM',
+//     },
+//   },
+//   questions: [
+//     { question: 'Full name', isRequired: true },
+//     { question: 'Email address', isRequired: true },
+//     { question: 'How did you find out about this event?', isRequired: false },
+//   ],
+//   tickets: [
+//     {
+//       name: 'VIP Ticket',
+//       description:
+//         'Get exclusive access to beer, fun, and games. Network with people, grant priority access to lines and skip the wait with this amazing ticket tier!',
+//       price: '5',
+//       artwork: undefined,
+//       salesValidThrough: {
+//         startDate: new Date('2024-03-13T04:00:00.000Z'),
+//         endDate: new Date('2024-03-23T04:00:00.000Z'),
+//       },
+//       passValidThrough: {
+//         startDate: new Date('2024-03-18T04:00:00.000Z'),
+//         endDate: new Date('2024-03-22T04:00:00.000Z'),
+//       },
+//       maxSupply: 5000,
+//     },
+//     {
+//       name: 'Standard Ticket',
+//       description: 'Get standard access to the networking event',
+//       artwork: undefined,
+//       price: '0',
+//       salesValidThrough: {
+//         startDate: new Date('2024-03-13T04:00:00.000Z'),
+//         endDate: new Date('2024-03-23T04:00:00.000Z'),
+//       },
+//       passValidThrough: {
+//         startDate: new Date('2024-03-18T04:00:00.000Z'),
+//         endDate: new Date('2024-03-22T04:00:00.000Z'),
+//       },
+//       maxSupply: 5000,
+//     },
+//   ],
+//   actions: [],
+//   costBreakdown: {
+//     perEvent: '0',
+//     perDrop: '0',
+//     total: '0',
+//     marketListing: '0',
+//   },
+// };
 
-const placeholderData2: TicketDropFormData = {
+const placeholderData: TicketDropFormData = {
   // Step 1
   eventName: { value: '' },
   eventArtwork: { value: undefined },
@@ -222,6 +212,10 @@ export default function NewTicketDrop() {
   const [wallet, setWallet] = useState<Wallet>();
 
   useEffect(() => {
+    console.log('formData', formData);
+  }, [formData]);
+
+  useEffect(() => {
     async function fetchWallet() {
       if (!selector) return;
       try {
@@ -259,173 +253,66 @@ export default function NewTicketDrop() {
   const handleModalClose = async () => {
     console.log('Modal closed');
     setIsSettingKey(true);
-    await createPayloadAndEstimateCosts();
+    await createPayloadAndEstimateCosts({
+      accountId: accountId!,
+      wallet: wallet!,
+      formData,
+      setFormData,
+      setCurrentStep,
+    });
     setIsSettingKey(false);
     setIsModalOpen(false);
-  };
-
-  const createPayloadAndEstimateCosts = async () => {
-    if (!wallet) return;
-    const eventId = Date.now().toString();
-    console.log('Event ID: ', eventId);
-    const masterKey = get('MASTER_KEY');
-
-    const funderInfo = await keypomInstance.viewCall({
-      methodName: 'get_funder_info',
-      args: { account_id: accountId! },
-    });
-    const funderMetadata: FunderMetadata =
-      funderInfo === undefined || funderInfo === null ? {} : JSON.parse(funderInfo.metadata);
-    console.log('Deploying Event: ', formData.eventName.value);
-
-    const date = formData.date.value.endTime
-      ? {
-          date: {
-            from: formData.date.value.startDate!.toISOString(),
-            to: formData.date.value.endDate!.toISOString(),
-          },
-          time: eventDateToPlaceholder('', formData.date.value),
-        }
-      : {
-          date: formData.date.value.startDate!.toISOString(),
-
-          time: eventDateToPlaceholder('', formData.date.value),
-        };
-
-    const eventMetadata: FunderEventMetadata = {
-      name: formData.eventName.value,
-      dateCreated: Date.now().toString(),
-      description: formData.eventDescription.value,
-      location: formData.eventLocation.value,
-      date,
-      artwork: formData.eventArtwork.value ? formData.eventArtwork.value[0] : '',
-      questions: formData.questions.map((question) => ({
-        question: question.question,
-        required: question.isRequired || false,
-      })),
-      id: eventId.toString(),
-    };
-
-    if (formData.questions.length > 0) {
-      console.log('Event has questions. Generate keypairs');
-      const { publicKey, privateKey } = await generateKeyPair();
-      const saltBytes = window.crypto.getRandomValues(new Uint8Array(16));
-      const saltBase64 = uint8ArrayToBase64(saltBytes);
-      const symmetricKey = await deriveKeyFromPassword(masterKey, saltBase64);
-      const { encryptedPrivateKeyBase64, ivBase64 } = await encryptPrivateKey(
-        privateKey,
-        symmetricKey,
-      );
-
-      eventMetadata.pubKey = await exportPublicKeyToBase64(publicKey);
-      eventMetadata.encPrivKey = encryptedPrivateKeyBase64;
-      eventMetadata.iv = ivBase64;
-      eventMetadata.salt = saltBase64;
-    }
-
-    funderMetadata[eventId] = eventMetadata;
-    console.log('Deployed Event: ', eventMetadata);
-
-    const drop_ids: string[] = [];
-    const drop_configs: any = [];
-    const asset_datas: any = [];
-    const ticket_information: Record<
-      string,
-      { max_tickets: number; price: string; sale_start?: number; sale_end?: number }
-    > = {};
-
-    for (const ticket of formData.tickets) {
-      const dropId = `${Date.now().toString()}-${ticket.name
-        .replaceAll(' ', '')
-        .toLocaleLowerCase()}`;
-
-      ticket_information[`${dropId}`] = {
-        max_tickets: ticket.maxSupply,
-        price: ticket.price,
-        sale_start: ticket.salesValidThrough.startDate
-          ? ticket.salesValidThrough.startDate.getTime()
-          : undefined,
-        sale_end: ticket.salesValidThrough.endDate
-          ? ticket.salesValidThrough.endDate.getTime()
-          : undefined,
-      };
-
-      const dropConfig = {
-        metadata: JSON.stringify(ticket),
-        add_key_allowlist: [KEYPOM_MARKET_CONTRACT],
-        transfer_key_allowlist: [KEYPOM_MARKET_CONTRACT],
-      };
-      const assetData = [
-        {
-          uses: 2,
-          assets: [null],
-          config: {
-            permissions: 'claim',
-          },
-        },
-      ];
-      drop_ids.push(dropId);
-      asset_datas.push(assetData);
-      drop_configs.push(dropConfig);
-    }
-
-    console.log(`Creating event with ticket information: ${JSON.stringify(ticket_information)}`);
-
-    const funderMetadataString = JSON.stringify(funderMetadata);
-    console.log('Funder Metadata: ', funderMetadataString);
-
-    const { marketDeposit, dropDeposit, costBreakdown } = calculateDepositCost({
-      eventMetadata,
-      eventTickets: formData.tickets,
-      marketTicketInfo: ticket_information,
-    });
-
-    setFormData((prev) => ({
-      ...prev,
-      costBreakdown,
-      actions: [
-        {
-          type: 'FunctionCall',
-          params: {
-            methodName: 'create_drop_batch',
-            args: {
-              drop_ids,
-              drop_configs,
-              asset_datas,
-              change_user_metadata: JSON.stringify(funderMetadata),
-              on_success: {
-                receiver_id: KEYPOM_MARKET_CONTRACT,
-                method_name: 'create_event',
-                args: JSON.stringify({
-                  event_id: eventId,
-                  funder_id: accountId!,
-                  ticket_information,
-                }),
-                attached_deposit: marketDeposit,
-              },
-            },
-            gas: '300000000000000',
-            deposit: costBreakdown.total,
-          },
-        },
-      ],
-    }));
-
-    setCurrentStep((prevStep) => (prevStep < formSteps.length - 1 ? prevStep + 1 : prevStep));
   };
 
   const payAndCreateEvent = async () => {
     if (!wallet) return;
 
-    await wallet.signAndSendTransaction({
-      signerId: accountId!,
-      receiverId: KEYPOM_EVENTS_CONTRACT,
-      actions: formData.actions,
-    });
+    setIsSettingKey(true);
+    const serializedData = await serializeMediaForWorker(formData);
+
+    let response;
+    try {
+      const url = 'http://localhost:8787/ipfs-pin';
+
+      response = await fetch(url, {
+        method: 'POST',
+        body: JSON.stringify({ base64Data: serializedData }),
+      });
+    } catch (error) {
+      console.log('error', error);
+    }
+
+    if (response?.ok) {
+      const resBody = await response.json();
+      const cids: string[] = resBody.cids;
+
+      const newFormData: any = formData;
+      newFormData.eventArtwork = { value: `${CLOUDFLARE_IPFS}/${cids[0]}` };
+
+      for (let i = 0; i < cids.length - 1; i++) {
+        const newUrl = `${CLOUDFLARE_IPFS}/${cids[i + 1]}`;
+        newFormData.tickets[i].artwork = newUrl;
+      }
+
+      const actions: Action[] = await createPayloadAndEstimateCosts({
+        accountId: accountId!,
+        wallet,
+        formData: newFormData,
+        setFormData,
+        setCurrentStep,
+        shouldSet: false,
+      });
+      await wallet.signAndSendTransaction({
+        signerId: accountId!,
+        receiverId: KEYPOM_EVENTS_CONTRACT,
+        actions,
+      });
+    }
+    setIsSettingKey(false);
   };
 
   const nextStep = async () => {
-    console.log(JSON.stringify(formData));
+    console.log('Form data (new step):', formData);
     if (currentStep === 3) {
       payAndCreateEvent();
     }
@@ -435,7 +322,13 @@ export default function NewTicketDrop() {
       console.log('curMasterKey', curMasterKey);
       if (curMasterKey) {
         setIsSettingKey(true);
-        await createPayloadAndEstimateCosts();
+        await createPayloadAndEstimateCosts({
+          accountId: accountId!,
+          wallet: wallet!,
+          setFormData,
+          formData,
+          setCurrentStep,
+        });
         setIsSettingKey(false);
       } else {
         setIsModalOpen(true);

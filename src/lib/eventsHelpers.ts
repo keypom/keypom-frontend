@@ -43,8 +43,8 @@ export interface EventDropMetadata extends TicketInfoMetadata {
 export interface TicketInfoMetadata {
   name: string;
   description: string;
-  salesValidThrough: string;
-  passValidThrough: string;
+  salesValidThrough: { time: string };
+  passValidThrough: { time: string };
   price: string;
   artwork: string;
   maxSupply?: number;
@@ -60,8 +60,6 @@ export function isValidTicketInfo(ticketInfo) {
     typeof ticketInfo.name === 'string' &&
     typeof ticketInfo.eventId === 'string' &&
     typeof ticketInfo.description === 'string' &&
-    typeof ticketInfo.salesValidThrough === 'string' &&
-    typeof ticketInfo.passValidThrough === 'string' &&
     typeof ticketInfo.price === 'string' &&
     typeof ticketInfo.artwork === 'string'
   );
