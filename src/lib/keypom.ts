@@ -23,6 +23,9 @@ import {
 } from 'keypom-js';
 import * as nearAPI from 'near-api-js';
 import { type Wallet } from '@near-wallet-selector/core';
+import * as bs58 from 'bs58';
+import * as nacl from 'tweetnacl';
+import * as naclUtil from 'tweetnacl-util';
 
 import { truncateAddress } from '@/utils/truncateAddress';
 import {
@@ -149,6 +152,8 @@ class KeypomJS {
 
   yoctoToNear = (yocto: string) => nearAPI.utils.format.formatNearAmount(yocto, 4);
 
+  nearToYocto = (near: string) => nearAPI.utils.format.parseNearAmount(near);
+
   viewCall = async ({ contractId = KEYPOM_EVENTS_CONTRACT, methodName, args }) => {
     const res = await this.viewAccount.viewFunctionV2({
       contractId,
@@ -166,6 +171,81 @@ class KeypomJS {
       methodName: 'get_resales_per_event',
       args: { event_id: eventId },
     });
+  };
+
+  GetGlobalKey = async () => {
+    return await this.viewAccount.viewFunctionV2({
+      contractId: KEYPOM_EVENTS_CONTRACT,
+      methodName: 'get_global_secret_key',
+      args: {},
+    });
+  };
+
+  ListUnownedTickets = async ({ msg }) => {
+    // const publicKey = JSON.parse(msg).linkdrop_pk;
+    const keypomGlobalSecretKey = await this.GetGlobalKey();
+    const keypomKeypair = nearAPI.KeyPair.fromString(keypomGlobalSecretKey);
+    myKeyStore.setKey(networkId, KEYPOM_EVENTS_CONTRACT, keypomKeypair);
+    const keypomAccount = new nearAPI.Account(
+      this.nearConnection.connection,
+      KEYPOM_EVENTS_CONTRACT,
+    );
+    await keypomAccount.functionCall({
+      contractId: KEYPOM_EVENTS_CONTRACT,
+      methodName: 'nft_approve',
+      args: {
+        account_id: KEYPOM_MARKETPLACE_CONTRACT,
+        msg,
+      },
+      gas: '300000000000000',
+    });
+    // try {
+
+    // } catch (e) {
+    //   console.log('error listing unowned ticket', e);
+    // }
+  };
+
+  GenerateResellSignature = async (keypair) => {
+    console.log('jsskeypair', keypair);
+    const sk_bytes = bs58.decode(keypair.secretKey);
+    // const secret_key = Buffer.from(sk_bytes).toString('base64');
+
+    const signing_message = await this.viewAccount.viewFunctionV2({
+      contractId: KEYPOM_EVENTS_CONTRACT,
+      methodName: 'get_signing_message',
+      args: {},
+    });
+    const key_info = await this.viewAccount.viewFunctionV2({
+      contractId: KEYPOM_EVENTS_CONTRACT,
+      methodName: 'get_key_information',
+      args: {
+        key: keypair.publicKey.toString(),
+      },
+    });
+    const message_nonce = key_info.message_nonce;
+
+    const message = `${signing_message}${message_nonce.toString()}`;
+    const message_bytes = new TextEncoder().encode(`${message}`);
+
+    console.log('js message bytes ', message_bytes);
+
+    const signature = nacl.sign.detached(message_bytes, sk_bytes);
+    // const isValid = nacl.sign.detached.verify(message_bytes, signature, keypair.publicKey.data)
+    // console.log("js verify: ", isValid)
+    const base64_signature = naclUtil.encodeBase64(signature);
+
+    return [base64_signature, signature];
+  };
+
+  GenerateTicketKeys = async (numKeys) => {
+    const { publicKeys, secretKeys } = await generateKeys({
+      numKeys,
+      // rootEntropy: `${get(MASTER_KEY) as string}-${dropId}`,
+      // autoMetaNonceStart: start,
+    });
+
+    return { publicKeys, secretKeys };
   };
 
   GetMarketListings = async ({ contractId = KEYPOM_MARKETPLACE_CONTRACT, limit, from_index }) => {
@@ -615,22 +695,14 @@ class KeypomJS {
   };
 
   getTicketKeyInformation = async ({ publicKey }: { publicKey: string }) => {
-    try {
-      const fetchedinfo = await this.viewCall({
-        methodName: 'get_key_information',
-        args: {
-          key: publicKey,
-        },
-      });
-
-      console.log('fetchedinfo', fetchedinfo);
-
-      // Return the requested slice from the cache
-      return fetchedinfo;
-    } catch (e) {
-      console.error('Failed to get key info:', e);
-      throw new Error('Failed to get key info.');
-    }
+    const fetchedinfo = await this.viewAccount.viewFunctionV2({
+      contractId: KEYPOM_EVENTS_CONTRACT,
+      methodName: 'get_key_information',
+      args: {
+        key: publicKey,
+      },
+    });
+    return fetchedinfo;
   };
 
   getTicketDropInformation = async ({ dropID }: { dropID: string }) => {

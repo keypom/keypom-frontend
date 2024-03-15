@@ -21,7 +21,7 @@ interface PurchaseModalProps {
   isOpen: boolean;
   onClose: () => void;
   ticket: any;
-  onSubmit: (questionValues: any, paymentMethod: string) => void;
+  onSubmit: (questionValues: any, paymentMethod: string, isSecondary: bool) => void;
   setEmail: (email: string) => void;
   email: string;
   setTicketAmount: (ticketAmount: number) => void;
@@ -63,7 +63,7 @@ export const PurchaseModal = ({
       setShowErrors(true);
       return;
     }
-    onSubmit(questions, type);
+    onSubmit(questions, type, ticket.isSecondary);
   };
 
   const handleQuestionInputChange = (index, e) => {
@@ -133,7 +133,7 @@ export const PurchaseModal = ({
           return (
             <FormControl key={index} isInvalid={isError && showErrors}>
               <Text color="black" mt="4" textAlign="left">
-                {question.question}
+                {question.question} {question.required ? '*' : ''}{' '}
               </Text>
               <Input
                 key={index}
@@ -167,6 +167,7 @@ export const PurchaseModal = ({
 
   // purchase button version
   const stripeRegistered = stripeEnabledEvent;
+  console.log('wtfstripeRegistered', stripeRegistered);
   console.log('selecto123r', selector);
   const signedIn = selector.isSignedIn();
   const isFree = ticket.price === 0 || ticket.price === '0';
@@ -201,7 +202,7 @@ export const PurchaseModal = ({
         <Button
           w="100%"
           onClick={() => {
-            preOnSubmit(questionValues, 'stripe', isAnyError);
+            preOnSubmit(questionValues, 'near', isAnyError);
           }}
         >
           Purchase with NEAR
@@ -231,7 +232,7 @@ export const PurchaseModal = ({
         <Button
           w="100%"
           onClick={() => {
-            preOnSubmit(questionValues, 'stripe', isAnyError);
+            preOnSubmit(questionValues, 'near', isAnyError);
           }}
         >
           Purchase with NEAR

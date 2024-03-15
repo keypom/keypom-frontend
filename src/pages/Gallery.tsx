@@ -19,10 +19,7 @@ import {
 } from '@chakra-ui/react';
 import { useEffect, useRef, useState } from 'react';
 import { SearchIcon } from '@chakra-ui/icons';
-import { DateRangePicker } from 'react-dates';
-import 'react-dates/initialize';
-import 'react-dates/lib/css/_datepicker.css';
-import '../features/gallery/components/cssoverrides.css';
+
 import { type Moment } from 'moment';
 import { type ProtocolReturnedDrop } from 'keypom-js';
 
@@ -39,6 +36,11 @@ import { DropDownButton } from '@/features/all-drops/components/DropDownButton';
 import { FilterOptionsMobileButton } from '@/features/all-drops/components/FilterOptionsMobileButton';
 import { MobileDrawerMenu } from '@/features/all-drops/components/MobileDrawerMenu';
 import { truncateAddress } from '@/utils/truncateAddress';
+import { FormControlComponent } from '@/components/FormControl';
+import CustomDateRangePickerMobile from '@/components/DateRangePicker/MobileDateRangePicker';
+import CustomDateRangePicker from '@/components/DateRangePicker/DateRangePicker';
+import { EventDate } from '@/features/create-drop/routes/CreateTicketDropPage';
+import { eventDateToPlaceholder } from '@/features/create-drop/components/ticket';
 
 // import myData from '../data/db.json';
 
@@ -61,15 +63,42 @@ export default function Gallery() {
   const { isOpen, onOpen, onClose } = useDisclosure();
 
   // date range picker
-  const [focusedInput, setFocusedInput] = useState(null);
+  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
+  const [datePlaceholer, setDatePlaceholder] = useState('Select date and time');
+
+  const datePickerCTA = (
+    //formData.date.error
+    <FormControlComponent errorText={} label="">
+      <Input
+        readOnly
+        isInvalid={false} //!!formData.date.error
+        placeholder={datePlaceholer}
+        style={{ cursor: 'pointer' }}
+        sx={{
+          '::placeholder': {
+            color: 'gray.400', // Placeholder text color
+          },
+          _invalid: {
+            borderColor: 'red.300',
+            boxShadow: '0 0 0 1px #EF4444 !important',
+          },
+        }}
+        type="text"
+        width="100%"
+        onClick={() => {
+          setIsDatePickerOpen(true);
+        }}
+      />
+    </FormControlComponent>
+  );
+
 
   const [selectedFilters, setSelectedFilters] = useState<{
     // type: string;
     search: string;
     pageSize: number;
     price: string;
-    startDate: Moment | null;
-    endDate: Moment | null;
+    eventDate: EventDate;
     sort: string;
     // reversed: boolean;
   }>({
@@ -77,11 +106,17 @@ export default function Gallery() {
     search: '',
     pageSize: parseInt(GALLERY_PAGE_SIZE_ITEMS[0].label),
     price: GALLERY_PRICE_ITEMS[0].label,
-    startDate: null,
-    endDate: null,
+    eventDate: {startDate: null, endDate: null},
     sort: 'no sort',
     // reversed: false,
   });
+
+  useEffect(() => {
+    const datePlaceholder = eventDateToPlaceholder('Filter by Date', selectedFilters.eventDate);
+
+    setDatePlaceholder(datePlaceholder);
+  }, [selectedFilters.eventDate]);
+
   const [searchTerm, setSearchTerm] = useState<string>('');
   // const [numOwnedDrops, setNumOwnedDrops] = useState<number>(0);
   const [filteredDataItems, setFilteredDataItems] = useState<DataItem[]>([]);
@@ -145,8 +180,6 @@ export default function Gallery() {
 
     drops = drops.filter((drop) => drop !== null);
 
-    console.log('wawawdrops', drops);
-
     if (selectedFilters.price !== GALLERY_PRICE_ITEMS[0].label) {
       const priceFilter = selectedFilters.price;
 
@@ -191,7 +224,7 @@ export default function Gallery() {
 
     // apply start and end date filters
 
-    if (selectedFilters.startDate !== null) {
+    if (selectedFilters.eventDate.startDate !== null) {
       drops = drops.filter((drop) => {
         if (drop == undefined) return false;
         let dateString = drop.date.date;
@@ -200,12 +233,11 @@ export default function Gallery() {
           dateString = drop.date.date.from;
         }
         const date = new Date(dateString);
-        return (date >= selectedFilters.startDate.toDate());
-
+        return (date >= selectedFilters.eventDate.startDate);
       });
     }
 
-    if (selectedFilters.endDate !== null) {
+    if (selectedFilters.eventDate.endDate !== null) {
       drops = drops.filter((drop) => {
         if (drop == undefined) return false;
         let dateString = drop.date.date;
@@ -214,7 +246,7 @@ export default function Gallery() {
           dateString = drop.date.date.to;
         }
         const date = new Date(dateString);
-        return (date <= selectedFilters.endDate.toDate());
+        return (date <= selectedFilters.eventDate.endDate);
       });
     }
 
@@ -222,7 +254,6 @@ export default function Gallery() {
     if (selectedFilters.sort !== 'no sort') {
       if (selectedFilters.sort === 'ascending') {
         drops = drops.sort((a, b) => {
-          console.log('wawadata', a);
           const availableA = a.maxTickets - a.supply;
           const availableB = b.maxTickets - b.supply;
           return availableA - availableB;
@@ -230,7 +261,6 @@ export default function Gallery() {
       }
       if (selectedFilters.sort === 'descending') {
         drops = drops.sort((a, b) => {
-          console.log('wawadata', a);
           const availableA = a.maxTickets - a.supply;
           const availableB = b.maxTickets - b.supply;
           return availableB - availableA;
@@ -263,8 +293,6 @@ export default function Gallery() {
       from_index: 0,
     });
 
-    console.log('wawaeventListings', eventListings);
-
     const numEvents = eventListings.length;
     setNumOwnedEvents(numEvents);
 
@@ -281,8 +309,6 @@ export default function Gallery() {
       let prices = [];
 
       for (const [name, ticketdata] of Object.entries(event.ticket_info)) {
-        console.log('wawaticket1', ticketdata);
-        console.log('wawaticketname1', name);
         const thissupply = await keypomInstance.getKeySupplyForTicket(name);
         supply += thissupply;
         maxTickets += ticketdata.max_tickets;
@@ -303,7 +329,6 @@ export default function Gallery() {
 
       const numTickets = Object.keys(event.ticket_info).length;
       const dateCreated = formatDate(new Date(parseInt(eventInfo.dateCreated)));
-      console.log('navurl', String(event.funder_id) + ':' + event.event_id);
       return {
         prices,
         maxTickets,
@@ -324,14 +349,11 @@ export default function Gallery() {
 
     let dropData = await Promise.all(dropDataPromises);
 
-    console.log('wawadropData', dropData);
-
     dropData = await handleFiltering(dropData);
 
     // Use Promise.all to wait for all promises to resolve
     // filter out all null entries
 
-    console.log('MEGAFILTER DATA ALL DROPS');
     setFilteredDataItems(dropData);
 
     const totalPages = Math.ceil(dropDataPromises.length / selectedFilters.pageSize);
@@ -346,8 +368,6 @@ export default function Gallery() {
     // First get the total supply of drops so we know when to stop fetching
     const totalSupply = await keypomInstance.getEventSupply();
 
-    console.log('totalSupply123todofixthis', totalSupply);
-
     // Loop until we have enough filtered drops to fill the page size
     let dropsFetched = 0;
     let filteredDrops: ProtocolReturnedDrop[] = [];
@@ -356,8 +376,6 @@ export default function Gallery() {
         limit: 6,
         from_index: dropsFetched,
       });
-
-      console.log('wawaintiitialeventListings2', eventListings);
 
       dropsFetched += Number(eventListings.length);
 
@@ -377,8 +395,6 @@ export default function Gallery() {
       let maxTickets = 0;
 
       for (const [name, ticketdata] of Object.entries(event.ticket_info)) {
-        console.log('wawaticket1', ticketdata);
-        console.log('wawaticketname1', name);
         const thissupply = await keypomInstance.getKeySupplyForTicket(name);
         supply += thissupply;
         maxTickets += ticketdata.max_tickets;
@@ -398,7 +414,6 @@ export default function Gallery() {
 
       const numTickets = Object.keys(event.ticket_info).length;
       const dateCreated = formatDate(new Date(parseInt(eventInfo.dateCreated)));
-      console.log('navurl', String(event.funder_id) + ':' + event.event_id);
       return {
         maxTickets,
         supply,
@@ -438,15 +453,12 @@ export default function Gallery() {
   }, [filteredDataItems]);
 
   useEffect(() => {
-    console.log('gonna call handlegetinitialdrops');
-
     if (keypomInstance == undefined) return;
     // First get enough data with the current filters to fill the page size
     handleGetInitialDrops();
   }, [keypomInstance]);
 
   useEffect(() => {
-    console.log('gonna call handleGetAllEvents');
     if (keypomInstance == undefined) return;
     // In parallel, fetch all the events
     handleGetAllEvents();
@@ -474,7 +486,6 @@ export default function Gallery() {
   });
 
   const getGalleryGridRows = () => {
-    console.log('filteredDataItems', filteredDataItems);
     if (filteredDataItems === undefined || filteredDataItems.length === 0) return [];
 
     let gridData = filteredDataItems;
@@ -545,26 +556,39 @@ export default function Gallery() {
               />
             </InputGroup>
             <HStack>
-              <DateRangePicker
-                endDate={selectedFilters.endDate}
-                endDateId="your_unique_end_date_id"
-                focusedInput={focusedInput}
-                format="MM/dd/yyyy HH:mm"
-                hideKeyboardShortcutsPanel={true}
-                showClearDates={true}
-                startDate={selectedFilters.startDate}
-                startDateId="your_unique_start_date_id"
-                onDatesChange={({ startDate, endDate }) => {
-                  setSelectedFilters((prevFilters) => ({
-                    ...prevFilters,
+            <CustomDateRangePicker
+              ctaComponent={datePickerCTA}
+              endDate={selectedFilters.eventDate.endDate}
+              endTime={selectedFilters.eventDate.endTime}
+              isDatePickerOpen={isDatePickerOpen}
+              maxDate={null}
+              minDate={new Date()}
+              setIsDatePickerOpen={setIsDatePickerOpen}
+              startDate={selectedFilters.eventDate.startDate}
+              startTime={selectedFilters.eventDate.startTime}
+              onDateChange={(startDate, endDate) => {
+                setSelectedFilters((prevFilters) => ({
+                  ...prevFilters,
+                  eventDate: {
+                    ...prevFilters.eventDate,
                     startDate,
                     endDate,
-                  }));
-                }}
-                onFocusChange={(focusedInput) => {
-                  setFocusedInput(focusedInput);
-                }}
-              />
+                  },
+                }));
+              }}
+              onTimeChange={(startTime, endTime) => {
+                setSelectedFilters((prevFilters) => ({
+                  ...prevFilters,
+                  eventDate: {
+                    ...prevFilters.eventDate,
+                    startTime,
+                    endTime,
+                  },
+                }));
+              }}
+            
+            />
+            
               <Menu>
                 {({ isOpen }) => (
                   <Box>
@@ -629,27 +653,40 @@ export default function Gallery() {
               popoverClicked={popoverClicked}
               onOpen={onOpen}
             />
-            <DateRangePicker
-              endDate={selectedFilters.endDate}
-              endDateId="your_unique_end_date_id"
-              focusedInput={focusedInput}
-              format="MM/dd/yyyy HH:mm"
-              hideKeyboardShortcutsPanel={true}
-              numberOfMonths={1}
-              startDate={selectedFilters.startDate}
-              startDateId="your_unique_start_date_id"
-              onDatesChange={({ startDate, endDate }) => {
+          </HStack>
+
+          <CustomDateRangePickerMobile
+              ctaComponent={datePickerCTA}
+              endDate={selectedFilters.eventDate.endDate}
+              endTime={selectedFilters.eventDate.endTime}
+              isDatePickerOpen={isDatePickerOpen}
+              maxDate={null}
+              minDate={new Date()}
+              openDirection="top-start"
+              setIsDatePickerOpen={setIsDatePickerOpen}
+              startDate={selectedFilters.eventDate.startDate}
+              startTime={selectedFilters.eventDate.startTime}
+              onDateChange={(startDate, endDate) => {
                 setSelectedFilters((prevFilters) => ({
                   ...prevFilters,
-                  startDate,
-                  endDate,
+                  eventDate: {
+                    ...prevFilters.eventDate,
+                    startDate,
+                    endDate,
+                  },
                 }));
               }}
-              onFocusChange={(focusedInput) => {
-                setFocusedInput(focusedInput);
+              onTimeChange={(startTime, endTime) => {
+                setSelectedFilters((prevFilters) => ({
+                  ...prevFilters,
+                  eventDate: {
+                    ...prevFilters.eventDate,
+                    startTime,
+                    endTime,
+                  },
+                }));
               }}
             />
-          </HStack>
         </VStack>
       </Hide>
 

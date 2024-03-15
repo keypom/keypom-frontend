@@ -15,7 +15,7 @@ import {
   useToast,
 } from '@chakra-ui/react';
 import { getPubFromSecret } from 'keypom-js';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { QrReader } from 'react-qr-reader';
 
 import keypomInstance from '@/lib/keypom';
@@ -24,20 +24,24 @@ interface VerifyModalProps {
   isOpen: boolean;
   onClose: () => void;
   event: any;
+  eventId: string;
+  accountId: string;
 }
 
-const accountId = 'benjiman.testnet';
-
-export const VerifyModal = ({ isOpen, onClose, event }: VerifyModalProps) => {
+export const VerifyModal = ({ isOpen, onClose, event, eventId, accountId }: VerifyModalProps) => {
   // qr code input
   const [data, setData] = useState('No result');
-  const [ticketData, setTicketData] = useState({});
+  const [ticketData, setTicketData] = useState(null);
   const toast = useToast();
+
+  useEffect(() => {
+    setTicketData(null);
+  }, [isOpen]);
 
   const checkData = async (answer) => {
     // answer = answer?.trim();
 
-    if (!keypomInstance || !accountId) {
+    if (!keypomInstance) {
       console.error('not ready yet');
       toast({
         title: 'loading...',
@@ -52,6 +56,8 @@ export const VerifyModal = ({ isOpen, onClose, event }: VerifyModalProps) => {
     // test answer
     // answer =
     //   'ed25519:AXSwjeNg8qS8sFPSCK2eYK7UoQ3Kyyqt9oeKiJRd8pUhhEirhL2qbrs7tLBYpoGE4Acn8JbFL7FVjgyT2aDJaJx';
+    // answer =
+    //   'ed25519:27HQjCztqJmAMHjkM6RpQCc7giQ5H8CTxFrqaScfejp1SbfHZp7oDjqn27CyLKWWLHfHTaqtWfVYa3BYqxjZ6TMp';
     try {
       const secretKey = answer;
       const publicKey: string = getPubFromSecret(secretKey);
@@ -60,77 +66,75 @@ export const VerifyModal = ({ isOpen, onClose, event }: VerifyModalProps) => {
         publicKey: String(publicKey),
       });
 
-      console.log('keyinfo: ', keyinfo);
+      console.log('teekeyinfo: ', keyinfo);
 
       // get drop info using the key info id
 
       const dropID = keyinfo.token_id.split(':')[0];
 
-      console.log('dropID: ', dropID);
+      console.log('teedropID: ', dropID);
 
       const dropData = await keypomInstance.getTicketDropInformation({ dropID });
 
-      console.log('dropData: ', dropData);
+      console.log('teedropData: ', dropData);
+
+      console.log('teeevent: ', eventId);
 
       // parse dropData's metadata to get eventId
       const meta: EventDropMetadata = JSON.parse(dropData.drop_config.metadata);
 
-      const keyinfoEventId = meta.ticketInfo?.eventId;
+      const keyinfoEventId = meta.eventId;
       if (keyinfoEventId !== eventId) {
         console.error('Event ID mismatch', keyinfoEventId, eventId);
       }
-      console.log('keyinfoeventID: ', keyinfoEventId);
-      const drop = await keypomInstance.getEventDrop({ accountId, eventId: keyinfoEventId });
+      console.log('teekeyinfoeventID: ', keyinfoEventId);
+      console.log('teeaccountId: ', accountId);
+      const drop = await keypomInstance.getEventInfo({ accountId, eventId: keyinfoEventId });
 
-      console.log('drop: ', drop);
-      const meta2: EventDropMetadata = JSON.parse(drop.drop_config.metadata);
+      console.log('teedrop: ', drop);
+      const meta2 = drop; // EventDropMetadata = JSON.parse(drop.drop_config.metadata);
       let dateString = '';
-      if (meta2.eventInfo?.date) {
+      if (meta2.date) {
         dateString =
-          typeof meta2.eventInfo?.date.date === 'string'
-            ? meta2.eventInfo?.date.date
-            : `${meta2.eventInfo?.date.date.from} to ${meta2.eventInfo?.date.date.to}`;
+          typeof meta2.date.date === 'string'
+            ? meta2.date.date
+            : `${meta2.date.date.from} to ${meta2.date.date.to}`;
       }
 
       setTicketData({
-        name: meta2.eventInfo?.name || 'Untitled',
-        artwork: meta2.eventInfo?.artwork || 'loading',
-        questions: meta2.eventInfo?.questions || [],
-        location: meta2.eventInfo?.location || 'loading',
+        name: meta2.name || 'Untitled',
+        artwork: meta2.artwork || 'loading',
+        questions: meta2.questions || [],
+        location: meta2.location || 'loading',
         date: dateString,
-        description: meta2.eventInfo?.description || 'loading',
-        ticketInfo: meta2.ticketInfo,
+        description: meta2.description || 'loading',
       });
-      return;
-    } catch (error) {
-      console.error('Invalid ticket sale');
+      console.log('teedropjustsettickte: ', {
+        name: meta2.name || 'Untitled',
+        artwork: meta2.artwork || 'loading',
+        questions: meta2.questions || [],
+        location: meta2.location || 'loading',
+        date: dateString,
+        description: meta2.description || 'loading',
+      });
       toast({
-        title: 'Sale request failure',
-        description: `This item may not be put for sale at this time since ${error}`,
-        status: 'error',
+        title: 'Ticket verified!',
+        description: `Details shown in the modal`,
+        status: 'success',
         duration: 5000,
         isClosable: true,
       });
-    }
-    if (answer === 'No result') {
+      return;
+    } catch (error) {
+      console.log('invalid cuz error: ', error);
       toast({
-        title: 'No QR Code Found',
-        description: `Your code wasnt read properly, please try again`,
+        title: 'Invalid',
+        description: 'Your ticket is invalid',
         status: 'error',
         duration: 1000,
         isClosable: true,
       });
-      return;
     }
-    // check if its cool
-
-    toast({
-      title: 'Invalid',
-      description: 'Your ticket is invalid',
-      status: 'error',
-      duration: 1000,
-      isClosable: true,
-    });
   };
 
   return (
@@ -181,7 +185,7 @@ export const VerifyModal = ({ isOpen, onClose, event }: VerifyModalProps) => {
           </Text>
           <Text textAlign="left">{data}</Text>
 
-          {data != 'No result' ? (
+          {ticketData != null ? (
             <>
               <Text
                 as="h2"
@@ -191,13 +195,13 @@ export const VerifyModal = ({ isOpen, onClose, event }: VerifyModalProps) => {
                 my="4px"
                 textAlign="left"
               >
-                {ticketData?.ticketInfo?.name}
+                {ticketData?.name}
               </Text>
               <Image
                 alt={'ticketimage'}
                 height="300"
                 objectFit="cover"
-                src={ticketData?.ticketInfo?.artwork}
+                src={ticketData?.artwork}
                 width="100%"
               />
               <Text
@@ -210,7 +214,7 @@ export const VerifyModal = ({ isOpen, onClose, event }: VerifyModalProps) => {
               >
                 Description
               </Text>
-              <Text textAlign="left">{ticketData?.ticketInfo?.description}</Text>
+              <Text textAlign="left">{ticketData?.description}</Text>
               <Text
                 as="h2"
                 color="black.800"
@@ -221,7 +225,7 @@ export const VerifyModal = ({ isOpen, onClose, event }: VerifyModalProps) => {
               >
                 Ticket Date
               </Text>
-              <Text textAlign="left">{ticketData?.ticketInfo?.passValidThrough}</Text>
+              <Text textAlign="left">{ticketData?.passValidThrough}</Text>
               <Text
                 as="h2"
                 color="black.800"
