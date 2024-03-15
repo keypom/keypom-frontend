@@ -250,7 +250,7 @@ export const PurchaseModal = ({
 
   return (
     <Modal isCentered closeOnOverlayClick={false} isOpen={isOpen} size={'xl'} onClose={onClose}>
-      <ModalOverlay />
+      <ModalOverlay backdropFilter="blur(0px)" bg="blackAlpha.600" opacity="1" />
       <ModalContent p="8">
         <Box maxH="90vh" overflowY="auto" p="0">
           <ModalCloseButton />
@@ -286,17 +286,6 @@ export const PurchaseModal = ({
             Admission Date
           </Text>
           <Text textAlign="left">{ticket.dateString}</Text>
-          <Text
-            as="h2"
-            color="black.800"
-            fontSize="l"
-            fontWeight="medium"
-            mt="8px"
-            textAlign="left"
-          >
-            Location
-          </Text>
-          <Text textAlign="left">{ticket.location}</Text>
           <Text
             as="h2"
             color="black.800"

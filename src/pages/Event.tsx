@@ -103,6 +103,7 @@ export default function Event() {
   }, [keypomInstance, eventId, funderId]);
 
   const formatDate = (date) => {
+    console.log('Date: ', date);
     // Create an instance of Intl.DateTimeFormat for formatting
     const formatter = new Intl.DateTimeFormat('en-US', {
       month: 'short', // Full month name.
@@ -217,6 +218,7 @@ export default function Event() {
     onClose();
   };
 
+
   function uint8ArrayToBase64(u8Arr: Uint8Array): string {
     const string = u8Arr.reduce(
       (data, byte) => data + String.fromCharCode(byte),
@@ -224,12 +226,14 @@ export default function Event() {
     );
     return btoa(string);
   }
-
   async function encryptWithPublicKey(
       data: string,
       publicKey: any,
     ): Promise<string> {
+    console.log('Data: ', data);
+    console.log('Public Key: ', publicKey);
       const encoded = new TextEncoder().encode(data);
+      console.log('Encoded: ', encoded);
       const encrypted = await window.crypto.subtle.encrypt(
         {
           name: "RSA-OAEP",
@@ -237,7 +241,8 @@ export default function Event() {
         publicKey,
         encoded,
       );
-    
+      console.log('Encrypted: ', encrypted);
+      
       return uint8ArrayToBase64(new Uint8Array(encrypted));
     }
 
@@ -289,6 +294,8 @@ export default function Event() {
       publicKey
     )
 
+    console.log('Encrypted Values: ', encryptedValues);
+
     var attendeeName = null;
     
     if(drop && drop.questions && drop?.questions.length != 0){
@@ -339,7 +346,8 @@ export default function Event() {
         funderId: funderId,
       },
       purchaseEmail: trimmedEmail, // (currently just called email in userInfo)
-      stripeaccountId: stripeAccountId,
+      stripeAccountId: stripeAccountId,
+      baseUrl: window.location.origin,
       priceNear: ticketBeingPurchased.price,
     }
 
@@ -380,25 +388,25 @@ export default function Event() {
           });
         }
         
-        await wallet.signAndSendTransaction({
-          signerId: accountId,
-          receiverId: KEYPOM_MARKETPLACE_CONTRACT,
-          actions: [
-            {
-              type: 'FunctionCall',
-              params: {
-                methodName: 'buy_initial_sale',
-                args: { 
-                  event_id: meta.eventId, 
-                  drop_id: ticketBeingPurchased.id,
-                  new_keys: newKeys
-                },
-                gas: '300000000000000',
-                deposit: nearSendPrice,
-              },
-            },
-          ],
-        });
+         await wallet.signAndSendTransaction({
+           signerId: accountId,
+           receiverId: KEYPOM_MARKETPLACE_CONTRACT,
+           actions: [
+             {
+               type: 'FunctionCall',
+               params: {
+                 methodName: 'buy_initial_sale',
+                 args: { 
+                   event_id: meta.eventId, 
+                   drop_id: ticketBeingPurchased.id,
+                   new_keys: newKeys
+                 },
+                 gas: '300000000000000',
+                 deposit: nearSendPrice,
+               },
+             },
+           ],
+         });
       } else {
         //secondary
         const memo = { 
@@ -659,7 +667,10 @@ export default function Event() {
       }
       let dateString = '';
       if (ticket.passValidThrough) {
-        dateString = formatDate(new Date(ticket.passValidThrough));
+      console.log('ticket.passValidThrough: ', ticket.passValidThrough);
+        dateString = formatDate(new Date(typeof ticket.passValidThrough === 'string' ? ticket.passValidThrough 
+          : typeof ticket.passValidThrough.date === 'string' ? ticket.passValidThrough.date : 
+            ticket.passValidThrough.date.from));
         // typeof ticket.passValidThrough === 'string'
         //   ? ticket.passValidThrough
         //   : `${ticket.date.from} to ${ticket.date.to}`;

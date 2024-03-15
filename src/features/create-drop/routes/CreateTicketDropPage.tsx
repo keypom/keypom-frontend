@@ -272,7 +272,7 @@ export default function NewTicketDrop() {
 
     let response;
     try {
-      const url = 'http://localhost:8787/ipfs-pin';
+      const url = 'https://my-stripe-worker.zachattack98766789.workers.dev/ipfs-pin';
 
       response = await fetch(url, {
         method: 'POST',

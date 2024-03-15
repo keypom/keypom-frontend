@@ -1,4 +1,5 @@
 import { type Wallet } from '@near-wallet-selector/core';
+import { parseNearAmount } from 'keypom-js';
 
 import keypomInstance from '@/lib/keypom';
 import {
@@ -13,8 +14,8 @@ import {
   generateKeyPair,
   uint8ArrayToBase64,
 } from '@/lib/cryptoHelpers';
-import { KEYPOM_MARKET_CONTRACT } from '@/constants/common';
 import { get } from '@/utils/localStorage';
+import { KEYPOM_MARKETPLACE_CONTRACT } from '@/constants/common';
 
 import { type TicketDropFormData } from '../../routes/CreateTicketDropPage';
 
@@ -168,7 +169,19 @@ export const createPayloadAndEstimateCosts = async ({
     ticket.eventId = eventId;
     console.log('Creating ticket: ', ticket);
 
+    ticket_information[`${dropId}`] = {
+      max_tickets: ticket.maxSupply,
+      price: parseNearAmount(ticket.price).toString(),
+      sale_start: ticket.salesValidThrough.startDate
+        ? ticket.salesValidThrough.startDate.getTime()
+        : undefined,
+      sale_end: ticket.salesValidThrough.endDate
+        ? ticket.salesValidThrough.endDate.getTime()
+        : undefined,
+    };
+
     if (!shouldSet) {
+      ticket.price = parseNearAmount(ticket.price).toString();
       const passValidThroughTime =
         ticket.passValidThrough.startDate && ticket.passValidThrough.endDate
           ? {
@@ -203,21 +216,10 @@ export const createPayloadAndEstimateCosts = async ({
       ticket.passValidThrough = passValidThroughTime;
     }
 
-    ticket_information[`${dropId}`] = {
-      max_tickets: ticket.maxSupply,
-      price: ticket.price,
-      sale_start: ticket.salesValidThrough.startDate
-        ? ticket.salesValidThrough.startDate.getTime()
-        : undefined,
-      sale_end: ticket.salesValidThrough.endDate
-        ? ticket.salesValidThrough.endDate.getTime()
-        : undefined,
-    };
-
     const dropConfig = {
       metadata: JSON.stringify(ticket),
-      add_key_allowlist: [KEYPOM_MARKET_CONTRACT],
-      transfer_key_allowlist: [KEYPOM_MARKET_CONTRACT],
+      add_key_allowlist: [KEYPOM_MARKETPLACE_CONTRACT],
+      transfer_key_allowlist: [KEYPOM_MARKETPLACE_CONTRACT],
     };
     const assetData = [
       {
@@ -255,7 +257,7 @@ export const createPayloadAndEstimateCosts = async ({
           asset_datas,
           change_user_metadata: JSON.stringify(funderMetadata),
           on_success: {
-            receiver_id: KEYPOM_MARKET_CONTRACT,
+            receiver_id: KEYPOM_MARKETPLACE_CONTRACT,
             method_name: 'create_event',
             args: JSON.stringify({
               event_id: eventId,

@@ -38,7 +38,7 @@ export const SellModal = ({
   const isError = input === '';
   return (
     <Modal isCentered closeOnOverlayClick={false} isOpen={isOpen} size={'xl'} onClose={onClose}>
-      <ModalOverlay />
+      <ModalOverlay backdropFilter="blur(0px)" bg="blackAlpha.600" opacity="1" />
       <ModalContent p="8">
         <ModalCloseButton />
         <Text as="h2" color="black.800" fontSize="xl" fontWeight="medium" my="4px" textAlign="left">
