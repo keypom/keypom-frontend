@@ -14,7 +14,7 @@ interface DropManagerPaginationProps {
   numPages: number;
   handleNextPage: () => void;
   handlePrevPage: () => void;
-  type: string;
+  type?: string;
 }
 
 export const DropManagerPagination = ({
@@ -26,11 +26,8 @@ export const DropManagerPagination = ({
   numPages,
   handleNextPage,
   handlePrevPage,
-  type,
+  type = 'Rows',
 }: DropManagerPaginationProps) => {
-  if (type === undefined) {
-    type = 'Rows';
-  }
   if (isLoading) {
     // Render Skeleton loaders while content is loading
     return (

@@ -24,7 +24,7 @@ import { TicketCard } from '@/features/gallery/components/TicketCard';
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
 import { type EventDropMetadata } from '@/lib/eventsHelpers';
 import keypomInstance from '@/lib/keypom';
-import { KEYPOM_EVENTS_CONTRACT, KEYPOM_MARKETPLACE_CONTRACT } from '@/constants/common';
+import { KEYPOM_MARKETPLACE_CONTRACT } from '@/constants/common';
 
 export default function Event() {
   const params = useParams();
@@ -45,7 +45,7 @@ export default function Event() {
   const [doKeyModal, setDoKeyModal] = useState(false);
   const [sellDropInfo, setSellDropInfo] = useState(null);
 
-  const { selector, accountId  } = useAuthWalletContext();
+  const { selector, accountId } = useAuthWalletContext();
 
   // split up params into two parts, the accountID and the eventID'
   const eventURL = params.eventID.split(':');
@@ -84,16 +84,15 @@ export default function Event() {
     fetchWallet();
   }, [selector]);
 
-
   useEffect(() => {
     if (!keypomInstance || !eventId || !funderId) return;
 
     getKeyInformation();
   }, [secretKey, eventId]);
 
-  //http://localhost:3000/gallery/minqi.testnet:299df60c-5036-4adb-888f-001706f13962#secretKey=2121cLnS58WEghkDd7qptGovW3f7RGixJE2E6QJXbUkAAWCuRCWHEaxfeMgLpWsuvRAgzityezpW8wFXyahzuLDr
+  // http://localhost:3000/gallery/minqi.testnet:299df60c-5036-4adb-888f-001706f13962#secretKey=2121cLnS58WEghkDd7qptGovW3f7RGixJE2E6QJXbUkAAWCuRCWHEaxfeMgLpWsuvRAgzityezpW8wFXyahzuLDr
 
-  //http://localhost:3000/gallery/minqi.testnet:299df60c-5036-4adb-888f-001706f13962/?transactionHashes=7VSivNFojMxDr1fVsTQ5teJSeqHxTj6ERG3ctyotBpUm
+  // http://localhost:3000/gallery/minqi.testnet:299df60c-5036-4adb-888f-001706f13962/?transactionHashes=7VSivNFojMxDr1fVsTQ5teJSeqHxTj6ERG3ctyotBpUm
   const nearRedirect = window.location.search.substring(1).trim().split('=', 2)[1];
 
   useEffect(() => {
@@ -130,7 +129,7 @@ export default function Event() {
 
       // get drop info using the key info id
 
-      var dropID = keyinfo.token_id.split(':')[0];
+      const dropID = keyinfo.token_id.split(':')[0];
 
       // testing dropID = "1709145479199-Ground Ticket-14"
 
@@ -139,17 +138,19 @@ export default function Event() {
       // parse dropData's metadata to get eventId
       const meta: EventDropMetadata = JSON.parse(dropData.drop_config.metadata);
 
-      var keyinfoEventId = meta.eventId;
+      const keyinfoEventId = meta.eventId;
       if (keyinfoEventId !== eventId) {
         console.warn('Event ID mismatch', keyinfoEventId, eventId);
       }
 
       // testing keyinfoEventId = "17f270df-fcee-4682-8b4b-673916cc65a9"
 
-      const drop = await keypomInstance.getEventInfo({ accountId:funderId, eventId: keyinfoEventId });
+      const drop = await keypomInstance.getEventInfo({
+        accountId: funderId,
+        eventId: keyinfoEventId,
+      });
 
-
-      const meta2 = drop; //.metadata;//EventDropMetadata = JSON.parse(drop.metadata);
+      const meta2 = drop; // .metadata;//EventDropMetadata = JSON.parse(drop.metadata);
       let dateString = '';
       if (meta2.date) {
         dateString =
@@ -164,8 +165,8 @@ export default function Event() {
         location: meta2.location || 'loading',
         date: dateString,
         description: meta2.description || 'loading',
-        publicKey: publicKey,
-        secretKey: secretKey,
+        publicKey,
+        secretKey,
       });
 
       setDoKeyModal(true);
@@ -204,7 +205,7 @@ export default function Event() {
   const mapHref = 'https://www.google.com/maps/search/' + String(res);
 
   // purchase modal
-     
+
   const OpenPurchaseModal = async (ticket, ticketAmount) => {
     setTicketBeingPurchased(ticket);
     setTicketAmount(ticketAmount);
@@ -218,99 +219,94 @@ export default function Event() {
     onClose();
   };
 
-
   function uint8ArrayToBase64(u8Arr: Uint8Array): string {
-    const string = u8Arr.reduce(
-      (data, byte) => data + String.fromCharCode(byte),
-      "",
-    );
+    const string = u8Arr.reduce((data, byte) => data + String.fromCharCode(byte), '');
     return btoa(string);
   }
-  async function encryptWithPublicKey(
-      data: string,
-      publicKey: any,
-    ): Promise<string> {
+  async function encryptWithPublicKey(data: string, publicKey: any): Promise<string> {
     console.log('Data: ', data);
     console.log('Public Key: ', publicKey);
-      const encoded = new TextEncoder().encode(data);
-      console.log('Encoded: ', encoded);
-      const encrypted = await window.crypto.subtle.encrypt(
-        {
-          name: "RSA-OAEP",
-        },
-        publicKey,
-        encoded,
-      );
-      console.log('Encrypted: ', encrypted);
-      
-      return uint8ArrayToBase64(new Uint8Array(encrypted));
+    const encoded = new TextEncoder().encode(data);
+    console.log('Encoded: ', encoded);
+    const encrypted = await window.crypto.subtle.encrypt(
+      {
+        name: 'RSA-OAEP',
+      },
+      publicKey,
+      encoded,
+    );
+    console.log('Encrypted: ', encrypted);
+
+    return uint8ArrayToBase64(new Uint8Array(encrypted));
+  }
+
+  async function base64ToPublicKey(base64Key: string) {
+    // Decode the Base64 string to an ArrayBuffer
+    const binaryString = atob(base64Key);
+    const len = binaryString.length;
+    const bytes = new Uint8Array(len);
+    for (let i = 0; i < len; i++) {
+      bytes[i] = binaryString.charCodeAt(i);
     }
 
-    async function base64ToPublicKey(base64Key: string) {
-      // Decode the Base64 string to an ArrayBuffer
-      const binaryString = atob(base64Key);
-      const len = binaryString.length;
-      const bytes = new Uint8Array(len);
-      for (let i = 0; i < len; i++) {
-        bytes[i] = binaryString.charCodeAt(i);
-      }
-    
-      // Import the key from the ArrayBuffer
-      const publicKey = await window.crypto.subtle.importKey(
-        "spki",
-        bytes.buffer,
-        {
-          name: "RSA-OAEP",
-          hash: { name: "SHA-256" },
-        },
-        true,
-        ["encrypt"],
-      );
-    
-      return publicKey;
-    }
+    // Import the key from the ArrayBuffer
+    const publicKey = await window.crypto.subtle.importKey(
+      'spki',
+      bytes.buffer,
+      {
+        name: 'RSA-OAEP',
+        hash: { name: 'SHA-256' },
+      },
+      true,
+      ['encrypt'],
+    );
+
+    return publicKey;
+  }
 
   const PurchaseTicket = async (questionValues, purchaseType, isSecondary) => {
     navigate('./');
 
-    const dropData = await keypomInstance.getTicketDropInformation({ dropID: ticketBeingPurchased.id });
+    const dropData = await keypomInstance.getTicketDropInformation({
+      dropID: ticketBeingPurchased.id,
+    });
 
     // parse dropData's metadata to get eventId
     const meta: EventDropMetadata = JSON.parse(dropData.drop_config.metadata);
 
     const keyinfoEventId = meta.eventId;
 
-    const drop = await keypomInstance.getEventInfo({ accountId: dropData.funder_id, eventId:keyinfoEventId });
+    const drop = await keypomInstance.getEventInfo({
+      accountId: dropData.funder_id,
+      eventId: keyinfoEventId,
+    });
 
     const publicKeyBase64 = drop.pubKey;
 
     const publicKey = await base64ToPublicKey(publicKeyBase64);
 
-    //encrypt the questionValues
-    const data = JSON.stringify({questions: questionValues});
-    console.log("data: ", data)
+    // encrypt the questionValues
+    const data = JSON.stringify({ questions: questionValues });
+    console.log('data: ', data);
 
-    const encryptedValues = await encryptWithPublicKey(
-      data,
-      publicKey
-    )
+    const encryptedValues = await encryptWithPublicKey(data, publicKey);
 
     console.log('Encrypted Values: ', encryptedValues);
 
-    var attendeeName = null;
-    
-    if(drop && drop.questions && drop?.questions.length != 0){
-      //filter each question to find the list of ones that contain "name"
-      var indexlist = [];
+    let attendeeName = null;
+
+    if (drop && drop.questions && drop?.questions.length != 0) {
+      // filter each question to find the list of ones that contain "name"
+      const indexlist = [];
       for (var i = 0; i < drop?.questions.length; i++) {
         if (drop?.questions[i]?.question.toLowerCase().replaceAll(' ', '').includes('name')) {
           indexlist.push(i);
         }
       }
 
-      //get the shortest question in indexlist
-      var shortestIndex = -1;
-      var shortestLength = 1000;
+      // get the shortest question in indexlist
+      let shortestIndex = -1;
+      let shortestLength = 1000;
       for (var i = 0; i < indexlist.length; i++) {
         if (drop?.questions[indexlist[i]].question.length < shortestLength) {
           shortestIndex = indexlist[i];
@@ -322,44 +318,46 @@ export default function Event() {
       }
     }
 
-    //limit the number of characters in the email and name to 500
-    if(attendeeName && attendeeName.length > 500){
+    // limit the number of characters in the email and name to 500
+    if (attendeeName && attendeeName.length > 500) {
       attendeeName = attendeeName.substring(0, 500);
     }
-    let trimmedEmail = email
-    if(trimmedEmail && trimmedEmail.length > 500){
+    let trimmedEmail = email;
+    if (trimmedEmail && trimmedEmail.length > 500) {
       trimmedEmail = trimmedEmail.substring(0, 500);
     }
-    
 
-    var workerPayload =  {
+    const workerPayload = {
       name: attendeeName,
-      ticketAmount: ticketAmount, //(number of tickets being purchase)
-      buyerAnswers: encryptedValues, //(encrypted user answers)
+      ticketAmount, // (number of tickets being purchase)
+      buyerAnswers: encryptedValues, // (encrypted user answers)
       ticket_info: {
         location: drop.location,
         eventName: drop.name,
         ticketType: meta.name,
         eventDate: drop.date.date,
-        ticketOwner: accountId ? accountId : null, //(if signed in, this is signed in account, otherwise its none/empty)
+        ticketOwner: accountId || null, // (if signed in, this is signed in account, otherwise its none/empty)
         eventId: meta.eventId,
         dropId: ticketBeingPurchased.id,
-        funderId: funderId,
+        funderId,
       },
       purchaseEmail: trimmedEmail, // (currently just called email in userInfo)
-      stripeAccountId: stripeAccountId,
+      stripeAccountId,
       baseUrl: window.location.origin,
       priceNear: ticketBeingPurchased.price,
-    }
+    };
 
-    if(purchaseType == "free"){
-      const response = await fetch('https://my-stripe-worker.zachattack98766789.workers.dev/purchase-free-tickets', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
+    if (purchaseType == 'free') {
+      const response = await fetch(
+        'https://my-stripe-worker.zachattack98766789.workers.dev/purchase-free-tickets',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(workerPayload),
         },
-        body: JSON.stringify(workerPayload),
-      });
+      );
       if (response.ok) {
         // Account created successfully
         const responseBody = await response.json();
@@ -368,52 +366,53 @@ export default function Event() {
         // Error creating account
         TicketPurchaseFailure(workerPayload, await response.json());
       }
-    }
-    else if (purchaseType == "near") {
-      //put the workerPayload in local storage
-      const {secretKeys, publicKeys} = await keypomInstance.GenerateTicketKeys(ticketAmount);
-      workerPayload["ticketKeys"] = secretKeys;
+    } else if (purchaseType == 'near') {
+      // put the workerPayload in local storage
+      const { secretKeys, publicKeys } = await keypomInstance.GenerateTicketKeys(ticketAmount);
+      workerPayload.ticketKeys = secretKeys;
       localStorage.setItem('workerPayload', JSON.stringify(workerPayload));
 
-      const nearSendPrice = keypomInstance.nearToYocto((ticketAmount*ticketBeingPurchased.price).toString());
+      const nearSendPrice = keypomInstance.nearToYocto(
+        (ticketAmount * ticketBeingPurchased.price).toString(),
+      );
 
-      if(!isSecondary){
-        //primary
+      if (!isSecondary) {
+        // primary
 
-        let newKeys = [];
-        for (let publicKey of publicKeys) {
+        const newKeys = [];
+        for (const publicKey of publicKeys) {
           newKeys.push({
             public_key: publicKey,
-            metadata: encryptedValues
-            key_owner: accountId
+            metadata: encryptedValues,
+            key_owner: accountId,
           });
         }
-        
-         await wallet.signAndSendTransaction({
-           signerId: accountId,
-           receiverId: KEYPOM_MARKETPLACE_CONTRACT,
-           actions: [
-             {
-               type: 'FunctionCall',
-               params: {
-                 methodName: 'buy_initial_sale',
-                 args: { 
-                   event_id: meta.eventId, 
-                   drop_id: ticketBeingPurchased.id,
-                   new_keys: newKeys
-                 },
-                 gas: '300000000000000',
-                 deposit: nearSendPrice,
-               },
-             },
-           ],
-         });
+
+        await wallet.signAndSendTransaction({
+          signerId: accountId,
+          receiverId: KEYPOM_MARKETPLACE_CONTRACT,
+          actions: [
+            {
+              type: 'FunctionCall',
+              params: {
+                methodName: 'buy_initial_sale',
+                args: {
+                  event_id: meta.eventId,
+                  drop_id: ticketBeingPurchased.id,
+                  new_keys: newKeys,
+                },
+                gas: '300000000000000',
+                deposit: nearSendPrice,
+              },
+            },
+          ],
+        });
       } else {
-        //secondary
-        const memo = { 
+        // secondary
+        const memo = {
           linkdrop_pk: ticketBeingPurchased.publicKey,
           new_public_key: publicKeys[0],
-         }; // NftTransferMemo,
+        }; // NftTransferMemo,
         await wallet.signAndSendTransaction({
           signerId: accountId,
           receiverId: KEYPOM_MARKETPLACE_CONTRACT,
@@ -422,10 +421,10 @@ export default function Event() {
               type: 'FunctionCall',
               params: {
                 methodName: 'buy_resale',
-                args: { 
+                args: {
                   drop_id: ticketBeingPurchased.id,
-                  memo: memo,
-                  new_owner: accountId 
+                  memo,
+                  new_owner: accountId,
                 },
                 gas: '300000000000000',
                 deposit: nearSendPrice,
@@ -434,16 +433,17 @@ export default function Event() {
           ],
         });
       }
-      
-    }
-    else if (purchaseType == "stripe") {
-      const response = await fetch('https://my-stripe-worker.zachattack98766789.workers.dev/stripe/create-checkout-session', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
+    } else if (purchaseType == 'stripe') {
+      const response = await fetch(
+        'https://my-stripe-worker.zachattack98766789.workers.dev/stripe/create-checkout-session',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(workerPayload),
         },
-        body: JSON.stringify(workerPayload),
-      });
+      );
       if (response.ok) {
         // Account created successfully
         const responseBody = await response.json();
@@ -459,34 +459,36 @@ export default function Event() {
     if (nearRedirect == null) {
       return;
     }
-    //get workerpayload from local storage
+    // get workerpayload from local storage
     const workerPayload = JSON.parse(localStorage.getItem('workerPayload'));
-    //remove workerpayload from localstorage
+    // remove workerpayload from localstorage
     localStorage.removeItem('workerPayload');
 
     // Remove the near parameters from the URL
     navigate('./');
 
-    if(workerPayload == null){
+    if (workerPayload == null) {
       return;
     }
 
-    let newWorkerPayload = workerPayload;
+    const newWorkerPayload = workerPayload;
 
-    for (let key in workerPayload.ticketKeys) {
+    for (const key in workerPayload.ticketKeys) {
       // your code here
-      newWorkerPayload["ticketKey"] = workerPayload.ticketKeys[key];
+      newWorkerPayload.ticketKey = workerPayload.ticketKeys[key];
 
       // newWorkerPayload["ticketKeys"] = null;
-      const response = await fetch('https://my-stripe-worker.zachattack98766789.workers.dev/send-confirmation-email', 
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
+      const response = await fetch(
+        'https://my-stripe-worker.zachattack98766789.workers.dev/send-confirmation-email',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(newWorkerPayload),
         },
-        body: JSON.stringify(newWorkerPayload),
-      });
-    
+      );
+
       if (response.ok) {
         const responseBody = await response.json();
         TicketPurchaseSuccessful(newWorkerPayload, responseBody);
@@ -495,20 +497,20 @@ export default function Event() {
         TicketPurchaseFailure(newWorkerPayload, await response.json());
       }
     }
-  }
+  };
 
   const TicketPurchaseSuccessful = (workerPayload, responseBody) => {
     let description = `The item has been bought for ${workerPayload.priceNear} NEAR`;
 
-    if(workerPayload.ticketAmount > 1){
+    if (workerPayload.ticketAmount > 1) {
       description = `${workerPayload.ticketAmount} items have been bought for ${workerPayload.priceNear} NEAR`;
     }
 
-    let email = ` and an email has been sent to ${workerPayload.purchaseEmail}`
+    const email = ` and an email has been sent to ${workerPayload.purchaseEmail}`;
     description += email;
     toast({
       title: 'Purchase successful',
-      description: description,
+      description,
       status: 'success',
       duration: 5000,
       isClosable: true,
@@ -548,15 +550,15 @@ export default function Event() {
 
     const yoctoPrice = keypomInstance.nearToYocto(input);
 
-    const signature = await keypomInstance.GenerateResellSignature(
-      {secretKey: sellInfo.secretKey, 
-        publicKey: sellInfo.publicKey
-      });
+    const signature = await keypomInstance.GenerateResellSignature({
+      secretKey: sellInfo.secretKey,
+      publicKey: sellInfo.publicKey,
+    });
 
     const marketplaceMemo = {
       public_key: sellInfo.publicKey,
       price: yoctoPrice,
-    }
+    };
 
     const base64Signature = signature[0];
 
@@ -564,17 +566,16 @@ export default function Event() {
       linkdrop_pk: sellInfo.publicKey,
       signature: base64Signature,
       msg: JSON.stringify(marketplaceMemo),
-    })
+    });
 
-    var sellsuccessful = false;
+    let sellsuccessful = false;
 
-    const error = "";
-
+    const error = '';
 
     try {
       // if(!isLoggedIn){
-        await keypomInstance.ListUnownedTickets({ msg:memo})
-      // } 
+      await keypomInstance.ListUnownedTickets({ msg: memo });
+      // }
       // else {
       //   await wallet.signAndSendTransaction({
       //     signerId: accountId,
@@ -584,7 +585,7 @@ export default function Event() {
       //         type: 'FunctionCall',
       //         params: {
       //           methodName: 'nft_approve',
-      //           args: { 
+      //           args: {
       //             account_id: KEYPOM_MARKETPLACE_CONTRACT,
       //             msg: memo
       //           },
@@ -622,7 +623,7 @@ export default function Event() {
   const handleGetAllTickets = useCallback(async () => {
     setIsLoading(true);
     const ticketsForEvent: EventDrop[] = await keypomInstance.getTicketsForEventId({
-      accountId:funderId,
+      accountId: funderId,
       eventId,
     });
 
@@ -631,12 +632,12 @@ export default function Event() {
     });
 
     const iseventavailable = await keypomInstance.getStripeEnabledEvents();
-    //check if this event is stripe enabled
+    // check if this event is stripe enabled
     const iseventstripeenabled = iseventavailable.includes(eventId);
 
     setStripeEnabledEvent(iseventstripeenabled);
 
-    //get stripe id for account
+    // get stripe id for account
     const stripeAccountId = await keypomInstance.getStripeAccountId(funderId);
     setStripeAccountId(stripeAccountId);
 
@@ -668,16 +669,22 @@ export default function Event() {
       }
       let dateString = '';
       if (ticket.passValidThrough) {
-      console.log('ticket.passValidThrough: ', ticket.passValidThrough);
-        dateString = formatDate(new Date(typeof ticket.passValidThrough === 'string' ? ticket.passValidThrough 
-          : typeof ticket.passValidThrough.date === 'string' ? ticket.passValidThrough.date : 
-            ticket.passValidThrough.date.from));
+        console.log('ticket.passValidThrough: ', ticket.passValidThrough);
+        dateString = formatDate(
+          new Date(
+            typeof ticket.passValidThrough === 'string'
+              ? ticket.passValidThrough
+              : typeof ticket.passValidThrough.date === 'string'
+              ? ticket.passValidThrough.date
+              : ticket.passValidThrough.date.from,
+          ),
+        );
         // typeof ticket.passValidThrough === 'string'
         //   ? ticket.passValidThrough
         //   : `${ticket.date.from} to ${ticket.date.to}`;
       }
       // dateString = formatDate(dateString);
-     
+
       ticketIndex++;
       return {
         ...ticket,
@@ -687,47 +694,45 @@ export default function Event() {
         dateString,
         location: '',
         description: ticket.description,
-        ticketIndex: ticketIndex,
+        ticketIndex,
         isSecondary: false,
       };
     });
 
     setTicketList(tickets);
 
-    //this resalePack object is not containing the things I need it to, instead it has a list of resales for each ticket tier.
-    //I want to extract it into a list of resales for the event, so it looks like ticketsForEvent
+    // this resalePack object is not containing the things I need it to, instead it has a list of resales for each ticket tier.
+    // I want to extract it into a list of resales for the event, so it looks like ticketsForEvent
 
-    //NOTE: I will also need to use the previously set tickets to get some details
-    const resaleTickets = []
+    // NOTE: I will also need to use the previously set tickets to get some details
+    const resaleTickets = [];
     var ticketIndex = 0;
     for (const [dropId, resales] of Object.entries(resalePack)) {
       for (const resale of resales) {
-        //find the corresponding ticket in tickets using the dropId
+        // find the corresponding ticket in tickets using the dropId
         for (const ticket of tickets) {
           if (ticket.id == dropId) {
             ticketIndex++;
-            resaleTickets.push(
-              {
-                artwork: ticket.artwork,
-                dateString: ticket.dateString,
-                description: ticket.description,
-                id: ticket.id,
-                location: ticket.location,
-                maxTickets: 1,
-                media: ticket.media,
-                name: ticket.name,
-                numTickets: 1,
-                passValidThrough: ticket.passValidThrough,
-                priceNear: ticket.priceNear,
-                salesValidThrough: ticket.salesValidThrough,
-                soldTickets: 0,
-                supply: 0,
-                ticketIndex: ticketIndex,
-                isSecondary: true,
-                publicKey: resale.public_key,
-                price: keypomInstance.yoctoToNear(resale.price),
-              }
-            );
+            resaleTickets.push({
+              artwork: ticket.artwork,
+              dateString: ticket.dateString,
+              description: ticket.description,
+              id: ticket.id,
+              location: ticket.location,
+              maxTickets: 1,
+              media: ticket.media,
+              name: ticket.name,
+              numTickets: 1,
+              passValidThrough: ticket.passValidThrough,
+              priceNear: ticket.priceNear,
+              salesValidThrough: ticket.salesValidThrough,
+              soldTickets: 0,
+              supply: 0,
+              ticketIndex,
+              isSecondary: true,
+              publicKey: resale.public_key,
+              price: keypomInstance.yoctoToNear(resale.price),
+            });
           }
         }
       }
@@ -742,7 +747,6 @@ export default function Event() {
     if (!keypomInstance || !eventId || !funderId) return;
 
     handleGetAllTickets();
-    
   }, [keypomInstance, eventId, funderId]);
 
   useEffect(() => {
@@ -752,19 +756,23 @@ export default function Event() {
 
     const getEventData = async () => {
       try {
-        const drop = await keypomInstance.getEventInfo({ accountId:funderId, eventId });
+        const drop = await keypomInstance.getEventInfo({ accountId: funderId, eventId });
 
-        const meta = drop; //EventDropMetadata = JSON.parse(drop.metadata);
+        const meta = drop; // EventDropMetadata = JSON.parse(drop.metadata);
         let dateString = '';
         if (meta.date) {
-          var timeString = '';
-          if(meta.date.time){
+          let timeString = '';
+          if (meta.date.time) {
             timeString = meta.date.time;
           }
           dateString =
             typeof meta.date.date === 'string'
               ? formatDate(new Date(meta.date.date))
-              : `${formatDate(new Date(meta.date.date.from))} to ${formatDate(new Date(meta.date.date.to))}` + ' ' + timeString;
+              : `${formatDate(new Date(meta.date.date.from))} to ${formatDate(
+                  new Date(meta.date.date.to),
+                )}` +
+                ' ' +
+                timeString;
         }
 
         setEvent({
@@ -818,10 +826,10 @@ export default function Event() {
 
       <Box position="relative">
         <ChakraImage
-          pt="0"
           alt={event.title}
           height="300"
           objectFit="cover"
+          pt="0"
           src={event.artwork}
           width="100%"
         />
@@ -833,14 +841,9 @@ export default function Event() {
       <Text>Event ID: {eventID}</Text> */}
 
       {/* <Box backgroundColor={'white'} h="100vh" left="0" ml="0" position="absolute" w="100vw"></Box> */}
-      <Heading
-          as="h2"
-          color="black"
-          my="5"
-          size="2xl"
-        >
-          {event.name}
-        </Heading>
+      <Heading as="h2" color="black" my="5" size="2xl">
+        {event.name}
+      </Heading>
       <Stack
         align="start"
         // bg="linear-gradient(180deg, rgba(255, 207, 234, 0) 0%, #30c9f34b 100%)"
@@ -849,29 +852,14 @@ export default function Event() {
         p="0"
       >
         <Box flex="2" mr="20" textAlign="left">
-        
-        <Text
-              as="h2"
-              color="black.800"
-              fontSize="l"
-              fontWeight="bold"
-              my="4px"
-              textAlign="left"
-            >
+          <Text as="h2" color="black.800" fontSize="l" fontWeight="bold" my="4px" textAlign="left">
             Event Details
           </Text>
 
-          <Text> {event.description }  </Text>
+          <Text> {event.description} </Text>
         </Box>
         <Box flex="1" textAlign="left">
-        <Text
-              as="h2"
-              color="black.800"
-              fontSize="l"
-              fontWeight="bold"
-              my="4px"
-              textAlign="left"
-            >
+          <Text as="h2" color="black.800" fontSize="l" fontWeight="bold" my="4px" textAlign="left">
             Location
           </Text>
 
@@ -882,14 +870,14 @@ export default function Event() {
           </a>
 
           <Text
-              as="h2"
-              color="black.800"
-              fontSize="l"
-              fontWeight="bold"
-              my="4px"
-              textAlign="left"
-              mt="12px"
-            >
+            as="h2"
+            color="black.800"
+            fontSize="l"
+            fontWeight="bold"
+            mt="12px"
+            my="4px"
+            textAlign="left"
+          >
             Date
           </Text>
           <Text color="gray.400">{event.date}</Text>
@@ -927,18 +915,18 @@ export default function Event() {
         </SimpleGrid>
       </Box>
 
-      
-
-      {!areTicketsLoading && resaleTicketList.length > 0
-          ? <Heading as="h3" my="5" size="lg">
+      {!areTicketsLoading && resaleTicketList.length > 0 ? (
+        <Heading as="h3" my="5" size="lg">
           Secondary Tickets
         </Heading>
-          : <></>}
+      ) : (
+        <></>
+      )}
 
       <Box h="full" mt="0" p="0px" pb={{ base: '6', md: '16' }} w="full">
         <SimpleGrid minChildWidth="280px" spacing={5}>
-          {!areTicketsLoading ? 
-            (resaleTicketList.map((ticket) => (
+          {!areTicketsLoading ? (
+            resaleTicketList.map((ticket) => (
               <TicketCard
                 key={ticket.id}
                 event={ticket}
@@ -946,38 +934,46 @@ export default function Event() {
                 surroundingNavLink={false}
                 onSubmit={OpenPurchaseModal}
               />
-            )))
-            : <></>}
+            ))
+          ) : (
+            <></>
+          )}
         </SimpleGrid>
       </Box>
 
       <PurchaseModal
         amount={ticketAmount}
-        setAmount={setTicketAmount}
         email={email}
-        ticket={ticketBeingPurchased}
+        event={event}
         isOpen={isOpen}
+        selector={selector}
+        setAmount={setTicketAmount}
         setEmail={setEmail}
+        stripeAccountId={stripeAccountId}
+        stripeEnabledEvent={stripeEnabledEvent}
+        ticket={ticketBeingPurchased}
         onClose={ClosePurchaseModal}
         onSubmit={PurchaseTicket}
-        event={event}
-        selector={selector}
-        stripeEnabledEvent={stripeEnabledEvent}
-        stripeAccountId={stripeAccountId}
       />
 
-      {doKeyModal && sellDropInfo != null && ( 
+      {doKeyModal && sellDropInfo != null && (
         <SellModal
-        event={sellDropInfo}
-        input={input}
-        isOpen={doKeyModal && sellDropInfo != null}
-        setInput={setInput}
-        onClose={CloseSellModal}
-        onSubmit={SellTicket}
-      />}
-      
+          event={sellDropInfo}
+          input={input}
+          isOpen={doKeyModal && sellDropInfo != null}
+          setInput={setInput}
+          onClose={CloseSellModal}
+          onSubmit={SellTicket}
+        />
+      )}
 
-      <VerifyModal event={event} eventId={eventId} accountId={funderId} isOpen={verifyIsOpen} onClose={verifyOnClose} />
+      <VerifyModal
+        accountId={funderId}
+        event={event}
+        eventId={eventId}
+        isOpen={verifyIsOpen}
+        onClose={verifyOnClose}
+      />
     </Box>
   );
 }
