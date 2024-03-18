@@ -33,11 +33,11 @@ export const DropsSection = () => {
           ctaOnClick={() => {
             dropCta('ticket');
           }}
-          ctaText="Create Tickets"
+          ctaText="Create Event"
           description="Create tickets to your event that can be bought and resold with optional credit card payments enabled."
           headingText="Ticket your next event."
           imageNumber={1}
-          subHeadingText="Ticket Drops"
+          subHeadingText="Event Drops"
         />
       ),
     },

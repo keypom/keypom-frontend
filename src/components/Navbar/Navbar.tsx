@@ -37,11 +37,6 @@ export const Navbar = (props: NavbarProps) => {
       isExternal: true,
     },
     {
-      name: 'Get in touch',
-      href: 'https://twitter.com/keypomxyz',
-      isExternal: true,
-    },
-    {
       name: 'My Drops',
       href: '/drops',
       isProtected: !isLoggedIn,

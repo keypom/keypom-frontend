@@ -139,7 +139,7 @@ export const VerifyModal = ({ isOpen, onClose, event, eventId, accountId }: Veri
 
   return (
     <Modal isCentered closeOnOverlayClick={false} isOpen={isOpen} size={'xl'} onClose={onClose}>
-      <ModalOverlay />
+      <ModalOverlay backdropFilter="blur(0px)" bg="blackAlpha.600" opacity="1" />
       <ModalContent maxH="90vh" p="8">
         <Box maxH="90vh" overflowY="auto" p="0">
           <ModalCloseButton />
