@@ -9,7 +9,7 @@ import {
   Textarea,
   VStack,
 } from '@chakra-ui/react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { parse, isAfter } from 'date-fns';
 
 import { FormControlComponent } from '@/components/FormControl';
@@ -67,6 +67,7 @@ export const ModifyTicketModal = ({
   const [isSalesValidModalOpen, setIsSalesValidModalOpen] = useState(false);
   const [isPassValidModalOpen, setIsPassValidModalOpen] = useState(false);
   const [preview, setPreview] = useState<string>();
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const validateForm = () => {
     console.log('currentTicket', currentTicket);
@@ -216,6 +217,25 @@ export const ModifyTicketModal = ({
     }
   }, [isOpen]);
 
+  useEffect(() => {
+    const inputEl = inputRef.current;
+    const preventScroll = (e: WheelEvent) => {
+      e.preventDefault();
+    };
+
+    if (inputEl) {
+      // Attach the event listener without specifying the passive option
+      inputEl.addEventListener('wheel', preventScroll);
+    }
+
+    return () => {
+      if (inputEl) {
+        // Clean up the event listener
+        inputEl.removeEventListener('wheel', preventScroll);
+      }
+    };
+  }, []);
+
   const onSelectFile = (e) => {
     if (!e.target.files || e.target.files.length === 0) {
       setCurrentTicket({ ...currentTicket, artwork: undefined });
@@ -301,14 +321,12 @@ export const ModifyTicketModal = ({
                 },
               )}
               endDate={currentTicket.salesValidThrough.endDate}
-              endTime={currentTicket.salesValidThrough.endTime}
               isDatePickerOpen={isSalesValidModalOpen}
-              maxDate={eventDate.endDate}
+              maxDate={eventDate.endDate || eventDate.startDate}
               minDate={new Date()}
               scale="0.85"
               setIsDatePickerOpen={setIsSalesValidModalOpen}
               startDate={currentTicket.salesValidThrough.startDate}
-              startTime={currentTicket.salesValidThrough.startTime}
               onDateChange={(startDate, endDate) => {
                 setCurrentTicket({
                   ...currentTicket,
@@ -334,14 +352,12 @@ export const ModifyTicketModal = ({
                 },
               )}
               endDate={currentTicket.salesValidThrough.endDate}
-              endTime={currentTicket.salesValidThrough.endTime}
               isDatePickerOpen={isSalesValidModalOpen}
-              maxDate={eventDate.endDate}
+              maxDate={eventDate.endDate || eventDate.startDate}
               minDate={new Date()}
               scale="0.85"
               setIsDatePickerOpen={setIsSalesValidModalOpen}
               startDate={currentTicket.salesValidThrough.startDate}
-              startTime={currentTicket.salesValidThrough.startTime}
               onDateChange={(startDate, endDate) => {
                 setCurrentTicket({
                   ...currentTicket,
@@ -367,14 +383,12 @@ export const ModifyTicketModal = ({
                 },
               )}
               endDate={currentTicket.passValidThrough.endDate}
-              endTime={currentTicket.passValidThrough.endTime}
               isDatePickerOpen={isPassValidModalOpen}
-              maxDate={eventDate.endDate}
+              maxDate={eventDate.endDate || eventDate.startDate}
               minDate={eventDate.startDate}
               scale="0.85"
               setIsDatePickerOpen={setIsPassValidModalOpen}
               startDate={currentTicket.passValidThrough.startDate}
-              startTime={currentTicket.passValidThrough.startTime}
               onDateChange={(startDate, endDate) => {
                 setCurrentTicket({
                   ...currentTicket,
@@ -400,14 +414,12 @@ export const ModifyTicketModal = ({
                 },
               )}
               endDate={currentTicket.passValidThrough.endDate}
-              endTime={currentTicket.passValidThrough.endTime}
               isDatePickerOpen={isPassValidModalOpen}
-              maxDate={eventDate.endDate}
+              maxDate={eventDate.endDate || eventDate.startDate}
               minDate={eventDate.startDate}
               scale="0.85"
               setIsDatePickerOpen={setIsPassValidModalOpen}
               startDate={currentTicket.passValidThrough.startDate}
-              startTime={currentTicket.passValidThrough.startTime}
               onDateChange={(startDate, endDate) => {
                 setCurrentTicket({
                   ...currentTicket,
@@ -431,6 +443,7 @@ export const ModifyTicketModal = ({
             marginBottom="4 !important"
           >
             <Input
+              ref={inputRef}
               borderRadius="5xl"
               isInvalid={!!errors.maxSupply}
               marginY="0"

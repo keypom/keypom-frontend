@@ -8,11 +8,7 @@ import { IconBox } from '@/components/IconBox';
 import { LinkIcon } from '@/components/Icons';
 import { Step } from '@/components/Step';
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
-import {
-  CLOUDFLARE_IPFS,
-  EVENTS_WORKER_IPFS_PINNING,
-  KEYPOM_EVENTS_CONTRACT,
-} from '@/constants/common';
+import { EVENTS_WORKER_IPFS_PINNING, KEYPOM_EVENTS_CONTRACT } from '@/constants/common';
 
 import { CreateTicketDropLayout } from '../components/CreateTicketDropLayout';
 import { CollectInfoForm } from '../components/ticket/CollectInfoForm';
@@ -28,7 +24,7 @@ import {
 import { ReviewEventForm } from '../components/ticket/ReviewEventForm';
 import { KeypomPasswordPromptModal } from '../components/ticket/KeypomPasswordPromptModal';
 import {
-  createPayloadAndEstimateCosts,
+  createPayload,
   estimateCosts,
   serializeMediaForWorker,
 } from '../components/ticket/helpers';
@@ -252,7 +248,6 @@ export default function NewTicketDrop() {
     setIsSettingKey(true);
     await estimateCosts({
       accountId: accountId!,
-      wallet: wallet!,
       formData,
       setFormData,
       setCurrentStep,
@@ -267,7 +262,7 @@ export default function NewTicketDrop() {
     setIsSettingKey(true);
     const serializedData = await serializeMediaForWorker(formData);
 
-    let response;
+    let response: Response | undefined;
     try {
       response = await fetch(EVENTS_WORKER_IPFS_PINNING, {
         method: 'POST',
@@ -281,23 +276,19 @@ export default function NewTicketDrop() {
       const resBody = await response.json();
       const cids: string[] = resBody.cids;
 
-      const newFormData: any = formData;
-      newFormData.eventArtwork = { value: `${CLOUDFLARE_IPFS}/${cids[0]}` };
-
+      const eventArtworkCid: string = cids[0];
+      const ticketArtworkCids: string[] = [];
       for (let i = 0; i < cids.length - 1; i++) {
-        const newUrl = `${CLOUDFLARE_IPFS}/${cids[i + 1]}`;
-        newFormData.tickets[i].artwork = newUrl;
+        ticketArtworkCids.push(cids[i + 1]);
       }
 
-      // TODO: change
-      const actions: Action[] = await createPayloadAndEstimateCosts({
+      const actions: Action[] = await createPayload({
         accountId: accountId!,
-        wallet,
-        formData: newFormData,
-        setFormData,
-        setCurrentStep,
-        shouldSet: false,
+        formData,
+        eventArtworkCid,
+        ticketArtworkCids,
       });
+
       await wallet.signAndSendTransaction({
         signerId: accountId!,
         receiverId: KEYPOM_EVENTS_CONTRACT,
@@ -318,7 +309,6 @@ export default function NewTicketDrop() {
         setIsSettingKey(true);
         await estimateCosts({
           accountId: accountId!,
-          wallet: wallet!,
           setFormData,
           formData,
           setCurrentStep,

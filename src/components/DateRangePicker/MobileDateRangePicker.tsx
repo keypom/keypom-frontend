@@ -16,7 +16,7 @@ interface CustomFooterProps {
   onBlurStartTime: (e: React.FocusEvent<HTMLInputElement>) => void;
   onBlurEndTime: (e: React.FocusEvent<HTMLInputElement>) => void;
   onApplyClick: () => void;
-  onCancelClick: () => void;
+  onResetClick: () => void;
 }
 
 const CustomFooter = ({
@@ -29,15 +29,15 @@ const CustomFooter = ({
   onBlurStartTime,
   onBlurEndTime,
   onApplyClick,
-  onCancelClick,
+  onResetClick,
 }: CustomFooterProps) => (
-  <VStack
+  <HStack
     align="flex-end"
     backgroundColor="#fdfdfd"
     borderRadius="0.3rem"
     justifyContent="space-between"
   >
-    <HStack p={3} w="100%">
+    <HStack p={3} w="50%">
       <VStack align="left" spacing={1} w="50%">
         <Text color="gray.800" fontWeight="bold">
           Start time
@@ -75,22 +75,16 @@ const CustomFooter = ({
         />
       </VStack>
     </HStack>
-    <HStack
-      p={3}
-      style={{
-        borderTop: '1px solid #E2E8F0', // Replace with your desired color
-      }}
-      w="100%"
-    >
+    <HStack p={3} w="50%">
       <Button
         height="48px"
         lineHeight=""
         px="6"
         variant="secondary"
         width="50%"
-        onClick={onCancelClick}
+        onClick={onResetClick}
       >
-        Cancel
+        Reset
       </Button>
       <Button
         height="48px"
@@ -101,10 +95,10 @@ const CustomFooter = ({
         width="50%"
         onClick={onApplyClick}
       >
-        Apply
+        Done
       </Button>
     </HStack>
-  </VStack>
+  </HStack>
 );
 
 const checkAndSetTime = (inputValue, setTimeText, setIsErr) => {
@@ -137,7 +131,7 @@ const checkAndSetTime = (inputValue, setTimeText, setIsErr) => {
 };
 
 interface CustomDateRangePickerProps {
-  onDateChange: (startDate: Date, endDate: Date) => void;
+  onDateChange: (startDate: Date | null, endDate: Date | null) => void;
   onTimeChange: (startTime: string | undefined, endTime: string | undefined) => void;
   isDatePickerOpen: boolean;
   setIsDatePickerOpen: (isOpen: boolean) => void;
@@ -146,8 +140,6 @@ interface CustomDateRangePickerProps {
   endDate: Date | null;
   minDate: Date | null;
   maxDate: Date | null;
-  startTime?: string;
-  endTime?: string;
   error?: FieldError;
   openDirection?: string;
   scale?: string;
@@ -156,8 +148,6 @@ interface CustomDateRangePickerProps {
 function CustomDateRangePickerMobile({
   startDate,
   endDate,
-  startTime,
-  endTime,
   onDateChange,
   onTimeChange,
   ctaComponent,
@@ -184,8 +174,9 @@ function CustomDateRangePickerMobile({
     onTimeChange(startTimeText, endTimeText);
   };
 
-  const handleCancelClick = () => {
-    setIsDatePickerOpen(false);
+  const handleResetClick = () => {
+    setStartTimeText(undefined);
+    onDateChange(null, null);
   };
 
   const onChangeStartTime = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -226,9 +217,9 @@ function CustomDateRangePickerMobile({
               onApplyClick={handleApplyClick}
               onBlurEndTime={onBlurEndTime}
               onBlurStartTime={onBlurStartTime}
-              onCancelClick={handleCancelClick}
               onChangeEndTime={onChangeEndTime}
               onChangeStartTime={onChangeStartTime}
+              onResetClick={handleResetClick}
             />
           }
           dateFormat="MM/dd/yyyy h:mm aa"

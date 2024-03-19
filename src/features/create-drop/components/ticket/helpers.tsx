@@ -1,4 +1,4 @@
-import { type Action, type Wallet } from '@near-wallet-selector/core';
+import { type Action } from '@near-wallet-selector/core';
 import { parseNearAmount } from 'keypom-js';
 
 import keypomInstance from '@/lib/keypom';
@@ -78,13 +78,11 @@ function arrayBufferToBase64(buffer) {
 }
 
 export const estimateCosts = async ({
-  wallet,
   formData,
   accountId,
   setFormData,
   setCurrentStep,
 }: {
-  wallet: Wallet;
   accountId: string;
   formData: TicketDropFormData;
   setFormData: (
@@ -92,7 +90,6 @@ export const estimateCosts = async ({
   ) => void;
   setCurrentStep: any;
 }) => {
-  if (!wallet) return;
   const eventId = Date.now().toString();
   const masterKey = get('MASTER_KEY');
 
@@ -206,16 +203,17 @@ export const estimateCosts = async ({
   setCurrentStep((prevStep: number) => (prevStep < 3 ? prevStep + 1 : prevStep));
 };
 
-export const createPayloadAndEstimateCosts = async ({
-  wallet,
-  formData,
+export const createPayload = async ({
   accountId,
+  formData,
+  eventArtworkCid,
+  ticketArtworkCids,
 }: {
-  wallet: Wallet;
   accountId: string;
   formData: TicketDropFormData;
+  eventArtworkCid: string;
+  ticketArtworkCids: string[];
 }): Promise<Action[]> => {
-  if (!wallet) return [];
   const eventId = Date.now().toString();
   const masterKey = get('MASTER_KEY');
 
@@ -246,7 +244,7 @@ export const createPayloadAndEstimateCosts = async ({
     description: formData.eventDescription.value,
     location: formData.eventLocation.value,
     date,
-    artwork: formData.eventArtwork.value ? formData.eventArtwork.value : '',
+    artwork: eventArtworkCid,
     questions: formData.questions.map((question) => ({
       question: question.question,
       required: question.isRequired || false,
@@ -284,7 +282,45 @@ export const createPayloadAndEstimateCosts = async ({
     const dropId = `${Date.now().toString()}-${ticket.name
       .replaceAll(' ', '')
       .toLocaleLowerCase()}`;
-    ticket.eventId = eventId;
+    const passValidThroughTime =
+      ticket.passValidThrough.startDate && ticket.passValidThrough.endDate
+        ? {
+            date: {
+              from: ticket.passValidThrough.startDate.toISOString(),
+              to: ticket.passValidThrough.endDate.toISOString(),
+            },
+            time: eventDateToPlaceholder('', ticket.passValidThrough),
+          }
+        : {
+            date: ticket.passValidThrough.startDate!.toISOString(),
+
+            time: eventDateToPlaceholder('', ticket.passValidThrough),
+          };
+
+    const salesValidThroughTime =
+      ticket.salesValidThrough.startDate && ticket.salesValidThrough.endDate
+        ? {
+            date: {
+              from: ticket.salesValidThrough.startDate.toISOString(),
+              to: ticket.salesValidThrough.endDate.toISOString(),
+            },
+            time: eventDateToPlaceholder('', ticket.salesValidThrough),
+          }
+        : {
+            date: ticket.salesValidThrough.startDate!.toISOString(),
+
+            time: eventDateToPlaceholder('', ticket.salesValidThrough),
+          };
+    const ticketDropMetadata = {
+      eventId,
+      name: ticket.name,
+      description: ticket.description,
+      artwork: ticketArtworkCids.shift(),
+      price: parseNearAmount(ticket.price)!.toString(),
+      salesValidThrough: salesValidThroughTime,
+      passValidThrough: passValidThroughTime,
+      maxSupply: ticket.maxSupply,
+    };
 
     ticket_information[`${dropId}`] = {
       max_tickets: ticket.maxSupply,
@@ -297,44 +333,8 @@ export const createPayloadAndEstimateCosts = async ({
         : undefined,
     };
 
-    if (!shouldSet) {
-      ticket.price = parseNearAmount(ticket.price)!.toString();
-      const passValidThroughTime =
-        ticket.passValidThrough.startDate && ticket.passValidThrough.endDate
-          ? {
-              date: {
-                from: ticket.passValidThrough.startDate.toISOString(),
-                to: ticket.passValidThrough.endDate.toISOString(),
-              },
-              time: eventDateToPlaceholder('', ticket.passValidThrough),
-            }
-          : {
-              date: ticket.passValidThrough.startDate!.toISOString(),
-
-              time: eventDateToPlaceholder('', ticket.passValidThrough),
-            };
-
-      const salesValidThroughTime =
-        ticket.salesValidThrough.startDate && ticket.salesValidThrough.endDate
-          ? {
-              date: {
-                from: ticket.salesValidThrough.startDate.toISOString(),
-                to: ticket.salesValidThrough.endDate.toISOString(),
-              },
-              time: eventDateToPlaceholder('', ticket.salesValidThrough),
-            }
-          : {
-              date: ticket.salesValidThrough.startDate!.toISOString(),
-
-              time: eventDateToPlaceholder('', ticket.salesValidThrough),
-            };
-
-      ticket.salesValidThrough = salesValidThroughTime;
-      ticket.passValidThrough = passValidThroughTime;
-    }
-
     const dropConfig = {
-      metadata: JSON.stringify(ticket),
+      metadata: JSON.stringify(ticketDropMetadata),
       add_key_allowlist: [KEYPOM_MARKETPLACE_CONTRACT],
       transfer_key_allowlist: [KEYPOM_MARKETPLACE_CONTRACT],
     };
@@ -352,13 +352,13 @@ export const createPayloadAndEstimateCosts = async ({
     drop_configs.push(dropConfig);
   }
 
-  const { marketDeposit, costBreakdown } = calculateDepositCost({
+  const { costBreakdown } = calculateDepositCost({
     eventMetadata,
     eventTickets: formData.tickets,
     marketTicketInfo: ticket_information,
   });
 
-  const actions = [
+  const actions: Action[] = [
     {
       type: 'FunctionCall',
       params: {
@@ -376,7 +376,7 @@ export const createPayloadAndEstimateCosts = async ({
               funder_id: accountId,
               ticket_information,
             }),
-            attached_deposit: marketDeposit,
+            attached_deposit: costBreakdown.marketListing,
           },
         },
         gas: '300000000000000',
@@ -385,14 +385,5 @@ export const createPayloadAndEstimateCosts = async ({
     },
   ];
 
-  if (shouldSet) {
-    setFormData((prev: TicketDropFormData) => ({
-      ...prev,
-      costBreakdown,
-      actions,
-    }));
-  }
-
-  setCurrentStep((prevStep: number) => (prevStep < 3 ? prevStep + 1 : prevStep));
   return actions;
 };
