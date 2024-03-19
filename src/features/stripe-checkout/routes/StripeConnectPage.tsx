@@ -8,7 +8,8 @@ import { useAppContext, type AppModalOptions } from '@/contexts/AppContext';
 import { get, set } from '@/utils/localStorage';
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
 import { StripeUserInfoForm } from '../components/StripeInformationForm';
-
+import { async } from 'rxjs';
+import DeviceInfoSDK from '../deviceInfoSDK';
 
 export const gas = '100000000000000';
 
@@ -22,6 +23,9 @@ const StripeConnectPage = () => {
     const [email, setEmail] = useState('minqianlu00@gmail.com');
     const [country, setCountry] = useState('US');
     const [companyType, setCompanyType] = useState('individual');
+
+    const [encodedData, setEncodedData] = useState('');
+    const [isLikelyBot, setIsLikelyBot] = useState(null);
     
     const { isLoggedIn } = useAuthWalletContext();
 
@@ -84,6 +88,42 @@ const StripeConnectPage = () => {
 
   };
 
+  const shardDogClick = async () => {
+    //API key to use: 8d3N9kjvn8BeUIs
+    DeviceInfoSDK.fetchIPDetails('8d3N9kjvn8BeUIs').then((base64Info) => {
+      setEncodedData(base64Info);
+
+      console.log("base64Info: " + base64Info)
+
+      console.log(atob(base64Info)) 
+
+      const botURL = "https://api.shard.dog/check-bot"
+
+      const xhr = new XMLHttpRequest();
+      xhr.open("POST", botURL, true);
+      xhr.setRequestHeader("Content-Type", "application/json");
+      xhr.setRequestHeader("x-device-fingerprint", base64Info);
+      xhr.onreadystatechange = function () {
+        if (xhr.readyState === XMLHttpRequest.DONE) {
+          if (xhr.status === 200) {
+            console.log('Data successfully sent to the server');
+            // Process response here, e.g., updating state based on the response
+            console.log(xhr.responseText)
+            const responseContent = JSON.parse(xhr.responseText); // Adjust depending on actual response format
+            console.log(responseContent)
+            console.log(responseContent.isLikelyBot)
+            setIsLikelyBot(responseContent.isLikelyBot); // Adjust based on your actual response structure
+          } else {
+            console.error('Error sending data to the server');
+          }
+        }
+      };
+      //pass in accountId, seriesId, and the contract these are tied to
+      const payload = JSON.stringify({});
+      xhr.send(payload);
+    });
+  }
+
     if(isLoggedIn){
     return (
         <Center height="100vh">
@@ -91,6 +131,9 @@ const StripeConnectPage = () => {
             <StripeUserInfoForm handleSubmitClick={handleSubmitClick} setFirstName={setFirstName} setLastName={setLastName} setEmail={setEmail} />
             <Button mt="4" type="submit" onClick={handleSubmitClick2}>
                 Test
+            </Button>
+            <Button mt="4" type="submit" onClick={shardDogClick}>
+                ShardDog
             </Button>
           </VStack>
         </Center>
