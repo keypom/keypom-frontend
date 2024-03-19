@@ -33,7 +33,6 @@
     "@near-wallet-selector/near-wallet": "^7.6.1",
     "bn.js": "^5.2.1",
     "copy-to-clipboard": "^3.3.3",
-    "date-fns": "3.3.1",
     "framer-motion": "^8.5.5",
     "idb-keyval": "^6.2.0",
     "ipfs-car": "^0.9.2",

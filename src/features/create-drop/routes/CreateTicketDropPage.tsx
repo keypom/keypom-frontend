@@ -8,7 +8,7 @@ import { IconBox } from '@/components/IconBox';
 import { LinkIcon } from '@/components/Icons';
 import { Step } from '@/components/Step';
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
-import { EVENTS_WORKER_IPFS_PINNING, KEYPOM_EVENTS_CONTRACT } from '@/constants/common';
+import { EVENTS_WORKER_BASE, KEYPOM_EVENTS_CONTRACT } from '@/constants/common';
 
 import { CreateTicketDropLayout } from '../components/CreateTicketDropLayout';
 import { CollectInfoForm } from '../components/ticket/CollectInfoForm';
@@ -264,7 +264,8 @@ export default function NewTicketDrop() {
 
     let response: Response | undefined;
     try {
-      response = await fetch(EVENTS_WORKER_IPFS_PINNING, {
+      const url = `${EVENTS_WORKER_BASE}/ipfs-pin`;
+      response = await fetch(url, {
         method: 'POST',
         body: JSON.stringify({ base64Data: serializedData }),
       });
