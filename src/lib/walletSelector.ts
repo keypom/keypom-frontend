@@ -8,6 +8,7 @@ import { setupModal, type WalletSelectorModal } from '@near-wallet-selector/moda
 import { setupNearWallet } from '@near-wallet-selector/near-wallet';
 import { setupMyNearWallet } from '@near-wallet-selector/my-near-wallet';
 import { setupHereWallet } from '@near-wallet-selector/here-wallet';
+import { setupMintbaseWallet } from '@near-wallet-selector/mintbase-wallet';
 
 import { KEYPOM_EVENTS_CONTRACT } from '@/constants/common';
 
@@ -22,7 +23,7 @@ export class NearWalletSelector {
     const _selector = await setupWalletSelector({
       network: NETWORK_ID as NetworkId,
       debug: true,
-      modules: [setupNearWallet(), setupMyNearWallet(), setupHereWallet()],
+      modules: [setupNearWallet(), setupMyNearWallet(), setupHereWallet(), setupMintbaseWallet()],
     });
     const _modal = setupModal(_selector, { contractId: KEYPOM_EVENTS_CONTRACT, theme: 'light' });
     const state = _selector.store.getState();
