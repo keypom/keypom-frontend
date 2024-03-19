@@ -6,7 +6,7 @@ import DatePicker from 'react-datepicker';
 
 import { TimeInput } from '../TimeInput/TimeInput';
 
-import { checkAndSetTime } from './helpers';
+import { canClose, checkAndSetTime } from './helpers';
 
 interface CustomFooterProps {
   startTime: string | undefined;
@@ -128,20 +128,6 @@ function CustomDateRangePicker({
   const [endTimeText, setEndTimeText] = useState<string | undefined>();
   const [endTimeError, setEndTimeError] = useState(false);
 
-  const canClose = () => {
-    // If no date range is selected, allow the date picker to close
-    if (
-      startDate === null &&
-      endDate === null &&
-      startTimeText?.length === 0 &&
-      endTimeText?.length === 0
-    ) {
-      return true;
-    }
-
-    return startDate != null && !startTimeError && !endTimeError;
-  };
-
   // handle changes inside date picker
   const handleDateChange = (dates) => {
     const [start, end] = dates;
@@ -195,7 +181,14 @@ function CustomDateRangePicker({
           showTimeInput
           customTimeInput={
             <CustomFooter
-              canClose={canClose()}
+              canClose={canClose(
+                startDate,
+                endDate,
+                startTimeText,
+                endTimeText,
+                startTimeError,
+                endTimeError,
+              )}
               endTime={endTimeText}
               endTimeError={endTimeError}
               startTime={startTimeText}

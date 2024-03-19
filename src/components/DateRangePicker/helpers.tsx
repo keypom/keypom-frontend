@@ -1,5 +1,26 @@
 import { format, parse } from 'date-fns';
 
+export const canClose = (
+  startDate,
+  endDate,
+  startTimeText,
+  endTimeText,
+  startTimeError,
+  endTimeError,
+) => {
+  // If no date range is selected, allow the date picker to close
+  if (
+    startDate === null &&
+    endDate === null &&
+    startTimeText === undefined &&
+    endTimeText === undefined
+  ) {
+    return true;
+  }
+
+  return startDate != null && !startTimeError && !endTimeError;
+};
+
 export const checkAndSetTime = (inputValue, setTimeText, setIsErr) => {
   // If the input is empty, reset the error state and the time
   if (!inputValue) {
