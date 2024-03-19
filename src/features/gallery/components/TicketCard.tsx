@@ -141,13 +141,13 @@ export const TicketCard = ({ event, loading, surroundingNavLink, onSubmit }: Tic
             <>
               <Badge
                 borderRadius="full"
+                color="grey"
                 p={1}
                 position="absolute"
                 right="5"
                 top="25"
                 variant="gray"
                 //   border="1px solid black"
-                color="grey"
               >
                 ∞ of {event.numTickets} available
               </Badge>

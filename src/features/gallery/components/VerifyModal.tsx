@@ -66,32 +66,21 @@ export const VerifyModal = ({ isOpen, onClose, event, eventId, accountId }: Veri
         publicKey: String(publicKey),
       });
 
-      console.log('teekeyinfo: ', keyinfo);
-
       // get drop info using the key info id
 
       const dropID = keyinfo.token_id.split(':')[0];
 
-      console.log('teedropID: ', dropID);
-
       const dropData = await keypomInstance.getTicketDropInformation({ dropID });
-
-      console.log('teedropData: ', dropData);
-
-      console.log('teeevent: ', eventId);
 
       // parse dropData's metadata to get eventId
       const meta: EventDropMetadata = JSON.parse(dropData.drop_config.metadata);
 
       const keyinfoEventId = meta.eventId;
       if (keyinfoEventId !== eventId) {
-        console.error('Event ID mismatch', keyinfoEventId, eventId);
+        throw new Error('The ticket is not for this event.');
       }
-      console.log('teekeyinfoeventID: ', keyinfoEventId);
-      console.log('teeaccountId: ', accountId);
       const drop = await keypomInstance.getEventInfo({ accountId, eventId: keyinfoEventId });
 
-      console.log('teedrop: ', drop);
       const meta2 = drop; // EventDropMetadata = JSON.parse(drop.drop_config.metadata);
       let dateString = '';
       if (meta2.date) {
@@ -100,16 +89,7 @@ export const VerifyModal = ({ isOpen, onClose, event, eventId, accountId }: Veri
             ? meta2.date.date
             : `${meta2.date.date.from} to ${meta2.date.date.to}`;
       }
-
       setTicketData({
-        name: meta2.name || 'Untitled',
-        artwork: meta2.artwork || 'loading',
-        questions: meta2.questions || [],
-        location: meta2.location || 'loading',
-        date: dateString,
-        description: meta2.description || 'loading',
-      });
-      console.log('teedropjustsettickte: ', {
         name: meta2.name || 'Untitled',
         artwork: meta2.artwork || 'loading',
         questions: meta2.questions || [],
@@ -126,7 +106,6 @@ export const VerifyModal = ({ isOpen, onClose, event, eventId, accountId }: Veri
       });
       return;
     } catch (error) {
-      console.log('invalid cuz error: ', error);
       toast({
         title: 'Invalid',
         description: 'Your ticket is invalid',

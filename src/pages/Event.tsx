@@ -171,9 +171,10 @@ export default function Event() {
 
       setDoKeyModal(true);
     } catch (error) {
+      const errorLog: string = error.toString();
       toast({
         title: 'Sale request failure',
-        description: `This item may not be put for sale at this time since ${error}`,
+        description: `This item may not be put for sale at this time since ${errorLog}`,
         status: 'error',
         duration: 5000,
         isClosable: true,
@@ -295,11 +296,11 @@ export default function Event() {
 
     let attendeeName = null;
 
-    if (drop && drop.questions && drop?.questions.length != 0) {
+    if (drop?.questions?.length !== 0) {
       // filter each question to find the list of ones that contain "name"
       const indexlist = [];
-      for (var i = 0; i < drop?.questions.length; i++) {
-        if (drop?.questions[i]?.question.toLowerCase().replaceAll(' ', '').includes('name')) {
+      for (let i = 0; i < drop?.questions?.length; i++) {
+        if (drop?.questions[i]?.question?.toLowerCase().replaceAll(' ', '').includes('name')) {
           indexlist.push(i);
         }
       }
@@ -307,13 +308,13 @@ export default function Event() {
       // get the shortest question in indexlist
       let shortestIndex = -1;
       let shortestLength = 1000;
-      for (var i = 0; i < indexlist.length; i++) {
+      for (let i = 0; i < indexlist.length; i++) {
         if (drop?.questions[indexlist[i]].question.length < shortestLength) {
           shortestIndex = indexlist[i];
           shortestLength = drop?.questions[indexlist[i]].question.length;
         }
       }
-      if (shortestIndex != -1) {
+      if (shortestIndex !== -1) {
         attendeeName = questionValues[shortestIndex];
       }
     }
@@ -335,7 +336,7 @@ export default function Event() {
         location: drop.location,
         eventName: drop.name,
         ticketType: meta.name,
-        eventDate: drop.date.date,
+        eventDate: JSON.stringify(drop.date.date),
         ticketOwner: accountId || null, // (if signed in, this is signed in account, otherwise its none/empty)
         eventId: meta.eventId,
         dropId: ticketBeingPurchased.id,
@@ -347,7 +348,9 @@ export default function Event() {
       priceNear: ticketBeingPurchased.price,
     };
 
-    if (purchaseType == 'free') {
+    console.log('workerPayload: ', workerPayload);
+
+    if (purchaseType === 'free') {
       const response = await fetch(
         'https://my-stripe-worker.zachattack98766789.workers.dev/purchase-free-tickets',
         {
@@ -358,15 +361,14 @@ export default function Event() {
           body: JSON.stringify(workerPayload),
         },
       );
+      console.log('response: ', response);
       if (response.ok) {
-        // Account created successfully
         const responseBody = await response.json();
         TicketPurchaseSuccessful(workerPayload, responseBody);
       } else {
-        // Error creating account
         TicketPurchaseFailure(workerPayload, await response.json());
       }
-    } else if (purchaseType == 'near') {
+    } else if (purchaseType === 'near') {
       // put the workerPayload in local storage
       const { secretKeys, publicKeys } = await keypomInstance.GenerateTicketKeys(ticketAmount);
       workerPayload.ticketKeys = secretKeys;
@@ -375,6 +377,8 @@ export default function Event() {
       const nearSendPrice = keypomInstance.nearToYocto(
         (ticketAmount * ticketBeingPurchased.price).toString(),
       );
+
+      console.log('wallet: ', wallet);
 
       if (!isSecondary) {
         // primary
@@ -433,7 +437,7 @@ export default function Event() {
           ],
         });
       }
-    } else if (purchaseType == 'stripe') {
+    } else if (purchaseType === 'stripe') {
       const response = await fetch(
         'https://my-stripe-worker.zachattack98766789.workers.dev/stripe/create-checkout-session',
         {
@@ -444,9 +448,15 @@ export default function Event() {
           body: JSON.stringify(workerPayload),
         },
       );
+      console.log('response: ', response);
       if (response.ok) {
         // Account created successfully
         const responseBody = await response.json();
+        console.log('responseBody', responseBody);
+
+        const stripeUrl = responseBody.stripe_url;
+        console.log('stripeUrl', stripeUrl);
+        window.location.href = stripeUrl;
         TicketPurchaseSuccessful(workerPayload, responseBody);
       } else {
         // Error creating account
@@ -500,13 +510,16 @@ export default function Event() {
   };
 
   const TicketPurchaseSuccessful = (workerPayload, responseBody) => {
-    let description = `The item has been bought for ${workerPayload.priceNear} NEAR`;
+    const priceLog: string = workerPayload.priceNear.toString();
+    let description = `The item has been bought for ${priceLog} NEAR`;
 
     if (workerPayload.ticketAmount > 1) {
-      description = `${workerPayload.ticketAmount} items have been bought for ${workerPayload.priceNear} NEAR`;
+      const amountLog: string = workerPayload.ticketAmount.toString();
+      description = `${amountLog} items have been bought for ${priceLog} NEAR`;
     }
 
-    const email = ` and an email has been sent to ${workerPayload.purchaseEmail}`;
+    const emailLog: string = workerPayload.purchaseEmail.toString();
+    const email = ` and an email has been sent to ${emailLog}`;
     description += email;
     toast({
       title: 'Purchase successful',
@@ -518,9 +531,10 @@ export default function Event() {
   };
 
   const TicketPurchaseFailure = (workerPayload, responseBody) => {
+    const responseLog: string = responseBody.toString();
     toast({
       title: 'Purchase failed',
-      description: 'Not purchase was made due to the error: ' + responseBody,
+      description: 'Not purchase was made due to the error: ' + responseLog,
       status: 'error',
       duration: 5000,
       isClosable: true,
@@ -664,7 +678,7 @@ export default function Event() {
     let ticketIndex = 0;
     tickets = tickets.map((ticket) => {
       let available = 'unlimited';
-      if (ticket.maxTickets != undefined) {
+      if (ticket.maxTickets !== undefined) {
         available = String(ticket.maxTickets - ticket.soldTickets);
       }
       let dateString = '';
@@ -706,13 +720,13 @@ export default function Event() {
 
     // NOTE: I will also need to use the previously set tickets to get some details
     const resaleTickets = [];
-    var ticketIndex = 0;
+    let resaleTicketIndex = 0;
     for (const [dropId, resales] of Object.entries(resalePack)) {
       for (const resale of resales) {
         // find the corresponding ticket in tickets using the dropId
         for (const ticket of tickets) {
-          if (ticket.id == dropId) {
-            ticketIndex++;
+          if (ticket.id === dropId) {
+            resaleTicketIndex++;
             resaleTickets.push({
               artwork: ticket.artwork,
               dateString: ticket.dateString,
@@ -728,7 +742,7 @@ export default function Event() {
               salesValidThrough: ticket.salesValidThrough,
               soldTickets: 0,
               supply: 0,
-              ticketIndex,
+              resaleTicketIndex,
               isSecondary: true,
               publicKey: resale.public_key,
               price: keypomInstance.yoctoToNear(resale.price),
@@ -744,7 +758,9 @@ export default function Event() {
   }, [funderId, keypomInstance]);
 
   useEffect(() => {
-    if (!keypomInstance || !eventId || !funderId) return;
+    if (keypomInstance == null || keypomInstance === undefined || !eventId || !funderId) {
+      return;
+    }
 
     handleGetAllTickets();
   }, [keypomInstance, eventId, funderId]);

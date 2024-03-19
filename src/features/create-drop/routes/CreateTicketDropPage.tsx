@@ -180,7 +180,9 @@ const placeholderData: TicketDropFormData = {
   eventLocation: { value: '' },
   date: {
     value: {
- startDate: null, endDate: null },
+      startDate: null,
+      endDate: null,
+    },
   },
 
   // Step 2

@@ -163,8 +163,6 @@ class KeypomJS {
     return res;
   };
 
-  SellTicket = async ({ accountId, message }) => {};
-
   getResalesForEvent = async ({ eventId }) => {
     return await this.viewAccount.viewFunctionV2({
       contractId: KEYPOM_MARKETPLACE_CONTRACT,
@@ -199,15 +197,9 @@ class KeypomJS {
       },
       gas: '300000000000000',
     });
-    // try {
-
-    // } catch (e) {
-    //   console.log('error listing unowned ticket', e);
-    // }
   };
 
   GenerateResellSignature = async (keypair) => {
-    console.log('jsskeypair', keypair);
     const sk_bytes = bs58.decode(keypair.secretKey);
     // const secret_key = Buffer.from(sk_bytes).toString('base64');
 
@@ -225,14 +217,11 @@ class KeypomJS {
     });
     const message_nonce = key_info.message_nonce;
 
-    const message = `${signing_message}${message_nonce.toString()}`;
+    const message = `${String(signing_message)}${String(message_nonce.toString())}`;
     const message_bytes = new TextEncoder().encode(`${message}`);
-
-    console.log('js message bytes ', message_bytes);
 
     const signature = nacl.sign.detached(message_bytes, sk_bytes);
     // const isValid = nacl.sign.detached.verify(message_bytes, signature, keypair.publicKey.data)
-    // console.log("js verify: ", isValid)
     const base64_signature = naclUtil.encodeBase64(signature);
 
     return [base64_signature, signature];
@@ -253,25 +242,22 @@ class KeypomJS {
       limit = 50;
     }
     if (!this.allEventsGallery || this.allEventsGallery.length === 0) {
-      supply = await this.getEventSupply();
+      const supply = await this.getEventSupply();
       // initialize to length supply
       this.allEventsGallery = new Array(supply).fill(null);
     }
 
-    cached = this.allEventsGallery.slice(from_index, from_index + limit);
+    const cached = this.allEventsGallery.slice(from_index, parseInt(from_index) + parseInt(limit));
 
     const hasNoNulls = cached.every((item) => item !== null);
     const hasNoUndefineds = cached.every((item) => item !== undefined);
 
-    console.log('cache hasNoNulls', hasNoNulls && hasNoUndefineds);
-
     if (hasNoNulls && hasNoUndefineds) {
       // just return from cache
-      console.log('returning from cache');
       return cached;
     }
 
-    answer = await this.viewAccount.viewFunctionV2({
+    const answer = await this.viewAccount.viewFunctionV2({
       contractId,
       methodName: 'get_events',
       args: { limit, from_index },
@@ -529,19 +515,15 @@ class KeypomJS {
     eventId: string;
   }): Promise<FunderEventMetadata> => {
     try {
-      console.log('getEventInfo2', accountId, eventId);
       const funderInfo = await this.viewCall({
         methodName: 'get_funder_info',
         args: { account_id: accountId },
       });
 
-      console.log('funderInfo', funderInfo);
       const funderMeta = JSON.parse(funderInfo.metadata);
-      console.log('funderMeta', funderMeta);
 
       return funderMeta[eventId];
     } catch (error) {
-      console.error('Error getting event info:', error);
       throw new Error('Error getting event info');
     }
   };
@@ -562,8 +544,6 @@ class KeypomJS {
       methodName: 'get_drop_supply_for_funder',
       args: { account_id: accountId },
     });
-    console.log('numDrops', numDrops);
-
     const totalQueries = Math.ceil(numDrops / DROP_ITEMS_PER_QUERY);
     const pageIndices = Array.from({ length: totalQueries }, (_, index) => index);
 
@@ -583,7 +563,6 @@ class KeypomJS {
     );
 
     let allDrops: EventDrop[] = allPagesDrops.flat(); // Assuming allPagesDrops is already defined and flattened.
-    console.log('allDrops', allDrops);
     allDrops = allDrops.filter((drop) => {
       if (!drop.drop_id || !drop.funder_id || !drop.drop_config || !drop.drop_config.metadata) {
         return false; // Drop does not have the required top-level structure
@@ -604,7 +583,6 @@ class KeypomJS {
         return false;
       }
     });
-    console.log('allDrops filtered', allDrops);
 
     this.groupDropsByEvent(allDrops);
   };
@@ -718,12 +696,9 @@ class KeypomJS {
         },
       });
 
-      console.log('fetchedinfo', fetchedinfo);
-
       // Return the requested slice from the cache
       return fetchedinfo;
     } catch (e) {
-      console.error('Failed to get key info:', e);
       throw new Error('Failed to get key info.');
     }
   };

@@ -120,9 +120,6 @@ export const PurchaseModal = ({
   //   }
   // };
 
-  console.log('waaticket', ticket);
-  console.log('waatiasdaasdcket', amount);
-  console.log('waaevent', event);
   const EventQuestions = () => {
     return (
       <>
@@ -166,8 +163,6 @@ export const PurchaseModal = ({
 
   // purchase button version
   const stripeRegistered = stripeEnabledEvent;
-  console.log('wtfstripeRegistered', stripeRegistered);
-  console.log('selecto123r', selector);
   const signedIn = selector.isSignedIn();
   const isFree = ticket.price === 0 || ticket.price === '0';
 
