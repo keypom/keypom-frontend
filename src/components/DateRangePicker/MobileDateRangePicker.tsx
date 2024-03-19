@@ -1,16 +1,19 @@
 /** at the top of your component file */
-import { Button, HStack, Input, Text, VStack } from '@chakra-ui/react';
+import { Button, HStack, Text, VStack } from '@chakra-ui/react';
 import type React from 'react';
 import { useState } from 'react';
-import { format, parse } from 'date-fns';
 import DatePicker from 'react-datepicker';
-import { type FieldError } from 'react-hook-form';
+
+import { TimeInput } from '../TimeInput/TimeInput';
+
+import { checkAndSetTime } from './helpers';
 
 interface CustomFooterProps {
   startTime: string | undefined;
   startTimeError: boolean;
   endTime: string | undefined;
   endTimeError: boolean;
+  canClose: boolean;
   onChangeStartTime: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onChangeEndTime: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onBlurStartTime: (e: React.FocusEvent<HTMLInputElement>) => void;
@@ -24,6 +27,7 @@ const CustomFooter = ({
   startTimeError,
   endTime,
   endTimeError,
+  canClose,
   onChangeStartTime,
   onChangeEndTime,
   onBlurStartTime,
@@ -31,51 +35,42 @@ const CustomFooter = ({
   onApplyClick,
   onResetClick,
 }: CustomFooterProps) => (
-  <HStack
+  <VStack
     align="flex-end"
     backgroundColor="#fdfdfd"
     borderRadius="0.3rem"
     justifyContent="space-between"
+    width="100%"
   >
-    <HStack p={3} w="50%">
+    <HStack p={3} w="100%">
+      {/* Start Time Section */}
       <VStack align="left" spacing={1} w="50%">
         <Text color="gray.800" fontWeight="bold">
-          Start time
+          Start Time
         </Text>
-        <Input
-          borderColor="gray.300"
+        <TimeInput
           isInvalid={startTimeError}
-          placeholder="00:00 AM"
-          sx={{
-            '::placeholder': {
-              color: 'gray.400', // Placeholder text color
-            },
-          }}
+          placeholder="10:00 AM"
           value={startTime || ''}
           onBlur={onBlurStartTime}
           onChange={onChangeStartTime}
         />
       </VStack>
+      {/* End Time Section */}
       <VStack align="left" spacing={1} w="50%">
         <Text color="gray.800" fontWeight="bold">
-          End time
+          End Time
         </Text>
-        <Input
-          borderColor="gray.300"
+        <TimeInput
           isInvalid={endTimeError}
-          placeholder="00:00 AM"
-          sx={{
-            '::placeholder': {
-              color: 'gray.400', // Placeholder text color
-            },
-          }}
+          placeholder="6:00 PM"
           value={endTime || ''}
           onBlur={onBlurEndTime}
           onChange={onChangeEndTime}
         />
       </VStack>
     </HStack>
-    <HStack p={3} w="50%">
+    <HStack p={3} w="100%">
       <Button
         height="48px"
         lineHeight=""
@@ -88,7 +83,7 @@ const CustomFooter = ({
       </Button>
       <Button
         height="48px"
-        isDisabled={startTimeError || endTimeError}
+        isDisabled={!canClose}
         lineHeight=""
         px="6"
         variant="primary"
@@ -98,37 +93,8 @@ const CustomFooter = ({
         Done
       </Button>
     </HStack>
-  </HStack>
+  </VStack>
 );
-
-const checkAndSetTime = (inputValue, setTimeText, setIsErr) => {
-  // If the input is empty, reset the error state and the time
-  if (!inputValue) {
-    setTimeText('');
-    setIsErr(false);
-    return;
-  }
-
-  // Check if the input value matches the time format HH:MM AM/PM
-  const isValidTime = /^(1[0-2]|0?[1-9]):[0-5][0-9] [AP]M$/;
-
-  if (isValidTime.test(inputValue)) {
-    try {
-      // Parse the time using date-fns or similar library
-      const parsedTime = parse(inputValue, 'hh:mm aa', new Date());
-      // Format and set the valid time
-      setTimeText(format(parsedTime, 'hh:mm aa'));
-      setIsErr(false);
-    } catch (error) {
-      // If parsing fails, set an error state
-      console.error('Error parsing time:', error);
-      setIsErr(true);
-    }
-  } else {
-    // If the regex test fails, set an error state
-    setIsErr(true);
-  }
-};
 
 interface CustomDateRangePickerProps {
   onDateChange: (startDate: Date | null, endDate: Date | null) => void;
@@ -140,7 +106,6 @@ interface CustomDateRangePickerProps {
   endDate: Date | null;
   minDate: Date | null;
   maxDate: Date | null;
-  error?: FieldError;
   openDirection?: string;
   scale?: string;
 }
@@ -155,13 +120,27 @@ function CustomDateRangePickerMobile({
   setIsDatePickerOpen,
   minDate,
   maxDate,
-  openDirection = 'top-start',
   scale = '1',
+  openDirection = 'top-start',
 }: CustomDateRangePickerProps) {
   const [startTimeText, setStartTimeText] = useState<string | undefined>();
   const [startTimeError, setStartTimeError] = useState(false);
   const [endTimeText, setEndTimeText] = useState<string | undefined>();
   const [endTimeError, setEndTimeError] = useState(false);
+
+  const canClose = () => {
+    // If no date range is selected, allow the date picker to close
+    if (
+      startDate === null &&
+      endDate === null &&
+      startTimeText?.length === 0 &&
+      endTimeText?.length === 0
+    ) {
+      return true;
+    }
+
+    return startDate != null && !startTimeError && !endTimeError;
+  };
 
   // handle changes inside date picker
   const handleDateChange = (dates) => {
@@ -170,21 +149,27 @@ function CustomDateRangePickerMobile({
   };
 
   const handleApplyClick = () => {
+    if (startTimeError || endTimeError) {
+      return;
+    }
     setIsDatePickerOpen(false);
     onTimeChange(startTimeText, endTimeText);
   };
 
   const handleResetClick = () => {
+    setStartTimeError(false);
+    setEndTimeError(false);
     setStartTimeText(undefined);
+    setEndTimeText(undefined);
     onDateChange(null, null);
   };
 
   const onChangeStartTime = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setStartTimeText(e.target.value);
+    setStartTimeText(e.target.value.toUpperCase());
   };
 
   const onChangeEndTime = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setEndTimeText(e.target.value);
+    setEndTimeText(e.target.value.toUpperCase());
   };
 
   const onBlurStartTime = (e) => {
@@ -210,6 +195,7 @@ function CustomDateRangePickerMobile({
           showTimeInput
           customTimeInput={
             <CustomFooter
+              canClose={canClose()}
               endTime={endTimeText}
               endTimeError={endTimeError}
               startTime={startTimeText}
