@@ -121,8 +121,6 @@ export const calculateDepositCost = ({
 
   // Return the total deposit cost
   return {
-    marketDeposit: marketDeposit.toString(),
-    dropDeposit: (dropDeposit + funderMetaCost).toString(),
     costBreakdown: {
       perDrop: (dropDeposit / BigInt(eventTickets.length)).toString(),
       perEvent: funderMetaCost.toString(),

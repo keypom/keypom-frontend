@@ -3,9 +3,7 @@ import { get, update, del } from 'idb-keyval';
 import { pack } from 'ipfs-car/dist/esm/pack';
 import { MemoryBlockStore } from 'ipfs-car/dist/esm/blockstore/memory';
 
-import { MASTER_KEY, NFT_ATTEMPT_KEY } from '@/constants/common';
-
-const WORKER_BASE_URL = 'https://keypom-nft-storage.keypom.workers.dev/';
+import { MASTER_KEY, NFT_ATTEMPT_KEY, WORKER_BASE_URL } from '@/constants/common';
 
 export const DEBUG_DEL_NFT_ATTEMPT = async () => {
   await del(NFT_ATTEMPT_KEY);

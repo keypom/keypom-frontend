@@ -1,4 +1,4 @@
-import { type Wallet } from '@near-wallet-selector/core';
+import { type Action, type Wallet } from '@near-wallet-selector/core';
 import { parseNearAmount } from 'keypom-js';
 
 import keypomInstance from '@/lib/keypom';
@@ -63,7 +63,6 @@ export async function serializeMediaForWorker(formData: TicketDropFormData) {
       }
     }
   }
-  console.log('Array Buffers: ', arrayBuffers);
 
   return arrayBuffers;
 }
@@ -78,24 +77,23 @@ function arrayBufferToBase64(buffer) {
   return window.btoa(binary);
 }
 
-export const createPayloadAndEstimateCosts = async ({
+export const estimateCosts = async ({
   wallet,
   formData,
   accountId,
   setFormData,
   setCurrentStep,
-  shouldSet = true,
 }: {
   wallet: Wallet;
   accountId: string;
-  formData: any;
-  setFormData: (data: any) => void;
+  formData: TicketDropFormData;
+  setFormData: (
+    data: TicketDropFormData | ((prev: TicketDropFormData) => TicketDropFormData),
+  ) => void;
   setCurrentStep: any;
-  shouldSet?: boolean;
-}): Promise<any[]> => {
-  if (!wallet) return [];
+}) => {
+  if (!wallet) return;
   const eventId = Date.now().toString();
-  console.log('Event ID: ', eventId);
   const masterKey = get('MASTER_KEY');
 
   const funderInfo = await keypomInstance.viewCall({
@@ -104,7 +102,129 @@ export const createPayloadAndEstimateCosts = async ({
   });
   const funderMetadata: FunderMetadata =
     funderInfo === undefined || funderInfo === null ? {} : JSON.parse(funderInfo.metadata);
-  console.log('Deploying Event: ', formData.eventName.value);
+
+  const date = formData.date.value.endTime
+    ? {
+        date: {
+          from: formData.date.value.startDate!.toISOString(),
+          to: formData.date.value.endDate!.toISOString(),
+        },
+        time: eventDateToPlaceholder('', formData.date.value),
+      }
+    : {
+        date: formData.date.value.startDate!.toISOString(),
+
+        time: eventDateToPlaceholder('', formData.date.value),
+      };
+
+  const eventMetadata: FunderEventMetadata = {
+    name: formData.eventName.value,
+    dateCreated: Date.now().toString(),
+    description: formData.eventDescription.value,
+    location: formData.eventLocation.value,
+    date,
+    artwork: 'bafybeiehk3mzsj2ih4u4fkvmkfrome3kars7xyy3bxh6xfjquws4flglqa', // Sample CID just for storage
+    questions: formData.questions.map((question) => ({
+      question: question.question,
+      required: question.isRequired || false,
+    })),
+    id: eventId.toString(),
+  };
+
+  if (formData.questions.length > 0) {
+    const { publicKey, privateKey } = await generateKeyPair();
+    const saltBytes = window.crypto.getRandomValues(new Uint8Array(16));
+    const saltBase64 = uint8ArrayToBase64(saltBytes);
+    const symmetricKey = await deriveKeyFromPassword(masterKey, saltBase64);
+    const { encryptedPrivateKeyBase64, ivBase64 } = await encryptPrivateKey(
+      privateKey,
+      symmetricKey,
+    );
+
+    eventMetadata.pubKey = await exportPublicKeyToBase64(publicKey);
+    eventMetadata.encPrivKey = encryptedPrivateKeyBase64;
+    eventMetadata.iv = ivBase64;
+    eventMetadata.salt = saltBase64;
+  }
+
+  funderMetadata[eventId] = eventMetadata;
+
+  const drop_ids: string[] = [];
+  const drop_configs: any = [];
+  const asset_datas: any = [];
+  const ticket_information: Record<
+    string,
+    { max_tickets: number; price: string; sale_start?: number; sale_end?: number }
+  > = {};
+
+  for (const ticket of formData.tickets) {
+    const dropId = `${Date.now().toString()}-${ticket.name
+      .replaceAll(' ', '')
+      .toLocaleLowerCase()}`;
+
+    ticket_information[`${dropId}`] = {
+      max_tickets: ticket.maxSupply,
+      price: parseNearAmount(ticket.price)!.toString(),
+      sale_start: ticket.salesValidThrough.startDate
+        ? ticket.salesValidThrough.startDate.getTime()
+        : undefined,
+      sale_end: ticket.salesValidThrough.endDate
+        ? ticket.salesValidThrough.endDate.getTime()
+        : undefined,
+    };
+
+    const dropConfig = {
+      metadata: JSON.stringify(ticket),
+      add_key_allowlist: [KEYPOM_MARKETPLACE_CONTRACT],
+      transfer_key_allowlist: [KEYPOM_MARKETPLACE_CONTRACT],
+    };
+    const assetData = [
+      {
+        uses: 2,
+        assets: [null],
+        config: {
+          permissions: 'claim',
+        },
+      },
+    ];
+    drop_ids.push(dropId);
+    asset_datas.push(assetData);
+    drop_configs.push(dropConfig);
+  }
+
+  const { costBreakdown } = calculateDepositCost({
+    eventMetadata,
+    eventTickets: formData.tickets,
+    marketTicketInfo: ticket_information,
+  });
+
+  setFormData((prev: TicketDropFormData) => ({
+    ...prev,
+    costBreakdown,
+  }));
+
+  setCurrentStep((prevStep: number) => (prevStep < 3 ? prevStep + 1 : prevStep));
+};
+
+export const createPayloadAndEstimateCosts = async ({
+  wallet,
+  formData,
+  accountId,
+}: {
+  wallet: Wallet;
+  accountId: string;
+  formData: TicketDropFormData;
+}): Promise<Action[]> => {
+  if (!wallet) return [];
+  const eventId = Date.now().toString();
+  const masterKey = get('MASTER_KEY');
+
+  const funderInfo = await keypomInstance.viewCall({
+    methodName: 'get_funder_info',
+    args: { account_id: accountId },
+  });
+  const funderMetadata: FunderMetadata =
+    funderInfo === undefined || funderInfo === null ? {} : JSON.parse(funderInfo.metadata);
 
   const date = formData.date.value.endTime
     ? {
@@ -135,7 +255,6 @@ export const createPayloadAndEstimateCosts = async ({
   };
 
   if (formData.questions.length > 0) {
-    console.log('Event has questions. Generate keypairs');
     const { publicKey, privateKey } = await generateKeyPair();
     const saltBytes = window.crypto.getRandomValues(new Uint8Array(16));
     const saltBase64 = uint8ArrayToBase64(saltBytes);
@@ -152,7 +271,6 @@ export const createPayloadAndEstimateCosts = async ({
   }
 
   funderMetadata[eventId] = eventMetadata;
-  console.log('Deployed Event: ', eventMetadata);
 
   const drop_ids: string[] = [];
   const drop_configs: any = [];
@@ -163,15 +281,14 @@ export const createPayloadAndEstimateCosts = async ({
   > = {};
 
   for (const ticket of formData.tickets) {
-    const dropId = `${Date.now().toString()}-${(ticket.name as string)
+    const dropId = `${Date.now().toString()}-${ticket.name
       .replaceAll(' ', '')
       .toLocaleLowerCase()}`;
     ticket.eventId = eventId;
-    console.log('Creating ticket: ', ticket);
 
     ticket_information[`${dropId}`] = {
       max_tickets: ticket.maxSupply,
-      price: parseNearAmount(ticket.price).toString(),
+      price: parseNearAmount(ticket.price)!.toString(),
       sale_start: ticket.salesValidThrough.startDate
         ? ticket.salesValidThrough.startDate.getTime()
         : undefined,
@@ -181,7 +298,7 @@ export const createPayloadAndEstimateCosts = async ({
     };
 
     if (!shouldSet) {
-      ticket.price = parseNearAmount(ticket.price).toString();
+      ticket.price = parseNearAmount(ticket.price)!.toString();
       const passValidThroughTime =
         ticket.passValidThrough.startDate && ticket.passValidThrough.endDate
           ? {
@@ -234,11 +351,6 @@ export const createPayloadAndEstimateCosts = async ({
     asset_datas.push(assetData);
     drop_configs.push(dropConfig);
   }
-
-  console.log(`Creating event with ticket information: ${JSON.stringify(ticket_information)}`);
-
-  const funderMetadataString = JSON.stringify(funderMetadata);
-  console.log('Funder Metadata: ', funderMetadataString);
 
   const { marketDeposit, costBreakdown } = calculateDepositCost({
     eventMetadata,
