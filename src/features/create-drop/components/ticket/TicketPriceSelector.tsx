@@ -40,7 +40,7 @@ export default function TicketPriceSelector({
       errorText={errors.price}
       label="Price per ticket (NEAR)*"
       labelProps={{ fontSize: { base: 'xs', md: 'sm' } }}
-      marginBottom="4 !important"
+      marginY="2"
     >
       <VStack alignItems="flex-start">
         <HStack justifyContent="space-between" width="100%">
@@ -101,7 +101,7 @@ export default function TicketPriceSelector({
             onChange={handleCustomPriceChange}
           />
         </HStack>
-        <Text color="gray.400" fontSize="xs" fontWeight="400" marginTop="0 !important">
+        <Text color="gray.400" fontSize="xs" fontWeight="400" marginTop="-2 !important">
           {parseInt(currentTicket.price) > 0
             ? `You receive ${
                 parseInt(currentTicket.price) -

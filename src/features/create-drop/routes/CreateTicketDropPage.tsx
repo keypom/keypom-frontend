@@ -370,7 +370,7 @@ export default function NewTicketDrop() {
           </HStack>
           {CurrentStepComponent}
         </IconBox>
-        <HStack justifyContent="flex-end" py={{ base: '4' }} spacing="auto">
+        <HStack justifyContent="space-between" py={{ base: '4' }} spacing="auto">
           <HStack>
             <Button
               fontSize={{ base: 'sm', md: 'base' }}

@@ -1,8 +1,6 @@
 import React from 'react';
 import { createBrowserRouter } from 'react-router-dom';
 
-import { eventsLoader } from './pages/Event';
-
 const LandingPage = React.lazy(async () => await import('@/features/landing/routes/LandingPage'));
 
 const NotFound404 = React.lazy(
@@ -92,7 +90,6 @@ export const router = createBrowserRouter([
       {
         path: 'gallery/:eventID',
         element: <Event />,
-        loader: eventsLoader,
       },
       {
         loader: () => {
