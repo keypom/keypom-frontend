@@ -73,7 +73,7 @@ const SUBSEQUENT_MARKET_DROP_BASE_COST = BigInt('6810000000000000000000');
 const YOCTO_PER_BYTE = BigInt('12500000000000000000'); // Includes a 200% safety margin
 
 const BASE_MARKET_BYTES_PER_KEY = BigInt('800');
-const METADATA_MARKET_BYTES_PER_KEY = BigInt('700');
+const METADATA_MARKET_BYTES_PER_KEY = BigInt('900');
 
 export function getByteSize(str: string) {
   return new Blob([str]).size;
