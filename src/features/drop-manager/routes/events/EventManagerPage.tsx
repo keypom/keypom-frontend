@@ -413,8 +413,9 @@ export default function EventManagerPage() {
             borderRadius="6xl"
             size="md"
             variant="icon"
-            onClick={() => {
-              navigate(`/gallery/ticket/${(item.id || '').toString()}`);
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate(`/gallery/${accountId}:${(eventId || '').toString()}`);
             }}
           >
             <ShareIcon color="gray.600" height="16px" width="16px" />
@@ -474,8 +475,9 @@ export default function EventManagerPage() {
               borderRadius="6xl"
               size="md"
               variant="icon"
-              onClick={() => {
-                navigate(`/gallery/event/${(eventId || '').toString()}`);
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate(`/gallery/${accountId}:${(eventId || '').toString()}`);
               }}
             >
               <ShareIcon color="gray.600" height="16px" width="16px" />

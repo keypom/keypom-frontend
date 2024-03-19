@@ -64,33 +64,43 @@ export const EventInfoFormValidation = (formData: TicketDropFormData) => {
 };
 
 export const eventDateToPlaceholder = (defaultTo: string, date: EventDate) => {
-  let formattedDate: string = defaultTo;
-  if (date.startDate) {
-    const start = new Date(date.startDate);
-    formattedDate = start.toLocaleDateString(undefined, {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-      timeZoneName: 'short',
-    });
-    if (date.startTime) {
-      formattedDate += ` (${date.startTime})`;
-    }
+  if (!date.startDate || !date.endDate) {
+    return defaultTo; // Return the default placeholder if start or end date is not provided
   }
 
-  if (date.endDate) {
-    const end = new Date(date.endDate);
-    formattedDate += ` - ${end.toLocaleDateString(undefined, {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-      timeZoneName: 'short',
-    })}`;
+  let formattedDate = '';
+  let timeZone = '';
 
-    if (date.endTime) {
-      formattedDate += ` (${date.endTime})`;
-    }
+  const start = new Date(date.startDate);
+  const end = new Date(date.endDate);
+  const startYear = start.getFullYear();
+  const endYear = end.getFullYear();
+  const startMonth = start.toLocaleDateString(undefined, { month: 'short' });
+  const startDay = start.toLocaleDateString(undefined, { day: 'numeric' });
+  const endMonth = end.toLocaleDateString(undefined, { month: 'short' });
+  const endDay = end.toLocaleDateString(undefined, { day: 'numeric' });
+
+  // Extract the time zone from the start date and use it at the end
+  timeZone = start.toLocaleDateString(undefined, { timeZoneName: 'short' }).split(', ').pop() || '';
+
+  formattedDate = `${startMonth} ${startDay}`;
+  if (date.startTime) {
+    formattedDate += ` (${date.startTime})`;
   }
+
+  // Check if the year is the same for start and end date to decide if it should be repeated.
+  const sameYear = startYear === endYear;
+
+  formattedDate += ` - ${endMonth} ${endDay}`;
+  if (date.endTime) {
+    formattedDate += ` (${date.endTime})`;
+  }
+
+  // Append the year at the end only if start and end years are the same
+  formattedDate += sameYear ? `, ${endYear}` : `, ${startYear}, ${endYear}`;
+  // Append the time zone at the end
+  formattedDate += `, ${timeZone}`;
+
   return formattedDate;
 };
 
@@ -226,13 +236,11 @@ const EventInfoForm = (props: EventStepFormProps) => {
           <CustomDateRangePicker
             ctaComponent={datePickerCTA}
             endDate={formData.date.value.endDate}
-            endTime={formData.date.value.endTime}
             isDatePickerOpen={isDatePickerOpen}
             maxDate={null}
             minDate={new Date()}
             setIsDatePickerOpen={setIsDatePickerOpen}
             startDate={formData.date.value.startDate}
-            startTime={formData.date.value.startTime}
             onDateChange={(startDate, endDate) => {
               setFormData({
                 ...formData,
@@ -251,14 +259,12 @@ const EventInfoForm = (props: EventStepFormProps) => {
           <CustomDateRangePickerMobile
             ctaComponent={datePickerCTA}
             endDate={formData.date.value.endDate}
-            endTime={formData.date.value.endTime}
             isDatePickerOpen={isDatePickerOpen}
             maxDate={null}
             minDate={new Date()}
             openDirection="top-right"
             setIsDatePickerOpen={setIsDatePickerOpen}
             startDate={formData.date.value.startDate}
-            startTime={formData.date.value.startTime}
             onDateChange={(startDate, endDate) => {
               setFormData({
                 ...formData,

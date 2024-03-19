@@ -349,8 +349,11 @@ export default function AllEvents({ pageTitle, hasDateFilter, ctaButtonLabel }: 
                   borderRadius="6xl"
                   size="md"
                   variant="icon"
-                  onClick={() => {
-                    navigate(`/gallery/event/${((drop.eventId as string) || '').toString()}`);
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate(
+                      `/gallery/${accountId}:${((drop.eventId as string) || '').toString()}`,
+                    );
                   }}
                 >
                   <ShareIcon color="gray.600" height="16px" width="16px" />

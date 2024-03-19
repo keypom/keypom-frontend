@@ -1,7 +1,9 @@
 import { Box, HStack, Input, Text, VStack } from '@chakra-ui/react';
 import { useState } from 'react';
 
+import keypomInstance from '@/lib/keypom';
 import { FormControlComponent } from '@/components/FormControl';
+import { yoctoPerFreeKey } from '@/lib/eventsHelpers';
 
 import { type TicketInfoFormMetadata } from './CreateTicketsForm';
 
@@ -101,9 +103,10 @@ export default function TicketPriceSelector({
         </HStack>
         <Text color="gray.400" fontSize="xs" fontWeight="400" marginTop="0 !important">
           {parseInt(currentTicket.price) > 0
-            ? `You receive ${parseInt(currentTicket.price) - 0.15} NEAR. Buyer pays ${parseInt(
-                currentTicket.price,
-              )} NEAR.`
+            ? `You receive ${
+                parseInt(currentTicket.price) -
+                parseFloat(keypomInstance.yoctoToNear(yoctoPerFreeKey().toString()))
+              } NEAR. Buyer pays ${parseInt(currentTicket.price)} NEAR.`
             : `Ticket is free`}
         </Text>
       </VStack>

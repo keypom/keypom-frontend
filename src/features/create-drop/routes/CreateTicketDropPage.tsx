@@ -8,7 +8,7 @@ import { IconBox } from '@/components/IconBox';
 import { LinkIcon } from '@/components/Icons';
 import { Step } from '@/components/Step';
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
-import { CLOUDFLARE_IPFS, KEYPOM_EVENTS_CONTRACT } from '@/constants/common';
+import { EVENTS_WORKER_IPFS_PINNING, KEYPOM_EVENTS_CONTRACT } from '@/constants/common';
 
 import { CreateTicketDropLayout } from '../components/CreateTicketDropLayout';
 import { CollectInfoForm } from '../components/ticket/CollectInfoForm';
@@ -24,7 +24,8 @@ import {
 import { ReviewEventForm } from '../components/ticket/ReviewEventForm';
 import { KeypomPasswordPromptModal } from '../components/ticket/KeypomPasswordPromptModal';
 import {
-  createPayloadAndEstimateCosts,
+  createPayload,
+  estimateCosts,
   serializeMediaForWorker,
 } from '../components/ticket/helpers';
 
@@ -60,8 +61,6 @@ export interface TicketDropFormData {
   // Step 3
   tickets: TicketInfoFormMetadata[];
 
-  // Step 4
-  actions: Action[];
   costBreakdown: {
     marketListing: string;
     total: string;
@@ -194,7 +193,6 @@ const placeholderData: TicketDropFormData = {
 
   // Step 3
   tickets: [],
-  actions: [],
   costBreakdown: {
     perEvent: '0',
     perDrop: '0',
@@ -210,10 +208,6 @@ export default function NewTicketDrop() {
   const [formData, setFormData] = useState<TicketDropFormData>(placeholderData);
   const { selector, accountId } = useAuthWalletContext();
   const [wallet, setWallet] = useState<Wallet>();
-
-  useEffect(() => {
-    console.log('formData', formData);
-  }, [formData]);
 
   useEffect(() => {
     async function fetchWallet() {
@@ -251,11 +245,9 @@ export default function NewTicketDrop() {
   ));
 
   const handleModalClose = async () => {
-    console.log('Modal closed');
     setIsSettingKey(true);
-    await createPayloadAndEstimateCosts({
+    await estimateCosts({
       accountId: accountId!,
-      wallet: wallet!,
       formData,
       setFormData,
       setCurrentStep,
@@ -270,11 +262,9 @@ export default function NewTicketDrop() {
     setIsSettingKey(true);
     const serializedData = await serializeMediaForWorker(formData);
 
-    let response;
+    let response: Response | undefined;
     try {
-      const url = 'https://my-stripe-worker.zachattack98766789.workers.dev/ipfs-pin';
-
-      response = await fetch(url, {
+      response = await fetch(EVENTS_WORKER_IPFS_PINNING, {
         method: 'POST',
         body: JSON.stringify({ base64Data: serializedData }),
       });
@@ -286,23 +276,19 @@ export default function NewTicketDrop() {
       const resBody = await response.json();
       const cids: string[] = resBody.cids;
 
-      const newFormData: any = formData;
-      newFormData.eventArtwork = { value: `${CLOUDFLARE_IPFS}/${cids[0]}` };
-
+      const eventArtworkCid: string = cids[0];
+      const ticketArtworkCids: string[] = [];
       for (let i = 0; i < cids.length - 1; i++) {
-        const newUrl = `${CLOUDFLARE_IPFS}/${cids[i + 1]}`;
-        newFormData.tickets[i].artwork = newUrl;
+        ticketArtworkCids.push(cids[i + 1]);
       }
 
-      const actions: Action[] = await createPayloadAndEstimateCosts({
+      const actions: Action[] = await createPayload({
         accountId: accountId!,
-        wallet,
-        formData: newFormData,
-        setFormData,
-        setCurrentStep,
-        shouldSet: false,
+        formData,
+        eventArtworkCid,
+        ticketArtworkCids,
       });
-      console.log('Actions: ', actions);
+
       await wallet.signAndSendTransaction({
         signerId: accountId!,
         receiverId: KEYPOM_EVENTS_CONTRACT,
@@ -313,19 +299,16 @@ export default function NewTicketDrop() {
   };
 
   const nextStep = async () => {
-    console.log('Form data (new step):', formData);
     if (currentStep === 3) {
       payAndCreateEvent();
     }
 
     if (currentStep === 2) {
       const curMasterKey = get('MASTER_KEY');
-      console.log('curMasterKey', curMasterKey);
       if (curMasterKey) {
         setIsSettingKey(true);
-        await createPayloadAndEstimateCosts({
+        await estimateCosts({
           accountId: accountId!,
-          wallet: wallet!,
           setFormData,
           formData,
           setCurrentStep,
