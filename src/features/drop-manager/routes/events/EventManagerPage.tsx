@@ -16,7 +16,7 @@ import {
   VStack,
   ModalContent,
 } from '@chakra-ui/react';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { type Wallet } from '@near-wallet-selector/core';
 
@@ -28,8 +28,7 @@ import { Breadcrumbs } from '@/components/Breadcrumbs';
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
 import { useAppContext } from '@/contexts/AppContext';
 import keypomInstance from '@/lib/keypom';
-import { DropManagerPagination } from '@/features/all-drops/components/DropManagerPagination';
-import { MASTER_KEY, PAGE_SIZE_LIMIT } from '@/constants/common';
+import { MASTER_KEY } from '@/constants/common';
 import {
   type QuestionInfo,
   type DateAndTimeInfo,
@@ -40,7 +39,6 @@ import { ShareIcon } from '@/components/Icons/ShareIcon';
 import { NotFound404 } from '@/components/NotFound404';
 import useDeletion from '@/components/AppModal/useDeletion';
 import { performDeletionLogic } from '@/components/AppModal/PerformDeletion';
-import { createMenuItems, PAGE_SIZE_ITEMS } from '@/features/all-drops/config/menuItems';
 
 import { handleExportCSVClick } from '../../components/ExportToCsv';
 import { dateAndTimeToText } from '../../utils/parseDates';
@@ -115,11 +113,7 @@ export default function EventManagerPage() {
 
   const [exporting, setExporting] = useState<boolean>(false);
 
-  const [numPages, setNumPages] = useState<number>(0);
-  const [curPage, setCurPage] = useState<number>(0);
   const [ticketData, setTicketData] = useState<TicketItem[]>([]);
-  const [pageSize, setPageSize] = useState<number>(PAGE_SIZE_LIMIT);
-  const popoverClicked = useRef(0);
 
   const [eventData, setEventData] = useState<EventData>();
   const { selector, accountId } = useAuthWalletContext();
@@ -135,7 +129,6 @@ export default function EventManagerPage() {
         setIsErr(true);
         return;
       }
-      console.log('eventInfo', eventInfo);
       if (eventInfo?.questions) {
         try {
           const privKey = await keypomInstance.getDerivedPrivKey({
@@ -224,13 +217,6 @@ export default function EventManagerPage() {
     return ticketData.reduce((acc, ticket) => acc + ticket.soldTickets, 0);
   };
 
-  const pageSizeMenuItems = createMenuItems({
-    menuItems: PAGE_SIZE_ITEMS,
-    onClick: (item) => {
-      handlePageSizeSelect(item);
-    },
-  });
-
   const breadcrumbItems = [
     {
       name: 'My events',
@@ -241,18 +227,6 @@ export default function EventManagerPage() {
       href: '/events',
     },
   ];
-
-  const handlePageSizeSelect = (item) => {
-    setPageSize(parseInt(item.label));
-  };
-
-  const handleNextPage = () => {
-    setCurPage((prev) => prev + 1);
-  };
-
-  const handlePrevPage = () => {
-    setCurPage((prev) => prev - 1);
-  };
 
   const handleGetAllTickets = useCallback(async () => {
     try {
@@ -289,11 +263,6 @@ export default function EventManagerPage() {
       const ticketData = await Promise.all(promises);
 
       setTicketData(ticketData);
-
-      const totalPages = Math.ceil(ticketsForEvent.length / pageSize);
-      setNumPages(totalPages);
-
-      setCurPage(0);
       setIsLoading(false);
     } catch (e) {
       console.error('Error fetching tickets:', e);
@@ -612,17 +581,6 @@ export default function EventManagerPage() {
           showColumns={true}
           showMobileTitles={['price', 'numTickets']}
           type="event-manager"
-        />
-
-        <DropManagerPagination
-          curPage={curPage}
-          handleNextPage={handleNextPage}
-          handlePrevPage={handlePrevPage}
-          isLoading={isLoading || !eventData}
-          numPages={numPages}
-          pageSizeMenuItems={pageSizeMenuItems}
-          rowsSelectPlaceholder={pageSize.toString()}
-          onClickRowsSelect={() => (popoverClicked.current += 1)}
         />
       </Box>
     </Box>

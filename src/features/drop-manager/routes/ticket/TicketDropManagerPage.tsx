@@ -45,7 +45,7 @@ import { FilterOptionsMobileButton } from '@/features/all-drops/components/Filte
 import { DataTable } from '@/components/Table';
 import { DropManagerPagination } from '@/features/all-drops/components/DropManagerPagination';
 import { MobileDrawerMenu } from '@/features/all-drops/components/MobileDrawerMenu';
-import { MASTER_KEY, PAGE_SIZE_LIMIT } from '@/constants/common';
+import { CLOUDFLARE_IPFS, MASTER_KEY, PAGE_SIZE_LIMIT } from '@/constants/common';
 import {
   createMenuItems,
   PAGE_SIZE_ITEMS,
@@ -198,6 +198,8 @@ export default function TicketManagerPage() {
           methodName: 'get_drop_information',
           args: { drop_id: dropId },
         });
+        drop.drop_config.nft_keys_config.token_metadata.media = `${CLOUDFLARE_IPFS}/${drop.drop_config.nft_keys_config.token_metadata.media}`;
+
         setDropData(drop);
       } catch (e) {
         console.error('error', e);
@@ -389,7 +391,6 @@ export default function TicketManagerPage() {
           dropKeyItems.map(async (key) => {
             const newKey = JSON.parse(JSON.stringify(key));
             try {
-              console.log('key', newKey);
               const decryptedMeta = await keypomInstance.decryptMetadata({
                 data: key.metadata,
                 privKey: userPrivKey,
@@ -593,7 +594,6 @@ export default function TicketManagerPage() {
 
   const getTableRows: GetAttendeeDataFn = (data) => {
     if (data === undefined || eventInfo === undefined) return [];
-    console.log('data', data);
     return data.map((item) => {
       const mapped = {
         id: item.id, // Assuming `item` has a `drop_id` property that can serve as `id`

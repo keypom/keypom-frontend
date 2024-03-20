@@ -39,7 +39,6 @@ import getConfig from '@/config/config';
 import { get } from '@/utils/localStorage';
 
 import {
-  type EventDropMetadata,
   type FunderEventMetadata,
   type FunderMetadata,
   isValidTicketNFTMetadata,
@@ -100,7 +99,7 @@ class KeypomJS {
     string,
     {
       totalKeys: number;
-      dropMeta: EventDropMetadata;
+      dropInfo: EventDrop;
       dropKeyItems: AttendeeKeyItem[];
     }
   > = {};
@@ -523,17 +522,16 @@ class KeypomJS {
     eventId: string;
   }): Promise<FunderEventMetadata> => {
     try {
-      console.log('getEventInfo2', accountId, eventId);
       const funderInfo = await this.viewCall({
         methodName: 'get_funder_info',
         args: { account_id: accountId },
       });
 
-      console.log('funderInfo', funderInfo);
-      const funderMeta = JSON.parse(funderInfo.metadata);
-      console.log('funderMeta', funderMeta);
+      const funderMeta: Record<string, FunderEventMetadata> = JSON.parse(funderInfo.metadata);
+      const eventInfo: FunderEventMetadata = funderMeta[eventId];
+      eventInfo.artwork = `${CLOUDFLARE_IPFS}/${eventInfo.artwork}`;
 
-      return funderMeta[eventId];
+      return eventInfo;
     } catch (error) {
       console.error('Error getting event info:', error);
       throw new Error('Error getting event info');
@@ -545,13 +543,11 @@ class KeypomJS {
       const metadata: TicketMetadataExtra = JSON.parse(
         eventDrop.drop_config.nft_keys_config.token_metadata.extra,
       );
-      console.log('metadata', metadata);
 
       if (!Object.hasOwn(this.ticketDropsByEventId, metadata.eventId)) {
         this.ticketDropsByEventId[metadata.eventId] = [];
       }
       this.ticketDropsByEventId[metadata.eventId].push(eventDrop);
-      console.log('ticketDropsByEventId', this.ticketDropsByEventId);
     }
   };
 
@@ -579,6 +575,7 @@ class KeypomJS {
       ),
     );
 
+    console.log('allPagesDrops', allPagesDrops);
     let allDrops: EventDrop[] = allPagesDrops.flat(); // Assuming allPagesDrops is already defined and flattened.
     allDrops = allDrops.filter((drop) => {
       if (
@@ -592,7 +589,24 @@ class KeypomJS {
 
       return isValidTicketNFTMetadata(drop.drop_config.nft_keys_config.token_metadata);
     });
-    console.log('allDrops filtered', allDrops);
+    console.log('Fetched all drops', allDrops);
+
+    // Add cloudflare IPFS prefix to media
+    allDrops = allDrops.map((drop) => {
+      return {
+        ...drop,
+        drop_config: {
+          ...drop.drop_config,
+          nft_keys_config: {
+            ...drop.drop_config.nft_keys_config,
+            token_metadata: {
+              ...drop.drop_config.nft_keys_config.token_metadata,
+              media: `${CLOUDFLARE_IPFS}/${drop.drop_config.nft_keys_config.token_metadata.media}`,
+            },
+          },
+        },
+      };
+    });
 
     this.groupDropsByEvent(allDrops);
   };
@@ -615,8 +629,11 @@ class KeypomJS {
 
       const events: FunderEventMetadata[] = [];
       for (const eventId in funderMeta) {
-        events.push(funderMeta[eventId]);
-        this.eventInfoById[eventId] = funderMeta[eventId];
+        const eventInfo: FunderEventMetadata = funderMeta[eventId];
+        eventInfo.artwork = `${CLOUDFLARE_IPFS}/${eventInfo.artwork}`;
+
+        events.push(eventInfo);
+        this.eventInfoById[eventId] = eventInfo;
       }
 
       return events;
@@ -654,7 +671,7 @@ class KeypomJS {
         // Initialize the cache for this drop
         this.purchasedTicketsById[dropId] = {
           dropKeyItems: new Array(totalKeys).fill(null),
-          dropMeta: JSON.parse(dropInfo.drop_config.metadata),
+          dropInfo,
           totalKeys,
         };
 
@@ -731,7 +748,6 @@ class KeypomJS {
         methodName: 'get_drop_information',
         args: { drop_id: dropId },
       });
-      const meta: EventDropMetadata = JSON.parse(dropInfo.drop_config.metadata);
       const totalKeys = dropInfo.next_key_id;
 
       if (
@@ -739,7 +755,7 @@ class KeypomJS {
         this.purchasedTicketsById[dropId]?.totalKeys !== totalKeys
       ) {
         this.purchasedTicketsById[dropId] = {
-          dropMeta: meta,
+          dropInfo,
           dropKeyItems: new Array(totalKeys).fill(null),
           totalKeys,
         };
