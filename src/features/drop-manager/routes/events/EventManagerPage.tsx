@@ -27,10 +27,15 @@ import { DataTable } from '@/components/Table';
 import { Breadcrumbs } from '@/components/Breadcrumbs';
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
 import { useAppContext } from '@/contexts/AppContext';
-import keypomInstance, { type EventDrop } from '@/lib/keypom';
+import keypomInstance from '@/lib/keypom';
 import { DropManagerPagination } from '@/features/all-drops/components/DropManagerPagination';
 import { MASTER_KEY, PAGE_SIZE_LIMIT } from '@/constants/common';
-import { type QuestionInfo, type EventDropMetadata } from '@/lib/eventsHelpers';
+import {
+  type QuestionInfo,
+  type DateAndTimeInfo,
+  type TicketMetadataExtra,
+  type EventDrop,
+} from '@/lib/eventsHelpers';
 import { ShareIcon } from '@/components/Icons/ShareIcon';
 import { NotFound404 } from '@/components/NotFound404';
 import useDeletion from '@/components/AppModal/useDeletion';
@@ -38,6 +43,7 @@ import { performDeletionLogic } from '@/components/AppModal/PerformDeletion';
 import { createMenuItems, PAGE_SIZE_ITEMS } from '@/features/all-drops/config/menuItems';
 
 import { handleExportCSVClick } from '../../components/ExportToCsv';
+import { dateAndTimeToText } from '../../utils/parseDates';
 
 export interface EventData {
   name: string;
@@ -50,8 +56,8 @@ export interface TicketItem {
   artwork: string;
   name: string;
   description: string;
-  salesValidThrough: { time: string };
-  passValidThrough: { time: string };
+  salesValidThrough: DateAndTimeInfo;
+  passValidThrough: DateAndTimeInfo;
   maxTickets?: number;
   soldTickets: number;
   priceNear: string;
@@ -264,13 +270,14 @@ export default function EventManagerPage() {
       }
 
       const promises = ticketsForEvent.map(async (ticket) => {
-        const meta: EventDropMetadata = JSON.parse(ticket.drop_config.metadata);
+        const nftObject = ticket.drop_config.nft_keys_config.token_metadata;
+        const meta: TicketMetadataExtra = JSON.parse(nftObject.extra);
         const supply = await keypomInstance.getKeySupplyForTicket(ticket.drop_id);
         return {
           id: ticket.drop_id,
-          artwork: meta.artwork,
-          name: meta.name,
-          description: meta.name,
+          artwork: nftObject.media,
+          name: nftObject.title,
+          description: nftObject.description,
           salesValidThrough: meta.salesValidThrough,
           passValidThrough: meta.passValidThrough,
           maxTickets: meta.maxSupply,
@@ -379,7 +386,7 @@ export default function EventManagerPage() {
                 fontSize={{ md: 'md' }}
                 fontWeight="light"
               >
-                Purchase through: {item.salesValidThrough.time}
+                Purchase through: {dateAndTimeToText(item.salesValidThrough)}
               </Heading>
               <Heading
                 color="gray.400"
@@ -387,7 +394,7 @@ export default function EventManagerPage() {
                 fontSize={{ md: 'md' }}
                 fontWeight="light"
               >
-                Valid through: {item.passValidThrough.time}
+                Valid through: {dateAndTimeToText(item.passValidThrough)}
               </Heading>
             </VStack>
           </VStack>

@@ -26,5 +26,5 @@ export const EVENTS_WORKER_BASE = 'https://stripe-worker.kp-capstone.workers.dev
 export const PAGE_SIZE_LIMIT = 5;
 export const NFT_ATTEMPT_KEY = 'NFT_ATTEMPT';
 export const PAGE_QUERY_PARAM = 'page';
-export const KEYPOM_EVENTS_CONTRACT = '1710486341341-kp-ticketing.testnet';
-export const KEYPOM_MARKETPLACE_CONTRACT = '1710486341341-marketplace.testnet';
+export const KEYPOM_EVENTS_CONTRACT = '1710896132823-kp-ticketing.testnet';
+export const KEYPOM_MARKETPLACE_CONTRACT = '1710896132823-marketplace.testnet';

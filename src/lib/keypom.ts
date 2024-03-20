@@ -40,9 +40,11 @@ import { get } from '@/utils/localStorage';
 
 import {
   type EventDropMetadata,
-  isValidTicketInfo,
   type FunderEventMetadata,
   type FunderMetadata,
+  isValidTicketNFTMetadata,
+  type TicketMetadataExtra,
+  type EventDrop,
 } from './eventsHelpers';
 import { decryptPrivateKey, decryptWithPrivateKey, deriveKeyFromPassword } from './cryptoHelpers';
 
@@ -61,14 +63,6 @@ const connectionConfig = {
   helperUrl: config.helperUrl,
   explorerUrl: config.explorerUrl,
 };
-
-export interface EventDrop {
-  drop_id: string;
-  funder_id: string;
-  drop_config: {
-    metadata: string;
-  };
-}
 
 export interface DropKeyItem {
   id: number;
@@ -548,12 +542,16 @@ class KeypomJS {
 
   groupDropsByEvent = (drops: EventDrop[]) => {
     for (const eventDrop of drops) {
-      const metadata: EventDropMetadata = JSON.parse(eventDrop.drop_config.metadata);
+      const metadata: TicketMetadataExtra = JSON.parse(
+        eventDrop.drop_config.nft_keys_config.token_metadata.extra,
+      );
+      console.log('metadata', metadata);
 
       if (!Object.hasOwn(this.ticketDropsByEventId, metadata.eventId)) {
         this.ticketDropsByEventId[metadata.eventId] = [];
       }
       this.ticketDropsByEventId[metadata.eventId].push(eventDrop);
+      console.log('ticketDropsByEventId', this.ticketDropsByEventId);
     }
   };
 
@@ -562,7 +560,6 @@ class KeypomJS {
       methodName: 'get_drop_supply_for_funder',
       args: { account_id: accountId },
     });
-    console.log('numDrops', numDrops);
 
     const totalQueries = Math.ceil(numDrops / DROP_ITEMS_PER_QUERY);
     const pageIndices = Array.from({ length: totalQueries }, (_, index) => index);
@@ -583,26 +580,17 @@ class KeypomJS {
     );
 
     let allDrops: EventDrop[] = allPagesDrops.flat(); // Assuming allPagesDrops is already defined and flattened.
-    console.log('allDrops', allDrops);
     allDrops = allDrops.filter((drop) => {
-      if (!drop.drop_id || !drop.funder_id || !drop.drop_config || !drop.drop_config.metadata) {
+      if (
+        !drop.drop_id ||
+        !drop.funder_id ||
+        !drop.drop_config ||
+        !drop.drop_config.nft_keys_config
+      ) {
         return false; // Drop does not have the required top-level structure
       }
 
-      try {
-        const metadata = JSON.parse(drop.drop_config.metadata);
-
-        // Check ticketInfo's structure
-        if (!isValidTicketInfo(metadata)) {
-          return false; // TicketInfo is invalid
-        }
-
-        return true; // Drop passes all checks
-      } catch (e) {
-        console.error('Error parsing metadata:', e);
-        // JSON.parse failed, metadata is not a valid JSON string
-        return false;
-      }
+      return isValidTicketNFTMetadata(drop.drop_config.nft_keys_config.token_metadata);
     });
     console.log('allDrops filtered', allDrops);
 
