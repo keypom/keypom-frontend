@@ -4,6 +4,7 @@ import { useState } from 'react';
 import keypomInstance from '@/lib/keypom';
 import { FormControlComponent } from '@/components/FormControl';
 import { yoctoPerFreeKey } from '@/lib/eventsHelpers';
+import { useAppContext } from '@/contexts/AppContext';
 
 import { type TicketInfoFormMetadata } from './CreateTicketsForm';
 
@@ -18,6 +19,8 @@ export default function TicketPriceSelector({
   currentTicket,
   setCurrentTicket,
 }: TicketPriceSelectorProps) {
+  const { nearPrice } = useAppContext();
+  console.log('nearPrice:', nearPrice);
   const [customPrice, setCustomPrice] = useState('');
   const presetPrices = [0, 5, 10, 50];
 
@@ -33,6 +36,28 @@ export default function TicketPriceSelector({
   const handleCustomPriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newPrice = e.target.value;
     setCustomPrice(newPrice);
+  };
+
+  const roundNumber = (num: number) => {
+    return num.toFixed(2);
+  };
+
+  const priceMessage = () => {
+    const toReceive =
+      parseInt(currentTicket.price) -
+      parseFloat(keypomInstance.yoctoToNear(yoctoPerFreeKey().toString()));
+    const buyerPays = parseInt(currentTicket.price);
+
+    const toReceiveUsd = roundNumber(toReceive * (nearPrice || 1));
+    const buyerPaysUsd = roundNumber(buyerPays * (nearPrice || 1));
+
+    if (parseInt(currentTicket.price) > 0) {
+      return `You receive ${roundNumber(toReceive)} NEAR${
+        nearPrice ? ` ($${toReceiveUsd})` : ''
+      }. Buyer pays ${roundNumber(buyerPays)} NEAR${nearPrice ? ` ($${buyerPaysUsd})` : ''}.`;
+    }
+
+    return `Ticket is free`;
   };
 
   return (
@@ -102,12 +127,7 @@ export default function TicketPriceSelector({
           />
         </HStack>
         <Text color="gray.400" fontSize="xs" fontWeight="400" marginTop="-2 !important">
-          {parseInt(currentTicket.price) > 0
-            ? `You receive ${
-                parseInt(currentTicket.price) -
-                parseFloat(keypomInstance.yoctoToNear(yoctoPerFreeKey().toString()))
-              } NEAR. Buyer pays ${parseInt(currentTicket.price)} NEAR.`
-            : `Ticket is free`}
+          {priceMessage()}
         </Text>
       </VStack>
     </FormControlComponent>
