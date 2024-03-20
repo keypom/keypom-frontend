@@ -15,6 +15,9 @@ import { StripePurchaseTicketForm } from '../components/StripePurchaseTicketForm
 
 export const gas = '100000000000000';
 
+const eventId = "7983f2af-3c7f-4bbb-b4b4-420d0e239f92";
+const dropId = "1710855051884-General Admission Ticket-3"
+
 
 function generateRandomString(length: number): string {
   const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()";
@@ -46,19 +49,20 @@ const StripePurchaseTicket = () => {
         buyerAnswers: generateRandomString(512),
         ticket_info: {
           location: 'Freeterloo',
-          eventName: "Tired Boss Event",
-          ticketType: "FREE BALLERS",
+          eventName: "Cloudflare Rally",
+          ticketType: "winter warmers",
           eventDate: 'February 31 2024',
           ticketOwner: 'min-ticket-test.testnet',
-          eventId: 'beca3fed-9661-4408-b988-475e7f822ee0',
-          dropId: '1710446192034-All-Day Ticket-4',
+          eventId,
+          dropId,
+          funderId: "minqi.testnet"
         },
         purchaseEmail: "mq2lu@uwaterloo.ca",
         stripeAccountId: "acct_1OpbrxPhXWiaemzu",
         baseUrl: "http://localhost:3000"
       };
-
-      const response = await fetch('http://localhost:8787/purchase-free-tickets', {
+      
+      const response = await fetch('https://stripe-worker.kp-capstone.workers.dev/purchase-free-tickets', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -79,6 +83,48 @@ const StripePurchaseTicket = () => {
       }
 
   };
+
+  const handleEmailClick = async () => {
+    const workerPayload = {
+      name: "Min",
+      ticketAmount: 1,
+      buyerAnswers: generateRandomString(512),
+      ticket_info: {
+        location: 'Freeterloo',
+        eventName: "Anti-Cloudflare Event",
+        ticketType: "cloudflare idiots",
+        eventDate: 'February 31 2024',
+        ticketOwner: 'min-ticket-test.testnet',
+        eventId,
+        dropId,
+        funderId: "minqi.testnet"
+      },
+      purchaseEmail: "mq2lu@uwaterloo.ca",
+      stripeAccountId: "acct_1OpbrxPhXWiaemzu",
+      baseUrl: "http://localhost:3000"
+    };
+    
+    const response = await fetch('https://stripe-worker.kp-capstone.workers.dev/test-email-binding', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(workerPayload),
+    });
+    if (response.ok) {
+      // Account created successfully
+      const responseBody = await response.json();
+      console.log(responseBody)
+      const stripeCheckoutUrl = responseBody.stripe_url;
+      window.location.href = stripeCheckoutUrl;
+
+    } else {
+      // Error creating account
+      const responseBody = await response.json();
+      console.log(responseBody.error);
+    }
+
+};
 
     const handleSubmitClick = async () => {
         const workerPayload = {
@@ -146,7 +192,10 @@ const StripePurchaseTicket = () => {
           <VStack spacing={4}>
             <StripePurchaseTicketForm handleSubmitClick={handleSubmitClick} setEventName={setEventName} setStripeId={setStripeAccountId} setTicketTier={setTicketTier} setCustomerEmail={setCustomerEmail} setCustomerName={setCustomerName} />
             <Button mt="4" type="submit" onClick={handleFreeClick}>
-                Free Ticket
+                Free Ticket Test
+            </Button>
+            <Button mt="4" type="submit" onClick={handleEmailClick}>
+                Email Test
             </Button>
           </VStack>
         </Center>
