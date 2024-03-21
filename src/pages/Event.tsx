@@ -71,13 +71,19 @@ export default function Event() {
 
   useEffect(() => {
     async function fetchWallet() {
-      if (!selector) return;
+      if (selector != null && selector !== undefined) return;
       try {
         const wallet = await selector.wallet();
         setWallet(wallet);
       } catch (error) {
-        console.error('Error fetching wallet:', error);
-        // Handle the error appropriately
+        // This error happens immediately on page load so just wait for the next
+        // toast({
+        //   title: 'Wallet fetching failure',
+        //   description: `The wallet could not be fetched due to the error: ${String(error)}`,
+        //   status: 'error',
+        //   duration: 5000,
+        //   isClosable: true,
+        // });
       }
     }
 
@@ -85,7 +91,7 @@ export default function Event() {
   }, [selector]);
 
   useEffect(() => {
-    if (!keypomInstance || !eventId || !funderId) return;
+    if (keypomInstance == null || keypomInstance === undefined || !eventId || !funderId) return;
 
     getKeyInformation();
   }, [secretKey, eventId]);
@@ -96,13 +102,12 @@ export default function Event() {
   const nearRedirect = window.location.search.substring(1).trim().split('=', 2)[1];
 
   useEffect(() => {
-    if (!keypomInstance || !eventId || !funderId) return;
+    if (keypomInstance == null || keypomInstance === undefined || !eventId || !funderId) return;
 
     CheckForNearRedirect();
   }, [keypomInstance, eventId, funderId]);
 
   const formatDate = (date) => {
-    console.log('Date: ', date);
     // Create an instance of Intl.DateTimeFormat for formatting
     const formatter = new Intl.DateTimeFormat('en-US', {
       month: 'short', // Full month name.
@@ -140,7 +145,13 @@ export default function Event() {
 
       const keyinfoEventId = meta.eventId;
       if (keyinfoEventId !== eventId) {
-        console.warn('Event ID mismatch', keyinfoEventId, eventId);
+        toast({
+          title: 'Ticket does not match current event',
+          description: `This ticket is for a different event, please scan it on the correct event page`,
+          status: 'error',
+          duration: 5000,
+          isClosable: true,
+        });
       }
 
       // testing keyinfoEventId = "17f270df-fcee-4682-8b4b-673916cc65a9"
@@ -152,7 +163,7 @@ export default function Event() {
 
       const meta2 = drop; // .metadata;//EventDropMetadata = JSON.parse(drop.metadata);
       let dateString = '';
-      if (meta2.date) {
+      if (meta2.date != null && meta2.date !== undefined) {
         dateString =
           typeof meta2.date.date === 'string'
             ? meta2.date.date
@@ -199,7 +210,7 @@ export default function Event() {
   }
 
   let res = '';
-  if (event) {
+  if (event?.location !== undefined && event?.location !== null) {
     res = event.location.trim().replace(/ /g, '+');
   }
 
@@ -224,11 +235,8 @@ export default function Event() {
     const string = u8Arr.reduce((data, byte) => data + String.fromCharCode(byte), '');
     return btoa(string);
   }
-  async function encryptWithPublicKey(data: string, publicKey: any): Promise<string> {
-    console.log('Data: ', data);
-    console.log('Public Key: ', publicKey);
+  async function encryptWithPublicKey(data: string, publicKey: CryptoKey): Promise<string> {
     const encoded = new TextEncoder().encode(data);
-    console.log('Encoded: ', encoded);
     const encrypted = await window.crypto.subtle.encrypt(
       {
         name: 'RSA-OAEP',
@@ -236,7 +244,6 @@ export default function Event() {
       publicKey,
       encoded,
     );
-    console.log('Encrypted: ', encrypted);
 
     return uint8ArrayToBase64(new Uint8Array(encrypted));
   }
@@ -288,11 +295,8 @@ export default function Event() {
 
     // encrypt the questionValues
     const data = JSON.stringify({ questions: questionValues });
-    console.log('data: ', data);
 
     const encryptedValues = await encryptWithPublicKey(data, publicKey);
-
-    console.log('Encrypted Values: ', encryptedValues);
 
     let attendeeName = null;
 
@@ -320,7 +324,7 @@ export default function Event() {
     }
 
     // limit the number of characters in the email and name to 500
-    if (attendeeName && attendeeName.length > 500) {
+    if (attendeeName != null && attendeeName.length > 500) {
       attendeeName = attendeeName.substring(0, 500);
     }
     let trimmedEmail = email;
@@ -348,11 +352,9 @@ export default function Event() {
       priceNear: ticketBeingPurchased.price,
     };
 
-    console.log('workerPayload: ', workerPayload);
-
     if (purchaseType === 'free') {
       const response = await fetch(
-        'https://my-stripe-worker.zachattack98766789.workers.dev/purchase-free-tickets',
+        'https://stripe-worker.kp-capstone.workers.dev/purchase-free-tickets',
         {
           method: 'POST',
           headers: {
@@ -361,7 +363,6 @@ export default function Event() {
           body: JSON.stringify(workerPayload),
         },
       );
-      console.log('response: ', response);
       if (response.ok) {
         const responseBody = await response.json();
         TicketPurchaseSuccessful(workerPayload, responseBody);
@@ -377,8 +378,6 @@ export default function Event() {
       const nearSendPrice = keypomInstance.nearToYocto(
         (ticketAmount * ticketBeingPurchased.price).toString(),
       );
-
-      console.log('wallet: ', wallet);
 
       if (!isSecondary) {
         // primary
@@ -439,7 +438,7 @@ export default function Event() {
       }
     } else if (purchaseType === 'stripe') {
       const response = await fetch(
-        'https://my-stripe-worker.zachattack98766789.workers.dev/stripe/create-checkout-session',
+        'https://stripe-worker.kp-capstone.workers.dev/stripe/create-checkout-session',
         {
           method: 'POST',
           headers: {
@@ -448,14 +447,11 @@ export default function Event() {
           body: JSON.stringify(workerPayload),
         },
       );
-      console.log('response: ', response);
       if (response.ok) {
         // Account created successfully
         const responseBody = await response.json();
-        console.log('responseBody', responseBody);
 
         const stripeUrl = responseBody.stripe_url;
-        console.log('stripeUrl', stripeUrl);
         window.location.href = stripeUrl;
         TicketPurchaseSuccessful(workerPayload, responseBody);
       } else {
@@ -489,7 +485,7 @@ export default function Event() {
 
       // newWorkerPayload["ticketKeys"] = null;
       const response = await fetch(
-        'https://my-stripe-worker.zachattack98766789.workers.dev/send-confirmation-email',
+        'https://stripe-worker.kp-capstone.workers.dev/send-confirmation-email',
         {
           method: 'POST',
           headers: {
@@ -612,7 +608,13 @@ export default function Event() {
       // }
       sellsuccessful = true;
     } catch (error) {
-      console.error('Error selling ticket', error);
+      toast({
+        title: 'Error selling ticket',
+        description: `please try again later`,
+        status: 'error',
+        duration: 5000,
+        isClosable: true,
+      });
     }
 
     if (sellsuccessful) {
@@ -682,8 +684,7 @@ export default function Event() {
         available = String(ticket.maxTickets - ticket.soldTickets);
       }
       let dateString = '';
-      if (ticket.passValidThrough) {
-        console.log('ticket.passValidThrough: ', ticket.passValidThrough);
+      if (ticket.passValidThrough != null && ticket.passValidThrough !== undefined) {
         dateString = formatDate(
           new Date(
             typeof ticket.passValidThrough === 'string'
@@ -776,7 +777,7 @@ export default function Event() {
 
         const meta = drop; // EventDropMetadata = JSON.parse(drop.metadata);
         let dateString = '';
-        if (meta.date) {
+        if (meta.date != null && meta.date !== undefined) {
           let timeString = '';
           if (meta.date.time) {
             timeString = meta.date.time;
@@ -802,7 +803,13 @@ export default function Event() {
         });
         setIsLoading(false);
       } catch (error) {
-        console.error('Error getting event data', error);
+        toast({
+          title: 'Error loading event',
+          description: `please try again later`,
+          status: 'error',
+          duration: 5000,
+          isClosable: true,
+        });
         setNoDrop(true);
       }
     };

@@ -23,7 +23,7 @@ import keypomInstance from '@/lib/keypom';
 interface VerifyModalProps {
   isOpen: boolean;
   onClose: () => void;
-  event: any;
+  event: object;
   eventId: string;
   accountId: string;
 }
@@ -41,8 +41,7 @@ export const VerifyModal = ({ isOpen, onClose, event, eventId, accountId }: Veri
   const checkData = async (answer) => {
     // answer = answer?.trim();
 
-    if (!keypomInstance) {
-      console.error('not ready yet');
+    if (keypomInstance == null || keypomInstance === undefined) {
       toast({
         title: 'loading...',
         description: `Try again in a moment`,
@@ -83,7 +82,7 @@ export const VerifyModal = ({ isOpen, onClose, event, eventId, accountId }: Veri
 
       const meta2 = drop; // EventDropMetadata = JSON.parse(drop.drop_config.metadata);
       let dateString = '';
-      if (meta2.date) {
+      if (meta2?.date?.date != null && meta2.date.date !== undefined) {
         dateString =
           typeof meta2.date.date === 'string'
             ? meta2.date.date

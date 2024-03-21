@@ -20,16 +20,16 @@ import { TicketIncrementer } from './TicketIncrementer';
 interface PurchaseModalProps {
   isOpen: boolean;
   onClose: () => void;
-  ticket: any;
-  onSubmit: (questionValues: any, paymentMethod: string, isSecondary: bool) => void;
+  ticket: object;
+  onSubmit: (questionValues: object, paymentMethod: string, isSecondary: bool) => void;
   setEmail: (email: string) => void;
   email: string;
   setTicketAmount: (ticketAmount: number) => void;
   initialAmount: number;
-  event: any;
+  event: object;
   amount: number;
   setAmount: (amount: number) => void;
-  selector: any;
+  selector: object;
   stripeEnabledEvent: boolean;
   stripeAccountId: string;
 }
@@ -80,7 +80,7 @@ export const PurchaseModal = ({
       return newValues;
     });
 
-    if (focusedInputRef.current) {
+    if (focusedInputRef?.current != null && focusedInputRef?.current !== undefined) {
       focusedInputRef.current.focus();
     }
   };
@@ -89,7 +89,7 @@ export const PurchaseModal = ({
   // useEffect(() => {}, [questionValues]);
 
   const isError = email === '';
-  if (!ticket) return null;
+  if (ticket == null || ticket === undefined) return null;
   const availableTickets = ticket.maxTickets - ticket.soldTickets;
 
   const decrementAmount = () => {

@@ -599,9 +599,9 @@ export default function Gallery() {
               </Menu>
               <Box w="260px">
                 <Flex justifyContent="flex-end">
-                  {(!isAllDropsLoading && (
+                  {!isAllDropsLoading && (
                     <Menu>
-                      {({ isOpen }) => (
+                      {isOpen && (
                         <HStack>
                           <DropDownButton
                             isOpen={isOpen}
@@ -613,7 +613,8 @@ export default function Gallery() {
                         </HStack>
                       )}
                     </Menu>
-                  )) || (
+                  )}
+                  {isAllDropsLoading && (
                     <HStack>
                       <Skeleton></Skeleton>
                       <Button

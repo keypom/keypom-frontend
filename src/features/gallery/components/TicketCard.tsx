@@ -24,7 +24,7 @@ interface TicketCardProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: () => void;
-  event: any;
+  event: object;
   loading: boolean;
   surroundingNavLink: boolean;
 }
