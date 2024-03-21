@@ -13,6 +13,11 @@ const SUPPORTED_WALLET_OPTIONS: IWalletOption[] = [
   // support only mynearwallet for now
   // https://docs.keypom.xyz/docs/next/keypom-sdk/modules#supportedlinkdropclaimpages
   {
+    name: 'mintbasewallet',
+    title: 'Mintbase Wallet',
+    // walletName: 'My HERE',
+  },
+  {
     name: 'herewallet',
     title: 'HERE Wallet',
     // walletName: 'My HERE',
