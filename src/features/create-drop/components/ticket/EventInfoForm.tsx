@@ -32,7 +32,6 @@ export const ClearEventInfoForm = () => {
 export const EventInfoFormValidation = (formData: TicketDropFormData) => {
   const newFormData = { ...formData };
   let isErr = false;
-  return { isErr, newFormData };
   if (formData.eventName.value === '') {
     newFormData.eventName = { ...formData.eventName, error: 'Event name is required' };
     isErr = true;

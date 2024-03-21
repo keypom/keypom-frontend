@@ -274,6 +274,7 @@ const CreateTicketsForm = (props: EventStepFormProps) => {
         currentTicket={currentTicket}
         editedTicket={editedTicket}
         eventDate={formData.date.value}
+        formData={formData}
         isOpen={isModifyTicketModalOpen}
         setCurrentTicket={setCurrentTicket}
         onClose={handleModalClose}

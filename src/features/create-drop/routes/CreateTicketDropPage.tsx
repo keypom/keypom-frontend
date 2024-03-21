@@ -28,10 +28,14 @@ import {
   estimateCosts,
   serializeMediaForWorker,
 } from '../components/ticket/helpers';
+import { AcceptPaymentForm } from '../components/ticket/AcceptPaymentForm';
 
 interface TicketStep {
   title: string;
+  description: string;
   name: string;
+  skippable: boolean;
+  canClearDetails: boolean;
   component: (props: EventStepFormProps) => ReactElement;
 }
 
@@ -45,9 +49,16 @@ export interface EventDate {
 export interface EventStepFormProps {
   formData: TicketDropFormData;
   setFormData: (data: TicketDropFormData) => void;
+  accountId: string | null | undefined;
 }
 
 export interface TicketDropFormData {
+  // Step 0
+  stripeAccountId?: string;
+  acceptStripePayments: boolean;
+  acceptNearPayments: boolean;
+  nearPrice?: number;
+
   // Step 1
   eventName: { value: string; error?: string };
   eventDescription: { value: string; error?: string };
@@ -82,23 +93,43 @@ const breadcrumbs: IBreadcrumbItem[] = [
 
 const formSteps: TicketStep[] = [
   {
+    name: 'stripePayments',
+    title: 'Payments',
+    description: 'Allow attendees to purchase with credit cards',
+    skippable: true,
+    canClearDetails: false,
+    component: (props: EventStepFormProps) => <AcceptPaymentForm {...props} />,
+  },
+  {
     name: 'eventInfo',
     title: 'Event info',
+    description: 'Enter the details for your new event',
+    canClearDetails: true,
+    skippable: false,
     component: (props: EventStepFormProps) => <EventInfoForm {...props} />,
   },
   {
     name: 'collectInfo',
-    title: 'Collect info',
+    title: 'Attendee info',
+    description: 'Collect information from attendees (optional)',
+    canClearDetails: true,
+    skippable: true,
     component: (props: EventStepFormProps) => <CollectInfoForm {...props} />,
   },
   {
     name: 'tickets',
     title: 'Tickets',
+    description: 'Create tickets for your event',
+    canClearDetails: true,
+    skippable: false,
     component: (props: EventStepFormProps) => <CreateTicketsForm {...props} />,
   },
   {
     name: 'review',
     title: 'Review',
+    description: 'Review the details of your event',
+    canClearDetails: false,
+    skippable: false,
     component: (props: EventStepFormProps) => <ReviewEventForm {...props} />,
   },
 ];
@@ -172,6 +203,11 @@ const formSteps: TicketStep[] = [
 // };
 
 const placeholderData: TicketDropFormData = {
+  // Step 0
+  nearPrice: undefined,
+  stripeAccountId: undefined,
+  acceptStripePayments: false,
+  acceptNearPayments: true,
   // Step 1
   eventName: { value: '' },
   eventArtwork: { value: undefined },
@@ -300,11 +336,12 @@ export default function NewTicketDrop() {
   };
 
   const nextStep = async () => {
-    if (currentStep === 3) {
+    if (currentStep === 4) {
       payAndCreateEvent();
+      return;
     }
 
-    if (currentStep === 2) {
+    if (currentStep === 3) {
       const curMasterKey = get('MASTER_KEY');
       if (curMasterKey) {
         setIsSettingKey(true);
@@ -318,16 +355,17 @@ export default function NewTicketDrop() {
       } else {
         setIsModalOpen(true);
       }
-    } else {
-      let isErr = false;
-      if (currentStep === 0) {
-        const { isErr: eventInfoErr, newFormData } = EventInfoFormValidation(formData);
-        isErr = eventInfoErr;
-        setFormData(newFormData);
-      }
-      if (!isErr) {
-        setCurrentStep((prevStep) => (prevStep < formSteps.length - 1 ? prevStep + 1 : prevStep));
-      }
+      return;
+    }
+
+    let isErr = false;
+    if (currentStep === 1) {
+      const { isErr: eventInfoErr, newFormData } = EventInfoFormValidation(formData);
+      isErr = eventInfoErr;
+      setFormData(newFormData);
+    }
+    if (!isErr) {
+      setCurrentStep((prevStep) => (prevStep < formSteps.length - 1 ? prevStep + 1 : prevStep));
     }
   };
 
@@ -335,7 +373,11 @@ export default function NewTicketDrop() {
     setCurrentStep((prevStep) => (prevStep > 0 ? prevStep - 1 : prevStep));
   };
 
-  const CurrentStepComponent = formSteps[currentStep].component({ formData, setFormData });
+  const CurrentStepComponent = formSteps[currentStep].component({
+    formData,
+    setFormData,
+    accountId,
+  });
   return (
     <>
       <KeypomPasswordPromptModal
@@ -345,7 +387,7 @@ export default function NewTicketDrop() {
       />
       <CreateTicketDropLayout
         breadcrumbs={breadcrumbs}
-        description="Enter the details for your new event"
+        description={formSteps[currentStep].description}
       >
         <IconBox
           icon={<LinkIcon h={{ base: '7', md: '9' }} />}
@@ -381,18 +423,24 @@ export default function NewTicketDrop() {
             >
               Back
             </Button>
-            <Button fontSize={{ base: 'sm', md: 'base' }} variant="ghost" onClick={handleClearForm}>
-              Clear all details
-            </Button>
+            {formSteps[currentStep].canClearDetails && (
+              <Button
+                fontSize={{ base: 'sm', md: 'base' }}
+                variant="ghost"
+                onClick={handleClearForm}
+              >
+                Clear all details
+              </Button>
+            )}
           </HStack>
           <HStack>
-            {currentStep === 1 && (
+            {formSteps[currentStep].skippable && (
               <Button
                 fontSize={{ base: 'sm', md: 'base' }}
                 variant="secondary"
                 onClick={() => {
                   setFormData((prev) => ({ ...prev, questions: [] }));
-                  setCurrentStep(2);
+                  setCurrentStep((prev) => prev + 1);
                 }}
               >
                 Skip
@@ -400,7 +448,7 @@ export default function NewTicketDrop() {
             )}
             <Button
               fontSize={{ base: 'sm', md: 'base' }}
-              isDisabled={currentStep === 2 ? formData.tickets.length < 1 : false}
+              isDisabled={currentStep === 3 ? formData.tickets.length < 1 : false}
               isLoading={isSettingKey}
               onClick={nextStep}
             >

@@ -4,23 +4,24 @@ import { useState } from 'react';
 import keypomInstance from '@/lib/keypom';
 import { FormControlComponent } from '@/components/FormControl';
 import { yoctoPerFreeKey } from '@/lib/eventsHelpers';
-import { useAppContext } from '@/contexts/AppContext';
+
+import { type TicketDropFormData } from '../../routes/CreateTicketDropPage';
 
 import { type TicketInfoFormMetadata } from './CreateTicketsForm';
 
 interface TicketPriceSelectorProps {
+  formData: TicketDropFormData;
   errors: Record<string, string>;
   currentTicket: TicketInfoFormMetadata;
   setCurrentTicket: (ticket: TicketInfoFormMetadata) => void;
 }
 
 export default function TicketPriceSelector({
+  formData,
   errors,
   currentTicket,
   setCurrentTicket,
 }: TicketPriceSelectorProps) {
-  const { nearPrice } = useAppContext();
-  console.log('nearPrice:', nearPrice);
   const [customPrice, setCustomPrice] = useState('');
   const presetPrices = [0, 5, 10, 50];
 
@@ -48,13 +49,15 @@ export default function TicketPriceSelector({
       parseFloat(keypomInstance.yoctoToNear(yoctoPerFreeKey().toString()));
     const buyerPays = parseInt(currentTicket.price);
 
-    const toReceiveUsd = roundNumber(toReceive * (nearPrice || 1));
-    const buyerPaysUsd = roundNumber(buyerPays * (nearPrice || 1));
+    const toReceiveUsd = roundNumber(toReceive * (formData.nearPrice || 1));
+    const buyerPaysUsd = roundNumber(buyerPays * (formData.nearPrice || 1));
 
     if (parseInt(currentTicket.price) > 0) {
       return `You receive ${roundNumber(toReceive)} NEAR${
-        nearPrice ? ` ($${toReceiveUsd})` : ''
-      }. Buyer pays ${roundNumber(buyerPays)} NEAR${nearPrice ? ` ($${buyerPaysUsd})` : ''}.`;
+        formData.nearPrice ? ` ($${toReceiveUsd})` : ''
+      }. Buyer pays ${roundNumber(buyerPays)} NEAR${
+        formData.nearPrice ? ` ($${buyerPaysUsd})` : ''
+      }.`;
     }
 
     return `Ticket is free`;

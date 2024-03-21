@@ -21,7 +21,6 @@ import { type ColumnItem } from '@/components/Table/types';
 import { DeleteIcon } from '@/components/Icons';
 import { DataTable } from '@/components/Table';
 import { truncateAddress } from '@/utils/truncateAddress';
-import { useAppContext } from '@/contexts/AppContext';
 
 import { type EventStepFormProps } from '../../routes/CreateTicketDropPage';
 
@@ -64,7 +63,6 @@ const columns: ColumnItem[] = [
 
 const ReviewEventForm = (props: EventStepFormProps) => {
   const { formData, setFormData } = props;
-  const { nearPrice } = useAppContext();
   const [isPreviewTicketModalOpen, setIsPreviewTicketModalOpen] = useState(false);
   const [currentTicket, setCurrentTicket] = useState<TicketInfoFormMetadata>();
 
@@ -290,11 +288,11 @@ const ReviewEventForm = (props: EventStepFormProps) => {
                   <Text fontWeight="bold">
                     {`${keypomInstance.yoctoToNear(formData.costBreakdown.total)} NEAR`}
                   </Text>
-                  {nearPrice && (
+                  {formData.nearPrice && (
                     <Text fontWeight="normal">
                       {`($${(
                         parseFloat(keypomInstance.yoctoToNear(formData.costBreakdown.total)) *
-                        nearPrice
+                        formData.nearPrice
                       ).toFixed(2)})`}
                     </Text>
                   )}
