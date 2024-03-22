@@ -26,12 +26,12 @@ export default function TicketPriceSelector({
   const presetPrices = [0, 5, 10, 50];
 
   const handleCustomPriceSubmit = () => {
-    setCurrentTicket({ ...currentTicket, price: customPrice });
+    setCurrentTicket({ ...currentTicket, priceNear: customPrice });
   };
 
   const handlePresetPriceClick = (price: number) => {
     setCustomPrice('');
-    setCurrentTicket({ ...currentTicket, price: String(price) });
+    setCurrentTicket({ ...currentTicket, priceNear: String(price) });
   };
 
   const handleCustomPriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -45,14 +45,14 @@ export default function TicketPriceSelector({
 
   const priceMessage = () => {
     const toReceive =
-      parseInt(currentTicket.price) -
+      parseInt(currentTicket.priceNear) -
       parseFloat(keypomInstance.yoctoToNear(yoctoPerFreeKey().toString()));
-    const buyerPays = parseInt(currentTicket.price);
+    const buyerPays = parseInt(currentTicket.priceNear);
 
     const toReceiveUsd = roundNumber(toReceive * (formData.nearPrice || 1));
     const buyerPaysUsd = roundNumber(buyerPays * (formData.nearPrice || 1));
 
-    if (parseInt(currentTicket.price) > 0) {
+    if (parseInt(currentTicket.priceNear) > 0) {
       return `You receive ${roundNumber(toReceive)} NEAR${
         formData.nearPrice ? ` ($${toReceiveUsd})` : ''
       }. Buyer pays ${roundNumber(buyerPays)} NEAR${
@@ -79,14 +79,14 @@ export default function TicketPriceSelector({
                 alignItems="center"
                 border="2px solid transparent"
                 borderRadius="5xl"
-                color={currentTicket.price === String(price) ? 'blue.500' : 'gray.500'}
+                color={currentTicket.priceNear === String(price) ? 'blue.500' : 'gray.500'}
                 display="flex"
                 fontSize="sm"
                 height="30px"
                 justifyContent="center"
                 sx={{
                   bg:
-                    currentTicket.price === String(price)
+                    currentTicket.priceNear === String(price)
                       ? 'linear-gradient(to bottom, var(--chakra-colors-blue-100), var(--chakra-colors-blue-100)) padding-box, linear-gradient(0deg, rgba(255,207,234,1) 0%, rgba(182,232,247,1) 100%) border-box'
                       : 'gray.100', // Selected item background
                   cursor: 'pointer',
@@ -111,13 +111,13 @@ export default function TicketPriceSelector({
             }}
             border="2px solid transparent"
             borderRadius="5xl"
-            color={presetPrices.includes(Number(currentTicket.price)) ? 'gray.500' : 'blue.500'}
+            color={presetPrices.includes(Number(currentTicket.priceNear)) ? 'gray.500' : 'blue.500'}
             height="30px"
             id="customPriceInput"
             placeholder="Custom"
             size="sm"
             sx={{
-              bg: !presetPrices.includes(Number(currentTicket.price))
+              bg: !presetPrices.includes(Number(currentTicket.priceNear))
                 ? 'linear-gradient(to bottom, var(--chakra-colors-blue-100), var(--chakra-colors-blue-100)) padding-box, linear-gradient(0deg, rgba(255,207,234,1) 0%, rgba(182,232,247,1) 100%) border-box'
                 : 'gray.100', // Selected item background
             }}

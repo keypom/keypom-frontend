@@ -128,7 +128,7 @@ export const ModifyTicketModal = ({
       isErr = true;
     }
 
-    if (!isValidNonNegativeNumber(currentTicket.price)) {
+    if (!isValidNonNegativeNumber(currentTicket.priceNear)) {
       newErrors.price = 'Price is required';
       isErr = true;
     }

@@ -81,7 +81,7 @@ const ReviewEventForm = (props: EventStepFormProps) => {
 
     return data.map((item: TicketInfoFormMetadata) => ({
       id: item.name,
-      price: item.price === '0' ? 'Free' : item.price,
+      price: item.priceNear === '0' ? 'Free' : item.priceNear,
       numTickets: item.maxSupply,
       name: (
         <>

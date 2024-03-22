@@ -155,7 +155,7 @@ export const estimateCosts = async ({
 
     ticket_information[`${dropId}`] = {
       max_tickets: ticket.maxSupply,
-      price: parseNearAmount(ticket.price)!.toString(),
+      price: parseNearAmount(ticket.priceNear)!.toString(),
       sale_start: ticket.salesValidThrough.startDate
         ? ticket.salesValidThrough.startDate.getTime()
         : undefined,
@@ -202,13 +202,14 @@ export const createPayload = async ({
   formData,
   eventArtworkCid,
   ticketArtworkCids,
+  eventId,
 }: {
   accountId: string;
   formData: TicketDropFormData;
   eventArtworkCid: string;
   ticketArtworkCids: string[];
-}): Promise<Action[]> => {
-  const eventId = Date.now().toString();
+  eventId: string;
+}): Promise<{ actions: Action[]; dropIds: string[] }> => {
   const masterKey = get('MASTER_KEY');
 
   const funderInfo = await keypomInstance.viewCall({
@@ -285,7 +286,7 @@ export const createPayload = async ({
 
     const ticketExtra: TicketMetadataExtra = {
       dateCreated: Date.now().toString(),
-      price: parseNearAmount(ticket.price)!.toString(),
+      price: parseNearAmount(ticket.priceNear)!.toString(),
       salesValidThrough: salesValidThroughTime,
       passValidThrough: passValidThroughTime,
       maxSupply: ticket.maxSupply,
@@ -301,7 +302,7 @@ export const createPayload = async ({
 
     ticket_information[`${dropId}`] = {
       max_tickets: ticket.maxSupply,
-      price: parseNearAmount(ticket.price)!.toString(),
+      price: parseNearAmount(ticket.priceNear)!.toString(),
       sale_start: ticket.salesValidThrough.startDate
         ? ticket.salesValidThrough.startDate.getTime()
         : undefined,
@@ -364,5 +365,5 @@ export const createPayload = async ({
     },
   ];
 
-  return actions;
+  return { actions, dropIds: drop_ids };
 };

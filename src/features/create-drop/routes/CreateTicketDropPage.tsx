@@ -319,12 +319,35 @@ export default function NewTicketDrop() {
         ticketArtworkCids.push(cids[i + 1]);
       }
 
-      const actions: Action[] = await createPayload({
+      const eventId = Date.now().toString();
+      const { actions, dropIds }: { actions: Action[]; dropIds: string[] } = await createPayload({
         accountId: accountId!,
         formData,
+        eventId,
         eventArtworkCid,
         ticketArtworkCids,
       });
+
+      // Store event name, stripe account ID, event ID, object mapping ticket drop ID to USD cents
+      // ONLY if the user has accepted stripe payments
+      if (formData.acceptStripePayments && formData.stripeAccountId) {
+        const stripeAccountId = formData.stripeAccountId;
+
+        const priceByDropId = {};
+        for (let i = 0; i < formData.tickets.length; i++) {
+          const ticketDropId = dropIds[i];
+          const priceCents = Math.round(
+            parseFloat(formData.tickets[i].priceNear) * formData.nearPrice! * 100,
+          );
+          priceByDropId[ticketDropId] = priceCents;
+        }
+        const stripeAccountInfo = {
+          stripeAccountId,
+          eventId,
+          priceByDropId,
+        };
+        localStorage.setItem('STRIPE_ACCOUNT_INFO', JSON.stringify(stripeAccountInfo));
+      }
 
       await wallet.signAndSendTransaction({
         signerId: accountId!,
