@@ -1,14 +1,19 @@
-import { Button, HStack } from '@chakra-ui/react';
+import { Button, HStack, useToast } from '@chakra-ui/react';
 import { type ReactElement, useState, useEffect } from 'react';
 import { type Action, type Wallet } from '@near-wallet-selector/core';
 
+import keypomInstance from '@/lib/keypom';
 import { get } from '@/utils/localStorage';
 import { type IBreadcrumbItem } from '@/components/Breadcrumbs';
 import { IconBox } from '@/components/IconBox';
 import { LinkIcon } from '@/components/Icons';
 import { Step } from '@/components/Step';
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
-import { EVENTS_WORKER_BASE, KEYPOM_EVENTS_CONTRACT } from '@/constants/common';
+import {
+  EVENTS_WORKER_BASE,
+  KEYPOM_EVENTS_CONTRACT,
+  KEYPOM_MARKETPLACE_CONTRACT,
+} from '@/constants/common';
 
 import { CreateTicketDropLayout } from '../components/CreateTicketDropLayout';
 import { CollectInfoForm } from '../components/ticket/CollectInfoForm';
@@ -29,6 +34,7 @@ import {
   serializeMediaForWorker,
 } from '../components/ticket/helpers';
 import { AcceptPaymentForm } from '../components/ticket/AcceptPaymentForm';
+import { EventCreationStatusModal } from '../components/ticket/EventCreationStatusModal';
 
 interface TicketStep {
   title: string;
@@ -240,10 +246,18 @@ const placeholderData: TicketDropFormData = {
 export default function NewTicketDrop() {
   const [currentStep, setCurrentStep] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const [eventCreationSuccess, setEventCreationSuccess] = useState<boolean | undefined>();
+  const [prevEventData, setPrevEventData] = useState<
+    | { priceByDropId?: Record<string, number>; eventId: string; stripeAccountId?: string }
+    | undefined
+  >();
+
   const [isSettingKey, setIsSettingKey] = useState(false);
   const [formData, setFormData] = useState<TicketDropFormData>(placeholderData);
   const { selector, accountId } = useAuthWalletContext();
   const [wallet, setWallet] = useState<Wallet>();
+  const toast = useToast();
 
   useEffect(() => {
     async function fetchWallet() {
@@ -259,6 +273,32 @@ export default function NewTicketDrop() {
 
     fetchWallet();
   }, [selector]);
+
+  useEffect(() => {
+    async function checkForEventCreation() {
+      const eventData = localStorage.getItem('EVENT_INFO_SUCCESS_DATA');
+
+      if (eventData) {
+        const { eventId, stripeAccountId, priceByDropId } = JSON.parse(eventData);
+        setPrevEventData({ priceByDropId, eventId, stripeAccountId });
+
+        try {
+          await keypomInstance.viewCall({
+            contractId: KEYPOM_MARKETPLACE_CONTRACT,
+            methodName: 'get_event_information',
+            args: { event_id: eventId },
+          });
+          setEventCreationSuccess(true);
+        } catch (e) {
+          setEventCreationSuccess(false);
+        }
+
+        localStorage.removeItem('EVENT_INFO_SUCCESS_DATA');
+      }
+    }
+
+    checkForEventCreation();
+  }, []);
 
   const handleClearForm = () => {
     switch (currentStep) {
@@ -346,13 +386,23 @@ export default function NewTicketDrop() {
           eventId,
           priceByDropId,
         };
-        localStorage.setItem('STRIPE_ACCOUNT_INFO', JSON.stringify(stripeAccountInfo));
+        localStorage.setItem('EVENT_INFO_SUCCESS_DATA', JSON.stringify(stripeAccountInfo));
+      } else {
+        localStorage.setItem('EVENT_INFO_SUCCESS_DATA', JSON.stringify({ eventId }));
       }
 
       await wallet.signAndSendTransaction({
         signerId: accountId!,
         receiverId: KEYPOM_EVENTS_CONTRACT,
         actions,
+      });
+    } else {
+      toast({
+        title: 'Unable to upload event images',
+        description: `Please try again later. If the error persists, contact support.`,
+        status: 'error',
+        duration: 5000,
+        isClosable: true,
       });
     }
     setIsSettingKey(false);
@@ -407,6 +457,14 @@ export default function NewTicketDrop() {
         isOpen={isModalOpen}
         isSetting={isSettingKey}
         onModalClose={handleModalClose}
+      />
+      <EventCreationStatusModal
+        isOpen={eventCreationSuccess !== undefined}
+        isSuccess={eventCreationSuccess === true}
+        prevEventData={prevEventData}
+        setIsOpen={() => {
+          setEventCreationSuccess(undefined);
+        }}
       />
       <CreateTicketDropLayout
         breadcrumbs={breadcrumbs}

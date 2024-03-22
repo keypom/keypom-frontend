@@ -18,7 +18,7 @@ const STRIPE_PURCHASE_IMAGE = purchaseWithStripe.href.replace(purchaseWithStripe
 const contentItem = (title: string, subtitle: string) => {
   return (
     <VStack align="start" marginTop="1" spacing="0">
-      <Heading color="gray.800" fontFamily="body" fontSize="md" fontWeight="700" textAlign="left">
+      <Heading color="gray.700" fontFamily="body" fontSize="md" fontWeight="700" textAlign="left">
         {title}
       </Heading>
       <Heading color="gray.500" fontFamily="body" fontSize="md" fontWeight="400" textAlign="left">
@@ -129,13 +129,7 @@ const AcceptPaymentForm = (props: EventStepFormProps) => {
   return (
     <HStack align="start" justify="space-between" marginTop="10">
       <VStack align="start" alignItems="start">
-        <Heading
-          color="gray.800"
-          fontFamily="body"
-          fontSize="2xl"
-          fontWeight="700"
-          textAlign="left"
-        >
+        <Heading color="gray.800" fontSize="3xl" fontWeight="700" textAlign="left">
           Enable Stripe Checkout
         </Heading>
         <Heading
@@ -219,13 +213,7 @@ const AcceptPaymentForm = (props: EventStepFormProps) => {
         )}
 
         <Divider bgColor="gray.300" height="3px" my="3" />
-        <Heading
-          color="gray.800"
-          fontFamily="body"
-          fontSize="2xl"
-          fontWeight="700"
-          textAlign="left"
-        >
+        <Heading color="gray.800" fontSize="3xl" fontWeight="700" marginTop="5" textAlign="left">
           Enable $NEAR Checkout
         </Heading>
         <Heading
@@ -236,13 +224,9 @@ const AcceptPaymentForm = (props: EventStepFormProps) => {
           fontWeight="400"
           textAlign="left"
         >
-          Allow attendees to purchase tickets with $NEAR. Attendees will need a NEAR wallet.
+          Allow attendees to purchase tickets with $NEAR. The funds will go directly into your
+          wallet.
         </Heading>
-
-        {contentItem(
-          'Receive $NEAR',
-          'Any earnings will be deposited directly into your NEAR wallet.',
-        )}
 
         <HStack justify="space-between" paddingTop="4" spacing="auto" width="100%">
           <Heading
