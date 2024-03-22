@@ -145,8 +145,10 @@ const EventInfoForm = (props: EventStepFormProps) => {
     setDatePreviewText(datePreviewText);
   }, [formData.date]);
 
+  const margins = '2 !important';
+
   const datePickerCTA = (
-    <FormControlComponent errorText={formData.date.error} label="Date*">
+    <FormControlComponent errorText={formData.date.error} label="Date*" my={margins}>
       <Input
         readOnly
         isInvalid={!!formData.date.error}
@@ -173,12 +175,8 @@ const EventInfoForm = (props: EventStepFormProps) => {
 
   return (
     <HStack align="top" justifyContent="space-between">
-      <VStack spacing="4" w="100%">
-        <FormControlComponent
-          errorText={formData.eventName.error}
-          label="Event name*"
-          marginBottom="0"
-        >
+      <VStack spacing="0" w="100%">
+        <FormControlComponent errorText={formData.eventName.error} label="Event name*" my={margins}>
           <Input
             isInvalid={!!formData.eventName.error}
             maxLength={500}
@@ -198,6 +196,7 @@ const EventInfoForm = (props: EventStepFormProps) => {
         <FormControlComponent
           errorText={formData.eventDescription.error}
           label="Event description*"
+          my={margins}
         >
           <Input
             isInvalid={!!formData.eventDescription.error}
@@ -215,7 +214,11 @@ const EventInfoForm = (props: EventStepFormProps) => {
             }}
           />
         </FormControlComponent>
-        <FormControlComponent errorText={formData.eventLocation.error} label="Event location*">
+        <FormControlComponent
+          errorText={formData.eventLocation.error}
+          label="Event location*"
+          my={margins}
+        >
           <Input
             isInvalid={!!formData.eventLocation.error}
             maxLength={500}
@@ -279,7 +282,11 @@ const EventInfoForm = (props: EventStepFormProps) => {
             }}
           />
         </Hide>
-        <FormControlComponent helperText="Customize your event page" label="Event artwork">
+        <FormControlComponent
+          helperText="Customize your event page"
+          label="Event artwork"
+          my={margins}
+        >
           <ImageFileInput
             accept=" image/jpeg, image/png, image/gif"
             errorMessage={formData.eventArtwork.error}

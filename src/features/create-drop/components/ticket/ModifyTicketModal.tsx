@@ -10,7 +10,7 @@ import {
   VStack,
 } from '@chakra-ui/react';
 import { useEffect, useRef, useState } from 'react';
-import { parse, isAfter } from 'date-fns';
+import { DateTime } from 'luxon';
 
 import { FormControlComponent } from '@/components/FormControl';
 import CustomDateRangePicker from '@/components/DateRangePicker/DateRangePicker';
@@ -37,12 +37,6 @@ export const isValidNonNegativeNumber = (value) => {
   return /^\d*\.?\d+$/.test(value);
 };
 
-// Helper function to parse time strings
-const parseTime = (timeString) => {
-  // Assuming timeString is in format "XX:XX AM" or "XX:XX PM"
-  return parse(timeString, 'hh:mm aa', new Date());
-};
-
 interface ModifyTicketModalProps {
   isOpen: boolean;
   onClose: (shouldAdd: boolean, editedTicket?: TicketInfoFormMetadata) => void;
@@ -52,6 +46,13 @@ interface ModifyTicketModalProps {
   setCurrentTicket: (ticket: TicketInfoFormMetadata) => void;
   editedTicket?: TicketInfoFormMetadata;
 }
+
+// Function to parse a time string and return a Luxon DateTime object
+const parseTime = (timeString) => {
+  // Assuming your time string format is "HH:mm" (e.g., "14:00" for 2:00 PM)
+  // Adjust the format as necessary to match your input format
+  return DateTime.fromFormat(timeString, 'H:mm');
+};
 
 export const ModifyTicketModal = ({
   isOpen,
@@ -102,9 +103,8 @@ export const ModifyTicketModal = ({
     if (currentTicket.salesValidThrough.endTime && currentTicket.salesValidThrough.startTime) {
       const startTime = parseTime(currentTicket.salesValidThrough.startTime);
       const endTime = parseTime(currentTicket.salesValidThrough.endTime);
-      console.log('startTime', startTime, 'endTime', endTime);
 
-      if (!isAfter(endTime, startTime)) {
+      if (endTime <= startTime) {
         newErrors.salesValidThrough = 'End time must be greater than start time';
         isErr = true;
       }
@@ -114,8 +114,9 @@ export const ModifyTicketModal = ({
       const startTime = parseTime(currentTicket.passValidThrough.startTime);
       const endTime = parseTime(currentTicket.passValidThrough.endTime);
 
-      if (!isAfter(endTime, startTime)) {
-        newErrors.salesValidThrough = 'End time must be greater than start time';
+      // Use Luxon's isAfter method to compare times
+      if (endTime <= startTime) {
+        newErrors.passValidThrough = 'End time must be greater than start time';
         isErr = true;
       }
     }
@@ -144,12 +145,14 @@ export const ModifyTicketModal = ({
     }
   };
 
+  const margins = '2';
+
   const datePickerCTA = (label: string, errorField: string, dateObject: EventDate, onClick) => (
     <FormControlComponent
       errorText={errorField}
       label={label}
       labelProps={{ fontSize: { base: 'xs', md: 'sm' } }}
-      marginBottom="4 !important"
+      marginY={margins}
     >
       <Input
         readOnly
@@ -260,7 +263,7 @@ export const ModifyTicketModal = ({
             errorText={errors.name}
             label="Ticket name*"
             labelProps={{ fontSize: { base: 'xs', md: 'sm' } }}
-            marginBottom="4"
+            marginY={margins}
           >
             <Input
               borderRadius="5xl"
@@ -287,7 +290,7 @@ export const ModifyTicketModal = ({
             errorText={errors.description}
             label="Description*"
             labelProps={{ fontSize: { base: 'xs', md: 'sm' } }}
-            marginBottom="4 !important"
+            marginY={margins}
           >
             <Textarea
               borderRadius="5xl"
@@ -440,7 +443,7 @@ export const ModifyTicketModal = ({
             helperTextProps={{ fontSize: { base: 'xs', md: 'xs' }, marginY: '-1' }}
             label="Number of tickets*"
             labelProps={{ fontSize: { base: 'xs', md: 'sm' } }}
-            marginBottom="4 !important"
+            marginY={margins}
           >
             <Input
               ref={inputRef}
@@ -477,7 +480,7 @@ export const ModifyTicketModal = ({
           <FormControlComponent
             label="Ticket artwork*"
             labelProps={{ fontSize: { base: 'xs', md: 'sm' } }}
-            marginBottom="4 !important"
+            marginY={margins}
           >
             <ImageFileInput
               accept=" image/jpeg, image/png, image/gif"
