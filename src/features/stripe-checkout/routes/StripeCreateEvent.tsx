@@ -18,14 +18,14 @@ export const gas = '100000000000000';
 
 const StripeUtilityTest = () => {
     // Some of these should be enums
-    const [eventName, setEventName] = useState('Tired Tired Farty Party');
+    const [eventName, setEventName] = useState('Fart Party');
     const [stripeAccountId, setStripeAccountId] = useState('acct_1OpbrxPhXWiaemzu');
-    const [ticketTiers, setTicketTiers] = useState([
-      ["1710861497807-Ground Ticket-3", 4000],
-      ["1710861497807-Backstage Ticket-2", 30000], 
-      ["1710861497807-General Admission Ticket-4", 10000],  
-    ]);
-    const [eventId, setEventId] = useState('f350b9cf-84f8-4540-90c3-56bf43d2b3f5')
+    const [ticketTiers, setTicketTiers] = useState({
+      "1710491242702-VIP Ticket-4": 4000,
+      "1710491242702-General Admission Ticket-6": 1000, 
+      "1710491242702-Platinum Ticket-5": 10000,  
+    });
+    const [eventId, setEventId] = useState('4bd8f695-2a6c-4c8d-9a0d-3cfe1f7db50f')
     
     const { isLoggedIn } = useAuthWalletContext();
 
@@ -34,7 +34,7 @@ const StripeUtilityTest = () => {
         // Wallet is connected, check if account already exists, if not then create account for them
 
         // make a fetch request to localhost:8787 to create a new account
-        const response = await fetch('https://my-stripe-worker.zachattack98766789.workers.dev/stripe/create-event', {
+        const response = await fetch('http://localhost:8787/stripe/create-event', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -43,7 +43,7 @@ const StripeUtilityTest = () => {
             stripeAccountId,
             eventName,
             eventId,
-            dropIDsAndPrices: ticketTiers
+            priceByDropId: ticketTiers
           }),
         });
         if (response.ok) {

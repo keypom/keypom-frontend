@@ -15,8 +15,12 @@ import { StripePurchaseTicketForm } from '../components/StripePurchaseTicketForm
 
 export const gas = '100000000000000';
 
-const eventId = "7983f2af-3c7f-4bbb-b4b4-420d0e239f92";
-const dropId = "1710855051884-General Admission Ticket-3"
+const freeEventId = "7983f2af-3c7f-4bbb-b4b4-420d0e239f92";
+const freeDropId = "1710855051884-General Admission Ticket-3"
+
+const stripeEventId = "4bd8f695-2a6c-4c8d-9a0d-3cfe1f7db50f";
+const stripeDropId = "1710491242702-Platinum Ticket-5";
+
 
 
 function generateRandomString(length: number): string {
@@ -53,8 +57,8 @@ const StripePurchaseTicket = () => {
           ticketType: "winter warmers",
           eventDate: 'February 31 2024',
           ticketOwner: 'min-ticket-test.testnet',
-          eventId,
-          dropId,
+          eventId: freeEventId,
+          dropId: freeDropId,
           funderId: "minqi.testnet"
         },
         purchaseEmail: "mq2lu@uwaterloo.ca",
@@ -62,7 +66,7 @@ const StripePurchaseTicket = () => {
         baseUrl: "http://localhost:3000"
       };
       
-      const response = await fetch('https://stripe-worker.kp-capstone.workers.dev/purchase-free-tickets', {
+      const response = await fetch('http://localhost:8787/purchase-free-tickets', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -84,6 +88,16 @@ const StripePurchaseTicket = () => {
 
   };
 
+  const handleTestClick = async () => {
+    await fetch ('http://localhost:8787/test-price', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-KEY': 'abc'
+      },
+    })
+  }
+
   const handleEmailClick = async () => {
     const workerPayload = {
       name: "Min",
@@ -95,8 +109,8 @@ const StripePurchaseTicket = () => {
         ticketType: "cloudflare idiots",
         eventDate: 'February 31 2024',
         ticketOwner: 'min-ticket-test.testnet',
-        eventId,
-        dropId,
+        eventId: freeEventId,
+        dropId: freeDropId,
         funderId: "minqi.testnet"
       },
       purchaseEmail: "mq2lu@uwaterloo.ca",
@@ -137,8 +151,9 @@ const StripePurchaseTicket = () => {
             ticketType: "VIP",
             eventDate: 'February 31 2024',
             ticketOwner: 'min-ticket-test.testnet',
-            eventId: '7b366e75-35fc-46c7-9deb-6024b36b31d7',
-            dropId: '1710464229453-Platinum Ticket-4',
+            eventId: stripeEventId,
+            dropId: stripeDropId,
+            funderId: "minqi.testnet"
           },
           purchaseEmail: "mq2lu@uwaterloo.ca",
           stripeAccountId: "acct_1OpbrxPhXWiaemzu",
@@ -191,6 +206,9 @@ const StripePurchaseTicket = () => {
         <Center height="100vh">
           <VStack spacing={4}>
             <StripePurchaseTicketForm handleSubmitClick={handleSubmitClick} setEventName={setEventName} setStripeId={setStripeAccountId} setTicketTier={setTicketTier} setCustomerEmail={setCustomerEmail} setCustomerName={setCustomerName} />
+            <Button mt="4" type="submit" onClick={handleTestClick}>
+                Test
+            </Button>
             <Button mt="4" type="submit" onClick={handleFreeClick}>
                 Free Ticket Test
             </Button>

@@ -27,7 +27,7 @@ const StripeConnectPage = () => {
     const [encodedData, setEncodedData] = useState('');
     const [isLikelyBot, setIsLikelyBot] = useState(null);
     
-    const { isLoggedIn } = useAuthWalletContext();
+    const { isLoggedIn, accounts } = useAuthWalletContext();
 
     const handleSubmitClick = async () => {
         console.log("logged in")
@@ -40,11 +40,7 @@ const StripeConnectPage = () => {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            firstName,
-            lastName,
-            email,
-            country,
-            companyType,
+            accountId: accounts[0].accountId
           }),
         });
         if (response.ok) {
