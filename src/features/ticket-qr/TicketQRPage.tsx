@@ -21,6 +21,9 @@ export default function TicketQRPage() {
   const [eventImage, setEventImage] = useState('');
   const [eventName, setEventName] = useState('');
 
+  const [eventId, setEventId] = useState('');
+  const [funderId, setFunderId] = useState('');
+
   useEffect(() => {
     const getEventInfo = async () => {
       try {
@@ -40,6 +43,8 @@ export default function TicketQRPage() {
           accountId: drop.funder_id,
           eventId: ticketMetadata.eventId,
         });
+        setEventId(ticketMetadata.eventId);
+        setFunderId(drop.funder_id);
         setTicketName(ticketMetadata.name);
         setEventImage(eventInfo.artwork);
         setEventName(eventInfo.name);
@@ -87,7 +92,13 @@ export default function TicketQRPage() {
               {isLoading ? (
                 <Skeleton height="200px" width="full" />
               ) : (
-                <QrDetails eventName={eventName} qrValue={secretKey} ticketName={ticketName} />
+                <QrDetails
+                  eventId={eventId}
+                  eventName={eventName}
+                  funderId={funderId}
+                  qrValue={secretKey}
+                  ticketName={ticketName}
+                />
               )}
             </BoxWithShape>
             <Flex

@@ -1,13 +1,23 @@
-import { Box, Button, Flex, Text } from '@chakra-ui/react';
+import { Box, Button, Flex, Text, VStack } from '@chakra-ui/react';
 import QRCode from 'react-qr-code';
+import { useNavigate } from 'react-router-dom';
 
 interface QrDetailsProps {
   qrValue: string;
   ticketName: string;
   eventName: string;
+  eventId: string;
+  funderId: string;
 }
 
-export const QrDetails = ({ qrValue, ticketName, eventName }: QrDetailsProps) => {
+export const QrDetails = ({
+  qrValue,
+  ticketName,
+  eventName,
+  eventId,
+  funderId,
+}: QrDetailsProps) => {
+  const navigate = useNavigate();
   const handleDownloadQrCode = () => {
     const svg = document.getElementById('QRCode');
 
@@ -58,9 +68,20 @@ export const QrDetails = ({ qrValue, ticketName, eventName }: QrDetailsProps) =>
       <Text color="gray.600" mb="6" size={{ base: 'sm', md: 'sm' }} textAlign="center">
         Save this QR code and show it at the event to gain entry.
       </Text>
-      <Button variant="outline" w="full" onClick={handleDownloadQrCode}>
-        Download QR code
-      </Button>
+      <VStack w="full">
+        <Button variant="outline" w="full" onClick={handleDownloadQrCode}>
+          Download QR code
+        </Button>
+        <Button
+          variant="outline"
+          w="full"
+          onClick={() => {
+            navigate(`/gallery/${funderId}:${eventId}#secretKey=${qrValue}`);
+          }}
+        >
+          Sell Ticket
+        </Button>
+      </VStack>
     </Flex>
   );
 };
