@@ -5,7 +5,7 @@ interface MultiDayEvent {
   from: string;
   to: string;
 }
-interface EventDateInfo {
+export interface EventDateInfo {
   time?: string;
   date: AllDayEvent | MultiDayEvent;
 }

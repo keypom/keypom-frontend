@@ -14,13 +14,15 @@ import {
 } from '@chakra-ui/react';
 import { Form } from 'react-router-dom';
 
+import { type SellDropInfo } from '@/pages/Event';
+
 interface SellModalProps {
   input: string;
   setInput: (input: string) => void;
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: () => void;
-  event: object;
+  onSubmit: (event: any) => Promise<void>;
+  event: SellDropInfo;
 }
 
 export const SellModal = ({

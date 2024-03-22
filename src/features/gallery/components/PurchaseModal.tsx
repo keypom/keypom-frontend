@@ -14,22 +14,23 @@ import {
 } from '@chakra-ui/react';
 import { Form } from 'react-router-dom';
 import { useRef, useState } from 'react';
+import { type WalletSelector } from '@near-wallet-selector/core';
+
+import { type EventInterface } from '@/pages/Event';
 
 import { TicketIncrementer } from './TicketIncrementer';
 
 interface PurchaseModalProps {
   isOpen: boolean;
   onClose: () => void;
-  ticket: object;
-  onSubmit: (questionValues: object, paymentMethod: string, isSecondary: bool) => void;
+  ticket: any;
+  onSubmit: (questionValues: object, paymentMethod: string, isSecondary: boolean) => void;
   setEmail: (email: string) => void;
   email: string;
-  setTicketAmount: (ticketAmount: number) => void;
-  initialAmount: number;
-  event: object;
+  event: EventInterface;
   amount: number;
   setAmount: (amount: number) => void;
-  selector: object;
+  selector: WalletSelector;
   stripeEnabledEvent: boolean;
   stripeAccountId: string;
 }
@@ -56,7 +57,7 @@ export const PurchaseModal = ({
   const [questionValues, setQuestionValues] = useState({});
   const [showErrors, setShowErrors] = useState(false);
 
-  const focusedInputRef = useRef(null);
+  // const focusedInputRef = useRef(null);
 
   const preOnSubmit = (questions, type, anyError) => {
     if (anyError) {
@@ -70,7 +71,7 @@ export const PurchaseModal = ({
     const newValue = e.target.value;
 
     // Store the currently focused input field
-    focusedInputRef.current = e.target;
+    const focusedInputRef = useRef<HTMLInputElement>(null);
     setQuestionValues((prevValues) => {
       // Create a new object with the previous values
       const newValues = { ...prevValues };
@@ -96,7 +97,7 @@ export const PurchaseModal = ({
     if (amount === 1) return;
     setAmount(amount - 1);
   };
-  const incrementAmount = (e) => {
+  const incrementAmount = () => {
     const availableTickets = ticket.maxTickets - ticket.soldTickets;
     if (availableTickets <= 0) return;
 
@@ -125,6 +126,7 @@ export const PurchaseModal = ({
       <>
         {event.questions.map((question, index) => {
           const isError = question.required && !Object.values(questionValues)[index]; // isError is true if the question is required and the input is empty
+          const defaultValue = Object.values(questionValues)[index];
 
           return (
             <FormControl key={index} isInvalid={isError && showErrors}>
@@ -133,7 +135,7 @@ export const PurchaseModal = ({
               </Text>
               <Input
                 key={index}
-                defaultValue={Object.values(questionValues)[index] || ''}
+                defaultValue={typeof defaultValue === 'string' ? defaultValue : ''}
                 maxLength={50}
                 mt="2"
                 type="text"
@@ -163,10 +165,10 @@ export const PurchaseModal = ({
 
   // purchase button version
   const stripeRegistered = stripeEnabledEvent;
-  const signedIn = selector.isSignedIn();
+  const signedIn = Boolean(selector ? selector.isSignedIn() : true);
   const isFree = ticket.price === 0 || ticket.price === '0';
 
-  const PurchaseButton = <></>;
+  let PurchaseButton = <></>;
 
   if (isFree) {
     // purchaseType = 3;

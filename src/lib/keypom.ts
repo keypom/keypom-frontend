@@ -95,7 +95,7 @@ class KeypomJS {
   nearConnection: nearAPI.Near;
   viewAccount: nearAPI.Account;
 
-  allEventsGallery: [];
+  allEventsGallery: any[];
 
   // Map the event ID to a set of drop IDs
   ticketDropsByEventId: Record<string, EventDrop[]> = {};
@@ -142,8 +142,7 @@ class KeypomJS {
       KeypomJS.instance == null ||
       KeypomJS.instance === undefined ||
       !(KeypomJS.instance instanceof KeypomJS) ||
-      this.instance === undefined ||
-      this.viewAccount === undefined
+      this.instance === undefined
     ) {
       KeypomJS.instance = new KeypomJS();
     }

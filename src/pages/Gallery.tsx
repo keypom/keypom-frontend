@@ -19,7 +19,6 @@ import {
 } from '@chakra-ui/react';
 import { useEffect, useRef, useState } from 'react';
 import { SearchIcon } from '@chakra-ui/icons';
-import { type ProtocolReturnedDrop } from 'keypom-js';
 
 import { DropManagerPagination } from '@/features/all-drops/components/DropManagerPagination';
 import {
@@ -116,7 +115,7 @@ export default function Gallery() {
 
   const [searchTerm, setSearchTerm] = useState<string>('');
   // const [numOwnedDrops, setNumOwnedDrops] = useState<number>(0);
-  const [filteredDataItems, setFilteredDataItems] = useState<DataItem[]>([]);
+  const [filteredDataItems, setFilteredDataItems] = useState<any[]>([]);
   // const [wallet, setWallet] = useState({});
 
   const [banner, setBanner] = useState('');
@@ -229,7 +228,10 @@ export default function Gallery() {
           dateString = drop.date.date.from;
         }
         const date = new Date(dateString);
-        return date >= selectedFilters.eventDate.startDate;
+        return (
+          selectedFilters.eventDate.startDate !== null &&
+          date >= selectedFilters.eventDate.startDate
+        );
       });
     }
 
@@ -242,7 +244,9 @@ export default function Gallery() {
           dateString = drop.date.date.to;
         }
         const date = new Date(dateString);
-        return date <= selectedFilters.eventDate.endDate;
+        return (
+          selectedFilters.eventDate.endDate !== null && date <= selectedFilters.eventDate.endDate
+        );
       });
     }
 
@@ -302,13 +306,20 @@ export default function Gallery() {
       // for each ticket in the event, get the supply
       let supply = 0;
       let maxTickets = 0;
-      const prices = [];
+      const prices: number[] = [];
+
+      interface TicketData {
+        max_tickets: number; // or the correct type
+        price: number; // or the correct type
+        // add other properties as needed
+      }
 
       for (const [name, ticketdata] of Object.entries(event.ticket_info)) {
         const thissupply = await keypomInstance.getKeySupplyForTicket(name);
+        const ticketData = ticketdata as TicketData;
         supply += parseInt(thissupply);
-        maxTickets += parseInt(ticketdata.max_tickets);
-        prices.push(ticketdata.price);
+        maxTickets += ticketData.max_tickets;
+        prices.push(ticketData.price);
       }
 
       let dateString = '';
@@ -366,7 +377,7 @@ export default function Gallery() {
 
     // Loop until we have enough filtered drops to fill the page size
     let dropsFetched = 0;
-    let filteredDrops: ProtocolReturnedDrop[] = [];
+    let filteredDrops = [];
     while (dropsFetched < totalSupply && filteredDrops.length < selectedFilters.pageSize) {
       const eventListings = await keypomInstance.GetMarketListings({
         limit: 6,
@@ -379,7 +390,7 @@ export default function Gallery() {
     }
 
     // Now, map over the filtered drops and set the data
-    const dropDataPromises = filteredDrops.map(async (event) => {
+    const dropDataPromises = filteredDrops.map(async (event: any) => {
       // get metadata from drop.event_id and drop.funder_id
       const eventInfo = await keypomInstance.getEventInfo({
         accountId: event.funder_id,
@@ -390,7 +401,7 @@ export default function Gallery() {
       let supply = 0;
       let maxTickets = 0;
 
-      for (const [name, ticketdata] of Object.entries(event.ticket_info)) {
+      for (const [name, ticketdata] of Object.entries(event.ticket_info) as [string, any]) {
         const thissupply = await keypomInstance.getKeySupplyForTicket(name);
         supply += parseInt(thissupply);
         maxTickets += parseInt(ticketdata.max_tickets);
@@ -555,13 +566,13 @@ export default function Gallery() {
               <CustomDateRangePicker
                 ctaComponent={datePickerCTA}
                 endDate={selectedFilters.eventDate.endDate}
-                endTime={selectedFilters.eventDate.endTime}
+                // endTime={selectedFilters.eventDate.endTime}
                 isDatePickerOpen={isDatePickerOpen}
                 maxDate={null}
                 minDate={new Date()}
                 setIsDatePickerOpen={setIsDatePickerOpen}
                 startDate={selectedFilters.eventDate.startDate}
-                startTime={selectedFilters.eventDate.startTime}
+                //  startTime={selectedFilters.eventDate.startTime}
                 onDateChange={(startDate, endDate) => {
                   setSelectedFilters((prevFilters) => ({
                     ...prevFilters,
@@ -654,14 +665,14 @@ export default function Gallery() {
           <CustomDateRangePickerMobile
             ctaComponent={datePickerCTA}
             endDate={selectedFilters.eventDate.endDate}
-            endTime={selectedFilters.eventDate.endTime}
+            // endTime={selectedFilters.eventDate.endTime}
             isDatePickerOpen={isDatePickerOpen}
             maxDate={null}
             minDate={new Date()}
             openDirection="top-start"
             setIsDatePickerOpen={setIsDatePickerOpen}
             startDate={selectedFilters.eventDate.startDate}
-            startTime={selectedFilters.eventDate.startTime}
+            // startTime={selectedFilters.eventDate.startTime}
             onDateChange={(startDate, endDate) => {
               setSelectedFilters((prevFilters) => ({
                 ...prevFilters,
@@ -714,7 +725,6 @@ export default function Gallery() {
         curPage={curPage}
         handleNextPage={handleNextPage}
         handlePrevPage={handlePrevPage}
-        hasPagination={false}
         isLoading={isAllDropsLoading}
         numPages={numPages}
         pageSizeMenuItems={pageSizeMenuItems}
