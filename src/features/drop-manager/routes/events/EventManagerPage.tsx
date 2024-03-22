@@ -129,7 +129,6 @@ export default function EventManagerPage() {
         setIsErr(true);
         return;
       }
-      console.log('eventInfo', eventInfo);
       if (eventInfo?.questions) {
         try {
           const privKey = await keypomInstance.getDerivedPrivKey({

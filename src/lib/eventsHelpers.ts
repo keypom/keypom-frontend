@@ -54,7 +54,6 @@ export interface TicketInfoMetadata {
 export type FunderMetadata = Record<string, FunderEventMetadata>;
 
 export function isValidTicketInfo(ticketInfo) {
-  console.log('ticketInfo', ticketInfo);
   // Check if all required properties exist and are of type 'string'
   return (
     typeof ticketInfo.name === 'string' &&

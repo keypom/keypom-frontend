@@ -113,7 +113,6 @@ export const VerifyModal = ({ isOpen, onClose, event, eventId, accountId }: Veri
         duration: 5000,
         isClosable: true,
       });
-      return;
     } catch (error) {
       toast({
         title: 'Invalid',
@@ -155,10 +154,6 @@ export const VerifyModal = ({ isOpen, onClose, event, eventId, accountId }: Veri
                 const data = result?.getText();
                 setData(data);
                 checkData(data);
-              }
-
-              if (error) {
-                console.info(error);
               }
             }}
           />

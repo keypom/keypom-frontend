@@ -270,6 +270,7 @@ export default function NewTicketDrop() {
         body: JSON.stringify({ base64Data: serializedData }),
       });
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.log('error', error);
     }
 

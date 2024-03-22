@@ -24,7 +24,6 @@ export const TicketQRPage = () => {
 
   const checkClaim = async () => {
     const keyInfo = await getKeyInformation({ secretKey });
-    console.log('claiming', claimAttempted, keyInfo.cur_key_use);
     if (!claimAttempted && keyInfo.cur_key_use === 1) {
       // do not await since it will only prevent user from seeing QR code, we can always show error after
       await handleClaim();

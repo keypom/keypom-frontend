@@ -71,7 +71,6 @@ export const ModifyTicketModal = ({
   const inputRef = useRef<HTMLInputElement>(null);
 
   const validateForm = () => {
-    console.log('currentTicket', currentTicket);
     let isErr = false;
     // Create a new object with the properties of defaultErrors to ensure a new reference
     const newErrors = { ...defaultErrors };
@@ -138,6 +137,7 @@ export const ModifyTicketModal = ({
 
     // Now newErrors is a new object, so setting it should trigger a re-render
     setErrors(newErrors);
+    // eslint-disable-next-line no-console
     console.log('errors', newErrors, isErr, currentTicket);
 
     if (!isErr) {

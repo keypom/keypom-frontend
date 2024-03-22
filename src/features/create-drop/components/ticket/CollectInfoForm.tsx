@@ -65,8 +65,6 @@ const CollectInfoForm = (props: EventStepFormProps) => {
   };
 
   const handleModalClose = (shouldAdd, originalQuestion) => {
-    console.log('originalQuestion', originalQuestion);
-    console.log('shouldAdd', shouldAdd);
     if (shouldAdd) {
       let newQuestions = formData.questions;
       if (originalQuestion) {
@@ -80,7 +78,6 @@ const CollectInfoForm = (props: EventStepFormProps) => {
         newQuestions.push({ question: userInput, isRequired: false });
       }
 
-      console.log('new questions', newQuestions);
       setFormData({ ...formData, questions: newQuestions });
     }
 
