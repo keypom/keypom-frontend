@@ -388,7 +388,7 @@ export default function NewTicketDrop() {
       setFormData(newFormData);
     }
     if (!isErr) {
-      setCurrentStep((prevStep) => (prevStep < formSteps.length - 1 ? prevStep + 1 : prevStep));
+      setCurrentStep((prevStep) => prevStep + 1);
     }
   };
 
