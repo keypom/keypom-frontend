@@ -287,7 +287,7 @@ const EventInfoForm = (props: EventStepFormProps) => {
           my={margins}
         >
           <ImageFileInput
-            accept=" image/jpeg, image/png, image/gif"
+            accept="image/jpeg, image/png, image/gif"
             errorMessage={formData.eventArtwork.error}
             isInvalid={!!formData.eventArtwork.error}
             preview={preview}
