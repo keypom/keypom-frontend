@@ -59,7 +59,7 @@ const AcceptPaymentForm = (props: EventStepFormProps) => {
       if (window.location.href.includes(`successMessage=${uuid as string}`)) {
         console.log('Stripe Account Connected: ', stripeAccountId);
         localStorage.removeItem('STRIPE_ACCOUNT_INFO');
-        setFormData({ ...formData, stripeAccountId });
+        setFormData({ ...formData, stripeAccountId, acceptStripePayments: true });
       }
     }
   }, []);

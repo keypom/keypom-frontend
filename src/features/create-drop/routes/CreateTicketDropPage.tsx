@@ -446,6 +446,18 @@ export default function NewTicketDrop() {
     setCurrentStep((prevStep) => (prevStep > 0 ? prevStep - 1 : prevStep));
   };
 
+  const isNextDisabled = () => {
+    if (currentStep === 0) {
+      return !formData.acceptStripePayments && !formData.acceptNearPayments;
+    }
+
+    if (currentStep === 3) {
+      return formData.tickets.length < 1;
+    }
+
+    return false;
+  };
+
   const CurrentStepComponent = formSteps[currentStep].component({
     formData,
     setFormData,
@@ -529,7 +541,7 @@ export default function NewTicketDrop() {
             )}
             <Button
               fontSize={{ base: 'sm', md: 'base' }}
-              isDisabled={currentStep === 3 ? formData.tickets.length < 1 : false}
+              isDisabled={isNextDisabled()}
               isLoading={isSettingKey}
               onClick={nextStep}
             >
