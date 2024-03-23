@@ -38,6 +38,7 @@ interface StateRefObject {
   ticketsToScan: string[];
   allTicketOptions: EventDrop[];
   ticktToVerify: string;
+  isProcessing: boolean;
 }
 
 const Scanner = () => {
@@ -61,6 +62,7 @@ const Scanner = () => {
     ticketsToScan: [],
     allTicketOptions: [],
     ticktToVerify: '',
+    isProcessing: false,
   });
 
   const [allTicketOptions, setAllTicketOptions] = useState<EventDrop[]>();
@@ -164,13 +166,20 @@ const Scanner = () => {
     // Update other state variables in stateRef.current as needed
   }, [isScanning, ticketsToScan, isOnCooldown, allTicketOptions, ticketToVerify]);
 
+  useEffect(() => {
+    // Process tickets in batches but only if not currently processing
+    if (!stateRef.current.isProcessing && stateRef.current.ticketsToScan.length > 0) {
+      processBatchOfTickets();
+    }
+  }, [ticketsToScan]);
+
   const handleScanResult: OnResultFunction = async (result) => {
     if (result && !stateRef.current.isScanning && !stateRef.current.isOnCooldown) {
       setIsScanning(true); // Start scanning
       setScanStatus(undefined); // Reset the status message
       try {
-        const secretKey = result.text;
-        const dropInfo = await getDropFromSecretKey(secretKey as string);
+        const secretKey = result.getText();
+        const dropInfo = await getDropFromSecretKey(secretKey);
         if (dropInfo) {
           const { drop, usesRemaining } = dropInfo;
           // Check if the ticket has already been scanned
@@ -196,7 +205,10 @@ const Scanner = () => {
 
           // If the ticket is valid, update the state to include the new ticket
           if (status === 'success') {
-            setTicketsToScan((prevTickets) => [...prevTickets, secretKey]);
+            // Update both the ref and the state to enqueue the ticket
+            const updatedTickets = [...stateRef.current.ticketsToScan, secretKey];
+            stateRef.current.ticketsToScan = updatedTickets;
+            setTicketsToScan(updatedTickets);
           }
           setScanStatus(status);
           setStatusMessage(message);
@@ -212,6 +224,37 @@ const Scanner = () => {
         setIsScanning(false); // End scanning regardless of success or error
         enableCooldown(); // Enable cooldown to prevent multiple scans
       }
+    }
+  };
+
+  const processBatchOfTickets = async () => {
+    stateRef.current.isProcessing = true;
+    // Take up to 10 tickets to process
+    const ticketsToProcess = stateRef.current.ticketsToScan.slice(0, 10);
+
+    await Promise.all(
+      ticketsToProcess.map(async (ticket) => {
+        try {
+          // Placeholder for your actual ticket processing logic
+          await keypomInstance.onEventTicketScanned(ticket);
+          // Process successful, remove from the ref queue
+          stateRef.current.ticketsToScan = stateRef.current.ticketsToScan.filter(
+            (t) => t !== ticket,
+          );
+        } catch (error) {
+          console.error('Error processing ticket:', ticket, error);
+          // Decide how to handle errors, e.g., retry later, log, etc.
+        }
+      }),
+    );
+
+    // Update the ticketsToScan state to trigger re-render if needed
+    setTicketsToScan([...stateRef.current.ticketsToScan]);
+    stateRef.current.isProcessing = false;
+
+    // Check if more tickets are in the queue and continue processing
+    if (stateRef.current.ticketsToScan.length > 0) {
+      processBatchOfTickets();
     }
   };
 
