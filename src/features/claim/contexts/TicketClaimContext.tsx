@@ -14,20 +14,20 @@ import { DROP_TYPE, type DROP_TYPES } from '@/constants/common';
 import getConfig from '@/config/config';
 import { type TokenAsset } from '@/types/common';
 
-const TicketQRPage = lazy(
-  async () =>
-    await import('@/features/claim/components/ticket/TicketQRPage').then((mod) => ({
-      default: mod.TicketQRPage,
-    })),
-);
+// const TicketQRPage = lazy(
+//   async () =>
+//     await import('@/features/ticket-qr/TicketQRPage').then((mod) => ({
+//       default: mod.TicketQRPage,
+//     })),
+// );
 
 const TicketGiftPage = lazy(
   async () => await import('@/features/claim/components/ticket/TicketGiftPage'),
 );
 
 const TICKET_FLOW_KEY_USE = {
-  1: TicketQRPage,
-  2: TicketQRPage,
+  // 1: TicketQRPage,
+  // 2: TicketQRPage,
   3: TicketGiftPage,
 };
 

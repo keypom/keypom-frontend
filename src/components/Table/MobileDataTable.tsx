@@ -17,12 +17,16 @@ interface MobileDataTableProps extends TableProps {
   columns: ColumnItem[];
   data: DataItem[];
   loading: boolean;
+  showMobileTitles: string[];
+  excludeMobileTitles: string[];
 }
 
 export const MobileDataTable = ({
   columns,
   data,
   loading = false,
+  showMobileTitles = [],
+  excludeMobileTitles = [],
   ...props
 }: MobileDataTableProps) => {
   const navigate = useNavigate();
@@ -41,7 +45,7 @@ export const MobileDataTable = ({
       ));
     }
 
-    return data.map((drop) => (
+    return data.map((drop, idx) => (
       <Tr
         key={drop.id}
         _hover={
@@ -63,20 +67,28 @@ export const MobileDataTable = ({
         <Td>
           <VStack align="flex-start" spacing="2">
             {columns
-              .filter((column) => actionColumn.title !== column.title) // exclude action column
+              .filter(
+                (column) =>
+                  actionColumn.id !== column.id && !excludeMobileTitles.includes(column.id),
+              ) // exclude action column
               .map((column) => (
-                <Box key={`${drop.id}-${column.id}`}>{column.selector(drop)}</Box>
+                <Box key={`${drop.id}-${column.id}`}>
+                  {showMobileTitles.includes(column.id) ? `${column.title}: ` : ''}
+                  {column.selector(drop)}
+                </Box>
               ))}
           </VStack>
         </Td>
-        <Td verticalAlign="middle">{actionColumn.selector(drop)}</Td>
+        <Td textAlign="end" verticalAlign="middle">
+          {actionColumn.selector(drop)}
+        </Td>
       </Tr>
     ));
   };
 
   return (
     <TableContainer whiteSpace="normal">
-      <Table {...props}>
+      <Table {...props} borderRadius="12px">
         <Tbody>{getMobileTableBody()}</Tbody>
       </Table>
     </TableContainer>

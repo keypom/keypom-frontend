@@ -1,6 +1,7 @@
 import { Box } from '@chakra-ui/react';
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { clear } from 'idb-keyval';
 
 import { getNFTAttempt, handleFinishNFTDrop } from '@/features/create-drop/contexts/nft-utils';
 import { useAppContext } from '@/contexts/AppContext';
@@ -51,9 +52,19 @@ const NewNftDrop = () => {
       isLoading: true,
       header: 'Creating NFT',
       message: 'Uploading media and creating NFT drop links on-chain. This may take 15-30 seconds.',
+      options: [
+        {
+          label: 'Cancel',
+          func: () => {
+            clear();
+          },
+          buttonProps: {
+            variant: 'outline',
+          },
+        },
+      ],
     });
     const dropId = await handleFinishNFTDrop(setAppModal);
-    console.log(dropId);
     setAppModal({
       isOpen: false,
       isLoading: false,
