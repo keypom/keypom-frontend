@@ -15,8 +15,10 @@ export interface AppModalOptions {
   buttonProps?: ButtonProps;
 }
 
-interface AppModalValues {
+export interface AppModalValues {
   isOpen: boolean;
+  modalContent?: React.ReactNode;
+  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl' | 'full';
   closeOnOverlayClick?: boolean;
   closeButtonVisible?: boolean;
   message?: string;
@@ -27,6 +29,7 @@ interface AppModalValues {
   isLoading?: boolean;
   isSuccess?: boolean;
   isError?: boolean;
+  canClose?: boolean;
 }
 
 interface AppContextValues {
@@ -64,12 +67,11 @@ export const useAppContext = () => {
 export const openMasterKeyModal = (setAppModal, confirm, cancel) => {
   setAppModal({
     isOpen: true,
-    header: 'Set your master key!',
-    message:
-      'This key is used to generate the links for all of your drops. Do NOT lose it or forget it!',
+    header: 'Enter your Keypom password',
+    message: 'This is used for security purpose. Do not share or lose your password.',
     inputs: [
       {
-        placeholder: 'Master Key',
+        placeholder: 'Password',
         valueKey: 'masterKey',
       },
     ],
@@ -84,9 +86,8 @@ export const openMasterKeyModal = (setAppModal, confirm, cancel) => {
         },
       },
       {
-        label: 'Set Master Key',
+        label: 'Set Password',
         func: ({ masterKey }) => {
-          console.log(masterKey);
           if (!masterKey || masterKey.length === 0) {
             alert('Master Key must be specified. Please try again.');
             if (cancel) cancel();

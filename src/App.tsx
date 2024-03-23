@@ -3,6 +3,7 @@ import { RouterProvider } from 'react-router-dom';
 import { ChakraProvider } from '@chakra-ui/react';
 
 import { theme } from '@/theme';
+import './components/DateRangePicker/DatePickerStyle.css'; // Path to your custom CSS
 import { router } from '@/router';
 import { router as storybookRouter } from '@/storybook-router';
 import { Loading } from '@/components/Loading';
