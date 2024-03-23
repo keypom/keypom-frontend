@@ -99,7 +99,6 @@ const Scanner = () => {
     }
 
     if (error !== undefined) {
-      console.error(error);
       setIsTxLoading(false);
       setTxError('Error parsing QR code');
       scanningResultInProgress = false;
@@ -108,7 +107,6 @@ const Scanner = () => {
 
     const ticketRes = getSecretKeyAndContractId(result.text);
     if (ticketRes === null) {
-      console.error('Error parsing QR code');
       setIsTxLoading(false);
       scanningResultInProgress = false;
       return;
@@ -131,9 +129,7 @@ const Scanner = () => {
     setTicketRes(ticketRes);
 
     try {
-      console.log(contractId, secretKey);
       const currentKeyUse = await keypomInstance.getCurrentKeyUse(contractId, secretKey);
-      console.log({ currentKeyUse });
       switch (currentKeyUse) {
         case 3:
           throw new Error('This ticket has been claimed');
@@ -143,7 +139,6 @@ const Scanner = () => {
         default:
       }
     } catch (err) {
-      console.error(err);
       setTxError(err.message);
       setIsTxLoading(false);
       scanningResultInProgress = false;
@@ -160,7 +155,7 @@ const Scanner = () => {
     // we don't await it, because it takes to long...
     handleTicketClaim(secretKey, password)
       .then((res) => {
-        console.log(res);
+        // console.log(res);
       })
       .catch((e) => {
         setAppModal({
@@ -190,7 +185,6 @@ const Scanner = () => {
         label: 'Ok',
         func: () => {
           scanningResultInProgress = false;
-          console.log('tx acknowledged');
         },
       });
     }
@@ -200,7 +194,6 @@ const Scanner = () => {
         label: 'Ok',
         func: () => {
           scanningResultInProgress = false;
-          console.log('error acknowledged');
         },
       });
     }

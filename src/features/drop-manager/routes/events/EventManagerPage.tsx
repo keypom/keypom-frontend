@@ -50,8 +50,8 @@ export interface TicketItem {
   artwork: string;
   name: string;
   description: string;
-  salesValidThrough: string;
-  passValidThrough: string;
+  salesValidThrough: { time: string };
+  passValidThrough: { time: string };
   maxTickets?: number;
   soldTickets: number;
   priceNear: string;
@@ -138,7 +138,9 @@ export default function EventManagerPage() {
             pw: get(MASTER_KEY) as string,
           });
           setUserKey(privKey);
-        } catch (e) {}
+        } catch (e) {
+          console.error(e);
+        }
       }
       setEventData({
         name: eventInfo.name || 'Untitled',
@@ -252,6 +254,7 @@ export default function EventManagerPage() {
         accountId: accountId!,
         eventId,
       });
+      console.log('ticketsForEvent', ticketsForEvent);
 
       if (ticketsForEvent == null || ticketsForEvent.length === 0) {
         setIsErr(true);
@@ -375,7 +378,7 @@ export default function EventManagerPage() {
                 fontSize={{ md: 'md' }}
                 fontWeight="light"
               >
-                Purchase through: {item.salesValidThrough}
+                Purchase through: {item.salesValidThrough.time}
               </Heading>
               <Heading
                 color="gray.400"
@@ -383,7 +386,7 @@ export default function EventManagerPage() {
                 fontSize={{ md: 'md' }}
                 fontWeight="light"
               >
-                Valid through: {item.passValidThrough}
+                Valid through: {item.passValidThrough.time}
               </Heading>
             </VStack>
           </VStack>
@@ -409,8 +412,9 @@ export default function EventManagerPage() {
             borderRadius="6xl"
             size="md"
             variant="icon"
-            onClick={() => {
-              navigate(`/gallery/ticket/${(item.id || '').toString()}`);
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate(`/gallery/${accountId}:${(eventId || '').toString()}`);
             }}
           >
             <ShareIcon color="gray.600" height="16px" width="16px" />
@@ -470,8 +474,9 @@ export default function EventManagerPage() {
               borderRadius="6xl"
               size="md"
               variant="icon"
-              onClick={() => {
-                navigate(`/gallery/event/${(eventId || '').toString()}`);
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate(`/gallery/${accountId}:${(eventId || '').toString()}`);
               }}
             >
               <ShareIcon color="gray.600" height="16px" width="16px" />

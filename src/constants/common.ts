@@ -20,7 +20,12 @@ export const MASTER_KEY = 'MASTER_KEY';
 
 export const MAX_FILE_SIZE = 10000000;
 
+export const WORKER_BASE_URL = 'https://keypom-nft-storage.keypom.workers.dev/';
+export const EVENTS_WORKER_IPFS_PINNING = 'https://stripe-worker.kp-capstone.workers.dev/ipfs-pin';
+export const EVENTS_WORKER_BASE = 'https://stripe-worker.kp-capstone.workers.dev';
+
 export const PAGE_SIZE_LIMIT = 5;
 export const NFT_ATTEMPT_KEY = 'NFT_ATTEMPT';
 export const PAGE_QUERY_PARAM = 'page';
-export const KEYPOM_EVENTS_CONTRACT = '1709933659487-kp-ticketing.testnet';
+export const KEYPOM_EVENTS_CONTRACT = '1710486341341-kp-ticketing.testnet';
+export const KEYPOM_MARKETPLACE_CONTRACT = '1710486341341-marketplace.testnet';

@@ -14,6 +14,7 @@ interface DropManagerPaginationProps {
   numPages: number;
   handleNextPage: () => void;
   handlePrevPage: () => void;
+  type?: string;
 }
 
 export const DropManagerPagination = ({
@@ -25,6 +26,7 @@ export const DropManagerPagination = ({
   numPages,
   handleNextPage,
   handlePrevPage,
+  type = 'Rows',
 }: DropManagerPaginationProps) => {
   if (isLoading) {
     // Render Skeleton loaders while content is loading
@@ -40,12 +42,12 @@ export const DropManagerPagination = ({
       <HStack>
         <Show above="sm">
           <Heading color="gray.500" fontWeight="normal" size="sm">
-            Rows per page
+            {type} per page
           </Heading>
         </Show>
         <Show below="sm">
           <Heading color="gray.500" fontWeight="normal" size="sm">
-            Rows
+            {type}
           </Heading>
         </Show>
         <Menu>

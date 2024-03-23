@@ -15,8 +15,8 @@ export const ProtectedRoute = ({
   const navigate = useNavigate();
 
   useEffect(() => {
-    console.log('isLoggedIn', isLoggedIn);
     if (!isLoggedIn) {
+      // eslint-disable-next-line no-console
       console.error('Unauthenticated page access.');
       navigate(redirectPath);
     }

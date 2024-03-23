@@ -220,7 +220,7 @@ export default function AllEvents({ pageTitle, hasDateFilter, ctaButtonLabel }: 
         name: truncateAddress(event.name || 'Untitled', 'end', 48),
         media: event.artwork,
         dateCreated: formatDate(new Date(parseInt(event.dateCreated))), // Ensure drop has dateCreated or adjust accordingly
-        description: truncateAddress(event.description, 'end', 32),
+        description: truncateAddress(event.description, 'end', 12),
         eventId: event.id,
       };
     });
@@ -349,8 +349,11 @@ export default function AllEvents({ pageTitle, hasDateFilter, ctaButtonLabel }: 
                   borderRadius="6xl"
                   size="md"
                   variant="icon"
-                  onClick={() => {
-                    navigate(`/gallery/event/${((drop.eventId as string) || '').toString()}`);
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate(
+                      `/gallery/${accountId}:${((drop.eventId as string) || '').toString()}`,
+                    );
                   }}
                 >
                   <ShareIcon color="gray.600" height="16px" width="16px" />
