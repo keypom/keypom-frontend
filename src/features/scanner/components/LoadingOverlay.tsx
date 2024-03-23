@@ -8,6 +8,7 @@ interface LoadingOverlayProps {
 }
 
 export const LoadingOverlay = ({ isVisible, status }: LoadingOverlayProps) => {
+  console.log('LoadingOverlay: isVisible:', isVisible, 'status:', status);
   if (!isVisible) return null;
 
   let backgroundColor = 'rgba(0, 0, 0, 0.5)'; // Default semi-transparent background

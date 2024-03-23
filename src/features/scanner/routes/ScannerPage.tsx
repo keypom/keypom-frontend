@@ -37,6 +37,7 @@ interface StateRefObject {
   isOnCooldown: boolean;
   ticketsToScan: string[];
   allTicketOptions: EventDrop[];
+  ticktToVerify: string;
 }
 
 const Scanner = () => {
@@ -59,6 +60,7 @@ const Scanner = () => {
     isOnCooldown: false,
     ticketsToScan: [],
     allTicketOptions: [],
+    ticktToVerify: '',
   });
 
   const [allTicketOptions, setAllTicketOptions] = useState<EventDrop[]>();
@@ -158,12 +160,14 @@ const Scanner = () => {
     stateRef.current.ticketsToScan = ticketsToScan;
     stateRef.current.isOnCooldown = isOnCooldown;
     stateRef.current.allTicketOptions = allTicketOptions || [];
+    stateRef.current.ticktToVerify = ticketToVerify;
     // Update other state variables in stateRef.current as needed
-  }, [isScanning, ticketsToScan, isOnCooldown, allTicketOptions]);
+  }, [isScanning, ticketsToScan, isOnCooldown, allTicketOptions, ticketToVerify]);
 
   const handleScanResult: OnResultFunction = async (result) => {
     if (result && !stateRef.current.isScanning && !stateRef.current.isOnCooldown) {
       setIsScanning(true); // Start scanning
+      setScanStatus(undefined); // Reset the status message
       try {
         const secretKey = result.text;
         const dropInfo = await getDropFromSecretKey(secretKey as string);
@@ -187,7 +191,7 @@ const Scanner = () => {
           const { status, message } = validateDrop({
             drop,
             allTicketOptions: stateRef.current.allTicketOptions,
-            ticketToVerify,
+            ticketToVerify: stateRef.current.ticktToVerify,
           });
 
           // If the ticket is valid, update the state to include the new ticket
