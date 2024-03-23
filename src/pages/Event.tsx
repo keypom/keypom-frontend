@@ -16,7 +16,7 @@ import {
 import { useParams, useNavigate } from 'react-router-dom';
 import { ExternalLinkIcon } from '@chakra-ui/icons';
 import { useCallback, useEffect, useState } from 'react';
-import { getPubFromSecret } from 'keypom-js';
+import { generateKeys, getPubFromSecret } from 'keypom-js';
 import { type Wallet } from '@near-wallet-selector/core';
 
 import { SellModal } from '@/features/gallery/components/SellModal';
@@ -28,6 +28,7 @@ import { type QuestionInfo, type EventDropMetadata } from '@/lib/eventsHelpers';
 import keypomInstance, { type EventDrop } from '@/lib/keypom';
 import { KEYPOM_MARKETPLACE_CONTRACT } from '@/constants/common';
 import { type DataItem } from '@/components/Table/types';
+import { generateExecuteArgs } from 'keypom-js/lib/lib/trial-accounts/utils';
 
 interface WorkerPayload {
   name: string | null;
@@ -469,6 +470,8 @@ export default function Event() {
     };
 
     if (purchaseType === 'free') {
+      // TODO: ADD SHARDDOG BOT
+
       const response = await fetch(
         'https://stripe-worker.kp-capstone.workers.dev/purchase-free-tickets',
         {
@@ -565,6 +568,9 @@ export default function Event() {
           });
           return;
         }
+
+        let linkdrop_keys = await generateKeys({numKeys: 1});
+
         await wallet.signAndSendTransaction({
           signerId: accountId || undefined,
           receiverId: KEYPOM_MARKETPLACE_CONTRACT,
@@ -577,6 +583,8 @@ export default function Event() {
                   drop_id: ticketBeingPurchased.id,
                   memo,
                   new_owner: accountId,
+                  seller_new_linkdrop_pk: linkdrop_keys.publicKeys[0],
+                  seller_linkdrop_drop_id: Date.now().toString()
                 },
                 gas: '300000000000000',
                 deposit: nearSendPrice,
@@ -584,6 +592,8 @@ export default function Event() {
             },
           ],
         });
+
+        // SEND LINKDROP EMAIL IF THIS TXN GOES THROUGH with linkdrop_keys.secretKeys[0]
       }
     } else if (purchaseType === 'stripe') {
       const response = await fetch(
@@ -636,7 +646,7 @@ export default function Event() {
 
       // newWorkerPayload["ticketKeys"] = null;
       const response = await fetch(
-        'https://stripe-worker.kp-capstone.workers.dev/send-confirmation-email',
+        'https://email-worker.kp-capstone.workers.dev/send-confirmation-email',
         {
           method: 'POST',
           headers: {
