@@ -18,8 +18,8 @@ export const gas = '100000000000000';
 const freeEventId = "7983f2af-3c7f-4bbb-b4b4-420d0e239f92";
 const freeDropId = "1710855051884-General Admission Ticket-3"
 
-const stripeEventId = "4bd8f695-2a6c-4c8d-9a0d-3cfe1f7db50f";
-const stripeDropId = "1710491242702-Platinum Ticket-5";
+const stripeEventId = "a92b09a4-f414-49bc-bd98-ca4855eb2bda";
+const stripeDropId = "1711141577391-Exclusive Ticket-2";
 
 
 
@@ -118,7 +118,7 @@ const StripePurchaseTicket = () => {
       baseUrl: "http://localhost:3000"
     };
     
-    const response = await fetch('https://stripe-worker.kp-capstone.workers.dev/test-email-binding', {
+    const response = await fetch('http://localhost:8787/test-email-binding', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -141,16 +141,17 @@ const StripePurchaseTicket = () => {
 };
 
     const handleSubmitClick = async () => {
+
+        console.log(stripeEventId, stripeDropId)
         const workerPayload = {
           name: "Min",
-          ticketAmount: 2,
+          ticketAmount: 4,
           buyerAnswers: generateRandomString(512),
           ticket_info: {
-            location: 'Waterloo',
-            eventName: "Big Party",
+            location: 'Poopoo',
+            eventName: "Small Party",
             ticketType: "VIP",
             eventDate: 'February 31 2024',
-            ticketOwner: 'min-ticket-test.testnet',
             eventId: stripeEventId,
             dropId: stripeDropId,
             funderId: "minqi.testnet"
@@ -159,6 +160,8 @@ const StripePurchaseTicket = () => {
           stripeAccountId: "acct_1OpbrxPhXWiaemzu",
           baseUrl: "http://localhost:3000"
         };
+
+        //1711141577391-Exclusive%20Ticket-2#BPUeU26uNYmVpDnW1pPnJhVvMwMe9QMdsczBMJ7XTFX8QqzauvgYBo4R7FLEVfsF75neXDnwmvLAGg3jf3zAdjQ
 
         //  EXPECTED PAYLOAD
         // workerPayload: {

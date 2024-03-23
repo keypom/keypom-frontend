@@ -18,14 +18,13 @@ export const gas = '100000000000000';
 
 const StripeUtilityTest = () => {
     // Some of these should be enums
-    const [eventName, setEventName] = useState('Fart Party');
+    const [eventName, setEventName] = useState('Big Test');
     const [stripeAccountId, setStripeAccountId] = useState('acct_1OpbrxPhXWiaemzu');
     const [ticketTiers, setTicketTiers] = useState({
-      "1710491242702-VIP Ticket-4": 4000,
-      "1710491242702-General Admission Ticket-6": 1000, 
-      "1710491242702-Platinum Ticket-5": 10000,  
+      "1711141577391-Early Bird Ticket-1": 100,
+      "1711141577391-Exclusive Ticket-2": 110, 
     });
-    const [eventId, setEventId] = useState('4bd8f695-2a6c-4c8d-9a0d-3cfe1f7db50f')
+    const [eventId, setEventId] = useState('a92b09a4-f414-49bc-bd98-ca4855eb2bda')
     
     const { isLoggedIn } = useAuthWalletContext();
 
