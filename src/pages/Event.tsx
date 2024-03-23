@@ -5,56 +5,160 @@ import {
   Heading,
   Text,
   Image as ChakraImage,
-  HStack,
   SimpleGrid,
   useDisclosure,
-  useBreakpointValue,
-  VStack,
   useToast,
+  HStack,
+  Hide,
+  Show,
+  VStack,
 } from '@chakra-ui/react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ExternalLinkIcon } from '@chakra-ui/icons';
 import { useCallback, useEffect, useState } from 'react';
 import { getPubFromSecret } from 'keypom-js';
+import { type Wallet } from '@near-wallet-selector/core';
 
 import { SellModal } from '@/features/gallery/components/SellModal';
 import { PurchaseModal } from '@/features/gallery/components/PurchaseModal';
 import { VerifyModal } from '@/features/gallery/components/VerifyModal';
 import { TicketCard } from '@/features/gallery/components/TicketCard';
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
-import { type EventDropMetadata } from '@/lib/eventsHelpers';
-import keypomInstance from '@/lib/keypom';
+import { type QuestionInfo, type EventDropMetadata } from '@/lib/eventsHelpers';
+import keypomInstance, { type EventDrop } from '@/lib/keypom';
 import { KEYPOM_MARKETPLACE_CONTRACT } from '@/constants/common';
+import { type DataItem } from '@/components/Table/types';
+
+interface WorkerPayload {
+  name: string | null;
+  ticketAmount: number;
+  buyerAnswers: string;
+  ticket_info: {
+    location: string;
+    eventName: string;
+    ticketType: string;
+    eventDate: string;
+    ticketOwner: string | undefined;
+    eventId: string;
+    dropId: string;
+    funderId: string;
+  };
+  purchaseEmail: string;
+  stripeAccountId: string | undefined;
+  baseUrl: string;
+  priceNear: string;
+  ticketKeys?: string[];
+  ticketKey?: string;
+}
+
+export interface TicketInterface {
+  id: string;
+  artwork: string;
+  name: string;
+  description: string;
+  salesValidThrough: {
+    time: string;
+  };
+  passValidThrough: {
+    time: string;
+    date?: {
+      from: string;
+    };
+  };
+  questions?: QuestionInfo[];
+  supply: number;
+  maxTickets: number | undefined;
+  soldTickets: number;
+  priceNear: string;
+  dateString?: string;
+  media?: string;
+  isSecondary?: boolean;
+  publicKey?: string;
+  public_key?: string;
+  price?: string;
+}
+
+export interface EventInterface {
+  title: string;
+  name: string;
+  artwork: string;
+  location: string;
+  date: string;
+  description: string;
+  questions: QuestionInfo[];
+  pubKey: string;
+  secretKey: string;
+  navurl: string | undefined;
+  maxTickets: number | undefined;
+  soldTickets: number | undefined;
+  numTickets: number | string | undefined;
+  id: number | undefined;
+  media: string | undefined;
+  supply: number | undefined;
+  dateString: string | undefined;
+  price: number | undefined;
+}
+
+export interface SellDropInfo {
+  name: string;
+  artwork: string;
+  questions: QuestionInfo[];
+  location: string;
+  date: string;
+  description: string;
+  publicKey: string;
+  secretKey: string;
+}
 
 export default function Event() {
   const params = useParams();
+  if (params.eventID == null || params.eventID === undefined) {
+    return (
+      <Box p="10">
+        <Heading as="h1">Event not found</Heading>
+        <Divider bg="black" my="5" />
+        <Text>Sorry, the event you are looking for does not exist.</Text>
+        <Text>The URL is malformed.</Text>
+      </Box>
+    );
+  }
+  // split up params into two parts, the funderId and the eventId
+  const eventURL = params.eventID.split(':');
+  const funderId = eventURL[0];
+  const eventId = eventURL[1];
+
+  if (eventId == null || eventId === undefined) {
+    return (
+      <Box p="10">
+        <Heading as="h1">Event not found</Heading>
+        <Divider bg="black" my="5" />
+        <Text>Sorry, the event you are looking for does not exist.</Text>
+        <Text>The URL is malformed.</Text>
+      </Box>
+    );
+  }
+
   const navigate = useNavigate();
   const toast = useToast();
 
   // GET SINGLE EVENT DATA USING URL
-  const [event, setEvent] = useState(null);
+  const [event, setEvent] = useState<EventInterface | undefined | null>(null);
   const [stripeEnabledEvent, setStripeEnabledEvent] = useState(false);
   const [stripeAccountId, setStripeAccountId] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [noDrop, setNoDrop] = useState(false);
   const [input, setInput] = useState('');
   const [email, setEmail] = useState('');
-  const [ticketList, setTicketList] = useState([]);
-  const [resaleTicketList, setResaleTicketList] = useState([]);
+  const [ticketList, setTicketList] = useState<TicketInterface[]>([]);
+  const [resaleTicketList, setResaleTicketList] = useState<TicketInterface[]>([]);
   const [areTicketsLoading, setAreTicketsLoading] = useState(true);
   const [doKeyModal, setDoKeyModal] = useState(false);
-  const [sellDropInfo, setSellDropInfo] = useState(null);
 
-  const { selector, accountId } = useAuthWalletContext();
-
-  // split up params into two parts, the accountID and the eventID'
-  const eventURL = params.eventID.split(':');
-  const funderId = eventURL[0];
-  const eventId = eventURL[1];
+  const [sellDropInfo, setSellDropInfo] = useState<SellDropInfo | null>(null);
 
   // purchase modal
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const [ticketBeingPurchased, setTicketBeingPurchased] = useState(null);
+  const [ticketBeingPurchased, setTicketBeingPurchased] = useState<any>(null);
   const [ticketAmount, setTicketAmount] = useState(1);
 
   // verify
@@ -62,30 +166,25 @@ export default function Event() {
 
   const secretKey = window.location.hash.substring(1).trim().split('=', 2)[1];
 
-  // example private key
-  // const privateKeyExample =
-  //   'ed25519:5KGpNrFRuiesHr6kMTinyEr9w33CDESdi5B4mpWJngaHY1S2kQU8mdy2J5Hr9o1p7yUWYFNrLEWfJsaix1R7tadA';
-  // test getting the public key from the private key
+  const { accountId, selector } = useAuthWalletContext();
 
-  const [wallet, setWallet] = useState(null);
+  const [wallet, setWallet] = useState<Wallet>();
 
   useEffect(() => {
     async function fetchWallet() {
-      if (!selector) return;
+      if (selector == null || selector === undefined) return;
       try {
         const wallet = await selector.wallet();
         setWallet(wallet);
       } catch (error) {
-        console.error('Error fetching wallet:', error);
-        // Handle the error appropriately
+        // This error happens immediately on page load so just wait for the next
       }
     }
-
     fetchWallet();
   }, [selector]);
 
   useEffect(() => {
-    if (!keypomInstance || !eventId || !funderId) return;
+    if (keypomInstance == null || keypomInstance === undefined || !eventId || !funderId) return;
 
     getKeyInformation();
   }, [secretKey, eventId]);
@@ -96,13 +195,12 @@ export default function Event() {
   const nearRedirect = window.location.search.substring(1).trim().split('=', 2)[1];
 
   useEffect(() => {
-    if (!keypomInstance || !eventId || !funderId) return;
+    if (keypomInstance == null || keypomInstance === undefined || !eventId || !funderId) return;
 
     CheckForNearRedirect();
   }, [keypomInstance, eventId, funderId]);
 
   const formatDate = (date) => {
-    console.log('Date: ', date);
     // Create an instance of Intl.DateTimeFormat for formatting
     const formatter = new Intl.DateTimeFormat('en-US', {
       month: 'short', // Full month name.
@@ -140,7 +238,13 @@ export default function Event() {
 
       const keyinfoEventId = meta.eventId;
       if (keyinfoEventId !== eventId) {
-        console.warn('Event ID mismatch', keyinfoEventId, eventId);
+        toast({
+          title: 'Ticket does not match current event',
+          description: `This ticket is for a different event, please scan it on the correct event page`,
+          status: 'error',
+          duration: 5000,
+          isClosable: true,
+        });
       }
 
       // testing keyinfoEventId = "17f270df-fcee-4682-8b4b-673916cc65a9"
@@ -152,7 +256,7 @@ export default function Event() {
 
       const meta2 = drop; // .metadata;//EventDropMetadata = JSON.parse(drop.metadata);
       let dateString = '';
-      if (meta2.date) {
+      if (meta2.date != null && meta2.date !== undefined) {
         dateString =
           typeof meta2.date.date === 'string'
             ? meta2.date.date
@@ -171,9 +275,10 @@ export default function Event() {
 
       setDoKeyModal(true);
     } catch (error) {
+      const errorLog: string = error.toString();
       toast({
         title: 'Sale request failure',
-        description: `This item may not be put for sale at this time since ${error}`,
+        description: `This item may not be put for sale at this time since ${errorLog}`,
         status: 'error',
         duration: 5000,
         isClosable: true,
@@ -182,23 +287,35 @@ export default function Event() {
   }, [secretKey, keypomInstance]);
 
   // example: http://localhost:3000/gallery/minqi.testnet:152c9ef5-13de-40f6-9ec2-cc39f5886f4e#secretKey=ed25519:AXSwjeNg8qS8sFPSCK2eYK7UoQ3Kyyqt9oeKiJRd8pUhhEirhL2qbrs7tLBYpoGE4Acn8JbFL7FVjgyT2aDJaJx
-
-  const loadingdata = [];
-
-  // append 10 loading cards
+  const loadingdata = [] as DataItem[];
+  // append 3 loading cards
   for (let i = 0; i < 3; i++) {
-    const loadingCard = {
+    const loadingCard: DataItem = {
       id: i,
-      name: 'dummy2',
-      type: 'Type 1',
-      media: 'https://via.placeholder.com/300',
-      claimed: 100,
+      title: 'Loading',
+      name: 'Loading',
+      artwork: 'https://via.placeholder.com/300',
+      location: 'Loading',
+      // date: 'Loading',
+      // description: 'Loading',
+      // questions: [],
+      // pubKey: 'Loading',
+      // secretKey: 'Loading',
+      // navurl: 'Loading',
+      // maxTickets: 100,
+      // soldTickets: 0,
+      // numTickets: 'unlimited',
+      // id: 0,
+      // media: 'Loading',
+      // supply: 100,
+      // dateString: 'Loading',
+      // price: 0,
     };
     loadingdata.push(loadingCard);
   }
 
   let res = '';
-  if (event) {
+  if (event?.location !== undefined && event?.location !== null) {
     res = event.location.trim().replace(/ /g, '+');
   }
 
@@ -223,11 +340,8 @@ export default function Event() {
     const string = u8Arr.reduce((data, byte) => data + String.fromCharCode(byte), '');
     return btoa(string);
   }
-  async function encryptWithPublicKey(data: string, publicKey: any): Promise<string> {
-    console.log('Data: ', data);
-    console.log('Public Key: ', publicKey);
+  async function encryptWithPublicKey(data: string, publicKey: CryptoKey): Promise<string> {
     const encoded = new TextEncoder().encode(data);
-    console.log('Encoded: ', encoded);
     const encrypted = await window.crypto.subtle.encrypt(
       {
         name: 'RSA-OAEP',
@@ -235,7 +349,6 @@ export default function Event() {
       publicKey,
       encoded,
     );
-    console.log('Encrypted: ', encrypted);
 
     return uint8ArrayToBase64(new Uint8Array(encrypted));
   }
@@ -277,29 +390,37 @@ export default function Event() {
     const keyinfoEventId = meta.eventId;
 
     const drop = await keypomInstance.getEventInfo({
-      accountId: dropData.funder_id,
+      accountId: dropData.funder_id ? dropData.funder_id : undefined,
       eventId: keyinfoEventId,
     });
 
-    const publicKeyBase64 = drop.pubKey;
+    if (drop.pubKey == null || drop.pubKey === undefined) {
+      toast({
+        title: 'Purchase failed',
+        description: 'This event does not have a public key',
+        status: 'error',
+        duration: 5000,
+        isClosable: true,
+      });
+      return;
+    }
+
+    const publicKeyBase64: string = drop.pubKey;
 
     const publicKey = await base64ToPublicKey(publicKeyBase64);
 
     // encrypt the questionValues
     const data = JSON.stringify({ questions: questionValues });
-    console.log('data: ', data);
 
     const encryptedValues = await encryptWithPublicKey(data, publicKey);
 
-    console.log('Encrypted Values: ', encryptedValues);
+    let attendeeName: string | null = null;
 
-    let attendeeName = null;
-
-    if (drop && drop.questions && drop?.questions.length != 0) {
+    if (drop?.questions?.length !== 0 && drop?.questions !== undefined) {
       // filter each question to find the list of ones that contain "name"
-      const indexlist = [];
-      for (var i = 0; i < drop?.questions.length; i++) {
-        if (drop?.questions[i]?.question.toLowerCase().replaceAll(' ', '').includes('name')) {
+      const indexlist: number[] = [];
+      for (let i = 0; i < drop?.questions?.length; i++) {
+        if (drop?.questions[i]?.question?.toLowerCase().replaceAll(' ', '').includes('name')) {
           indexlist.push(i);
         }
       }
@@ -307,19 +428,19 @@ export default function Event() {
       // get the shortest question in indexlist
       let shortestIndex = -1;
       let shortestLength = 1000;
-      for (var i = 0; i < indexlist.length; i++) {
+      for (let i = 0; i < indexlist.length; i++) {
         if (drop?.questions[indexlist[i]].question.length < shortestLength) {
           shortestIndex = indexlist[i];
           shortestLength = drop?.questions[indexlist[i]].question.length;
         }
       }
-      if (shortestIndex != -1) {
+      if (shortestIndex !== -1) {
         attendeeName = questionValues[shortestIndex];
       }
     }
 
     // limit the number of characters in the email and name to 500
-    if (attendeeName && attendeeName.length > 500) {
+    if (attendeeName != null && attendeeName.length > 500) {
       attendeeName = attendeeName.substring(0, 500);
     }
     let trimmedEmail = email;
@@ -327,7 +448,7 @@ export default function Event() {
       trimmedEmail = trimmedEmail.substring(0, 500);
     }
 
-    const workerPayload = {
+    const workerPayload: WorkerPayload = {
       name: attendeeName,
       ticketAmount, // (number of tickets being purchase)
       buyerAnswers: encryptedValues, // (encrypted user answers)
@@ -335,8 +456,8 @@ export default function Event() {
         location: drop.location,
         eventName: drop.name,
         ticketType: meta.name,
-        eventDate: drop.date.date,
-        ticketOwner: accountId || null, // (if signed in, this is signed in account, otherwise its none/empty)
+        eventDate: JSON.stringify(drop.date.date),
+        ticketOwner: accountId || undefined, // (if signed in, this is signed in account, otherwise its none/empty)
         eventId: meta.eventId,
         dropId: ticketBeingPurchased.id,
         funderId,
@@ -347,9 +468,9 @@ export default function Event() {
       priceNear: ticketBeingPurchased.price,
     };
 
-    if (purchaseType == 'free') {
+    if (purchaseType === 'free') {
       const response = await fetch(
-        'https://my-stripe-worker.zachattack98766789.workers.dev/purchase-free-tickets',
+        'https://stripe-worker.kp-capstone.workers.dev/purchase-free-tickets',
         {
           method: 'POST',
           headers: {
@@ -359,14 +480,12 @@ export default function Event() {
         },
       );
       if (response.ok) {
-        // Account created successfully
         const responseBody = await response.json();
         TicketPurchaseSuccessful(workerPayload, responseBody);
       } else {
-        // Error creating account
         TicketPurchaseFailure(workerPayload, await response.json());
       }
-    } else if (purchaseType == 'near') {
+    } else if (purchaseType === 'near') {
       // put the workerPayload in local storage
       const { secretKeys, publicKeys } = await keypomInstance.GenerateTicketKeys(ticketAmount);
       workerPayload.ticketKeys = secretKeys;
@@ -376,10 +495,21 @@ export default function Event() {
         (ticketAmount * ticketBeingPurchased.price).toString(),
       );
 
+      if (nearSendPrice === null) {
+        toast({
+          title: 'Purchase failed',
+          description: 'Please try again later',
+          status: 'error',
+          duration: 5000,
+          isClosable: true,
+        });
+        return;
+      }
+
       if (!isSecondary) {
         // primary
 
-        const newKeys = [];
+        const newKeys = [{}];
         for (const publicKey of publicKeys) {
           newKeys.push({
             public_key: publicKey,
@@ -388,8 +518,19 @@ export default function Event() {
           });
         }
 
+        if (wallet == null) {
+          toast({
+            title: 'Purchase failed',
+            description: 'Wallet not found, reconnect it and try again',
+            status: 'error',
+            duration: 5000,
+            isClosable: true,
+          });
+          return;
+        }
+
         await wallet.signAndSendTransaction({
-          signerId: accountId,
+          signerId: accountId || undefined,
           receiverId: KEYPOM_MARKETPLACE_CONTRACT,
           actions: [
             {
@@ -413,8 +554,19 @@ export default function Event() {
           linkdrop_pk: ticketBeingPurchased.publicKey,
           new_public_key: publicKeys[0],
         }; // NftTransferMemo,
+
+        if (wallet == null) {
+          toast({
+            title: 'Purchase failed',
+            description: 'Wallet not found, reconnect it and try again',
+            status: 'error',
+            duration: 5000,
+            isClosable: true,
+          });
+          return;
+        }
         await wallet.signAndSendTransaction({
-          signerId: accountId,
+          signerId: accountId || undefined,
           receiverId: KEYPOM_MARKETPLACE_CONTRACT,
           actions: [
             {
@@ -433,9 +585,9 @@ export default function Event() {
           ],
         });
       }
-    } else if (purchaseType == 'stripe') {
+    } else if (purchaseType === 'stripe') {
       const response = await fetch(
-        'https://my-stripe-worker.zachattack98766789.workers.dev/stripe/create-checkout-session',
+        'https://stripe-worker.kp-capstone.workers.dev/stripe/create-checkout-session',
         {
           method: 'POST',
           headers: {
@@ -447,6 +599,9 @@ export default function Event() {
       if (response.ok) {
         // Account created successfully
         const responseBody = await response.json();
+
+        const stripeUrl = responseBody.stripe_url;
+        window.location.href = stripeUrl;
         TicketPurchaseSuccessful(workerPayload, responseBody);
       } else {
         // Error creating account
@@ -460,16 +615,18 @@ export default function Event() {
       return;
     }
     // get workerpayload from local storage
-    const workerPayload = JSON.parse(localStorage.getItem('workerPayload'));
+    const workerPayloadStringified = localStorage.getItem('workerPayload');
+    if (workerPayloadStringified == null) {
+      return;
+    }
+
+    const workerPayload: WorkerPayload = JSON.parse(workerPayloadStringified);
+
     // remove workerpayload from localstorage
     localStorage.removeItem('workerPayload');
 
     // Remove the near parameters from the URL
     navigate('./');
-
-    if (workerPayload == null) {
-      return;
-    }
 
     const newWorkerPayload = workerPayload;
 
@@ -479,7 +636,7 @@ export default function Event() {
 
       // newWorkerPayload["ticketKeys"] = null;
       const response = await fetch(
-        'https://my-stripe-worker.zachattack98766789.workers.dev/send-confirmation-email',
+        'https://stripe-worker.kp-capstone.workers.dev/send-confirmation-email',
         {
           method: 'POST',
           headers: {
@@ -500,13 +657,16 @@ export default function Event() {
   };
 
   const TicketPurchaseSuccessful = (workerPayload, responseBody) => {
-    let description = `The item has been bought for ${workerPayload.priceNear} NEAR`;
+    const priceLog: string = workerPayload.priceNear.toString();
+    let description = `The item has been bought for ${priceLog} NEAR`;
 
     if (workerPayload.ticketAmount > 1) {
-      description = `${workerPayload.ticketAmount} items have been bought for ${workerPayload.priceNear} NEAR`;
+      const amountLog: string = workerPayload.ticketAmount.toString();
+      description = `${amountLog} items have been bought for ${priceLog} NEAR`;
     }
 
-    const email = ` and an email has been sent to ${workerPayload.purchaseEmail}`;
+    const emailLog: string = workerPayload.purchaseEmail.toString();
+    const email = ` and an email has been sent to ${emailLog}`;
     description += email;
     toast({
       title: 'Purchase successful',
@@ -518,17 +678,15 @@ export default function Event() {
   };
 
   const TicketPurchaseFailure = (workerPayload, responseBody) => {
+    const responseLog: string = responseBody.toString();
     toast({
       title: 'Purchase failed',
-      description: 'Not purchase was made due to the error: ' + responseBody,
+      description: 'Not purchase was made due to the error: ' + responseLog,
       status: 'error',
       duration: 5000,
       isClosable: true,
     });
   };
-
-  // mobile stacking
-  const Stack = useBreakpointValue({ base: VStack, md: HStack });
 
   function CloseSellModal() {
     setDoKeyModal(false);
@@ -545,6 +703,10 @@ export default function Event() {
     setDoKeyModal(false);
 
     const sellInfo = sellDropInfo;
+
+    if (sellInfo == null) {
+      return;
+    }
 
     setSellDropInfo(null);
 
@@ -573,32 +735,16 @@ export default function Event() {
     const error = '';
 
     try {
-      // if(!isLoggedIn){
       await keypomInstance.ListUnownedTickets({ msg: memo });
-      // }
-      // else {
-      //   await wallet.signAndSendTransaction({
-      //     signerId: accountId,
-      //     receiverId: KEYPOM_EVENTS_CONTRACT,
-      //     actions: [
-      //       {
-      //         type: 'FunctionCall',
-      //         params: {
-      //           methodName: 'nft_approve',
-      //           args: {
-      //             account_id: KEYPOM_MARKETPLACE_CONTRACT,
-      //             msg: memo
-      //           },
-      //           gas: '300000000000000',
-      //           deposit: '0',
-      //         },
-      //       },
-      //     ],
-      //   });
-      // }
       sellsuccessful = true;
     } catch (error) {
-      console.error('Error selling ticket', error);
+      toast({
+        title: 'Error selling ticket',
+        description: `please try again later`,
+        status: 'error',
+        duration: 5000,
+        isClosable: true,
+      });
     }
 
     if (sellsuccessful) {
@@ -627,7 +773,7 @@ export default function Event() {
       eventId,
     });
 
-    const resalePack = await keypomInstance.getResalesForEvent({
+    const resalePack: TicketInterface[][] = await keypomInstance.getResalesForEvent({
       eventId,
     });
 
@@ -658,25 +804,23 @@ export default function Event() {
       };
     });
 
-    let tickets = await Promise.all(promises);
+    let tickets: TicketInterface[] = await Promise.all(promises);
 
     // map tickets
-    let ticketIndex = 0;
-    tickets = tickets.map((ticket) => {
+    tickets = tickets.map((ticket: TicketInterface) => {
       let available = 'unlimited';
-      if (ticket.maxTickets != undefined) {
+      if (ticket.maxTickets !== undefined) {
         available = String(ticket.maxTickets - ticket.soldTickets);
       }
       let dateString = '';
-      if (ticket.passValidThrough) {
-        console.log('ticket.passValidThrough: ', ticket.passValidThrough);
+      if (ticket.passValidThrough != null && ticket.passValidThrough !== undefined) {
         dateString = formatDate(
           new Date(
             typeof ticket.passValidThrough === 'string'
               ? ticket.passValidThrough
               : typeof ticket.passValidThrough.date === 'string'
               ? ticket.passValidThrough.date
-              : ticket.passValidThrough.date.from,
+              : ticket?.passValidThrough?.date?.from ?? '',
           ),
         );
         // typeof ticket.passValidThrough === 'string'
@@ -685,7 +829,6 @@ export default function Event() {
       }
       // dateString = formatDate(dateString);
 
-      ticketIndex++;
       return {
         ...ticket,
         price: ticket.priceNear,
@@ -694,7 +837,6 @@ export default function Event() {
         dateString,
         location: '',
         description: ticket.description,
-        ticketIndex,
         isSecondary: false,
       };
     });
@@ -705,33 +847,29 @@ export default function Event() {
     // I want to extract it into a list of resales for the event, so it looks like ticketsForEvent
 
     // NOTE: I will also need to use the previously set tickets to get some details
-    const resaleTickets = [];
-    var ticketIndex = 0;
+    const resaleTickets: TicketInterface[] = [];
     for (const [dropId, resales] of Object.entries(resalePack)) {
       for (const resale of resales) {
         // find the corresponding ticket in tickets using the dropId
         for (const ticket of tickets) {
-          if (ticket.id == dropId) {
-            ticketIndex++;
+          if (ticket.id === dropId) {
             resaleTickets.push({
               artwork: ticket.artwork,
               dateString: ticket.dateString,
               description: ticket.description,
               id: ticket.id,
-              location: ticket.location,
+              // location: ticket.location,
               maxTickets: 1,
               media: ticket.media,
               name: ticket.name,
-              numTickets: 1,
               passValidThrough: ticket.passValidThrough,
               priceNear: ticket.priceNear,
               salesValidThrough: ticket.salesValidThrough,
               soldTickets: 0,
               supply: 0,
-              ticketIndex,
               isSecondary: true,
               publicKey: resale.public_key,
-              price: keypomInstance.yoctoToNear(resale.price),
+              price: keypomInstance.yoctoToNear(String(resale.price)),
             });
           }
         }
@@ -744,7 +882,9 @@ export default function Event() {
   }, [funderId, keypomInstance]);
 
   useEffect(() => {
-    if (!keypomInstance || !eventId || !funderId) return;
+    if (keypomInstance == null || keypomInstance === undefined || !eventId || !funderId) {
+      return;
+    }
 
     handleGetAllTickets();
   }, [keypomInstance, eventId, funderId]);
@@ -760,7 +900,7 @@ export default function Event() {
 
         const meta = drop; // EventDropMetadata = JSON.parse(drop.metadata);
         let dateString = '';
-        if (meta.date) {
+        if (meta.date != null && meta.date !== undefined) {
           let timeString = '';
           if (meta.date.time) {
             timeString = meta.date.time;
@@ -782,11 +922,29 @@ export default function Event() {
           location: meta.location || 'loading',
           date: dateString,
           description: meta.description || 'loading',
-          ticketInfo: meta.ticketInfo,
+          // WIP data below here
+          title: '',
+          pubKey: '',
+          secretKey: '',
+          navurl: '',
+          maxTickets: 0,
+          soldTickets: 0,
+          numTickets: '',
+          id: 0,
+          media: '',
+          supply: 0,
+          dateString: '',
+          price: 0,
         });
         setIsLoading(false);
       } catch (error) {
-        console.error('Error getting event data', error);
+        toast({
+          title: 'Error loading event',
+          description: `please try again later`,
+          status: 'error',
+          duration: 5000,
+          isClosable: true,
+        });
         setNoDrop(true);
       }
     };
@@ -844,49 +1002,113 @@ export default function Event() {
       <Heading as="h2" color="black" my="5" size="2xl">
         {event.name}
       </Heading>
-      <Stack
-        align="start"
-        // bg="linear-gradient(180deg, rgba(255, 207, 234, 0) 0%, #30c9f34b 100%)"
-        borderRadius={{ base: '1rem', md: '8xl' }}
-        justifyContent="space-between"
-        p="0"
-      >
-        <Box flex="2" mr="20" textAlign="left">
-          <Text as="h2" color="black.800" fontSize="l" fontWeight="bold" my="4px" textAlign="left">
-            Event Details
-          </Text>
+      {/* TODO: make these stacks change between hstack and vstack nicely */}
+      <Show above="md">
+        <HStack>
+          <Box flex="2" mr="20" textAlign="left">
+            <Text
+              as="h2"
+              color="black.800"
+              fontSize="l"
+              fontWeight="bold"
+              my="4px"
+              textAlign="left"
+            >
+              Event Details
+            </Text>
 
-          <Text> {event.description} </Text>
-        </Box>
-        <Box flex="1" textAlign="left">
-          <Text as="h2" color="black.800" fontSize="l" fontWeight="bold" my="4px" textAlign="left">
-            Location
-          </Text>
+            <Text> {event.description} </Text>
+          </Box>
+          <Box flex="1" textAlign="left">
+            <Text
+              as="h2"
+              color="black.800"
+              fontSize="l"
+              fontWeight="bold"
+              my="4px"
+              textAlign="left"
+            >
+              Location
+            </Text>
 
-          <Text>{event.location}</Text>
+            <Text>{event.location}</Text>
 
-          <a href={mapHref} rel="noopener noreferrer" target="_blank">
-            Open in Google Maps <ExternalLinkIcon mx="2px" />
-          </a>
+            <a href={mapHref} rel="noopener noreferrer" target="_blank">
+              Open in Google Maps <ExternalLinkIcon mx="2px" />
+            </a>
 
-          <Text
-            as="h2"
-            color="black.800"
-            fontSize="l"
-            fontWeight="bold"
-            mt="12px"
-            my="4px"
-            textAlign="left"
-          >
-            Date
-          </Text>
-          <Text color="gray.400">{event.date}</Text>
+            <Text
+              as="h2"
+              color="black.800"
+              fontSize="l"
+              fontWeight="bold"
+              mt="12px"
+              my="4px"
+              textAlign="left"
+            >
+              Date
+            </Text>
+            <Text color="gray.400">{event.date}</Text>
 
-          <Button mt="4" variant="primary" onClick={verifyOnOpen}>
-            Verify Ticket
-          </Button>
-        </Box>
-      </Stack>
+            <Button mt="4" variant="primary" onClick={verifyOnOpen}>
+              Verify Ticket
+            </Button>
+          </Box>
+        </HStack>
+      </Show>
+      <Hide above="md">
+        <VStack>
+          <Box flex="2" mr="20" textAlign="left">
+            <Text
+              as="h2"
+              color="black.800"
+              fontSize="l"
+              fontWeight="bold"
+              my="4px"
+              textAlign="left"
+            >
+              Event Details
+            </Text>
+
+            <Text> {event.description} </Text>
+          </Box>
+          <Box flex="1" textAlign="left">
+            <Text
+              as="h2"
+              color="black.800"
+              fontSize="l"
+              fontWeight="bold"
+              my="4px"
+              textAlign="left"
+            >
+              Location
+            </Text>
+
+            <Text>{event.location}</Text>
+
+            <a href={mapHref} rel="noopener noreferrer" target="_blank">
+              Open in Google Maps <ExternalLinkIcon mx="2px" />
+            </a>
+
+            <Text
+              as="h2"
+              color="black.800"
+              fontSize="l"
+              fontWeight="bold"
+              mt="12px"
+              my="4px"
+              textAlign="left"
+            >
+              Date
+            </Text>
+            <Text color="gray.400">{event.date}</Text>
+
+            <Button mt="4" variant="primary" onClick={verifyOnOpen}>
+              Verify Ticket
+            </Button>
+          </Box>
+        </VStack>
+      </Hide>
 
       <Heading as="h3" my="5" size="lg">
         Tickets
@@ -894,7 +1116,7 @@ export default function Event() {
       <Box h="full" mt="0" p="0px" pb={{ base: '6', md: '16' }} w="full">
         <SimpleGrid minChildWidth="280px" spacing={5}>
           {!areTicketsLoading
-            ? ticketList.map((ticket) => (
+            ? ticketList.map((ticket: any) => (
                 <TicketCard
                   key={ticket.id}
                   event={ticket}
@@ -905,7 +1127,7 @@ export default function Event() {
               ))
             : loadingdata.map((ticket) => (
                 <TicketCard
-                  key={loadingdata.id}
+                  key={ticket.id}
                   event={loadingdata[0]}
                   loading={true}
                   surroundingNavLink={false}
@@ -926,7 +1148,7 @@ export default function Event() {
       <Box h="full" mt="0" p="0px" pb={{ base: '6', md: '16' }} w="full">
         <SimpleGrid minChildWidth="280px" spacing={5}>
           {!areTicketsLoading ? (
-            resaleTicketList.map((ticket) => (
+            resaleTicketList.map((ticket: any) => (
               <TicketCard
                 key={ticket.id}
                 event={ticket}

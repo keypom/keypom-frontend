@@ -13,7 +13,10 @@ import {
   Text,
 } from '@chakra-ui/react';
 import { Form } from 'react-router-dom';
-import { useRef, useState } from 'react';
+import { useState } from 'react';
+import { type WalletSelector } from '@near-wallet-selector/core';
+
+import { type EventInterface } from '@/pages/Event';
 
 import { TicketIncrementer } from './TicketIncrementer';
 
@@ -21,15 +24,13 @@ interface PurchaseModalProps {
   isOpen: boolean;
   onClose: () => void;
   ticket: any;
-  onSubmit: (questionValues: any, paymentMethod: string, isSecondary: bool) => void;
+  onSubmit: (questionValues: object, paymentMethod: string, isSecondary: boolean) => void;
   setEmail: (email: string) => void;
   email: string;
-  setTicketAmount: (ticketAmount: number) => void;
-  initialAmount: number;
-  event: any;
+  event: EventInterface;
   amount: number;
   setAmount: (amount: number) => void;
-  selector: any;
+  selector: WalletSelector;
   stripeEnabledEvent: boolean;
   stripeAccountId: string;
 }
@@ -56,7 +57,7 @@ export const PurchaseModal = ({
   const [questionValues, setQuestionValues] = useState({});
   const [showErrors, setShowErrors] = useState(false);
 
-  const focusedInputRef = useRef(null);
+  // const focusedInputRef = useRef(null);
 
   const preOnSubmit = (questions, type, anyError) => {
     if (anyError) {
@@ -69,8 +70,8 @@ export const PurchaseModal = ({
   const handleQuestionInputChange = (index, e) => {
     const newValue = e.target.value;
 
-    // Store the currently focused input field
-    focusedInputRef.current = e.target;
+    // // Store the currently focused input field
+    // const focusedInputRef = useRef<HTMLInputElement>(null);
     setQuestionValues((prevValues) => {
       // Create a new object with the previous values
       const newValues = { ...prevValues };
@@ -80,23 +81,23 @@ export const PurchaseModal = ({
       return newValues;
     });
 
-    if (focusedInputRef.current) {
-      focusedInputRef.current.focus();
-    }
+    // if (focusedInputRef?.current != null && focusedInputRef?.current !== undefined) {
+    //   focusedInputRef.current.focus();
+    // }
   };
 
   // Use the useEffect hook to set the focus when the questionValues state changes
   // useEffect(() => {}, [questionValues]);
 
   const isError = email === '';
-  if (!ticket) return null;
+  if (ticket == null || ticket === undefined) return null;
   const availableTickets = ticket.maxTickets - ticket.soldTickets;
 
   const decrementAmount = () => {
     if (amount === 1) return;
     setAmount(amount - 1);
   };
-  const incrementAmount = (e) => {
+  const incrementAmount = () => {
     const availableTickets = ticket.maxTickets - ticket.soldTickets;
     if (availableTickets <= 0) return;
 
@@ -120,14 +121,12 @@ export const PurchaseModal = ({
   //   }
   // };
 
-  console.log('waaticket', ticket);
-  console.log('waatiasdaasdcket', amount);
-  console.log('waaevent', event);
   const EventQuestions = () => {
     return (
       <>
         {event.questions.map((question, index) => {
           const isError = question.required && !Object.values(questionValues)[index]; // isError is true if the question is required and the input is empty
+          const defaultValue = Object.values(questionValues)[index];
 
           return (
             <FormControl key={index} isInvalid={isError && showErrors}>
@@ -136,7 +135,7 @@ export const PurchaseModal = ({
               </Text>
               <Input
                 key={index}
-                defaultValue={Object.values(questionValues)[index] || ''}
+                defaultValue={typeof defaultValue === 'string' ? defaultValue : ''}
                 maxLength={50}
                 mt="2"
                 type="text"
@@ -166,12 +165,10 @@ export const PurchaseModal = ({
 
   // purchase button version
   const stripeRegistered = stripeEnabledEvent;
-  console.log('wtfstripeRegistered', stripeRegistered);
-  console.log('selecto123r', selector);
-  const signedIn = selector.isSignedIn();
+  const signedIn = Boolean(selector ? selector.isSignedIn() : true);
   const isFree = ticket.price === 0 || ticket.price === '0';
 
-  const PurchaseButton = <></>;
+  let PurchaseButton = <></>;
 
   if (isFree) {
     // purchaseType = 3;

@@ -1,7 +1,6 @@
 import copy from 'copy-to-clipboard';
 
 export const share = (text) => {
-  console.log(navigator);
   if (navigator.share && /mobile/gi.test(window.navigator.userAgent)) {
     navigator
       .share({

@@ -19,11 +19,13 @@ import { useEffect, useState } from 'react';
 import { QrReader } from 'react-qr-reader';
 
 import keypomInstance from '@/lib/keypom';
+import { type TicketInterface, type EventInterface } from '@/pages/Event';
+import { type EventDropMetadata } from '@/lib/eventsHelpers';
 
 interface VerifyModalProps {
   isOpen: boolean;
   onClose: () => void;
-  event: any;
+  event: EventInterface;
   eventId: string;
   accountId: string;
 }
@@ -31,7 +33,7 @@ interface VerifyModalProps {
 export const VerifyModal = ({ isOpen, onClose, event, eventId, accountId }: VerifyModalProps) => {
   // qr code input
   const [data, setData] = useState('No result');
-  const [ticketData, setTicketData] = useState(null);
+  const [ticketData, setTicketData] = useState<TicketInterface | null>(null);
   const toast = useToast();
 
   useEffect(() => {
@@ -41,8 +43,7 @@ export const VerifyModal = ({ isOpen, onClose, event, eventId, accountId }: Veri
   const checkData = async (answer) => {
     // answer = answer?.trim();
 
-    if (!keypomInstance) {
-      console.error('not ready yet');
+    if (keypomInstance == null || keypomInstance === undefined) {
       toast({
         title: 'loading...',
         description: `Try again in a moment`,
@@ -66,56 +67,44 @@ export const VerifyModal = ({ isOpen, onClose, event, eventId, accountId }: Veri
         publicKey: String(publicKey),
       });
 
-      console.log('teekeyinfo: ', keyinfo);
-
       // get drop info using the key info id
 
       const dropID = keyinfo.token_id.split(':')[0];
 
-      console.log('teedropID: ', dropID);
-
       const dropData = await keypomInstance.getTicketDropInformation({ dropID });
-
-      console.log('teedropData: ', dropData);
-
-      console.log('teeevent: ', eventId);
 
       // parse dropData's metadata to get eventId
       const meta: EventDropMetadata = JSON.parse(dropData.drop_config.metadata);
 
       const keyinfoEventId = meta.eventId;
       if (keyinfoEventId !== eventId) {
-        console.error('Event ID mismatch', keyinfoEventId, eventId);
+        throw new Error('The ticket is not for this event.');
       }
-      console.log('teekeyinfoeventID: ', keyinfoEventId);
-      console.log('teeaccountId: ', accountId);
       const drop = await keypomInstance.getEventInfo({ accountId, eventId: keyinfoEventId });
 
-      console.log('teedrop: ', drop);
       const meta2 = drop; // EventDropMetadata = JSON.parse(drop.drop_config.metadata);
-      let dateString = '';
-      if (meta2.date) {
-        dateString =
-          typeof meta2.date.date === 'string'
-            ? meta2.date.date
-            : `${meta2.date.date.from} to ${meta2.date.date.to}`;
-      }
-
+      // let dateString = '';
+      // if (meta2?.date?.date != null && meta2.date.date !== undefined) {
+      //   dateString =
+      //     typeof meta2.date.date === 'string'
+      //       ? meta2.date.date
+      //       : `${meta2.date.date.from} to ${meta2.date.date.to}`;
+      // }
+      const newDate = { time: '', date: undefined };
       setTicketData({
         name: meta2.name || 'Untitled',
         artwork: meta2.artwork || 'loading',
         questions: meta2.questions || [],
-        location: meta2.location || 'loading',
-        date: dateString,
         description: meta2.description || 'loading',
-      });
-      console.log('teedropjustsettickte: ', {
-        name: meta2.name || 'Untitled',
-        artwork: meta2.artwork || 'loading',
-        questions: meta2.questions || [],
-        location: meta2.location || 'loading',
-        date: dateString,
-        description: meta2.description || 'loading',
+        passValidThrough: newDate, // TODO: fix this with dates revamped
+        price: meta.price || 'loading',
+        // WIP DATA BELOW
+        id: '',
+        salesValidThrough: newDate,
+        supply: 0,
+        soldTickets: 0,
+        priceNear: '0',
+        maxTickets: 0,
       });
       toast({
         title: 'Ticket verified!',
@@ -124,9 +113,7 @@ export const VerifyModal = ({ isOpen, onClose, event, eventId, accountId }: Veri
         duration: 5000,
         isClosable: true,
       });
-      return;
     } catch (error) {
-      console.log('invalid cuz error: ', error);
       toast({
         title: 'Invalid',
         description: 'Your ticket is invalid',
@@ -160,15 +147,13 @@ export const VerifyModal = ({ isOpen, onClose, event, eventId, accountId }: Veri
           </HStack>
 
           <QrReader
-            style={{ width: '100%' }}
+            constraints={{}}
+            // style={{ width: '100%' }}
             onResult={(result, error) => {
               if (result) {
-                setData(result?.text);
-                checkData(result?.text);
-              }
-
-              if (error) {
-                console.info(error);
+                const data = result?.getText();
+                setData(data);
+                checkData(data);
               }
             }}
           />
@@ -225,18 +210,7 @@ export const VerifyModal = ({ isOpen, onClose, event, eventId, accountId }: Veri
               >
                 Ticket Date
               </Text>
-              <Text textAlign="left">{ticketData?.passValidThrough}</Text>
-              <Text
-                as="h2"
-                color="black.800"
-                fontSize="l"
-                fontWeight="medium"
-                my="4px"
-                textAlign="left"
-              >
-                Location
-              </Text>
-              <Text textAlign="left">{ticketData.location}</Text>
+              <Text textAlign="left">{String(ticketData?.passValidThrough?.date?.from)}</Text>
             </>
           ) : null}
 

@@ -51,7 +51,6 @@ export const CreateTokenDropForm = () => {
   ]);
 
   const calcTotalCost = async () => {
-    console.log(totalLinks, amountPerLink, totalCost);
     if (totalLinks && amountPerLink) {
       const { requiredDeposit } = await createDrop({
         wallet: await window.selector.wallet(),
@@ -84,7 +83,6 @@ export const CreateTokenDropForm = () => {
     if (masterKey === undefined) {
       openMasterKeyModal(setAppModal, onNext?.(), () => {
         // eslint-disable-next-line no-console
-        console.log('user cancelled');
         window.location.reload();
       });
       return;

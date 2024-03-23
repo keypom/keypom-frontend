@@ -1,5 +1,15 @@
 import { type TicketInfoFormMetadata } from '@/features/create-drop/components/ticket/CreateTicketsForm';
 
+type AllDayEvent = string;
+interface MultiDayEvent {
+  from: string;
+  to: string;
+}
+export interface EventDateInfo {
+  time?: string;
+  date: AllDayEvent | MultiDayEvent;
+}
+
 export interface QuestionInfo {
   required: boolean;
   question: string;
