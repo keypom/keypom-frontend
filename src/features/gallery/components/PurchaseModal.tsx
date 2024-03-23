@@ -124,7 +124,7 @@ export const PurchaseModal = ({
   //   }
   // };
 
-  const EventQuestions = ({ maxToShow = 4 }) => (
+  const EventQuestions = ({ maxToShow = 4 }: { maxToShow?: number }) => (
     <>
       <Heading fontSize="3xl">Organizer Questions</Heading>
       {event.questions.slice(0, maxToShow).map((question, index) => {
@@ -176,6 +176,9 @@ export const PurchaseModal = ({
   const stripeRegistered = stripeEnabledEvent;
   const signedIn = Boolean(selector ? selector.isSignedIn() : true);
   const isFree = ticket.price === 0 || ticket.price === '0';
+  const hasQuestions = event.questions && event.questions.length > 0;
+  const modalSize = hasQuestions ? '6xl' : '3xl';
+  const modalPadding = hasQuestions ? '2' : '16';
 
   let PurchaseButton = <></>;
 
@@ -203,7 +206,7 @@ export const PurchaseModal = ({
         >
           Checkout with Stripe
         </Button>
-        <Text my="2"> ──────── OR ──────── </Text>
+        <Text my="0"> ──────── OR ──────── </Text>
         <Button
           w="100%"
           onClick={() => {
@@ -253,9 +256,6 @@ export const PurchaseModal = ({
     );
   }
 
-  const hasQuestions = event.questions && event.questions.length > 0;
-  const modalSize = hasQuestions ? '6xl' : '3xl';
-
   return (
     <Modal
       isCentered
@@ -265,16 +265,15 @@ export const PurchaseModal = ({
       onClose={onClose}
     >
       <ModalOverlay backdropFilter="blur(0px)" bg="blackAlpha.600" opacity="1" />
-      <ModalContent maxH="95vh" overflow="hidden">
+      <ModalContent maxH="95vh" overflow="hidden" p={modalPadding}>
         <ModalCloseButton size="lg" />
         {hasQuestions ? (
           <VStack spacing={0}>
-            <HStack divider={<StackDivider borderColor="gray.200" />} spacing={0} w="full">
+            <HStack divider={<StackDivider borderColor="gray.300" />} spacing={0} w="full">
               <VStack
                 align="stretch"
                 borderColor="gray.200"
-                borderRight={{ base: 'none', md: '1px' }}
-                divider={<StackDivider borderColor="gray.200" />}
+                divider={<StackDivider borderColor="gray.300" />}
                 maxW={{ base: 'full', md: '50%' }}
                 p="6"
                 spacing="6"
