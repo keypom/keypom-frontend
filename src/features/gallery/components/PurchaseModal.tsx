@@ -126,11 +126,13 @@ export const PurchaseModal = ({
 
   const EventQuestions = ({ maxToShow = 4 }: { maxToShow?: number }) => (
     <>
-      <Heading fontSize="3xl">Organizer Questions</Heading>
+      <Heading as="h3" fontSize="2xl" fontWeight="bold">
+        Organizer Questions
+      </Heading>
       {event.questions.slice(0, maxToShow).map((question, index) => {
         const error = question.required && !Object.values({})[index];
         return (
-          <FormControl key={index} isInvalid={error && showErrors} mt={0}>
+          <FormControl key={index} isInvalid={error && showErrors} mt={0} w="100%">
             <FormLabel
               color="gray.700"
               fontSize="md"
@@ -149,6 +151,7 @@ export const PurchaseModal = ({
               maxLength={50}
               size="md"
               type="text"
+              w="100%"
               onBlur={(e) => {
                 handleQuestionInputChange(index, e);
               }}
@@ -176,9 +179,10 @@ export const PurchaseModal = ({
   const stripeRegistered = stripeEnabledEvent;
   const signedIn = Boolean(selector ? selector.isSignedIn() : true);
   const isFree = ticket.price === 0 || ticket.price === '0';
-  const hasQuestions = event.questions && event.questions.length > 0;
+  const hasQuestions = event.questions && event.questions.length > 1;
   const modalSize = hasQuestions ? '6xl' : '3xl';
-  const modalPadding = hasQuestions ? '2' : '16';
+  const modalPadding = { base: hasQuestions ? '0' : '8', md: hasQuestions ? '2' : '16' };
+  const modalHeight = { base: '95vh', md: 'auto' };
 
   let PurchaseButton = <></>;
 
@@ -206,8 +210,8 @@ export const PurchaseModal = ({
         >
           Checkout with Stripe
         </Button>
-        <Text my="0"> ──────── OR ──────── </Text>
         <Button
+          variant="secondary"
           w="100%"
           onClick={() => {
             preOnSubmit(questionValues, 'near', isAnyError);
@@ -229,7 +233,6 @@ export const PurchaseModal = ({
         >
           Checkout with Stripe
         </Button>
-        <Text my="2"> ──────── OR ──────── </Text>
         <Text>Sign in to purchase with NEAR</Text>
       </>
     );
@@ -261,18 +264,25 @@ export const PurchaseModal = ({
       isCentered
       closeOnOverlayClick={false}
       isOpen={isOpen}
-      size={modalSize}
+      size={{ base: hasQuestions ? 'full' : modalSize, md: modalSize }}
       onClose={onClose}
     >
       <ModalOverlay backdropFilter="blur(0px)" bg="blackAlpha.600" opacity="1" />
-      <ModalContent maxH="95vh" overflow="hidden" p={modalPadding}>
+      <ModalContent maxH={modalHeight} overflow="hidden" overflowY="auto" p={modalPadding}>
         <ModalCloseButton size="lg" />
         {hasQuestions ? (
-          <VStack spacing={0}>
-            <HStack divider={<StackDivider borderColor="gray.300" />} spacing={0} w="full">
+          <VStack alignItems="stretch" direction={{ base: 'column', md: 'row' }} spacing={0}>
+            <HStack
+              divider={<StackDivider borderColor="gray.300" />}
+              flexDirection={{ base: 'column', md: 'row' }}
+              justifyContent="center"
+              spacing={0}
+              w="full"
+            >
               <VStack
                 align="stretch"
                 borderColor="gray.200"
+                direction={{ base: 'column', md: 'row' }}
                 divider={<StackDivider borderColor="gray.300" />}
                 maxW={{ base: 'full', md: '50%' }}
                 p="6"
@@ -320,12 +330,12 @@ export const PurchaseModal = ({
                   </HStack>
                 </VStack>
               </VStack>
-              <VStack align="stretch" maxW="md" p="6" spacing="6" w="full">
+              <VStack align="stretch" p="6" spacing="6" w="full">
                 {/* Right side: Dynamic Event Questions */}
                 <EventQuestions />
                 {/* Email and Purchase Section */}
                 <FormControl isInvalid={isError && showErrors} mb="4">
-                  <FormLabel fontSize="lg" fontWeight="medium" htmlFor="email">
+                  <FormLabel color="gray.700" fontSize="md" fontWeight="medium" htmlFor="email">
                     Email
                   </FormLabel>
                   <Input
@@ -333,6 +343,7 @@ export const PurchaseModal = ({
                     _hover={{ borderColor: 'gray.400' }}
                     bg="gray.50"
                     borderColor="gray.300"
+                    borderRadius="6xl"
                     fontSize="md"
                     id="email"
                     maxLength={500}
@@ -346,7 +357,10 @@ export const PurchaseModal = ({
               </VStack>
             </HStack>
             <Box p="6" w="full">
-              <VStack spacing="4">{PurchaseButton}</VStack>
+              <VStack mx="auto" spacing="4" w="full">
+                {/* PurchaseButton with adjusted maxW to match the HStack's content width */}
+                {PurchaseButton}
+              </VStack>
             </Box>
           </VStack>
         ) : (
