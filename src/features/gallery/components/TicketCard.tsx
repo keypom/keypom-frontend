@@ -137,8 +137,8 @@ export const TicketCard = ({ event, loading, surroundingNavLink, onSubmit }: Tic
   }
 
   let multPrice = 0;
-  if (typeof event.price === 'number' && event?.price != null && amount != null) {
-    multPrice = event.price * amount;
+  if (typeof event.price === 'string' && event?.price != null && amount != null) {
+    multPrice = parseFloat(event.price) * amount;
   }
   return (
     <IconBox
