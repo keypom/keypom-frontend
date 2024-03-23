@@ -13,7 +13,7 @@ import {
   Text,
 } from '@chakra-ui/react';
 import { Form } from 'react-router-dom';
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import { type WalletSelector } from '@near-wallet-selector/core';
 
 import { type EventInterface } from '@/pages/Event';
@@ -70,8 +70,8 @@ export const PurchaseModal = ({
   const handleQuestionInputChange = (index, e) => {
     const newValue = e.target.value;
 
-    // Store the currently focused input field
-    const focusedInputRef = useRef<HTMLInputElement>(null);
+    // // Store the currently focused input field
+    // const focusedInputRef = useRef<HTMLInputElement>(null);
     setQuestionValues((prevValues) => {
       // Create a new object with the previous values
       const newValues = { ...prevValues };
@@ -81,9 +81,9 @@ export const PurchaseModal = ({
       return newValues;
     });
 
-    if (focusedInputRef?.current != null && focusedInputRef?.current !== undefined) {
-      focusedInputRef.current.focus();
-    }
+    // if (focusedInputRef?.current != null && focusedInputRef?.current !== undefined) {
+    //   focusedInputRef.current.focus();
+    // }
   };
 
   // Use the useEffect hook to set the focus when the questionValues state changes
