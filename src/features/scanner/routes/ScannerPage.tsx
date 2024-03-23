@@ -11,17 +11,33 @@ import {
   MenuItem,
   Text,
   useToast,
+  Spinner,
 } from '@chakra-ui/react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { type OnResultFunction, QrReader } from 'react-qr-reader';
 import { useNavigate } from 'react-router-dom';
-import { getPubFromSecret } from 'keypom-js';
 
 import keypomInstance from '@/lib/keypom';
-import { type FunderEventMetadata, type EventDrop } from '@/lib/eventsHelpers';
 import { useTicketScanningParams } from '@/hooks/useTicketScanningParams';
 import { NotFound404 } from '@/components/NotFound404';
 import { ViewFinder } from '@/components/ViewFinder';
+import {
+  type FunderEventMetadata,
+  type EventDrop,
+  type TicketMetadataExtra,
+  type DateAndTimeInfo,
+} from '@/lib/eventsHelpers';
+import { dateAndTimeToText } from '@/features/drop-manager/utils/parseDates';
+
+import { getDropFromSecretKey, validateDrop } from '../components/helpers';
+import { LoadingOverlay } from '../components/LoadingOverlay';
+
+interface StateRefObject {
+  isScanning: boolean;
+  isOnCooldown: boolean;
+  ticketsToScan: string[];
+  allTicketOptions: EventDrop[];
+}
 
 const Scanner = () => {
   const { funderId, eventId } = useTicketScanningParams();
@@ -30,15 +46,27 @@ const Scanner = () => {
 
   const [facingMode, setFacingMode] = useState('user'); // default to rear camera
   const [eventInfo, setEventInfo] = useState<FunderEventMetadata>();
-  const [ticketOptions, setTicketOptions] = useState<Array<{ dropId: string; name: string }>>([
-    { dropId: '', name: 'All Tickets' },
-  ]);
+  const [ticketOptions, setTicketOptions] = useState<
+    Array<{ dropId: string; name: string; validThrough: DateAndTimeInfo }>
+  >([{ dropId: '', name: 'All Tickets', validThrough: { startDate: 0 } }]);
   const [isErr, setIsErr] = useState(false);
   const [ticketToVerify, setTicketToVerify] = useState<string>('');
   const [isScanning, setIsScanning] = useState(false);
+  const [isOnCooldown, setIsOnCooldown] = useState(false); // New state to manage cooldown
+
+  const stateRef = useRef<StateRefObject>({
+    isScanning: false,
+    isOnCooldown: false,
+    ticketsToScan: [],
+    allTicketOptions: [],
+  });
+
+  const [allTicketOptions, setAllTicketOptions] = useState<EventDrop[]>();
 
   const [scanStatus, setScanStatus] = useState<'success' | 'error'>();
   const [statusMessage, setStatusMessage] = useState('');
+
+  const [ticketsToScan, setTicketsToScan] = useState<string[]>([]);
 
   useEffect(() => {
     if (eventId === '' || funderId === '') navigate('/drops');
@@ -74,15 +102,24 @@ const Scanner = () => {
           accountId: funderId,
           eventId,
         });
-        const ticketOptions: Array<{ dropId: string; name: string }> = [
-          { dropId: '', name: 'All Tickets' },
-        ];
+        setAllTicketOptions(ticketsReturned);
+
+        const ticketOptions: Array<{
+          dropId: string;
+          name: string;
+          validThrough: DateAndTimeInfo;
+        }> = [{ dropId: '', name: 'All Tickets', validThrough: { startDate: 0 } }];
         ticketsReturned.forEach((ticket) => {
+          const extra: TicketMetadataExtra = JSON.parse(
+            ticket.drop_config.nft_keys_config.token_metadata.extra,
+          );
           ticketOptions.push({
             dropId: ticket.drop_id,
             name: ticket.drop_config.nft_keys_config.token_metadata.title,
+            validThrough: extra.passValidThrough,
           });
         });
+        console.log('Ticket Options', ticketOptions, 'Tickets Returned', ticketsReturned);
         setTicketOptions(ticketOptions);
       } catch (e) {
         console.error(e);
@@ -104,47 +141,61 @@ const Scanner = () => {
       });
       // Reset the status after showing the message
       setTimeout(() => {
-        setScanStatus(null);
+        setScanStatus(undefined);
       }, 5000);
     }
   }, [scanStatus, statusMessage, toast]);
 
-  const getDropFromSecretKey = async (secretKey: string): Promise<EventDrop | null> => {
-    try {
-      const pubKey = getPubFromSecret(secretKey);
-      const keyInfo: { drop_id: string } = await keypomInstance.viewCall({
-        methodName: 'get_key_information',
-        args: { key: pubKey },
-      });
-      const drop: EventDrop = await keypomInstance.viewCall({
-        methodName: 'get_drop_information',
-        args: { drop_id: keyInfo.drop_id },
-      });
-      return drop;
-    } catch (e) {
-      return null;
-    }
+  const enableCooldown = () => {
+    setIsOnCooldown(true); // Activate cooldown
+    setTimeout(() => {
+      setIsOnCooldown(false); // Deactivate cooldown after 3000 milliseconds (3 seconds)
+    }, 1000);
   };
 
-  const validateTicket = (drop: EventDrop): boolean => {
-    return true;
-  };
+  useEffect(() => {
+    stateRef.current.isScanning = isScanning;
+    stateRef.current.ticketsToScan = ticketsToScan;
+    stateRef.current.isOnCooldown = isOnCooldown;
+    stateRef.current.allTicketOptions = allTicketOptions || [];
+    // Update other state variables in stateRef.current as needed
+  }, [isScanning, ticketsToScan, isOnCooldown, allTicketOptions]);
 
   const handleScanResult: OnResultFunction = async (result) => {
-    if (result && !isScanning) {
+    if (result && !stateRef.current.isScanning && !stateRef.current.isOnCooldown) {
       setIsScanning(true); // Start scanning
       try {
         const secretKey = result.text;
-        const drop = await getDropFromSecretKey(secretKey as string);
-        if (drop) {
-          // Suppose you have a function to validate the ticket
-          if (validateTicket(drop)) {
-            setScanStatus('success');
-            setStatusMessage('Ticket is valid and scanned successfully!');
-          } else {
+        const dropInfo = await getDropFromSecretKey(secretKey as string);
+        if (dropInfo) {
+          const { drop, usesRemaining } = dropInfo;
+          // Check if the ticket has already been scanned
+          if (stateRef.current.ticketsToScan.includes(secretKey)) {
+            // This now correctly checks against the most up-to-date ticketsToScan
             setScanStatus('error');
-            setStatusMessage('Invalid ticket. Please try again.');
+            setStatusMessage('Ticket already scanned.');
+            return;
           }
+
+          if (usesRemaining !== 2) {
+            setScanStatus('error');
+            setStatusMessage('Ticket has already been used.');
+            return;
+          }
+
+          // Suppose you have a function to validate the ticket
+          const { status, message } = validateDrop({
+            drop,
+            allTicketOptions: stateRef.current.allTicketOptions,
+            ticketToVerify,
+          });
+
+          // If the ticket is valid, update the state to include the new ticket
+          if (status === 'success') {
+            setTicketsToScan((prevTickets) => [...prevTickets, secretKey]);
+          }
+          setScanStatus(status);
+          setStatusMessage(message);
         } else {
           setScanStatus('error');
           setStatusMessage('No ticket information found.');
@@ -155,12 +206,9 @@ const Scanner = () => {
         setStatusMessage('Error scanning the ticket. Please try again.');
       } finally {
         setIsScanning(false); // End scanning regardless of success or error
+        enableCooldown(); // Enable cooldown to prevent multiple scans
       }
     }
-  };
-
-  const toggleFacingMode = () => {
-    setFacingMode((prevMode) => (prevMode === 'environment' ? 'user' : 'environment'));
   };
 
   if (isErr) {
@@ -173,21 +221,42 @@ const Scanner = () => {
     );
   }
 
-  // You could define a function to get the selected ticket name for display
-  const getSelectedTicketName = () => {
-    return `Select Ticket To Scan`;
-  };
+  if (!allTicketOptions || !eventInfo) {
+    return (
+      <Center h="100vh">
+        {' '}
+        {/* Adjust the height as needed */}
+        <Spinner size="xl" />
+      </Center>
+    );
+  }
 
   return (
     <Box marginTop="6" mb={{ base: '5', md: '14' }} minH="100%" minW="100%">
       <Center>
         <VStack spacing="0" w="100%">
-          <VStack spacing="4">
+          <VStack marginBottom="6" spacing="4">
             <Heading textAlign="center">Scanning Tickets For {eventInfo?.name}</Heading>
-            <Heading fontFamily="body" fontSize="lg" marginBottom="6" textAlign="center">
-              Currently Scanning For{' '}
-              {ticketOptions.find((option) => option.dropId === ticketToVerify)?.name}
-            </Heading>
+            <VStack spacing="1">
+              <Heading fontFamily="body" fontSize="lg" textAlign="center">
+                Currently Scanning For{' '}
+                {ticketOptions.find((option) => option.dropId === ticketToVerify)?.name}
+              </Heading>
+              {ticketToVerify !== '' && (
+                <Heading
+                  fontFamily="body"
+                  fontSize="md"
+                  fontWeight="400"
+                  textAlign="center"
+                  textColor="gray.500"
+                >
+                  Valid Through:{' '}
+                  {dateAndTimeToText(
+                    ticketOptions.find((option) => option.dropId === ticketToVerify)!.validThrough,
+                  )}
+                </Heading>
+              )}
+            </VStack>
           </VStack>
 
           {/* Dropdown for selecting ticket types */}
@@ -207,7 +276,7 @@ const Scanner = () => {
                 >
                   <Center>
                     {/* You can customize this part as needed */}
-                    <Text>{getSelectedTicketName()}</Text>
+                    <Text>Select Ticket Type To Scan</Text>
                   </Center>
                 </MenuButton>
                 <MenuList
@@ -239,7 +308,8 @@ const Scanner = () => {
               h="100%"
               maxHeight="500px"
               maxW="500px"
-              overflow="hidden" // This will ensure that all children also get the border radius applied
+              overflow="hidden"
+              position="relative" // Ensure this container is positioned relatively
               spacing={4}
               w="full"
             >
@@ -248,22 +318,30 @@ const Scanner = () => {
                 containerStyle={{
                   width: '100%',
                   height: '100%',
-                  borderRadius: '24px', // Apply the same border radius here
+                  borderRadius: '24px',
                 }}
                 scanDelay={1000}
                 ViewFinder={() => <ViewFinder />}
                 onResult={handleScanResult}
               />
-              {/* Ensure that your ViewFinder component does not override the borderRadius. */}
+              {/* Overlay Component */}
+              <LoadingOverlay isVisible={isOnCooldown || isScanning} status={scanStatus} />
             </VStack>
           </Center>
-          {isScanning ? (
-            <Text color="gray.500">Scanning in progress...</Text>
+          {ticketsToScan.length > 0 ? (
+            <Text color="gray.500">
+              Processing {ticketsToScan.length} tickets in the background...
+            </Text>
           ) : (
             <Text color="gray.500">Waiting for QR code...</Text>
           )}
           <Center maxW="500px" mt="4" w="full">
-            <Button w="full" onClick={toggleFacingMode}>
+            <Button
+              w="full"
+              onClick={() => {
+                setFacingMode((prevMode) => (prevMode === 'environment' ? 'user' : 'environment'));
+              }}
+            >
               Flip Camera
             </Button>
           </Center>
