@@ -1,18 +1,21 @@
 import {
-  Box,
+  VStack,
   Button,
   FormControl,
   FormErrorMessage,
-  FormHelperText,
+  HStack,
   Input,
   Modal,
   ModalCloseButton,
   ModalContent,
-  ModalFooter,
   ModalOverlay,
   Text,
+  Heading,
+  Image,
+  FormLabel,
+  StackDivider,
+  Box,
 } from '@chakra-ui/react';
-import { Form } from 'react-router-dom';
 import { useRef, useState } from 'react';
 import { type WalletSelector } from '@near-wallet-selector/core';
 
@@ -121,37 +124,43 @@ export const PurchaseModal = ({
   //   }
   // };
 
-  const EventQuestions = () => {
-    return (
-      <>
-        {event.questions.map((question, index) => {
-          const isError = question.required && !Object.values(questionValues)[index]; // isError is true if the question is required and the input is empty
-          const defaultValue = Object.values(questionValues)[index];
-
-          return (
-            <FormControl key={index} isInvalid={isError && showErrors}>
-              <Text color="black" mt="4" textAlign="left">
-                {question.question} {question.required ? '*' : ''}{' '}
-              </Text>
-              <Input
-                key={index}
-                defaultValue={typeof defaultValue === 'string' ? defaultValue : ''}
-                maxLength={50}
-                mt="2"
-                type="text"
-                onBlur={(e) => {
-                  handleQuestionInputChange(index, e);
-                }}
-                // onKeyDown={(e) => {
-                //   ChangeEnterFix(index, e);
-                // }}
-              />
-            </FormControl>
-          );
-        })}
-      </>
-    );
-  };
+  const EventQuestions = ({ maxToShow = 4 }) => (
+    <>
+      <Heading fontSize="3xl">Organizer Questions</Heading>
+      {event.questions.slice(0, maxToShow).map((question, index) => {
+        const error = question.required && !Object.values({})[index];
+        return (
+          <FormControl key={index} isInvalid={error && showErrors} mt={0}>
+            <FormLabel
+              color="gray.700"
+              fontSize="md"
+              fontWeight="medium"
+              htmlFor={`question_${index}`}
+            >
+              {question.question} {question.required && <span style={{ color: 'red' }}>*</span>}
+            </FormLabel>
+            <Input
+              _hover={{ borderColor: 'gray.400' }}
+              bg="gray.50"
+              borderColor="gray.300"
+              defaultValue=""
+              focusBorderColor="blue.500"
+              id={`question_${index}`}
+              maxLength={50}
+              size="md"
+              type="text"
+              onBlur={(e) => {
+                handleQuestionInputChange(index, e);
+              }}
+            />
+            {error && showErrors && (
+              <FormErrorMessage>{question.question} is required.</FormErrorMessage>
+            )}
+          </FormControl>
+        );
+      })}
+    </>
+  );
 
   let isAnyError = isError;
   // if there are any errors, the button is disabled
@@ -244,93 +253,182 @@ export const PurchaseModal = ({
     );
   }
 
+  const hasQuestions = event.questions && event.questions.length > 0;
+  const modalSize = hasQuestions ? '6xl' : '3xl';
+
   return (
-    <Modal isCentered closeOnOverlayClick={false} isOpen={isOpen} size={'xl'} onClose={onClose}>
+    <Modal
+      isCentered
+      closeOnOverlayClick={false}
+      isOpen={isOpen}
+      size={modalSize}
+      onClose={onClose}
+    >
       <ModalOverlay backdropFilter="blur(0px)" bg="blackAlpha.600" opacity="1" />
-      <ModalContent p="8">
-        <Box maxH="90vh" overflowY="auto" p="0">
-          <ModalCloseButton />
-          <Text
-            as="h2"
-            color="black.800"
-            fontSize="xl"
-            fontWeight="medium"
-            mt="8px"
-            textAlign="left"
-          >
-            {ticket.name}
-          </Text>
-          <Text
-            as="h2"
-            color="black.800"
-            fontSize="l"
-            fontWeight="medium"
-            mt="8px"
-            textAlign="left"
-          >
-            Description
-          </Text>
-          <Text textAlign="left">{ticket.description}</Text>
-          <Text
-            as="h2"
-            color="black.800"
-            fontSize="l"
-            fontWeight="medium"
-            mt="8px"
-            textAlign="left"
-          >
-            Admission Date
-          </Text>
-          <Text textAlign="left">{ticket.dateString}</Text>
-          <Text
-            as="h2"
-            color="black.800"
-            fontSize="l"
-            fontWeight="medium"
-            mt="8px"
-            textAlign="left"
-          >
-            Ticket Amount
-          </Text>
-          <Form>
-            {availableTickets > 1 ? (
-              <TicketIncrementer
-                amount={amount}
-                decrementAmount={decrementAmount}
-                incrementAmount={incrementAmount}
-              />
-            ) : (
-              <> </>
-            )}
-            {/* slot in all event questions here */}
-            <EventQuestions />
-            <FormControl isInvalid={isError && showErrors}>
-              <Text color="black" mt="4" textAlign="left">
-                Email
-              </Text>
-              <Input
-                maxLength={500}
-                mt="2"
-                type="email"
-                value={email}
-                onChange={handleInputChange}
-              />
-              {!(isError && showErrors) ? (
-                <FormHelperText my="2">
-                  No account will be created, ensure your email is correct
-                </FormHelperText>
-              ) : (
-                <FormErrorMessage my="2"> Email is required. </FormErrorMessage>
-              )}
-            </FormControl>
-            {PurchaseButton}
-          </Form>
-          <ModalFooter>
-            <Button variant={'secondary'} w="100%" onClick={onClose}>
-              Cancel
-            </Button>
-          </ModalFooter>
-        </Box>
+      <ModalContent maxH="95vh" overflow="hidden">
+        <ModalCloseButton size="lg" />
+        {hasQuestions ? (
+          <VStack spacing={0}>
+            <HStack divider={<StackDivider borderColor="gray.200" />} spacing={0} w="full">
+              <VStack
+                align="stretch"
+                borderColor="gray.200"
+                borderRight={{ base: 'none', md: '1px' }}
+                divider={<StackDivider borderColor="gray.200" />}
+                maxW={{ base: 'full', md: '50%' }}
+                p="6"
+                spacing="6"
+                w="full"
+              >
+                <Image
+                  alt={`Event image for ${event.name}`}
+                  borderRadius="md"
+                  h="auto"
+                  objectFit="cover"
+                  src={event.artwork}
+                  w="full"
+                />
+                <VStack align="stretch" spacing="4">
+                  <Heading as="h3" fontSize="2xl" fontWeight="bold">
+                    {event.name}
+                  </Heading>
+                  <Text color="gray.600" fontSize="md">
+                    {event.description}
+                  </Text>
+                  <HStack justifyContent="space-between" pt="4">
+                    <Text color="gray.800" fontSize="lg" fontWeight="semibold">
+                      Admission Date
+                    </Text>
+                    <Text color="gray.500" fontSize="lg">
+                      {ticket.dateString}
+                    </Text>
+                  </HStack>
+                  <HStack justifyContent="space-between">
+                    <Text color="gray.800" fontSize="lg" fontWeight="semibold">
+                      Ticket Amount
+                    </Text>
+                    {availableTickets > 1 ? (
+                      <TicketIncrementer
+                        amount={amount}
+                        decrementAmount={decrementAmount}
+                        incrementAmount={incrementAmount}
+                      />
+                    ) : (
+                      <Text color="gray.500" fontSize="lg">
+                        Sold Out
+                      </Text>
+                    )}
+                  </HStack>
+                </VStack>
+              </VStack>
+              <VStack align="stretch" maxW="md" p="6" spacing="6" w="full">
+                {/* Right side: Dynamic Event Questions */}
+                <EventQuestions />
+                {/* Email and Purchase Section */}
+                <FormControl isInvalid={isError && showErrors} mb="4">
+                  <FormLabel fontSize="lg" fontWeight="medium" htmlFor="email">
+                    Email
+                  </FormLabel>
+                  <Input
+                    _focus={{ borderColor: 'blue.500' }}
+                    _hover={{ borderColor: 'gray.400' }}
+                    bg="gray.50"
+                    borderColor="gray.300"
+                    fontSize="md"
+                    id="email"
+                    maxLength={500}
+                    placeholder="Enter your email"
+                    size="lg"
+                    type="email"
+                    value={email}
+                    onChange={handleInputChange}
+                  />
+                </FormControl>
+              </VStack>
+            </HStack>
+            <Box p="6" w="full">
+              <VStack spacing="4">{PurchaseButton}</VStack>
+            </Box>
+          </VStack>
+        ) : (
+          <>
+            <VStack w="full">
+              <VStack
+                align="stretch"
+                borderColor="gray.200"
+                divider={<StackDivider borderColor="gray.200" />}
+                spacing="6"
+                w="full"
+              >
+                <Image
+                  alt={`Event image for ${event.name}`}
+                  borderRadius="md"
+                  maxH="250px"
+                  objectFit="cover"
+                  src={event.artwork}
+                  w="full"
+                />
+                <VStack align="stretch" spacing="4">
+                  <Heading as="h3" fontSize="2xl" fontWeight="bold">
+                    {event.name}
+                  </Heading>
+                  <Text color="gray.600" fontSize="md">
+                    {event.description}
+                  </Text>
+                  <HStack justifyContent="space-between" pt="4">
+                    <Text color="gray.800" fontSize="lg" fontWeight="semibold">
+                      Admission Date
+                    </Text>
+                    <Text color="gray.500" fontSize="lg">
+                      {ticket.dateString}
+                    </Text>
+                  </HStack>
+                  <HStack justifyContent="space-between">
+                    <Text color="gray.800" fontSize="lg" fontWeight="semibold">
+                      Ticket Amount
+                    </Text>
+                    {availableTickets > 1 ? (
+                      <TicketIncrementer
+                        amount={amount}
+                        decrementAmount={decrementAmount}
+                        incrementAmount={incrementAmount}
+                      />
+                    ) : (
+                      <Text color="gray.500" fontSize="lg">
+                        Sold Out
+                      </Text>
+                    )}
+                  </HStack>
+                </VStack>
+              </VStack>
+            </VStack>
+            <VStack align="stretch" paddingTop="6" spacing="6" w="full">
+              {/* Email and Purchase Section */}
+              <FormControl isInvalid={isError && showErrors}>
+                <FormLabel fontSize="lg" fontWeight="medium" htmlFor="email">
+                  Email
+                </FormLabel>
+                <Input
+                  _focus={{ borderColor: 'blue.500' }}
+                  _hover={{ borderColor: 'gray.400' }}
+                  bg="gray.50"
+                  borderColor="gray.300"
+                  fontSize="md"
+                  id="email"
+                  maxLength={500}
+                  placeholder="Enter your email"
+                  size="lg"
+                  type="email"
+                  value={email}
+                  onChange={handleInputChange}
+                />
+              </FormControl>
+            </VStack>
+            <Box paddingTop="6" w="full">
+              <VStack spacing="4">{PurchaseButton}</VStack>
+            </Box>
+          </>
+        )}
       </ModalContent>
     </Modal>
   );
