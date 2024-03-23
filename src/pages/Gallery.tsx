@@ -38,6 +38,7 @@ import CustomDateRangePickerMobile from '@/components/DateRangePicker/MobileDate
 import CustomDateRangePicker from '@/components/DateRangePicker/DateRangePicker';
 import { type EventDate } from '@/features/create-drop/routes/CreateTicketDropPage';
 import { eventDateToPlaceholder } from '@/features/create-drop/components/ticket/EventInfoForm';
+import { dateAndTimeToText } from '@/features/drop-manager/utils/parseDates';
 
 // import myData from '../data/db.json';
 
@@ -271,19 +272,6 @@ export default function Gallery() {
     return drops;
   };
 
-  const formatDate = (date) => {
-    // Create an instance of Intl.DateTimeFormat for formatting
-    const formatter = new Intl.DateTimeFormat('en-US', {
-      month: 'short', // Full month name.
-      day: 'numeric', // Numeric day of the month.
-      year: 'numeric', // Numeric full year.
-      // hour: 'numeric', // Numeric hour.
-      // minute: 'numeric', // Numeric minute.
-      // hour12: true, // Use 12-hour time.
-    });
-    return formatter.format(date);
-  };
-
   // const [numOwnedEvents, setNumOwnedEvents] = useState<number>(0);
 
   const handleGetAllEvents = async () => {
@@ -324,10 +312,7 @@ export default function Gallery() {
 
       let dateString = '';
       if (eventInfo?.date != null) {
-        dateString =
-          typeof eventInfo.date.date === 'string'
-            ? eventInfo.date.date
-            : `${eventInfo.date.date.from} to ${eventInfo.date.date.to}`;
+        dateString = dateAndTimeToText(eventInfo.date);
       }
 
       if (event === undefined || eventInfo === undefined) {
@@ -335,7 +320,6 @@ export default function Gallery() {
       }
 
       const numTickets = Object.keys(event.ticket_info).length;
-      const dateCreated = formatDate(new Date(parseInt(eventInfo.dateCreated)));
       return {
         prices,
         maxTickets,
@@ -346,7 +330,7 @@ export default function Gallery() {
         id: event.event_id,
         name: truncateAddress(eventInfo.name, 'middle', 32),
         media: eventInfo.artwork,
-        dateCreated, // Ensure drop has dateCreated or adjust accordingly
+        dateCreated: eventInfo.dateCreated,
         numTickets,
         description: truncateAddress(eventInfo.description, 'end', 128),
         eventId: event.event_id,
@@ -409,10 +393,7 @@ export default function Gallery() {
 
       let dateString = '';
       if (eventInfo?.date != null) {
-        dateString =
-          typeof eventInfo.date.date === 'string'
-            ? eventInfo.date.date
-            : `${eventInfo.date.date.from} to ${eventInfo.date.date.to}`;
+        dateString = dateAndTimeToText(eventInfo.date);
       }
 
       if (event === undefined || eventInfo === undefined) {
@@ -420,7 +401,6 @@ export default function Gallery() {
       }
 
       const numTickets = Object.keys(event.ticket_info).length;
-      const dateCreated = formatDate(new Date(parseInt(eventInfo.dateCreated)));
       return {
         maxTickets,
         supply,
@@ -430,7 +410,7 @@ export default function Gallery() {
         id: event.event_id,
         name: truncateAddress(eventInfo.name, 'middle', 32),
         media: eventInfo.artwork,
-        dateCreated, // Ensure drop has dateCreated or adjust accordingly
+        dateCreated: eventInfo.dateCreated, // Ensure drop has dateCreated or adjust accordingly
         numTickets,
         description: truncateAddress(eventInfo.description, 'end', 128),
         eventId: event.event_id,
@@ -495,33 +475,7 @@ export default function Gallery() {
   const getGalleryGridRows = () => {
     if (filteredDataItems === undefined || filteredDataItems.length === 0) return [];
 
-    let gridData = filteredDataItems;
-    // fix dates here and then pass them to the gallerygrid
-    // turn these into nice bois
-    // map over the filtered drops and clean the date
-    gridData = gridData.map((drop) => {
-      let dateString = drop.dateString;
-      if (drop.dateString === undefined) {
-        dateString = drop.date.date;
-        if (typeof drop.date.date !== 'string') {
-          dateString = String(drop.date.date.from) + ' to ' + String(drop.date.date.to);
-        }
-      }
-
-      if (dateString.includes('to')) {
-        const dateArray = dateString.split('to');
-        dateString =
-          formatDate(new Date(dateArray[0])) + ' to ' + formatDate(new Date(dateArray[1]));
-      } else {
-        dateString = formatDate(new Date(dateString));
-      }
-      return {
-        ...drop,
-        dateString,
-      };
-    });
-
-    // preint everything in griddata
+    const gridData = filteredDataItems;
 
     return gridData.slice(
       curPage * selectedFilters.pageSize,
