@@ -37,6 +37,8 @@ export const TicketCard = ({ event, loading, surroundingNavLink, onSubmit }: Tic
     nav = '../gallery/' + String(event.navurl);
   }
 
+  console.log('event', event);
+
   const [amount, setAmount] = useState(1);
 
   const decrementAmount = () => {
@@ -135,8 +137,8 @@ export const TicketCard = ({ event, loading, surroundingNavLink, onSubmit }: Tic
   }
 
   let multPrice = 0;
-  if (typeof event.price === 'number' && event?.price != null && amount != null) {
-    multPrice = event.price * amount;
+  if (typeof event.price === 'string' && event?.price != null && amount != null) {
+    multPrice = parseFloat(event.price) * amount;
   }
   return (
     <IconBox
@@ -189,9 +191,7 @@ export const TicketCard = ({ event, loading, surroundingNavLink, onSubmit }: Tic
               event.maxTickets === undefined ||
               event.maxTickets == null ||
               event.supply == null ||
-              event.price == null ||
-              event.supply === undefined ||
-              event.price === undefined ? (
+              event.supply === undefined ? (
                 <>
                   <Badge
                     borderRadius="full"
