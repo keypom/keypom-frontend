@@ -540,6 +540,10 @@ class KeypomJS {
       const funderMeta: Record<string, FunderEventMetadata> = JSON.parse(funderInfo.metadata);
       const eventInfo: FunderEventMetadata = funderMeta[eventId];
 
+      if (eventInfo === undefined || eventInfo === null) {
+        throw new Error(`Event ${String(eventId)} not exist`);
+      }
+
       eventInfo.artwork = `${CLOUDFLARE_IPFS}/${eventInfo.artwork}`;
 
       return eventInfo;

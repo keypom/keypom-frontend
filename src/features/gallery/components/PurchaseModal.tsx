@@ -54,6 +54,7 @@ export const PurchaseModal = ({
   const [email, setEmail] = useState('');
   const [questionResponses, setQuestionResponses] = useState({});
   const [currentTicket, setCurrentTicket] = useState(ticket);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     setCurrentTicket(ticket);
@@ -78,7 +79,7 @@ export const PurchaseModal = ({
     }
 
     setShowErrors(false); // Reset error state before validation
-
+    setLoading(true);
     // You may want to transform questionValues into the desired format for onSubmit
     onSubmit(email, questionResponses, type, currentTicket.isSecondary);
   };
@@ -117,8 +118,13 @@ export const PurchaseModal = ({
   const modalHeight = { base: '95vh', md: 'auto' };
 
   let PurchaseButton = <></>;
-
-  if (currentTicket?.price && parseInt(currentTicket.price) === 0) {
+  if (loading) {
+    PurchaseButton = (
+      <Button isLoading loadingText="Processing" w="100%">
+        Processing
+      </Button>
+    );
+  } else if (currentTicket?.price && parseInt(currentTicket.price) === 0) {
     // purchaseType = 3;
     PurchaseButton = (
       <Button

@@ -36,6 +36,7 @@ import keypomInstance from '@/lib/keypom';
 import { KEYPOM_MARKETPLACE_CONTRACT } from '@/constants/common';
 import { type DataItem } from '@/components/Table/types';
 import { dateAndTimeToText } from '@/features/drop-manager/utils/parseDates';
+import { LoadingModal } from '@/features/events-page/components/LoadingModal';
 
 interface WorkerPayload {
   name: string | null;
@@ -153,6 +154,9 @@ export default function Event() {
   const [resaleTicketList, setResaleTicketList] = useState<TicketInterface[]>([]);
   const [areTicketsLoading, setAreTicketsLoading] = useState(true);
   const [doKeyModal, setDoKeyModal] = useState(false);
+
+  const [loadingModal, setLoadingModal] = useState(false);
+  const [loadingModalText, setLoadingModalText] = useState('');
 
   const [sellDropInfo, setSellDropInfo] = useState<SellDropInfo | null>(null);
 
@@ -607,8 +611,23 @@ export default function Event() {
 
     const newWorkerPayload = workerPayload;
 
+    // pop up a loading modal
+    const keyCount = workerPayload.ticketKeys?.length;
+    let currentLoadedKey = 1;
+
     for (const key in workerPayload.ticketKeys) {
+      setLoadingModal(true);
+      setLoadingModalText(
+        'Sending confirmation email for key ' +
+          String(currentLoadedKey) +
+          ' of ' +
+          String(keyCount) +
+          '...',
+      );
       newWorkerPayload.ticketKey = workerPayload.ticketKeys[key];
+
+      // // add in an artificial wait for testing
+      // await new Promise((r) => setTimeout(r, 5000));
 
       // newWorkerPayload["ticketKeys"] = null;
       const response = await fetch(
@@ -622,12 +641,21 @@ export default function Event() {
         },
       );
 
+      currentLoadedKey += 1;
+
       if (response.ok) {
         const responseBody = await response.json();
         TicketPurchaseSuccessful(newWorkerPayload, responseBody);
       } else {
         // Error creating account
         TicketPurchaseFailure(newWorkerPayload, await response.json());
+      }
+
+      if (currentLoadedKey === keyCount) {
+        setLoadingModalText('All emails have been sent');
+        setTimeout(() => {
+          setLoadingModal(false);
+        }, 2000);
       }
     }
   };
@@ -636,10 +664,10 @@ export default function Event() {
     const priceLog: string = workerPayload.priceNear.toString();
     let description = `The item has been bought for ${priceLog} NEAR`;
 
-    if (workerPayload.ticketAmount > 1) {
-      const amountLog: string = workerPayload.ticketAmount.toString();
-      description = `${amountLog} items have been bought for ${priceLog} NEAR`;
-    }
+    // if (workerPayload.ticketAmount > 1) {
+    //   const amountLog: string = workerPayload.ticketAmount.toString();
+    //   description = `${amountLog} items have been bought for ${priceLog} NEAR`;
+    // }
 
     const emailLog: string = workerPayload.purchaseEmail.toString();
     const email = ` and an email has been sent to ${emailLog}`;
@@ -651,6 +679,8 @@ export default function Event() {
       duration: 5000,
       isClosable: true,
     });
+    // close modal
+    ClosePurchaseModal();
   };
 
   const TicketPurchaseFailure = (workerPayload, responseBody) => {
@@ -729,6 +759,7 @@ export default function Event() {
         isClosable: true,
       });
     }
+    navigate('./');
   };
 
   const handleGetAllTickets = useCallback(async () => {
@@ -928,7 +959,6 @@ export default function Event() {
         w="100%"
         zIndex={-1}
       />
-
       <Box position="relative">
         <ChakraImage
           alt={event.title}
@@ -940,11 +970,9 @@ export default function Event() {
         />
       </Box>
       <Box my="5" />
-
       <Box my="5" />
       {/* <Text>Details about the Event:</Text>
       <Text>Event ID: {eventID}</Text> */}
-
       {/* <Box backgroundColor={'white'} h="100vh" left="0" ml="0" position="absolute" w="100vw"></Box> */}
       <Heading as="h2" color="black" my="5" size="2xl">
         {event.name}
@@ -1056,7 +1084,6 @@ export default function Event() {
           </Box>
         </VStack>
       </Hide>
-
       <Heading as="h3" my="5" size="lg">
         Tickets
       </Heading>
@@ -1083,7 +1110,6 @@ export default function Event() {
               ))}
         </SimpleGrid>
       </Box>
-
       {!areTicketsLoading && resaleTicketList.length > 0 ? (
         <Heading as="h3" my="5" size="lg">
           Secondary Tickets
@@ -1091,7 +1117,6 @@ export default function Event() {
       ) : (
         <></>
       )}
-
       <Box h="full" mt="0" p="0px" pb={{ base: '6', md: '16' }} w="full">
         <SimpleGrid minChildWidth="280px" spacing={5}>
           {!areTicketsLoading ? (
@@ -1109,7 +1134,6 @@ export default function Event() {
           )}
         </SimpleGrid>
       </Box>
-
       <PurchaseModal
         amount={ticketAmount}
         event={event}
@@ -1121,7 +1145,6 @@ export default function Event() {
         onClose={ClosePurchaseModal}
         onSubmit={PurchaseTicket}
       />
-
       {doKeyModal && sellDropInfo != null && (
         <SellModal
           event={sellDropInfo}
@@ -1132,13 +1155,19 @@ export default function Event() {
           onSubmit={SellTicket}
         />
       )}
-
       <VerifyModal
         accountId={funderId}
         event={event}
         eventId={eventId}
         isOpen={verifyIsOpen}
         onClose={verifyOnClose}
+      />
+      <LoadingModal
+        isOpen={loadingModal}
+        text={loadingModalText}
+        onClose={() => {
+          setLoadingModal(false);
+        }}
       />
     </Box>
   );
