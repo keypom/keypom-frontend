@@ -15,7 +15,7 @@ import {
   StackDivider,
   Box,
 } from '@chakra-ui/react';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { type WalletSelector } from '@near-wallet-selector/core';
 
 import { type EventInterface } from '@/pages/Event';
@@ -37,7 +37,6 @@ interface PurchaseModalProps {
   setAmount: (amount: number) => void;
   selector: WalletSelector;
   stripeEnabledEvent: boolean;
-  stripeAccountId: string;
 }
 
 export const PurchaseModal = ({
@@ -50,11 +49,16 @@ export const PurchaseModal = ({
   setAmount,
   selector,
   stripeEnabledEvent,
-  stripeAccountId,
 }: PurchaseModalProps) => {
   const [showErrors, setShowErrors] = useState(false);
   const [email, setEmail] = useState('');
   const [questionResponses, setQuestionResponses] = useState({});
+  const [currentTicket, setCurrentTicket] = useState(ticket);
+
+  useEffect(() => {
+    setCurrentTicket(ticket);
+    // Logic to handle updated ticket or ticketAmount
+  }, [ticket, amount]); // Depend on ticket and ticketAmount
 
   const preOnSubmit = (type) => {
     if (email === '') {
@@ -76,25 +80,23 @@ export const PurchaseModal = ({
     setShowErrors(false); // Reset error state before validation
 
     // You may want to transform questionValues into the desired format for onSubmit
-    onSubmit(email, questionResponses, type, ticket.isSecondary);
+    onSubmit(email, questionResponses, type, currentTicket.isSecondary);
   };
 
   // Use the useEffect hook to set the focus when the questionValues state changes
   // useEffect(() => {}, [questionValues]);
-
-  const availableTickets = ticket?.maxTicket || 0 - ticket?.soldTickets || 0;
 
   const decrementAmount = () => {
     if (amount === 1) return;
     setAmount(amount - 1);
   };
   const incrementAmount = () => {
-    const availableTickets = ticket.maxTickets - ticket.soldTickets;
+    const availableTickets = currentTicket.maxTickets - currentTicket.soldTickets;
     if (availableTickets <= 0) return;
 
     if (amount >= availableTickets) return;
 
-    if (ticket.numTickets !== 'unlimited' && amount >= ticket.numTickets) return;
+    if (currentTicket.numTickets !== 'unlimited' && amount >= currentTicket.numTickets) return;
     setAmount(amount + 1);
   };
 
@@ -109,7 +111,6 @@ export const PurchaseModal = ({
   // purchase button version
   const stripeRegistered = stripeEnabledEvent;
   const signedIn = Boolean(selector ? selector.isSignedIn() : true);
-  const isFree = parseFloat(ticket?.price || '0') === 0;
   const hasQuestions = event.questions && event.questions.length > 1;
   const modalSize = hasQuestions ? '6xl' : '3xl';
   const modalPadding = { base: hasQuestions ? '0' : '8', md: hasQuestions ? '2' : '16' };
@@ -117,7 +118,7 @@ export const PurchaseModal = ({
 
   let PurchaseButton = <></>;
 
-  if (isFree) {
+  if (currentTicket?.price && parseInt(currentTicket.price) === 0) {
     // purchaseType = 3;
     PurchaseButton = (
       <Button
@@ -190,7 +191,7 @@ export const PurchaseModal = ({
     );
   }
 
-  if (ticket == null || ticket === undefined) return null;
+  if (currentTicket == null || currentTicket === undefined) return null;
   return (
     <Modal
       isCentered
@@ -241,18 +242,19 @@ export const PurchaseModal = ({
                       Admission Date
                     </Text>
                     <Text color="gray.500" fontSize="lg">
-                      {ticket.dateString}
+                      {currentTicket.dateString}
                     </Text>
                   </HStack>
                   <HStack justifyContent="space-between">
                     <Text color="gray.800" fontSize="lg" fontWeight="semibold">
                       Ticket Amount
                     </Text>
-                    {availableTickets > 1 ? (
+                    {currentTicket.maxTickets - currentTicket.soldTickets > 1 ? (
                       <TicketIncrementer
                         amount={amount}
                         decrementAmount={decrementAmount}
                         incrementAmount={incrementAmount}
+                        maxAmount={currentTicket.maxTickets - currentTicket.soldTickets}
                       />
                     ) : (
                       <Text color="gray.500" fontSize="lg">
@@ -365,18 +367,19 @@ export const PurchaseModal = ({
                       Admission Date
                     </Text>
                     <Text color="gray.500" fontSize="lg">
-                      {ticket.dateString}
+                      {currentTicket.dateString}
                     </Text>
                   </HStack>
                   <HStack justifyContent="space-between">
                     <Text color="gray.800" fontSize="lg" fontWeight="semibold">
                       Ticket Amount
                     </Text>
-                    {availableTickets > 1 ? (
+                    {currentTicket.maxTickets - currentTicket.soldTickets > 1 ? (
                       <TicketIncrementer
                         amount={amount}
                         decrementAmount={decrementAmount}
                         incrementAmount={incrementAmount}
+                        maxAmount={currentTicket.maxTickets - currentTicket.soldTickets}
                       />
                     ) : (
                       <Text color="gray.500" fontSize="lg">

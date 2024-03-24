@@ -376,10 +376,6 @@ export default function Event() {
 
   const PurchaseTicket = async (email, questionValues, purchaseType, isSecondary) => {
     navigate('./');
-    console.log('purchasing ticket');
-    console.log('email: ', email);
-    console.log('questionValues: ', questionValues);
-    return;
 
     const dropData = await keypomInstance.getTicketDropInformation({
       dropID: ticketBeingPurchased.id,
@@ -1170,7 +1166,6 @@ export default function Event() {
         isOpen={isOpen}
         selector={selector}
         setAmount={setTicketAmount}
-        stripeAccountId={stripeAccountId}
         stripeEnabledEvent={stripeEnabledEvent}
         ticket={ticketBeingPurchased}
         onClose={ClosePurchaseModal}
