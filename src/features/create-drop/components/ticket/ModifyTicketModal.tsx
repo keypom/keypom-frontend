@@ -12,6 +12,7 @@ import {
   VStack,
   Center,
   Box,
+  HStack,
 } from '@chakra-ui/react';
 import { useEffect, useRef, useState } from 'react';
 import { DateTime } from 'luxon';
@@ -161,7 +162,7 @@ export const ModifyTicketModal = ({
     }
   };
 
-  const margins = '1';
+  const margins = '3';
 
   const datePickerCTA = (
     label: string,
@@ -494,79 +495,81 @@ export const ModifyTicketModal = ({
                     }}
                   />
                 </Hide>
-                <FormControlComponent
-                  errorText={errors.maxSupply}
-                  helperText="The maximum number of guests that can purchase this ticket type"
-                  helperTextProps={{ fontSize: { base: '2xs', md: 'xs' }, marginY: '-1' }}
-                  label="Number of tickets*"
-                  labelProps={{ fontSize: { base: 'xs', md: 'md' } }}
-                  marginY={margins}
-                >
-                  <Input
-                    ref={inputRef}
-                    borderRadius="5xl"
-                    isInvalid={!!errors.maxSupply}
-                    marginY="0"
-                    maxLength={500}
-                    placeholder="Number of tickets"
-                    size={{ base: 'sm', md: 'md' }}
-                    sx={{
-                      '::placeholder': {
-                        color: 'gray.400', // Placeholder text color
-                        fontSize: { base: 'xs', md: 'sm' },
-                      },
-                    }}
-                    type="number"
-                    value={currentTicket.maxSupply || ''}
-                    onChange={(e) => {
-                      let val = e.target.value;
-                      if (parseInt(e.target.value) < 0) {
-                        val = '0';
-                      }
+                <HStack justifyContent="space-between" spacing={8}>
+                  <FormControlComponent
+                    errorText={errors.maxSupply}
+                    helperText="Total supply of tickets for this type"
+                    helperTextProps={{ fontSize: { base: '2xs', md: 'xs' }, marginY: '-1' }}
+                    label="Number of tickets*"
+                    labelProps={{ fontSize: { base: 'xs', md: 'md' } }}
+                    marginY={margins}
+                  >
+                    <Input
+                      ref={inputRef}
+                      borderRadius="5xl"
+                      isInvalid={!!errors.maxSupply}
+                      marginY="0"
+                      maxLength={500}
+                      placeholder="Number of tickets"
+                      size={{ base: 'sm', md: 'md' }}
+                      sx={{
+                        '::placeholder': {
+                          color: 'gray.400', // Placeholder text color
+                          fontSize: { base: 'xs', md: 'sm' },
+                        },
+                      }}
+                      type="number"
+                      value={currentTicket.maxSupply || ''}
+                      onChange={(e) => {
+                        let val = e.target.value;
+                        if (parseInt(e.target.value) < 0) {
+                          val = '0';
+                        }
 
-                      setErrors({ ...errors, maxSupply: '' });
-                      setCurrentTicket({ ...currentTicket, maxSupply: parseInt(val) });
-                    }}
-                  />
-                </FormControlComponent>
-                <FormControlComponent
-                  errorText={errors.maxPurchases}
-                  helperText="The maximum number of tickets purchisable per person"
-                  helperTextProps={{ fontSize: { base: '2xs', md: 'xs' }, marginY: '-1' }}
-                  label="Tickets per guest*"
-                  labelProps={{ fontSize: { base: 'xs', md: 'md' } }}
-                  marginY={margins}
-                >
-                  <Input
-                    borderRadius="5xl"
-                    isInvalid={!!errors.maxPurchases}
-                    marginY="0"
-                    maxLength={500}
-                    placeholder="Number of tickets"
-                    size={{ base: 'sm', md: 'md' }}
-                    sx={{
-                      '::placeholder': {
-                        color: 'gray.400', // Placeholder text color
-                        fontSize: { base: 'xs', md: 'sm' },
-                      },
-                    }}
-                    type="number"
-                    value={currentTicket.maxPurchases || ''}
-                    onChange={(e) => {
-                      let val = e.target.value;
-                      if (val === '') {
-                        val = '0';
-                      }
+                        setErrors({ ...errors, maxSupply: '' });
+                        setCurrentTicket({ ...currentTicket, maxSupply: parseInt(val) });
+                      }}
+                    />
+                  </FormControlComponent>
+                  <FormControlComponent
+                    errorText={errors.maxPurchases}
+                    helperText="Max tickets per customer"
+                    helperTextProps={{ fontSize: { base: '2xs', md: 'xs' }, marginY: '-1' }}
+                    label="Tickets per guest*"
+                    labelProps={{ fontSize: { base: 'xs', md: 'md' } }}
+                    marginY={margins}
+                  >
+                    <Input
+                      borderRadius="5xl"
+                      isInvalid={!!errors.maxPurchases}
+                      marginY="0"
+                      maxLength={500}
+                      placeholder="Number of tickets"
+                      size={{ base: 'sm', md: 'md' }}
+                      sx={{
+                        '::placeholder': {
+                          color: 'gray.400', // Placeholder text color
+                          fontSize: { base: 'xs', md: 'sm' },
+                        },
+                      }}
+                      type="number"
+                      value={currentTicket.maxPurchases || ''}
+                      onChange={(e) => {
+                        let val = e.target.value;
+                        if (val === '') {
+                          val = '0';
+                        }
 
-                      if (parseInt(e.target.value) < 0) {
-                        val = '0';
-                      }
+                        if (parseInt(e.target.value) < 0) {
+                          val = '0';
+                        }
 
-                      setErrors({ ...errors, maxPurchases: '' });
-                      setCurrentTicket({ ...currentTicket, maxPurchases: parseInt(val) });
-                    }}
-                  />
-                </FormControlComponent>
+                        setErrors({ ...errors, maxPurchases: '' });
+                        setCurrentTicket({ ...currentTicket, maxPurchases: parseInt(val) });
+                      }}
+                    />
+                  </FormControlComponent>
+                </HStack>
               </VStack>
             </GridItem>
 
@@ -803,41 +806,81 @@ export const ModifyTicketModal = ({
                 }}
               />
             </Hide>
-            <FormControlComponent
-              errorText={errors.maxSupply}
-              helperText="The maximum number of guests that can purchase this ticket type"
-              helperTextProps={{ fontSize: { base: '2xs', md: 'xs' }, marginY: '-1' }}
-              label="Number of tickets*"
-              labelProps={{ fontSize: { base: 'xs', md: 'md' } }}
-              marginY={margins}
-            >
-              <Input
-                ref={inputRef}
-                borderRadius="5xl"
-                isInvalid={!!errors.maxSupply}
-                marginY="0"
-                maxLength={500}
-                placeholder="Number of tickets"
-                size={{ base: 'sm', md: 'md' }}
-                sx={{
-                  '::placeholder': {
-                    color: 'gray.400', // Placeholder text color
-                    fontSize: { base: 'xs', md: 'sm' },
-                  },
-                }}
-                type="number"
-                value={currentTicket.maxSupply || ''}
-                onChange={(e) => {
-                  let val = e.target.value;
-                  if (parseInt(e.target.value) < 0) {
-                    val = '0';
-                  }
+            <HStack justifyContent="space-between" spacing={8}>
+              <FormControlComponent
+                errorText={errors.maxSupply}
+                helperText="Total supply of tickets"
+                helperTextProps={{ fontSize: { base: '2xs', md: 'xs' }, marginY: '-1' }}
+                label="Number of tickets*"
+                labelProps={{ fontSize: { base: 'xs', md: 'md' } }}
+                marginY={margins}
+              >
+                <Input
+                  ref={inputRef}
+                  borderRadius="5xl"
+                  isInvalid={!!errors.maxSupply}
+                  marginY="0"
+                  maxLength={500}
+                  placeholder="Number of tickets"
+                  size={{ base: 'sm', md: 'md' }}
+                  sx={{
+                    '::placeholder': {
+                      color: 'gray.400', // Placeholder text color
+                      fontSize: { base: 'xs', md: 'sm' },
+                    },
+                  }}
+                  type="number"
+                  value={currentTicket.maxSupply || ''}
+                  onChange={(e) => {
+                    let val = e.target.value;
+                    if (parseInt(e.target.value) < 0) {
+                      val = '0';
+                    }
 
-                  setErrors({ ...errors, maxSupply: '' });
-                  setCurrentTicket({ ...currentTicket, maxSupply: parseInt(val) });
-                }}
-              />
-            </FormControlComponent>
+                    setErrors({ ...errors, maxSupply: '' });
+                    setCurrentTicket({ ...currentTicket, maxSupply: parseInt(val) });
+                  }}
+                />
+              </FormControlComponent>
+              <FormControlComponent
+                errorText={errors.maxPurchases}
+                helperText="Max tickets per customer"
+                helperTextProps={{ fontSize: { base: '2xs', md: 'xs' }, marginY: '-1' }}
+                label="Tickets per guest*"
+                labelProps={{ fontSize: { base: 'xs', md: 'md' } }}
+                marginY={margins}
+              >
+                <Input
+                  borderRadius="5xl"
+                  isInvalid={!!errors.maxPurchases}
+                  marginY="0"
+                  maxLength={500}
+                  placeholder="Number of tickets"
+                  size={{ base: 'sm', md: 'md' }}
+                  sx={{
+                    '::placeholder': {
+                      color: 'gray.400', // Placeholder text color
+                      fontSize: { base: 'xs', md: 'sm' },
+                    },
+                  }}
+                  type="number"
+                  value={currentTicket.maxPurchases || ''}
+                  onChange={(e) => {
+                    let val = e.target.value;
+                    if (val === '') {
+                      val = '0';
+                    }
+
+                    if (parseInt(e.target.value) < 0) {
+                      val = '0';
+                    }
+
+                    setErrors({ ...errors, maxPurchases: '' });
+                    setCurrentTicket({ ...currentTicket, maxPurchases: parseInt(val) });
+                  }}
+                />
+              </FormControlComponent>
+            </HStack>
             <TicketPriceSelector
               currentTicket={currentTicket}
               errors={errors}
