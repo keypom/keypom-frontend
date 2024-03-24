@@ -24,10 +24,15 @@ import { PurchaseModal } from '@/features/gallery/components/PurchaseModal';
 import { VerifyModal } from '@/features/gallery/components/VerifyModal';
 import { TicketCard } from '@/features/gallery/components/TicketCard';
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
-import { type QuestionInfo, type EventDropMetadata } from '@/lib/eventsHelpers';
+import {
+  type TicketInfoMetadata,
+  type QuestionInfo,
+  type TicketMetadataExtra,
+} from '@/lib/eventsHelpers';
 import keypomInstance, { type EventDrop } from '@/lib/keypom';
 import { KEYPOM_MARKETPLACE_CONTRACT } from '@/constants/common';
 import { type DataItem } from '@/components/Table/types';
+import { dateAndTimeToText } from '@/features/drop-manager/utils/parseDates';
 
 interface WorkerPayload {
   name: string | null;
@@ -185,6 +190,7 @@ export default function Event() {
 
   useEffect(() => {
     if (keypomInstance == null || keypomInstance === undefined || !eventId || !funderId) return;
+    // TODO: check if secretKey is reasonable
 
     getKeyInformation();
   }, [secretKey, eventId]);
@@ -199,19 +205,6 @@ export default function Event() {
 
     CheckForNearRedirect();
   }, [keypomInstance, eventId, funderId]);
-
-  const formatDate = (date) => {
-    // Create an instance of Intl.DateTimeFormat for formatting
-    const formatter = new Intl.DateTimeFormat('en-US', {
-      month: 'short', // Full month name.
-      day: 'numeric', // Numeric day of the month.
-      year: 'numeric', // Numeric full year.
-      // hour: 'numeric', // Numeric hour.
-      // minute: 'numeric', // Numeric minute.
-      // hour12: true, // Use 12-hour time.
-    });
-    return formatter.format(date);
-  };
 
   const getKeyInformation = useCallback(async () => {
     if (secretKey == null) {
@@ -231,10 +224,12 @@ export default function Event() {
 
       // testing dropID = "1709145479199-Ground Ticket-14"
 
-      const dropData = await keypomInstance.getTicketDropInformation({ dropID });
+      const dropData: EventDrop = await keypomInstance.getTicketDropInformation({ dropID });
 
       // parse dropData's metadata to get eventId
-      const meta: EventDropMetadata = JSON.parse(dropData.drop_config.metadata);
+      const meta: TicketMetadataExtra = JSON.parse(
+        dropData.drop_config.nft_keys_config.token_metadata.extra,
+      );
 
       const keyinfoEventId = meta.eventId;
       if (keyinfoEventId !== eventId) {
@@ -247,20 +242,15 @@ export default function Event() {
         });
       }
 
-      // testing keyinfoEventId = "17f270df-fcee-4682-8b4b-673916cc65a9"
-
       const drop = await keypomInstance.getEventInfo({
         accountId: funderId,
         eventId: keyinfoEventId,
       });
 
-      const meta2 = drop; // .metadata;//EventDropMetadata = JSON.parse(drop.metadata);
+      const meta2 = drop;
       let dateString = '';
-      if (meta2.date != null && meta2.date !== undefined) {
-        dateString =
-          typeof meta2.date.date === 'string'
-            ? meta2.date.date
-            : `${meta2.date.date.from} to ${meta2.date.date.to}`;
+      if (meta2?.date != null) {
+        dateString = dateAndTimeToText(meta2.date);
       }
       setSellDropInfo({
         name: meta2.name || 'Untitled',
@@ -296,20 +286,6 @@ export default function Event() {
       name: 'Loading',
       artwork: 'https://via.placeholder.com/300',
       location: 'Loading',
-      // date: 'Loading',
-      // description: 'Loading',
-      // questions: [],
-      // pubKey: 'Loading',
-      // secretKey: 'Loading',
-      // navurl: 'Loading',
-      // maxTickets: 100,
-      // soldTickets: 0,
-      // numTickets: 'unlimited',
-      // id: 0,
-      // media: 'Loading',
-      // supply: 100,
-      // dateString: 'Loading',
-      // price: 0,
     };
     loadingdata.push(loadingCard);
   }
@@ -385,7 +361,9 @@ export default function Event() {
     });
 
     // parse dropData's metadata to get eventId
-    const meta: EventDropMetadata = JSON.parse(dropData.drop_config.metadata);
+    const meta: TicketMetadataExtra = JSON.parse(
+      dropData.drop_config.nft_keys_config.token_metadata.extra,
+    );
 
     const keyinfoEventId = meta.eventId;
 
@@ -468,6 +446,8 @@ export default function Event() {
       priceNear: ticketBeingPurchased.price,
     };
 
+    console.log('workerPayload', workerPayload);
+
     if (purchaseType === 'free') {
       const response = await fetch(
         'https://stripe-worker.kp-capstone.workers.dev/purchase-free-tickets',
@@ -479,10 +459,13 @@ export default function Event() {
           body: JSON.stringify(workerPayload),
         },
       );
+
       if (response.ok) {
         const responseBody = await response.json();
         TicketPurchaseSuccessful(workerPayload, responseBody);
       } else {
+        const responseBody = await response.json();
+        console.error('responseBody', responseBody);
         TicketPurchaseFailure(workerPayload, await response.json());
       }
     } else if (purchaseType === 'near') {
@@ -498,7 +481,7 @@ export default function Event() {
       if (nearSendPrice === null) {
         toast({
           title: 'Purchase failed',
-          description: 'Please try again later',
+          description: 'Given price was null, please try again later',
           status: 'error',
           duration: 5000,
           isClosable: true,
@@ -509,7 +492,7 @@ export default function Event() {
       if (!isSecondary) {
         // primary
 
-        const newKeys = [{}];
+        const newKeys: any[] = [];
         for (const publicKey of publicKeys) {
           newKeys.push({
             public_key: publicKey,
@@ -631,12 +614,13 @@ export default function Event() {
     const newWorkerPayload = workerPayload;
 
     for (const key in workerPayload.ticketKeys) {
-      // your code here
       newWorkerPayload.ticketKey = workerPayload.ticketKeys[key];
+
+      console.log('sending confirmation email with newWorkerPayload', newWorkerPayload);
 
       // newWorkerPayload["ticketKeys"] = null;
       const response = await fetch(
-        'https://stripe-worker.kp-capstone.workers.dev/send-confirmation-email',
+        'https://email-worker.kp-capstone.workers.dev/send-confirmation-email',
         {
           method: 'POST',
           headers: {
@@ -731,16 +715,13 @@ export default function Event() {
     });
 
     let sellsuccessful = false;
-
-    const error = '';
-
     try {
       await keypomInstance.ListUnownedTickets({ msg: memo });
       sellsuccessful = true;
     } catch (error) {
       toast({
-        title: 'Error selling ticket',
-        description: `please try again later`,
+        title: 'Item not put for sale',
+        description: `Your item has not been put for sale due to the error: ${String(error)}`,
         status: 'error',
         duration: 5000,
         isClosable: true,
@@ -749,17 +730,9 @@ export default function Event() {
 
     if (sellsuccessful) {
       toast({
-        title: 'Item put for sale successfully PLACEHOLDER',
+        title: 'Item put for sale successfully',
         description: `Your item has been put for sale for ${input} NEAR`,
         status: 'success',
-        duration: 5000,
-        isClosable: true,
-      });
-    } else {
-      toast({
-        title: 'Item not put for sale',
-        description: `Your item has not been put for sale due to the error: ${error}`,
-        status: 'error',
         duration: 5000,
         isClosable: true,
       });
@@ -788,19 +761,21 @@ export default function Event() {
     setStripeAccountId(stripeAccountId);
 
     const promises = ticketsForEvent.map(async (ticket) => {
-      const meta: EventDropMetadata = JSON.parse(ticket.drop_config.metadata);
+      const meta: TicketInfoMetadata = ticket.drop_config.nft_keys_config.token_metadata;
+      const extra: TicketMetadataExtra = JSON.parse(meta.extra);
+
       const supply = await keypomInstance.getKeySupplyForTicket(ticket.drop_id);
       return {
         id: ticket.drop_id,
-        artwork: meta.artwork,
-        name: meta.name,
+        artwork: meta.media,
+        name: meta.title,
         description: meta.description,
-        salesValidThrough: meta.salesValidThrough,
-        passValidThrough: meta.passValidThrough,
+        salesValidThrough: extra.salesValidThrough,
+        passValidThrough: extra.passValidThrough,
         supply,
-        maxTickets: meta.maxSupply,
+        maxTickets: extra.maxSupply,
         soldTickets: supply,
-        priceNear: keypomInstance.yoctoToNear(meta.price),
+        priceNear: keypomInstance.yoctoToNear(extra.price),
       };
     });
 
@@ -814,20 +789,8 @@ export default function Event() {
       }
       let dateString = '';
       if (ticket.passValidThrough != null && ticket.passValidThrough !== undefined) {
-        dateString = formatDate(
-          new Date(
-            typeof ticket.passValidThrough === 'string'
-              ? ticket.passValidThrough
-              : typeof ticket.passValidThrough.date === 'string'
-              ? ticket.passValidThrough.date
-              : ticket?.passValidThrough?.date?.from ?? '',
-          ),
-        );
-        // typeof ticket.passValidThrough === 'string'
-        //   ? ticket.passValidThrough
-        //   : `${ticket.date.from} to ${ticket.date.to}`;
+        dateString = dateAndTimeToText(ticket.passValidThrough);
       }
-      // dateString = formatDate(dateString);
 
       return {
         ...ticket,
@@ -898,21 +861,11 @@ export default function Event() {
       try {
         const drop = await keypomInstance.getEventInfo({ accountId: funderId, eventId });
 
-        const meta = drop; // EventDropMetadata = JSON.parse(drop.metadata);
+        const meta = drop;
+
         let dateString = '';
-        if (meta.date != null && meta.date !== undefined) {
-          let timeString = '';
-          if (meta.date.time) {
-            timeString = meta.date.time;
-          }
-          dateString =
-            typeof meta.date.date === 'string'
-              ? formatDate(new Date(meta.date.date))
-              : `${formatDate(new Date(meta.date.date.from))} to ${formatDate(
-                  new Date(meta.date.date.to),
-                )}` +
-                ' ' +
-                timeString;
+        if (meta?.date != null) {
+          dateString = dateAndTimeToText(meta.date);
         }
 
         setEvent({
@@ -938,13 +891,15 @@ export default function Event() {
         });
         setIsLoading(false);
       } catch (error) {
-        toast({
-          title: 'Error loading event',
-          description: `please try again later`,
-          status: 'error',
-          duration: 5000,
-          isClosable: true,
-        });
+        // eslint-disable-next-line
+        console.log('error loading event', error);
+        // toast({
+        //   title: 'Error loading event',
+        //   description: `please try again later`,
+        //   status: 'error',
+        //   duration: 5000,
+        //   isClosable: true,
+        // });
         setNoDrop(true);
       }
     };

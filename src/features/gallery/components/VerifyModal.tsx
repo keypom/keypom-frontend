@@ -20,7 +20,7 @@ import { QrReader } from 'react-qr-reader';
 
 import keypomInstance from '@/lib/keypom';
 import { type TicketInterface, type EventInterface } from '@/pages/Event';
-import { type EventDropMetadata } from '@/lib/eventsHelpers';
+import { type EventDrop, type TicketMetadataExtra } from '@/lib/eventsHelpers';
 
 interface VerifyModalProps {
   isOpen: boolean;
@@ -71,10 +71,12 @@ export const VerifyModal = ({ isOpen, onClose, event, eventId, accountId }: Veri
 
       const dropID = keyinfo.token_id.split(':')[0];
 
-      const dropData = await keypomInstance.getTicketDropInformation({ dropID });
+      const dropData: EventDrop = await keypomInstance.getTicketDropInformation({ dropID });
 
       // parse dropData's metadata to get eventId
-      const meta: EventDropMetadata = JSON.parse(dropData.drop_config.metadata);
+      const meta: TicketMetadataExtra = JSON.parse(
+        dropData.drop_config.nft_keys_config.token_metadata.extra,
+      );
 
       const keyinfoEventId = meta.eventId;
       if (keyinfoEventId !== eventId) {
@@ -82,15 +84,10 @@ export const VerifyModal = ({ isOpen, onClose, event, eventId, accountId }: Veri
       }
       const drop = await keypomInstance.getEventInfo({ accountId, eventId: keyinfoEventId });
 
-      const meta2 = drop; // EventDropMetadata = JSON.parse(drop.drop_config.metadata);
-      // let dateString = '';
-      // if (meta2?.date?.date != null && meta2.date.date !== undefined) {
-      //   dateString =
-      //     typeof meta2.date.date === 'string'
-      //       ? meta2.date.date
-      //       : `${meta2.date.date.from} to ${meta2.date.date.to}`;
-      // }
+      const meta2 = drop;
+
       const newDate = { time: '', date: undefined };
+
       setTicketData({
         name: meta2.name || 'Untitled',
         artwork: meta2.artwork || 'loading',
@@ -215,9 +212,9 @@ export const VerifyModal = ({ isOpen, onClose, event, eventId, accountId }: Veri
           ) : null}
 
           <ModalFooter>
-            {/* <Button variant={'secondary'} w="100%" onClick={checkData}>
+            <Button variant={'secondary'} w="100%" onClick={checkData}>
               test
-            </Button> */}
+            </Button>
             <Button variant={'secondary'} w="100%" onClick={onClose}>
               Cancel
             </Button>
