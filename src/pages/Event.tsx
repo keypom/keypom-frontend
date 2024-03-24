@@ -253,7 +253,7 @@ export default function Event() {
         args: { drop_id: dropID },
       });
       let maxNearPrice = parseFloat(formatNearAmount(maxNearPriceYocto, 3));
-      console.log(maxNearPrice)
+      
       setSellDropInfo({
         name: meta2.name || 'Untitled',
         artwork: meta2.artwork || 'loading',
