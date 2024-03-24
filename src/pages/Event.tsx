@@ -754,16 +754,6 @@ export default function Event() {
       eventId,
     });
 
-    const iseventavailable = await keypomInstance.getStripeEnabledEvents();
-    // check if this event is stripe enabled
-    const iseventstripeenabled = iseventavailable.includes(eventId);
-
-    setStripeEnabledEvent(iseventstripeenabled);
-
-    // get stripe id for account
-    const stripeAccountId = await keypomInstance.getStripeAccountId(funderId);
-    setStripeAccountId(stripeAccountId);
-
     const promises = ticketsForEvent.map(async (ticket) => {
       const meta: TicketInfoMetadata = ticket.drop_config.nft_keys_config.token_metadata;
       const extra: TicketMetadataExtra = JSON.parse(meta.extra);
@@ -867,7 +857,7 @@ export default function Event() {
       try {
         const eventInfo = await keypomInstance.getEventInfo({ accountId: funderId, eventId });
 
-        if (eventInfo == null) {
+        if (eventInfo === null || eventInfo === undefined) {
           setNoDrop(true);
           return;
         }
@@ -876,6 +866,10 @@ export default function Event() {
         if (eventInfo?.date != null) {
           dateString = dateAndTimeToText(eventInfo.date);
         }
+
+        const stripeAccountId = await keypomInstance.getStripeAccountId(funderId);
+        setStripeAccountId(stripeAccountId);
+        setStripeEnabledEvent(eventInfo.stripeCheckout && stripeAccountId !== '');
 
         setEvent({
           name: eventInfo.name || 'Untitled',

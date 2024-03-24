@@ -170,6 +170,7 @@ export const PurchaseModal = ({
     // purchaseType = 1;
     PurchaseButton = (
       <>
+        <Text>Sign in to purchase with NEAR</Text>
         <Button
           w="100%"
           onClick={() => {
@@ -178,7 +179,6 @@ export const PurchaseModal = ({
         >
           Checkout with Stripe
         </Button>
-        <Text>Sign in to purchase with NEAR</Text>
       </>
     );
   } else if (signedIn) {
