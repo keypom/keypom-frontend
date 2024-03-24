@@ -9,7 +9,12 @@ import { QrDetails } from '@/features/claim/components/ticket/QrDetails';
 import { useTicketClaimParams } from '@/hooks/useTicketClaimParams';
 import { NotFound404 } from '@/components/NotFound404';
 import keypomInstance from '@/lib/keypom';
-import { type FunderEventMetadata, type EventDropMetadata } from '@/lib/eventsHelpers';
+import {
+  type FunderEventMetadata,
+  type EventDrop,
+  type TicketInfoMetadata,
+  type TicketMetadataExtra,
+} from '@/lib/eventsHelpers';
 
 export default function TicketQRPage() {
   const { secretKey } = useTicketClaimParams();
@@ -33,19 +38,19 @@ export default function TicketQRPage() {
           methodName: 'get_key_information',
           args: { key: pubKey },
         });
-        const drop: { drop_id: string; funder_id: string; drop_config: { metadata: string } } =
-          await keypomInstance.viewCall({
-            methodName: 'get_drop_information',
-            args: { drop_id: keyInfo.drop_id },
-          });
-        const ticketMetadata: EventDropMetadata = JSON.parse(drop.drop_config.metadata);
+        const drop: EventDrop = await keypomInstance.viewCall({
+          methodName: 'get_drop_information',
+          args: { drop_id: keyInfo.drop_id },
+        });
+        const ticketMetadata: TicketInfoMetadata = drop.drop_config.nft_keys_config.token_metadata;
+        const ticketExtra: TicketMetadataExtra = JSON.parse(ticketMetadata.extra);
         const eventInfo: FunderEventMetadata = await keypomInstance.getEventInfo({
           accountId: drop.funder_id,
-          eventId: ticketMetadata.eventId,
+          eventId: ticketExtra.eventId,
         });
-        setEventId(ticketMetadata.eventId);
+        setEventId(ticketExtra.eventId);
         setFunderId(drop.funder_id);
-        setTicketName(ticketMetadata.name);
+        setTicketName(ticketMetadata.title);
         setEventImage(eventInfo.artwork);
         setEventName(eventInfo.name);
         setIsLoading(false);
