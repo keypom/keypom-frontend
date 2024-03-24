@@ -91,16 +91,6 @@ export function isValidTicketNFTMetadata(tokenMetadata: TicketInfoMetadata) {
     return false;
   }
 }
-export function isValidTicketInfo(ticketInfo) {
-  // Check if all required properties exist and are of type 'string'
-  return (
-    typeof ticketInfo.name === 'string' &&
-    typeof ticketInfo.eventId === 'string' &&
-    typeof ticketInfo.description === 'string' &&
-    typeof ticketInfo.price === 'string' &&
-    typeof ticketInfo.artwork === 'string'
-  );
-}
 
 const FIRST_DROP_BASE_COST = BigInt('15899999999999900000000');
 const SUBSEQUENT_DROP_BASE_COST = BigInt('14460000000000200000000');
