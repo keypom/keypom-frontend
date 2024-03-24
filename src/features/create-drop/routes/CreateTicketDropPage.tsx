@@ -14,6 +14,7 @@ import {
   KEYPOM_EVENTS_CONTRACT,
   KEYPOM_MARKETPLACE_CONTRACT,
 } from '@/constants/common';
+import { type DateAndTimeInfo } from '@/lib/eventsHelpers';
 
 import { CreateTicketDropLayout } from '../components/CreateTicketDropLayout';
 import { CollectInfoForm } from '../components/ticket/CollectInfoForm';
@@ -46,13 +47,6 @@ interface TicketStep {
   component: (props: EventStepFormProps) => ReactElement;
 }
 
-export interface EventDate {
-  startDate: Date | null;
-  endDate: Date | null;
-  startTime?: string;
-  endTime?: string;
-}
-
 export interface EventStepFormProps {
   formData: TicketDropFormData;
   setFormData: (data: TicketDropFormData) => void;
@@ -70,7 +64,7 @@ export interface TicketDropFormData {
   eventName: { value: string; error?: string };
   eventDescription: { value: string; error?: string };
   eventLocation: { value: string; error?: string };
-  date: { value: EventDate; error?: string };
+  date: { value: DateAndTimeInfo; error?: string };
   eventArtwork: { value: File | undefined; error?: string };
 
   // Step 2
@@ -154,8 +148,7 @@ const placeholderData: TicketDropFormData = {
   eventLocation: { value: '' },
   date: {
     value: {
-      startDate: null,
-      endDate: null,
+      startDate: 0,
     },
   },
 

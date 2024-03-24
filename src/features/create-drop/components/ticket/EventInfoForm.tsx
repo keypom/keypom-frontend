@@ -5,11 +5,11 @@ import CustomDateRangePicker from '@/components/DateRangePicker/DateRangePicker'
 import { ImageFileInput } from '@/components/ImageFileInput';
 import CustomDateRangePickerMobile from '@/components/DateRangePicker/MobileDateRangePicker';
 import { FormControlComponent } from '@/components/FormControl';
+import { dateAndTimeToText } from '@/features/drop-manager/utils/parseDates';
 
 import {
   type TicketDropFormData,
   type EventStepFormProps,
-  type EventDate,
 } from '../../routes/CreateTicketDropPage';
 
 import EventPagePreview from './EventPagePreview';
@@ -22,8 +22,7 @@ export const ClearEventInfoForm = () => {
     eventLocation: { value: '' },
     date: {
       value: {
-        startDate: null,
-        endDate: null,
+        startDate: 0,
       },
     },
   };
@@ -64,47 +63,6 @@ export const EventInfoFormValidation = (formData: TicketDropFormData) => {
   return { isErr, newFormData };
 };
 
-export const eventDateToPlaceholder = (defaultTo: string, date: EventDate) => {
-  if (!date.startDate || !date.endDate) {
-    return defaultTo; // Return the default placeholder if start or end date is not provided
-  }
-
-  let formattedDate = '';
-  let timeZone = '';
-
-  const start = new Date(date.startDate);
-  const end = new Date(date.endDate);
-  const startYear = start.getFullYear();
-  const endYear = end.getFullYear();
-  const startMonth = start.toLocaleDateString(undefined, { month: 'short' });
-  const startDay = start.toLocaleDateString(undefined, { day: 'numeric' });
-  const endMonth = end.toLocaleDateString(undefined, { month: 'short' });
-  const endDay = end.toLocaleDateString(undefined, { day: 'numeric' });
-
-  // Extract the time zone from the start date and use it at the end
-  timeZone = start.toLocaleDateString(undefined, { timeZoneName: 'short' }).split(', ').pop() || '';
-
-  formattedDate = `${startMonth} ${startDay}`;
-  if (date.startTime) {
-    formattedDate += ` (${date.startTime})`;
-  }
-
-  // Check if the year is the same for start and end date to decide if it should be repeated.
-  const sameYear = startYear === endYear;
-
-  formattedDate += ` - ${endMonth} ${endDay}`;
-  if (date.endTime) {
-    formattedDate += ` (${date.endTime})`;
-  }
-
-  // Append the year at the end only if start and end years are the same
-  formattedDate += sameYear ? `, ${endYear}` : `, ${startYear}, ${endYear}`;
-  // Append the time zone at the end
-  formattedDate += `, ${timeZone}`;
-
-  return formattedDate;
-};
-
 const EventInfoForm = (props: EventStepFormProps) => {
   const { formData, setFormData } = props;
   console.log('formData', formData);
@@ -140,8 +98,8 @@ const EventInfoForm = (props: EventStepFormProps) => {
   };
 
   useEffect(() => {
-    const datePlaceholder = eventDateToPlaceholder('Select date and time', formData.date.value);
-    const datePreviewText = eventDateToPlaceholder('', formData.date.value);
+    const datePlaceholder = dateAndTimeToText(formData.date.value, 'Select date and time');
+    const datePreviewText = dateAndTimeToText(formData.date.value);
 
     setDatePlaceholder(datePlaceholder);
     setDatePreviewText(datePreviewText);
@@ -240,16 +198,24 @@ const EventInfoForm = (props: EventStepFormProps) => {
         <Show above="md">
           <CustomDateRangePicker
             ctaComponent={datePickerCTA}
-            endDate={formData.date.value.endDate}
+            endDate={formData.date.value.endDate ? new Date(formData.date.value.endDate) : null}
             isDatePickerOpen={isDatePickerOpen}
             maxDate={null}
             minDate={new Date()}
             setIsDatePickerOpen={setIsDatePickerOpen}
-            startDate={formData.date.value.startDate}
+            startDate={
+              formData.date.value.startDate ? new Date(formData.date.value.startDate) : null
+            }
             onDateChange={(startDate, endDate) => {
               setFormData({
                 ...formData,
-                date: { value: { ...formData.date, startDate, endDate } },
+                date: {
+                  value: {
+                    ...formData.date,
+                    startDate: startDate?.getTime() || 0,
+                    endDate: endDate ? endDate.getTime() : undefined,
+                  },
+                },
               });
             }}
             onTimeChange={(startTime, endTime) => {
@@ -263,17 +229,25 @@ const EventInfoForm = (props: EventStepFormProps) => {
         <Hide above="md">
           <CustomDateRangePickerMobile
             ctaComponent={datePickerCTA}
-            endDate={formData.date.value.endDate}
+            endDate={formData.date.value.endDate ? new Date(formData.date.value.endDate) : null}
             isDatePickerOpen={isDatePickerOpen}
             maxDate={null}
             minDate={new Date()}
             openDirection="top-right"
             setIsDatePickerOpen={setIsDatePickerOpen}
-            startDate={formData.date.value.startDate}
+            startDate={
+              formData.date.value.startDate ? new Date(formData.date.value.startDate) : null
+            }
             onDateChange={(startDate, endDate) => {
               setFormData({
                 ...formData,
-                date: { value: { ...formData.date.value, startDate, endDate } },
+                date: {
+                  value: {
+                    ...formData.date,
+                    startDate: startDate?.getTime() || 0,
+                    endDate: endDate ? endDate.getTime() : undefined,
+                  },
+                },
               });
             }}
             onTimeChange={(startTime, endTime) => {

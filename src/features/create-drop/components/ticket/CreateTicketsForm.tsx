@@ -17,11 +17,11 @@ import { type ColumnItem } from '@/components/Table/types';
 import { CopyIcon, DeleteIcon } from '@/components/Icons';
 import { DataTable } from '@/components/Table';
 import { truncateAddress } from '@/utils/truncateAddress';
+import { type DateAndTimeInfo } from '@/lib/eventsHelpers';
 
 import {
   type TicketDropFormData,
   type EventStepFormProps,
-  type EventDate,
 } from '../../routes/CreateTicketDropPage';
 
 import { ModifyTicketModal } from './ModifyTicketModal';
@@ -73,12 +73,10 @@ export const defaultTicket = {
   artwork: undefined,
   priceNear: '0',
   salesValidThrough: {
-    startDate: null,
-    endDate: null,
+    startDate: 0,
   },
   passValidThrough: {
-    startDate: null,
-    endDate: null,
+    startDate: 0,
   },
   maxSupply: 0,
   maxPurchasaes: 1,
@@ -89,8 +87,8 @@ export interface TicketInfoFormMetadata {
   description: string;
   artwork: File | undefined;
   priceNear: string;
-  salesValidThrough: EventDate;
-  passValidThrough: EventDate;
+  salesValidThrough: DateAndTimeInfo;
+  passValidThrough: DateAndTimeInfo;
   maxSupply: number;
   maxPurchasaes: number;
 }

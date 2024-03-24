@@ -1,8 +1,8 @@
 import { type DateAndTimeInfo } from '@/lib/eventsHelpers';
 
-export const dateAndTimeToText = (date: DateAndTimeInfo) => {
+export const dateAndTimeToText = (date: DateAndTimeInfo, placeholder = '') => {
   if (!date.startDate) {
-    return '';
+    return placeholder;
   }
 
   let formattedDate = '';
