@@ -22,6 +22,7 @@ import { type SellDropInfo } from '@/pages/Event';
 import { useAppContext } from '@/contexts/AppContext';
 import { validateDateAndTime, validateEndDateAndTime, validateStartDateAndTime } from '@/features/scanner/components/helpers';
 import { useState } from 'react';
+import { dateAndTimeToText } from '@/features/drop-manager/utils/parseDates';
 
 interface SellModalProps {
   input: string;
@@ -71,6 +72,7 @@ export const SellModal = ({
       setIsTicketValidToastOpen(true);
       ticketSellNotValidToast({
         title: ticketSellStartDateValid ? "Ticket sell date has not started." : "Ticket sell date has passed.",
+        description: `Tickets be can sold during: ${dateAndTimeToText(event.salesValidThrough)}.`,
         status: 'error',
         duration: null,
         isClosable: true,
