@@ -623,8 +623,8 @@ export default function Event() {
       setLoadingModal(true);
       setLoadingModalText({
         title: 'Purchase Successful',
-        text: 'Sending confirmation email',
-        subtitle: `Progress: ${currentLoadedKey} / ${keyCount}`,
+        subtitle: 'Sending confirmation email',
+        text: `Progress: ${currentLoadedKey} / ${keyCount}`,
       });
       newWorkerPayload.ticketKey = workerPayload.ticketKeys[key];
 
