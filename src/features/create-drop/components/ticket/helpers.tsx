@@ -260,6 +260,7 @@ export const createPayload = async ({
       salesValidThrough: ticket.salesValidThrough,
       passValidThrough: ticket.passValidThrough,
       maxSupply: ticket.maxSupply,
+      limitPerUser: ticket.maxPurchases,
       eventId,
     };
 

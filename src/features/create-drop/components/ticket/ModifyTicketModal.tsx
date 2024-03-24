@@ -136,7 +136,6 @@ export const ModifyTicketModal = ({
       isErr = true;
     }
 
-    console.log('currentTicket.maxp', currentTicket.maxPurchases);
     if (currentTicket.maxPurchases < 1) {
       newErrors.maxPurchases = 'Max purchases is required';
       isErr = true;
@@ -155,7 +154,6 @@ export const ModifyTicketModal = ({
     // Now newErrors is a new object, so setting it should trigger a re-render
     setErrors(newErrors);
     // eslint-disable-next-line no-console
-    console.log('errors', newErrors, isErr, currentTicket);
 
     if (!isErr) {
       onClose(true, editedTicket);

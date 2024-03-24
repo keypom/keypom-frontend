@@ -130,7 +130,6 @@ function CustomDateRangePicker({
 
   // handle changes inside date picker
   const handleDateChange = (dates) => {
-    console.log('dates', dates);
     const [start, end] = dates;
 
     if (!start) {

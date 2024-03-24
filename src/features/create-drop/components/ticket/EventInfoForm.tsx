@@ -65,7 +65,6 @@ export const EventInfoFormValidation = (formData: TicketDropFormData) => {
 
 const EventInfoForm = (props: EventStepFormProps) => {
   const { formData, setFormData } = props;
-  console.log('formData', formData);
 
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const [datePlaceholer, setDatePlaceholder] = useState('Select date and time');
