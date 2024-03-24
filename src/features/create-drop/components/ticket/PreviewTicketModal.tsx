@@ -33,7 +33,7 @@ export const PreviewTicketModal = ({
       isOpen={isOpen}
       size="sm"
       onClose={() => {
-        console.log('close');
+        // console.log('close');
       }}
     >
       <ModalOverlay backdropFilter="blur(0px)" bg="blackAlpha.600" opacity="1" />

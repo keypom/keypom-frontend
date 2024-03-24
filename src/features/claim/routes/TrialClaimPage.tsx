@@ -43,7 +43,8 @@ const TrialClaimPage = () => {
     try {
       await keypomInstance.getTokenClaimInformation(contractId, secretKey);
     } catch (e) {
-      console.log(e);
+      // eslint-disable-next-line no-console
+      console.error(e);
       // `no drop ID for PK` is error we should pass through to the redirect URL
       setClaimError('No drop for this link!');
     }

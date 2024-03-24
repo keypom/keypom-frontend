@@ -1,16 +1,18 @@
 import { type BoxProps, SimpleGrid, Box, Text } from '@chakra-ui/react';
 
-import { type DataItem } from './types';
+import { type EventInterface } from '@/pages/Event';
+import { type DataItem } from '@/components/Table/types';
+
 import { TicketCard } from './TicketCard';
 
 // props validation
 interface GalleryGridProps extends BoxProps {
   loading?: boolean;
-  data: DataItem[];
+  data: EventInterface[];
 }
 
 export const GalleryGrid = ({ loading = false, data = [], ...props }: GalleryGridProps) => {
-  const loadingdata = [];
+  const loadingdata: DataItem[] = [];
 
   // append 10 loading cards
   for (let i = 0; i < 10; i++) {

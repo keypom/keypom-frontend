@@ -1,7 +1,7 @@
 import { type Wallet } from '@near-wallet-selector/core';
 import { Button, ModalContent, Text, VStack } from '@chakra-ui/react';
 
-import keypomInstance, { type EventDrop } from '@/lib/keypom';
+import keypomInstance from '@/lib/keypom';
 import { KEYPOM_EVENTS_CONTRACT } from '@/constants/common';
 
 import ProgressModalContent from './ProgessModalContent';
@@ -19,7 +19,7 @@ export const performDeletionLogic = async ({
   deleteAll: boolean;
   accountId: string;
   eventId: string;
-  ticketData: EventDrop[];
+  ticketData: any;
   setAppModal: any;
 }) => {
   if (!wallet) return;
@@ -152,7 +152,7 @@ export const performDeletionLogic = async ({
           completionMessage={
             ticketData.length === 0
               ? `Event successfully deleted!`
-              : `${ticketData.length.toString()} Ticket(s) deleted successfully!`
+              : `${String(ticketData.length)} Ticket(s) deleted successfully!`
           }
           onClose={() => {
             setAppModal({ isOpen: false });

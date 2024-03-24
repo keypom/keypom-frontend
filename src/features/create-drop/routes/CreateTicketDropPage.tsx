@@ -140,7 +140,7 @@ const formSteps: TicketStep[] = [
   },
 ];
 
-// const placeholderData = {
+// const placeholderData2 = {
 //   eventName: { value: 'Vandelay Industries Networking Event' },
 //   eventArtwork: { value: undefined },
 //   eventDescription: {
@@ -346,6 +346,7 @@ export default function NewTicketDrop() {
         body: JSON.stringify({ base64Data: serializedData }),
       });
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.log('error', error);
     }
 
