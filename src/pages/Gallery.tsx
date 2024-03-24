@@ -36,9 +36,8 @@ import { truncateAddress } from '@/utils/truncateAddress';
 import { FormControlComponent } from '@/components/FormControl';
 import CustomDateRangePickerMobile from '@/components/DateRangePicker/MobileDateRangePicker';
 import CustomDateRangePicker from '@/components/DateRangePicker/DateRangePicker';
-import { type EventDate } from '@/features/create-drop/routes/CreateTicketDropPage';
-import { eventDateToPlaceholder } from '@/features/create-drop/components/ticket/EventInfoForm';
 import { dateAndTimeToText } from '@/features/drop-manager/utils/parseDates';
+import { type DateAndTimeInfo } from '@/lib/eventsHelpers';
 
 // import myData from '../data/db.json';
 
@@ -95,7 +94,7 @@ export default function Gallery() {
     search: string;
     pageSize: number;
     price: string;
-    eventDate: EventDate;
+    eventDate: DateAndTimeInfo;
     sort: string;
     // reversed: boolean;
   }>({
@@ -103,13 +102,14 @@ export default function Gallery() {
     search: '',
     pageSize: parseInt(GALLERY_PAGE_SIZE_ITEMS[0].label),
     price: GALLERY_PRICE_ITEMS[0].label,
-    eventDate: { startDate: null, endDate: null },
+    eventDate: { startDate: 0 },
     sort: 'no sort',
     // reversed: false,
   });
 
   useEffect(() => {
-    const datePlaceholder = eventDateToPlaceholder('Filter by Date', selectedFilters.eventDate);
+    if (selectedFilters.eventDate === undefined) return;
+    const datePlaceholder = dateAndTimeToText(selectedFilters.eventDate, 'Filter by Date');
 
     setDatePlaceholder(datePlaceholder);
   }, [selectedFilters.eventDate]);
@@ -220,7 +220,11 @@ export default function Gallery() {
 
     // apply start and end date filters
 
-    if (selectedFilters.eventDate.startDate !== null) {
+    if (
+      selectedFilters.eventDate.startDate !== null &&
+      selectedFilters.eventDate.startDate !== undefined &&
+      selectedFilters.eventDate.startDate !== 0
+    ) {
       drops = drops.filter((drop) => {
         if (drop === undefined) return false;
         let dateString = drop.date.date;
@@ -228,7 +232,7 @@ export default function Gallery() {
         if (typeof drop.date.date !== 'string') {
           dateString = drop.date.date.from;
         }
-        const date = new Date(dateString);
+        const date = new Date(dateString).getTime();
         return (
           selectedFilters.eventDate.startDate !== null &&
           date >= selectedFilters.eventDate.startDate
@@ -236,7 +240,10 @@ export default function Gallery() {
       });
     }
 
-    if (selectedFilters.eventDate.endDate !== null) {
+    if (
+      selectedFilters.eventDate.endDate !== null &&
+      selectedFilters.eventDate.endDate !== undefined
+    ) {
       drops = drops.filter((drop) => {
         if (drop === undefined) return false;
         let dateString = drop.date.date;
@@ -244,10 +251,8 @@ export default function Gallery() {
         if (typeof drop.date.date !== 'string') {
           dateString = drop.date.date.to;
         }
-        const date = new Date(dateString);
-        return (
-          selectedFilters.eventDate.endDate !== null && date <= selectedFilters.eventDate.endDate
-        );
+        const date = new Date(dateString).getTime();
+        return date <= selectedFilters.eventDate.endDate!;
       });
     }
 

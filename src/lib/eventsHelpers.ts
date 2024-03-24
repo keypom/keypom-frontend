@@ -60,6 +60,7 @@ export interface TicketMetadataExtra {
   salesValidThrough: DateAndTimeInfo;
   passValidThrough: DateAndTimeInfo;
   price: string;
+  limitPerUser: number;
   maxSupply?: number;
 }
 

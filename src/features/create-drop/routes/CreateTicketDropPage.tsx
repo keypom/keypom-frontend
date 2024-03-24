@@ -14,6 +14,7 @@ import {
   KEYPOM_EVENTS_CONTRACT,
   KEYPOM_MARKETPLACE_CONTRACT,
 } from '@/constants/common';
+import { type DateAndTimeInfo } from '@/lib/eventsHelpers';
 
 import { CreateTicketDropLayout } from '../components/CreateTicketDropLayout';
 import { CollectInfoForm } from '../components/ticket/CollectInfoForm';
@@ -30,6 +31,7 @@ import { ReviewEventForm } from '../components/ticket/ReviewEventForm';
 import { KeypomPasswordPromptModal } from '../components/ticket/KeypomPasswordPromptModal';
 import {
   createPayload,
+  EMAIL_QUESTION,
   estimateCosts,
   serializeMediaForWorker,
 } from '../components/ticket/helpers';
@@ -43,13 +45,6 @@ interface TicketStep {
   skippable: boolean;
   canClearDetails: boolean;
   component: (props: EventStepFormProps) => ReactElement;
-}
-
-export interface EventDate {
-  startDate: Date | null;
-  endDate: Date | null;
-  startTime?: string;
-  endTime?: string;
 }
 
 export interface EventStepFormProps {
@@ -69,7 +64,7 @@ export interface TicketDropFormData {
   eventName: { value: string; error?: string };
   eventDescription: { value: string; error?: string };
   eventLocation: { value: string; error?: string };
-  date: { value: EventDate; error?: string };
+  date: { value: DateAndTimeInfo; error?: string };
   eventArtwork: { value: File | undefined; error?: string };
 
   // Step 2
@@ -140,74 +135,6 @@ const formSteps: TicketStep[] = [
   },
 ];
 
-// const placeholderData2 = {
-//   eventName: { value: 'Vandelay Industries Networking Event' },
-//   eventArtwork: { value: undefined },
-//   eventDescription: {
-//     value:
-//       'Meet with the best latex salesmen in the industry! This will be a once-in-a-lifetime opportunity to network and meet with people that you enjoy being with. Drink beer, laugh, have fun, and have a great time at this networking event! This will be a once-in-a-lifetime opportunity!',
-//   },
-//   eventLocation: { value: '129 West 81st Street, Apartment Suite 288.' },
-//   date: {
-//     value: {
-//       value: {
-//         value: { startDate: null, endDate: null },
-//         startDate: '2024-03-16T04:00:00.000Z',
-//         endDate: null,
-//       },
-//       startDate: new Date('2024-03-16T04:00:00.000Z'),
-//       endDate: new Date('2024-03-23T04:00:00.000Z'),
-//       startTime: '09:00 AM',
-//       endTime: '09:00 PM',
-//     },
-//   },
-//   questions: [
-//     { question: 'Full name', isRequired: true },
-//     { question: 'Email address', isRequired: true },
-//     { question: 'How did you find out about this event?', isRequired: false },
-//   ],
-//   tickets: [
-//     {
-//       name: 'VIP Ticket',
-//       description:
-//         'Get exclusive access to beer, fun, and games. Network with people, grant priority access to lines and skip the wait with this amazing ticket tier!',
-//       price: '5',
-//       artwork: undefined,
-//       salesValidThrough: {
-//         startDate: new Date('2024-03-13T04:00:00.000Z'),
-//         endDate: new Date('2024-03-23T04:00:00.000Z'),
-//       },
-//       passValidThrough: {
-//         startDate: new Date('2024-03-18T04:00:00.000Z'),
-//         endDate: new Date('2024-03-22T04:00:00.000Z'),
-//       },
-//       maxSupply: 5000,
-//     },
-//     {
-//       name: 'Standard Ticket',
-//       description: 'Get standard access to the networking event',
-//       artwork: undefined,
-//       price: '0',
-//       salesValidThrough: {
-//         startDate: new Date('2024-03-13T04:00:00.000Z'),
-//         endDate: new Date('2024-03-23T04:00:00.000Z'),
-//       },
-//       passValidThrough: {
-//         startDate: new Date('2024-03-18T04:00:00.000Z'),
-//         endDate: new Date('2024-03-22T04:00:00.000Z'),
-//       },
-//       maxSupply: 5000,
-//     },
-//   ],
-//   actions: [],
-//   costBreakdown: {
-//     perEvent: '0',
-//     perDrop: '0',
-//     total: '0',
-//     marketListing: '0',
-//   },
-// };
-
 const placeholderData: TicketDropFormData = {
   // Step 0
   nearPrice: undefined,
@@ -221,15 +148,14 @@ const placeholderData: TicketDropFormData = {
   eventLocation: { value: '' },
   date: {
     value: {
-      startDate: null,
-      endDate: null,
+      startDate: 0,
     },
   },
 
   // Step 2
   questions: [
+    { question: EMAIL_QUESTION, isRequired: true },
     { question: 'Full name', isRequired: true },
-    { question: 'Email address', isRequired: true },
     { question: 'How did you find out about this event?', isRequired: false },
   ],
 
@@ -302,13 +228,16 @@ export default function NewTicketDrop() {
 
   const handleClearForm = () => {
     switch (currentStep) {
-      case 0:
+      case 1:
         setFormData((prev) => ({ ...prev, ...ClearEventInfoForm() }));
         break;
-      case 1:
-        setFormData((prev) => ({ ...prev, questions: [] }));
-        break;
       case 2:
+        setFormData((prev) => ({
+          ...prev,
+          questions: [{ question: EMAIL_QUESTION, isRequired: true }],
+        }));
+        break;
+      case 3:
         setFormData((prev) => ({ ...prev, tickets: [] }));
         break;
       default:
@@ -407,6 +336,16 @@ export default function NewTicketDrop() {
       });
     }
     setIsSettingKey(false);
+  };
+
+  const handleSkipped = () => {
+    setCurrentStep((prevStep) => prevStep + 1);
+    if (currentStep === 2) {
+      setFormData((prev) => ({
+        ...prev,
+        questions: [{ question: EMAIL_QUESTION, isRequired: true }],
+      }));
+    }
   };
 
   const nextStep = async () => {
@@ -532,10 +471,7 @@ export default function NewTicketDrop() {
               <Button
                 fontSize={{ base: 'sm', md: 'base' }}
                 variant="secondary"
-                onClick={() => {
-                  setFormData((prev) => ({ ...prev, questions: [] }));
-                  setCurrentStep((prev) => prev + 1);
-                }}
+                onClick={handleSkipped}
               >
                 Skip
               </Button>
