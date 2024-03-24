@@ -98,6 +98,7 @@ export const VerifyModal = ({ isOpen, onClose, event, eventId, accountId }: Veri
         id: '',
         salesValidThrough: meta.passValidThrough,
         supply: 0,
+        limitPerUser: 0,
         soldTickets: 0,
         priceNear: '0',
         maxTickets: 0,
