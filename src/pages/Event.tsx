@@ -120,7 +120,7 @@ export interface SellDropInfo {
 }
 
 export default function Event() {
-  const simulateStripe: boolean = false;
+  // const simulateStripe: boolean = false;
 
   const params = useParams();
   if (params.eventID == null || params.eventID === undefined) {
@@ -362,7 +362,6 @@ export default function Event() {
   const PurchaseTicket = async (email, questionValues, purchaseType, isSecondary) => {
     navigate('./');
 
-
     const dropData = await keypomInstance.getTicketDropInformation({
       dropID: ticketBeingPurchased.id,
     });
@@ -433,8 +432,8 @@ export default function Event() {
       trimmedEmail = trimmedEmail.substring(0, 500);
     }
 
-    // console.log(ticketBeingPurchased)
-    // console.log('drop', drop.artwork);
+    let stripe_ticket_hash = dropData.drop_config.nft_keys_config.token_metadata.media;
+    let ticket_url_stripe = `https://cloudflare-ipfs.com/ipfs/${stripe_ticket_hash}`;
 
     const workerPayload: WorkerPayload = {
       name: attendeeName,
@@ -446,14 +445,14 @@ export default function Event() {
         ticketType: dropData.drop_config.nft_keys_config.token_metadata.title,
         eventDate: JSON.stringify(drop.date),
         //TODO MIN: change this back
-        ticketOwner: simulateStripe ? undefined : "minqi.testnet",
-        // ticketOwner: accountId || undefined, // (if signed in, this is signed in account, otherwise its none/empty)
+        // ticketOwner: simulateStripe ? undefined : "minqi.testnet",
+        ticketOwner: accountId || undefined, // (if signed in, this is signed in account, otherwise its none/empty)
         // ticketOwner: undefined, // (if signed in, this is signed in account, otherwise its none/empty)
         eventId: meta.eventId,
         dropId: ticketBeingPurchased.id,
         funderId,
         event_image_url: drop.artwork,
-        ticket_image_url: ticketBeingPurchased.artwork
+        ticket_image_url: purchaseType == "stripe" ? ticket_url_stripe : ticketBeingPurchased.artwork
       },
       purchaseEmail: trimmedEmail, // (currently just called email in userInfo)
       stripeAccountId,
@@ -532,8 +531,8 @@ export default function Event() {
             public_key: publicKey,
             metadata: encryptedValues,
             //TODO MIN: change this back
-            //key_owner: accountId,
-            key_owner: simulateStripe ? null : "minqi.testnet"
+            key_owner: accountId,
+            // key_owner: simulateStripe ? null : "minqi.testnet"
           });
         }
 
@@ -727,8 +726,18 @@ export default function Event() {
         },
       );
 
+      if (response_buyer.ok) {
+        // Email sent
+        const responseBody = await response_buyer.json();
+        TicketPurchaseSuccessful(workerPayload, responseBody);
+      } else {
+        // Email not sent
+        TicketPurchaseFailure(workerPayload, await response_buyer.json());
+      }
+
       console.log("sending email w ", JSON.stringify(workerPayload))
 
+      /* ~~~~~~~~~~~~~~~~ SELLER SOLD EMAIL DISABLED UNTIL IPFS INTEGRATION ~~~~~~~~~~~~~~~~
       let email_endpoint = "https://email-worker.kp-capstone.workers.dev/send-sold-confirmation-email"
       // Seller did not have wallet when they bought, include linkdrop info in email
       if(workerPayload.linkdrop_secret_key != null || workerPayload.linkdrop_secret_key != undefined){
@@ -759,6 +768,7 @@ export default function Event() {
           TicketPurchaseFailure(workerPayload, await seller_response.json());
         }
       }
+      */
 
     }
   };
@@ -873,11 +883,10 @@ export default function Event() {
       eventId,
     });
 
-    const iseventavailable = await keypomInstance.getStripeEnabledEvents();
+    const stripeEnabledEvents = await keypomInstance.getStripeEnabledEvents();
     // check if this event is stripe enabled
-    const iseventstripeenabled = iseventavailable.includes(eventId);
-
-    setStripeEnabledEvent(iseventstripeenabled);
+    const isEventStripeEnabled = stripeEnabledEvents.includes(eventId);
+    setStripeEnabledEvent(isEventStripeEnabled);
 
     // get stripe id for account
     const stripeAccountId = await keypomInstance.getStripeAccountId(funderId);
