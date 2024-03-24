@@ -32,7 +32,12 @@ import {
   type FunderEventMetadata,
 } from '@/lib/eventsHelpers';
 import keypomInstance from '@/lib/keypom';
-import { KEYPOM_MARKETPLACE_CONTRACT, PURCHASED_LOCAL_STORAGE_PREFIX } from '@/constants/common';
+import {
+  EMAIL_WORKER_BASE,
+  EVENTS_WORKER_BASE,
+  KEYPOM_MARKETPLACE_CONTRACT,
+  PURCHASED_LOCAL_STORAGE_PREFIX,
+} from '@/constants/common';
 import { type DataItem } from '@/components/Table/types';
 import { dateAndTimeToText } from '@/features/drop-manager/utils/parseDates';
 
@@ -455,16 +460,13 @@ export default function Event() {
     };
 
     if (purchaseType === 'free') {
-      const response = await fetch(
-        'https://stripe-worker.kp-capstone.workers.dev/purchase-free-tickets',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(workerPayload),
+      const response = await fetch(EVENTS_WORKER_BASE + '/purchase-free-tickets', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         },
-      );
+        body: JSON.stringify(workerPayload),
+      });
 
       if (response.ok) {
         const responseBody = await response.json();
@@ -575,16 +577,13 @@ export default function Event() {
         });
       }
     } else if (purchaseType === 'stripe') {
-      const response = await fetch(
-        'https://stripe-worker.kp-capstone.workers.dev/stripe/create-checkout-session',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(workerPayload),
+      const response = await fetch(EVENTS_WORKER_BASE + '/stripe/create-checkout-session', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         },
-      );
+        body: JSON.stringify(workerPayload),
+      });
       if (response.ok) {
         // Account created successfully
         const responseBody = await response.json();
@@ -627,16 +626,13 @@ export default function Event() {
       newWorkerPayload.ticketKey = workerPayload.ticketKeys[key];
 
       // newWorkerPayload["ticketKeys"] = null;
-      const response = await fetch(
-        'https://email-worker.kp-capstone.workers.dev/send-confirmation-email',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(newWorkerPayload),
+      const response = await fetch(EMAIL_WORKER_BASE + '/send-confirmation-email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         },
-      );
+        body: JSON.stringify(newWorkerPayload),
+      });
 
       if (response.ok) {
         const responseBody = await response.json();
