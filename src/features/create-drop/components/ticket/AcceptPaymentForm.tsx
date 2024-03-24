@@ -54,8 +54,6 @@ const AcceptPaymentForm = (props: EventStepFormProps) => {
   const checkForPriorStripeConnected = () => {
     const stripeAccountId = localStorage.getItem('STRIPE_ACCOUNT_ID');
     if (stripeAccountId) {
-      console.log('Stripe Account Connected: ', stripeAccountId);
-
       setFormData({ ...formData, stripeAccountId, acceptStripePayments: false });
     }
 
@@ -67,7 +65,6 @@ const AcceptPaymentForm = (props: EventStepFormProps) => {
     if (body) {
       const { stripeAccountId, uuid } = JSON.parse(body);
       if (window.location.href.includes(`successMessage=${uuid as string}`)) {
-        console.log('Stripe Account Connected: ', stripeAccountId);
         localStorage.removeItem('STRIPE_ACCOUNT_INFO');
 
         localStorage.setItem('STRIPE_ACCOUNT_ID', stripeAccountId);
@@ -125,7 +122,8 @@ const AcceptPaymentForm = (props: EventStepFormProps) => {
         body: JSON.stringify(body),
       });
     } catch (error) {
-      console.log('error', error);
+      // eslint-disable-next-line no-console
+      console.error('Error connecting to stripe: ', error);
     }
 
     if (response?.ok) {

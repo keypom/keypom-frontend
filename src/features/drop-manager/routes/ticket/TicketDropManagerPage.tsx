@@ -224,10 +224,14 @@ export default function TicketManagerPage() {
           drop.drop_config.nft_keys_config.token_metadata.extra,
         );
 
-        const eventInfo = await keypomInstance.getEventInfo({
+        const eventInfo: FunderEventMetadata | null = await keypomInstance.getEventInfo({
           accountId,
           eventId: nftExtraObj.eventId,
         });
+        if (eventInfo == null) {
+          setIsErr(true);
+          return;
+        }
         setEventInfo(eventInfo);
 
         if (eventInfo?.questions) {
@@ -258,7 +262,8 @@ export default function TicketManagerPage() {
 
         setTableColumns((prevColumns) => [...questionColumns, ...prevColumns]);
       } catch (e) {
-        console.error('error in fooooooooo', e);
+        // eslint-disable-next-line no-console
+        console.error('error in getEventData', e);
         setIsErr(true);
       }
     };

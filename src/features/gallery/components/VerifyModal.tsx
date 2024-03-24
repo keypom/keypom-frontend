@@ -20,7 +20,11 @@ import { QrReader } from 'react-qr-reader';
 
 import keypomInstance from '@/lib/keypom';
 import { type TicketInterface, type EventInterface } from '@/pages/Event';
-import { type EventDrop, type TicketMetadataExtra } from '@/lib/eventsHelpers';
+import {
+  type FunderEventMetadata,
+  type EventDrop,
+  type TicketMetadataExtra,
+} from '@/lib/eventsHelpers';
 import { dateAndTimeToText } from '@/features/drop-manager/utils/parseDates';
 
 interface VerifyModalProps {
@@ -83,10 +87,14 @@ export const VerifyModal = ({ isOpen, onClose, event, eventId, accountId }: Veri
       if (keyinfoEventId !== eventId) {
         throw new Error('The ticket is not for this event.');
       }
-      const drop = await keypomInstance.getEventInfo({ accountId, eventId: keyinfoEventId });
+      const meta2: FunderEventMetadata | null = await keypomInstance.getEventInfo({
+        accountId,
+        eventId: keyinfoEventId,
+      });
 
-      const meta2 = drop;
-
+      if (meta2 == null) {
+        throw new Error('The event does not exist.');
+      }
       setTicketData({
         name: meta2.name || 'Untitled',
         artwork: meta2.artwork || 'loading',

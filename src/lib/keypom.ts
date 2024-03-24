@@ -530,7 +530,7 @@ class KeypomJS {
   }: {
     accountId: string;
     eventId: string;
-  }): Promise<FunderEventMetadata> => {
+  }): Promise<FunderEventMetadata | null> => {
     try {
       const funderInfo = await this.viewCall({
         methodName: 'get_funder_info',
@@ -539,11 +539,14 @@ class KeypomJS {
 
       const funderMeta: Record<string, FunderEventMetadata> = JSON.parse(funderInfo.metadata);
       const eventInfo: FunderEventMetadata = funderMeta[eventId];
+
       eventInfo.artwork = `${CLOUDFLARE_IPFS}/${eventInfo.artwork}`;
 
       return eventInfo;
     } catch (error) {
-      throw new Error('Error getting event info');
+      /* eslint-disable no-console */
+      console.error('Error getting event info', error);
+      return null;
     }
   };
 
@@ -583,7 +586,6 @@ class KeypomJS {
       ),
     );
 
-    console.log('allPagesDrops', allPagesDrops);
     let allDrops: EventDrop[] = allPagesDrops.flat(); // Assuming allPagesDrops is already defined and flattened.
     allDrops = allDrops.filter((drop) => {
       if (
@@ -597,7 +599,6 @@ class KeypomJS {
 
       return isValidTicketNFTMetadata(drop.drop_config.nft_keys_config.token_metadata);
     });
-    console.log('Fetched all drops', allDrops);
 
     // Add cloudflare IPFS prefix to media
     allDrops = allDrops.map((drop) => {

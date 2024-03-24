@@ -11,7 +11,6 @@ import {
   HStack,
   Hide,
   Show,
-  VStack,
 } from '@chakra-ui/react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ExternalLinkIcon } from '@chakra-ui/icons';
@@ -30,6 +29,7 @@ import {
   type TicketMetadataExtra,
   type DateAndTimeInfo,
   type EventDrop,
+  type FunderEventMetadata,
 } from '@/lib/eventsHelpers';
 import keypomInstance from '@/lib/keypom';
 import { KEYPOM_MARKETPLACE_CONTRACT, PURCHASED_LOCAL_STORAGE_PREFIX } from '@/constants/common';
@@ -238,14 +238,17 @@ export default function Event() {
         });
       }
 
-      const drop = await keypomInstance.getEventInfo({
+      const meta2: FunderEventMetadata | null = await keypomInstance.getEventInfo({
         accountId: funderId,
         eventId: keyinfoEventId,
       });
 
-      const meta2 = drop;
+      if (meta2 == null) {
+        throw new Error('The event does not exist.');
+      }
+
       let dateString = '';
-      if (meta2?.date != null) {
+      if (meta2.date != null) {
         dateString = dateAndTimeToText(meta2.date);
       }
       setSellDropInfo({
@@ -366,7 +369,7 @@ export default function Event() {
       eventId: keyinfoEventId,
     });
 
-    if (drop.pubKey == null || drop.pubKey === undefined) {
+    if (drop == null || drop === undefined || drop.pubKey == null || drop.pubKey === undefined) {
       toast({
         title: 'Purchase failed',
         description: 'This event does not have a public key',
@@ -862,6 +865,11 @@ export default function Event() {
       try {
         const drop = await keypomInstance.getEventInfo({ accountId: funderId, eventId });
 
+        if (drop == null) {
+          setNoDrop(true);
+          return;
+        }
+
         const meta = drop;
 
         let dateString = '';
@@ -893,14 +901,8 @@ export default function Event() {
         setIsLoading(false);
       } catch (error) {
         // eslint-disable-next-line
-        console.log('error loading event', error);
-        // toast({
-        //   title: 'Error loading event',
-        //   description: `please try again later`,
-        //   status: 'error',
-        //   duration: 5000,
-        //   isClosable: true,
-        // });
+        console.error('error loading event: ', error);
+
         setNoDrop(true);
       }
     };
@@ -975,7 +977,7 @@ export default function Event() {
 
             <Text> {event.description} </Text>
           </Box>
-          <Box flex="1" textAlign="left">
+          <Box flex="1" mr="20" textAlign="left">
             <Text
               as="h2"
               color="black.800"
@@ -1013,7 +1015,7 @@ export default function Event() {
         </HStack>
       </Show>
       <Hide above="md">
-        <VStack>
+        <Box>
           <Box flex="2" mr="20" textAlign="left">
             <Text
               as="h2"
@@ -1028,7 +1030,7 @@ export default function Event() {
 
             <Text> {event.description} </Text>
           </Box>
-          <Box flex="1" textAlign="left">
+          <Box flex="2" textAlign="left">
             <Text
               as="h2"
               color="black.800"
@@ -1039,13 +1041,10 @@ export default function Event() {
             >
               Location
             </Text>
-
             <Text>{event.location}</Text>
-
             <a href={mapHref} rel="noopener noreferrer" target="_blank">
               Open in Google Maps <ExternalLinkIcon mx="2px" />
             </a>
-
             <Text
               as="h2"
               color="black.800"
@@ -1058,12 +1057,11 @@ export default function Event() {
               Date
             </Text>
             <Text color="gray.400">{event.date}</Text>
-
             <Button mt="4" variant="primary" onClick={verifyOnOpen}>
               Verify Ticket
             </Button>
           </Box>
-        </VStack>
+        </Box>
       </Hide>
 
       <Heading as="h3" my="5" size="lg">

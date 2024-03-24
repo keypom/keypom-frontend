@@ -62,17 +62,24 @@ export default function TicketQRPage() {
         const ticketExtra: TicketMetadataExtra = JSON.parse(ticketMetadata.extra);
         setTicketInfoExtra(ticketExtra);
 
-        const eventInfo: FunderEventMetadata = await keypomInstance.getEventInfo({
+        const eventInfo: FunderEventMetadata | null = await keypomInstance.getEventInfo({
           accountId: drop.funder_id,
           eventId: ticketExtra.eventId,
         });
+        if (!eventInfo) {
+          setIsValid(false);
+          setIsLoading(false);
+          return;
+        }
         setEventInfo(eventInfo);
         setEventId(ticketExtra.eventId);
         setFunderId(drop.funder_id);
         setIsLoading(false);
       } catch (e) {
+        // eslint-disable-next-line no-console
         console.error('Error getting event info: ', e);
         setIsValid(false);
+        setIsLoading(false);
       }
     };
     getEventInfo();

@@ -276,7 +276,7 @@ export default function NewTicketDrop() {
       });
     } catch (error) {
       // eslint-disable-next-line no-console
-      console.log('error', error);
+      console.error('Error in payAndCreateEvent', error);
     }
 
     if (response?.ok) {

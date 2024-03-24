@@ -35,7 +35,7 @@ interface SurroundingLinkProps {
 
 export const TicketCard = ({ event, loading, surroundingNavLink, onSubmit }: TicketCardProps) => {
   let nav = '../gallery/';
-  if (event?.navurl !== undefined && event?.navurl != null) {
+  if (event?.navurl != null && event?.navurl !== undefined) {
     nav = '../gallery/' + String(event.navurl);
   }
 
