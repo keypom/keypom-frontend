@@ -152,7 +152,7 @@ export const performDeletionLogic = async ({
           completionMessage={
             ticketData.length === 0
               ? `Event successfully deleted!`
-              : `${ticketData.length.toString()} Ticket(s) deleted successfully!`
+              : `${String(ticketData.length)} Ticket(s) deleted successfully!`
           }
           onClose={() => {
             setAppModal({ isOpen: false });
