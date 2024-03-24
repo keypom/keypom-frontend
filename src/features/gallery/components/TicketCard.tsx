@@ -10,13 +10,15 @@ import {
   SkeletonText,
   Text,
   Badge,
+  VStack,
 } from '@chakra-ui/react';
 import { NavLink } from 'react-router-dom';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { IconBox } from '@/components/IconBox';
 import { type EventInterface } from '@/pages/Event';
 import { type DataItem } from '@/components/Table/types';
+import { PURCHASED_LOCAL_STORAGE_PREFIX } from '@/constants/common';
 
 import { TicketIncrementer } from './TicketIncrementer';
 
@@ -37,26 +39,41 @@ export const TicketCard = ({ event, loading, surroundingNavLink, onSubmit }: Tic
     nav = '../gallery/' + String(event.navurl);
   }
 
-  console.log('event', event);
-
   const [amount, setAmount] = useState(1);
+  const [numPurchased, setNumPurchased] = useState(0);
+  let availableTickets = 0;
+  let limitPerUser = 100000;
+
+  if (
+    event.maxTickets !== undefined &&
+    event.maxTickets !== null &&
+    event.soldTickets !== undefined &&
+    event.soldTickets !== null &&
+    event.limitPerUser !== undefined &&
+    event.limitPerUser !== null &&
+    typeof event.maxTickets === 'number' &&
+    typeof event.soldTickets === 'number' &&
+    typeof event.limitPerUser === 'number'
+  ) {
+    limitPerUser = event.limitPerUser;
+    availableTickets = event.maxTickets - event.soldTickets;
+  }
+
+  useEffect(() => {
+    if (event?.id !== undefined) {
+      const key = `${PURCHASED_LOCAL_STORAGE_PREFIX}_${event.id as string}`;
+      const purchased = localStorage.getItem(key);
+      if (purchased) {
+        setNumPurchased(parseInt(purchased));
+      }
+    }
+  }, [event.id]);
 
   const decrementAmount = () => {
     if (amount === 1) return;
     setAmount(amount - 1);
   };
   const incrementAmount = () => {
-    let availableTickets = 0;
-    if (
-      event.maxTickets !== undefined &&
-      event.maxTickets !== null &&
-      event.soldTickets !== undefined &&
-      event.soldTickets !== null &&
-      typeof event.maxTickets === 'number' &&
-      typeof event.soldTickets === 'number'
-    ) {
-      availableTickets = event.maxTickets - event.soldTickets;
-    }
     if (availableTickets <= 0) return;
 
     if (amount >= availableTickets) return;
@@ -245,16 +262,22 @@ export const TicketCard = ({ event, loading, surroundingNavLink, onSubmit }: Tic
             </Text>
             <Text align="left" color="black" fontSize="sm" mt="5px">
               {event.description}
-              {/* sdfkal j udasfljkhdh ijoadsijkou rfhadijkls fjklhadshijklf asdhjklfh klajdshf
-              oikadshfklj hadskljf halksdjhfl jkh */}
             </Text>
           </Box>
           {!navButton && amount && event.numTickets !== '0' && event.numTickets !== '1' ? (
-            <TicketIncrementer
-              amount={amount}
-              decrementAmount={decrementAmount}
-              incrementAmount={incrementAmount}
-            />
+            <VStack align="left" spacing="0" textAlign="left" w="full">
+              <TicketIncrementer
+                amount={amount}
+                decrementAmount={decrementAmount}
+                incrementAmount={incrementAmount}
+                maxAmount={Math.min(limitPerUser - numPurchased, availableTickets)}
+              />
+              <Text color="gray.400" fontSize="sm" fontWeight="400">
+                {`Limit of ${limitPerUser} per customer${
+                  numPurchased > 0 ? ` (${numPurchased} owned)` : ''
+                }`}
+              </Text>
+            </VStack>
           ) : null}
           {navButton ? (
             <>

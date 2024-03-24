@@ -32,7 +32,7 @@ import {
   type EventDrop,
 } from '@/lib/eventsHelpers';
 import keypomInstance from '@/lib/keypom';
-import { KEYPOM_MARKETPLACE_CONTRACT } from '@/constants/common';
+import { KEYPOM_MARKETPLACE_CONTRACT, PURCHASED_LOCAL_STORAGE_PREFIX } from '@/constants/common';
 import { type DataItem } from '@/components/Table/types';
 import { dateAndTimeToText } from '@/features/drop-manager/utils/parseDates';
 
@@ -69,6 +69,7 @@ export interface TicketInterface {
   supply: number;
   maxTickets: number | undefined;
   soldTickets: number;
+  limitPerUser: number;
   priceNear: string;
   dateString?: string;
   media?: string;
@@ -91,6 +92,7 @@ export interface EventInterface {
   navurl: string | undefined;
   maxTickets: number | undefined;
   soldTickets: number | undefined;
+  limitPerUser?: number;
   numTickets: number | string | undefined;
   id: number | undefined;
   media: string | undefined;
@@ -595,6 +597,10 @@ export default function Event() {
 
     const workerPayload: WorkerPayload = JSON.parse(workerPayloadStringified);
 
+    const purchaseLocalStorageKey = `${PURCHASED_LOCAL_STORAGE_PREFIX}_${workerPayload.ticket_info.dropId}`;
+    let numTicketsPurchased = parseInt(localStorage.getItem(purchaseLocalStorageKey) || '0');
+    numTicketsPurchased += workerPayload.ticketAmount;
+    localStorage.setItem(purchaseLocalStorageKey, numTicketsPurchased.toString());
     // remove workerpayload from localstorage
     localStorage.removeItem('workerPayload');
 
@@ -810,6 +816,7 @@ export default function Event() {
               dateString: ticket.dateString,
               description: ticket.description,
               id: ticket.id,
+              limitPerUser: ticket.limitPerUser,
               // location: ticket.location,
               maxTickets: 1,
               media: ticket.media,

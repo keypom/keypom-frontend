@@ -16,6 +16,8 @@ export const DROP_TYPE = {
 type DROP_TYPE_KEYS = keyof typeof DROP_TYPE;
 export type DROP_TYPES = (typeof DROP_TYPE)[DROP_TYPE_KEYS];
 
+export const PURCHASED_LOCAL_STORAGE_PREFIX = 'TICKETS_PURCHASED';
+
 export const MASTER_KEY = 'MASTER_KEY';
 
 export const MAX_FILE_SIZE = 10000000;
