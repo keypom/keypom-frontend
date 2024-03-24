@@ -62,7 +62,7 @@ export const PurchaseModal = ({
     setCurrentTicket(ticket);
 
     if (ticket) {
-      const key = `${PURCHASED_LOCAL_STORAGE_PREFIX}_${ticket.id as string}`;
+      const key = `${PURCHASED_LOCAL_STORAGE_PREFIX as string}_${ticket.id as string}`;
       const purchased = localStorage.getItem(key);
       if (purchased) {
         setNumPurchased(parseInt(purchased));
@@ -102,7 +102,6 @@ export const PurchaseModal = ({
     setAmount(amount - 1);
   };
   const incrementAmount = () => {
-    const availableTickets = availableTickets;
     if (availableTickets <= 0) return;
 
     if (amount >= availableTickets) return;
