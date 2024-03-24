@@ -21,10 +21,9 @@ const StripeUtilityTest = () => {
     const [eventName, setEventName] = useState('Big Test');
     const [stripeAccountId, setStripeAccountId] = useState('acct_1OpbrxPhXWiaemzu');
     const [ticketTiers, setTicketTiers] = useState({
-      "1711141577391-Early Bird Ticket-1": 100,
-      "1711141577391-Exclusive Ticket-2": 110, 
+      "1711301195583-workers": 100,
     });
-    const [eventId, setEventId] = useState('a92b09a4-f414-49bc-bd98-ca4855eb2bda')
+    const [eventId, setEventId] = useState('1711301194757')
     
     const { isLoggedIn } = useAuthWalletContext();
 
@@ -33,7 +32,7 @@ const StripeUtilityTest = () => {
         // Wallet is connected, check if account already exists, if not then create account for them
 
         // make a fetch request to localhost:8787 to create a new account
-        const response = await fetch('http://localhost:8787/stripe/create-event', {
+        const response = await fetch('https://stripe-worker.kp-capstone.workers.dev/stripe/create-event', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
