@@ -1,23 +1,27 @@
 import {
-  Box,
   Modal,
-  ModalCloseButton,
+  ModalBody,
   ModalContent,
+  ModalHeader,
   ModalOverlay,
   Spinner,
   Text,
+  VStack,
 } from '@chakra-ui/react';
 
 interface LoadingModalProps {
-  isOpen;
-  onClose;
-  text;
+  isOpen: boolean;
+  onClose: () => void;
+  title?: string; // Optional title
+  subtitle?: string; // Optional subtitle
+  text?: string; // Optional text
 }
 
-export const LoadingModal = ({ isOpen, onClose, text }: LoadingModalProps) => {
-  const modalSize = 'xs';
-  const modalPadding = { base: '4', md: '8' };
-  const modalHeight = { base: '30vh', md: '40vh' };
+export const LoadingModal = ({ isOpen, onClose, title, subtitle, text }: LoadingModalProps) => {
+  const modalSize = { base: 'sm', md: 'md' };
+  const modalPadding = { base: '6', md: '8' };
+  const spinnerSize = { base: 'lg', md: 'xl' };
+
   return (
     <Modal
       isCentered
@@ -27,22 +31,35 @@ export const LoadingModal = ({ isOpen, onClose, text }: LoadingModalProps) => {
       onClose={onClose}
     >
       <ModalOverlay backdropFilter="blur(0px)" bg="blackAlpha.600" opacity="1" />
-      <ModalContent maxH={modalHeight} p={modalPadding}>
-        <ModalCloseButton size="lg" />
-        <Box borderColor="gray.200" maxW="full">
-          <Spinner color="blue.500" emptyColor="gray.200" size="xl" speed="0.65s" thickness="4px" />
-          <Text
-            as="h2"
-            color="black.800"
-            fontSize="l"
-            fontWeight="medium"
-            my="4px"
-            pt="4"
-            textAlign="center"
-          >
-            {text}
-          </Text>
-        </Box>
+      <ModalContent boxShadow="lg" mx={3} p={modalPadding} textAlign="center">
+        {title && (
+          <ModalHeader>
+            <Text fontSize="xl" fontWeight="semibold">
+              {title}
+            </Text>
+          </ModalHeader>
+        )}
+        <ModalBody>
+          <VStack spacing={4}>
+            <Spinner
+              color="blue.500"
+              emptyColor="gray.300"
+              size={spinnerSize}
+              speed="0.8s"
+              thickness="3px"
+            />
+            {subtitle && (
+              <Text fontSize="lg" fontWeight="medium">
+                {subtitle}
+              </Text>
+            )}
+            {text && (
+              <Text color="gray.600" fontSize="md">
+                {text}
+              </Text>
+            )}
+          </VStack>
+        </ModalBody>
       </ModalContent>
     </Modal>
   );

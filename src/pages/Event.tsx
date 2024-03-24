@@ -156,7 +156,11 @@ export default function Event() {
   const [doKeyModal, setDoKeyModal] = useState(false);
 
   const [loadingModal, setLoadingModal] = useState(false);
-  const [loadingModalText, setLoadingModalText] = useState('');
+  const [loadingModalText, setLoadingModalText] = useState<{
+    title: string;
+    text: string;
+    subtitle: string;
+  }>({ title: '', text: '', subtitle: '' });
 
   const [sellDropInfo, setSellDropInfo] = useState<SellDropInfo | null>(null);
 
@@ -617,13 +621,11 @@ export default function Event() {
 
     for (const key in workerPayload.ticketKeys) {
       setLoadingModal(true);
-      setLoadingModalText(
-        'Sending confirmation email for key ' +
-          String(currentLoadedKey) +
-          ' of ' +
-          String(keyCount) +
-          '...',
-      );
+      setLoadingModalText({
+        title: 'Purchase Successful',
+        text: 'Sending confirmation email',
+        subtitle: `Progress: ${currentLoadedKey} / ${keyCount}`,
+      });
       newWorkerPayload.ticketKey = workerPayload.ticketKeys[key];
 
       // // add in an artificial wait for testing
@@ -977,111 +979,55 @@ export default function Event() {
       <Heading as="h2" color="black" my="5" size="2xl">
         {event.name}
       </Heading>
-      {/* TODO: make these stacks change between hstack and vstack nicely */}
+      {/* For larger screens, show a horizontal stack */}
       <Show above="md">
-        <HStack>
-          <Box flex="2" mr="20" textAlign="left">
-            <Text
-              as="h2"
-              color="black.800"
-              fontSize="l"
-              fontWeight="bold"
-              my="4px"
-              textAlign="left"
-            >
+        <HStack alignItems="flex-start" spacing="20">
+          <Box flex="2">
+            <Text as="h2" color="black.800" fontSize="l" fontWeight="bold" my="4px">
               Event Details
             </Text>
-
-            <Text> {event.description} </Text>
+            <Text>{event.description}</Text>
           </Box>
-          <Box flex="1" textAlign="left">
-            <Text
-              as="h2"
-              color="black.800"
-              fontSize="l"
-              fontWeight="bold"
-              my="4px"
-              textAlign="left"
-            >
+          <VStack alignItems="flex-start" flex="1">
+            <Text as="h2" color="black.800" fontSize="l" fontWeight="bold" my="4px">
               Location
             </Text>
-
             <Text>{event.location}</Text>
-
             <a href={mapHref} rel="noopener noreferrer" target="_blank">
               Open in Google Maps <ExternalLinkIcon mx="2px" />
             </a>
-
-            <Text
-              as="h2"
-              color="black.800"
-              fontSize="l"
-              fontWeight="bold"
-              mt="12px"
-              my="4px"
-              textAlign="left"
-            >
+            <Text as="h2" color="black.800" fontSize="l" fontWeight="bold" mt="12px" my="4px">
               Date
             </Text>
             <Text color="gray.400">{event.date}</Text>
-
             <Button mt="4" variant="primary" onClick={verifyOnOpen}>
               Verify Ticket
             </Button>
-          </Box>
+          </VStack>
         </HStack>
       </Show>
+
+      {/* For smaller screens, show a vertical stack */}
       <Hide above="md">
-        <VStack>
-          <Box flex="2" mr="20" textAlign="left">
-            <Text
-              as="h2"
-              color="black.800"
-              fontSize="l"
-              fontWeight="bold"
-              my="4px"
-              textAlign="left"
-            >
-              Event Details
-            </Text>
-
-            <Text> {event.description} </Text>
-          </Box>
-          <Box flex="1" textAlign="left">
-            <Text
-              as="h2"
-              color="black.800"
-              fontSize="l"
-              fontWeight="bold"
-              my="4px"
-              textAlign="left"
-            >
-              Location
-            </Text>
-
-            <Text>{event.location}</Text>
-
-            <a href={mapHref} rel="noopener noreferrer" target="_blank">
-              Open in Google Maps <ExternalLinkIcon mx="2px" />
-            </a>
-
-            <Text
-              as="h2"
-              color="black.800"
-              fontSize="l"
-              fontWeight="bold"
-              mt="12px"
-              my="4px"
-              textAlign="left"
-            >
-              Date
-            </Text>
-            <Text color="gray.400">{event.date}</Text>
-
-            <Button mt="4" variant="primary" onClick={verifyOnOpen}>
-              Verify Ticket
-            </Button>
-          </Box>
+        <VStack alignItems="flex-start" spacing="4">
+          <Text as="h2" color="black.800" fontSize="l" fontWeight="bold">
+            Event Details
+          </Text>
+          <Text>{event.description}</Text>
+          <Text as="h2" color="black.800" fontSize="l" fontWeight="bold">
+            Location
+          </Text>
+          <Text>{event.location}</Text>
+          <a href={mapHref} rel="noopener noreferrer" target="_blank">
+            Open in Google Maps <ExternalLinkIcon mx="2px" />
+          </a>
+          <Text as="h2" color="black.800" fontSize="l" fontWeight="bold">
+            Date
+          </Text>
+          <Text color="gray.400">{event.date}</Text>
+          <Button variant="primary" onClick={verifyOnOpen}>
+            Verify Ticket
+          </Button>
         </VStack>
       </Hide>
       <Heading as="h3" my="5" size="lg">
@@ -1112,7 +1058,7 @@ export default function Event() {
       </Box>
       {!areTicketsLoading && resaleTicketList.length > 0 ? (
         <Heading as="h3" my="5" size="lg">
-          Secondary Tickets
+          Secondary Market
         </Heading>
       ) : (
         <></>
@@ -1164,7 +1110,9 @@ export default function Event() {
       />
       <LoadingModal
         isOpen={loadingModal}
-        text={loadingModalText}
+        subtitle={loadingModalText.subtitle}
+        text={loadingModalText.text}
+        title={loadingModalText.title}
         onClose={() => {
           setLoadingModal(false);
         }}

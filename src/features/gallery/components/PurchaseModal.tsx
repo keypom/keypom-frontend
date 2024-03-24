@@ -231,8 +231,8 @@ export const PurchaseModal = ({
                 <Image
                   alt={`Event image for ${event.name}`}
                   borderRadius="md"
-                  h="auto"
-                  objectFit="cover"
+                  h="280px"
+                  objectFit="contain"
                   src={event.artwork}
                   w="full"
                 />
@@ -243,7 +243,7 @@ export const PurchaseModal = ({
                   <Text color="gray.600" fontSize="md">
                     {event.description}
                   </Text>
-                  <HStack justifyContent="space-between" pt="4">
+                  <HStack justifyContent="space-between" pt="4" textAlign="left">
                     <Text color="gray.800" fontSize="lg" fontWeight="semibold">
                       Admission Date
                     </Text>
