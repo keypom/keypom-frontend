@@ -1,4 +1,4 @@
-import { type EventDropMetadata } from '@/lib/eventsHelpers';
+import { type EventDrop } from '@/lib/eventsHelpers';
 import { type AttendeeKeyItem } from '@/lib/keypom';
 
 import { type EventData } from '../routes/events/EventManagerPage';
@@ -24,9 +24,9 @@ export const handleExportCSVClick = async ({
     for (let i = 0; i < dropIds.length; i++) {
       const dropId = dropIds[i];
       const {
-        dropMeta,
+        dropInfo,
         dropKeyItems: data,
-      }: { dropMeta: EventDropMetadata; dropKeyItems: AttendeeKeyItem[] } =
+      }: { dropInfo: EventDrop; dropKeyItems: AttendeeKeyItem[] } =
         await keypomInstance.getAllKeysForTicket({
           dropId,
         });
@@ -73,7 +73,9 @@ export const handleExportCSVClick = async ({
         link.setAttribute('href', encodedUri);
         link.setAttribute(
           'download',
-          `${(eventData?.name || '').toLowerCase().replaceAll(' ', '_')}-${dropMeta.name
+          `${(eventData?.name || '')
+            .toLowerCase()
+            .replaceAll(' ', '_')}-${dropInfo.drop_config.nft_keys_config.token_metadata.title
             .toLowerCase()
             .replaceAll(' ', '_')}.csv`,
         );
