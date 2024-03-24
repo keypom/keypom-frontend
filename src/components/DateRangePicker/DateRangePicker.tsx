@@ -97,13 +97,13 @@ const CustomFooter = ({
 );
 
 interface CustomDateRangePickerProps {
-  onDateChange: (startDate: Date | null, endDate: Date | null) => void;
+  onDateChange: (startDate: number, endDate: number | undefined) => void;
   onTimeChange: (startTime: string | undefined, endTime: string | undefined) => void;
   isDatePickerOpen: boolean;
   setIsDatePickerOpen: (isOpen: boolean) => void;
   ctaComponent?: React.ReactNode;
-  startDate: Date | null;
-  endDate: Date | null;
+  startDate: number;
+  endDate?: number;
   minDate: Date | null;
   maxDate: Date | null;
   openDirection?: string;
@@ -130,8 +130,13 @@ function CustomDateRangePicker({
 
   // handle changes inside date picker
   const handleDateChange = (dates) => {
+    console.log('dates', dates);
     const [start, end] = dates;
-    onDateChange(start, end);
+
+    if (!start) {
+      return;
+    }
+    onDateChange(start.getTime(), end ? end.getTime() : undefined);
   };
 
   const handleApplyClick = () => {
@@ -147,7 +152,7 @@ function CustomDateRangePicker({
     setEndTimeError(false);
     setStartTimeText(undefined);
     setEndTimeText(undefined);
-    onDateChange(null, null);
+    onDateChange(0, undefined);
   };
 
   const onChangeStartTime = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -202,13 +207,13 @@ function CustomDateRangePicker({
             />
           }
           dateFormat="MM/dd/yyyy h:mm aa"
-          endDate={endDate}
+          endDate={endDate ? new Date(endDate) : null}
           maxDate={maxDate}
           minDate={minDate || new Date()}
           monthsShown={2}
           open={isDatePickerOpen}
           popperPlacement={openDirection}
-          startDate={startDate}
+          startDate={startDate ? new Date(startDate) : null}
           onCalendarClose={() => {
             setIsDatePickerOpen(false);
           }}

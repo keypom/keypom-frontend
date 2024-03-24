@@ -1,7 +1,8 @@
 import {
   Button,
   Hide,
-  HStack,
+  Grid,
+  GridItem,
   Input,
   Modal,
   ModalContent,
@@ -9,6 +10,8 @@ import {
   Show,
   Textarea,
   VStack,
+  Center,
+  Box,
 } from '@chakra-ui/react';
 import { useEffect, useRef, useState } from 'react';
 import { DateTime } from 'luxon';
@@ -19,6 +22,7 @@ import CustomDateRangePickerMobile from '@/components/DateRangePicker/MobileDate
 import { ImageFileInput } from '@/components/ImageFileInput';
 import { type DateAndTimeInfo } from '@/lib/eventsHelpers';
 import { dateAndTimeToText } from '@/features/drop-manager/utils/parseDates';
+import { ImageFileInputSmall } from '@/components/ImageFileInput/ImageFileInputSmall';
 
 import { type TicketDropFormData } from '../../routes/CreateTicketDropPage';
 
@@ -34,6 +38,7 @@ const defaultErrors = {
   maxSupply: '',
   price: '',
   artwork: '',
+  maxPurchases: '',
 };
 
 export const isValidNonNegativeNumber = (value) => {
@@ -130,6 +135,12 @@ export const ModifyTicketModal = ({
       isErr = true;
     }
 
+    console.log('currentTicket.maxp', currentTicket.maxPurchases);
+    if (currentTicket.maxPurchases < 1) {
+      newErrors.maxPurchases = 'Max purchases is required';
+      isErr = true;
+    }
+
     if (!isValidNonNegativeNumber(currentTicket.priceNear)) {
       newErrors.price = 'Price is required';
       isErr = true;
@@ -150,7 +161,7 @@ export const ModifyTicketModal = ({
     }
   };
 
-  const margins = '2';
+  const margins = '1';
 
   const datePickerCTA = (
     label: string,
@@ -170,7 +181,7 @@ export const ModifyTicketModal = ({
         isInvalid={!!errorField}
         maxLength={500}
         placeholder={dateAndTimeToText(dateObject, 'Event date')}
-        size="sm"
+        size={{ base: 'sm', md: 'md' }}
         style={{ cursor: 'pointer' }}
         sx={{
           '::placeholder': {
@@ -267,298 +278,332 @@ export const ModifyTicketModal = ({
       }}
     >
       <ModalOverlay backdropFilter="blur(0px)" bg="blackAlpha.600" opacity="1" />
-      <ModalContent maxH="90vh" overflowY="auto" padding={6} paddingY={3}>
-        <Show above="lg">
-          <HStack spacing={8}>
-            <VStack align="stretch" flex="1.5" spacing={4}>
-              <FormControlComponent
-                errorText={errors.name}
-                label="Ticket name*"
-                labelProps={{ fontSize: { base: 'xs', md: 'md' } }}
-                marginY={margins}
-              >
-                <Input
-                  borderRadius="5xl"
-                  height="35px"
-                  isInvalid={!!errors.name}
-                  maxLength={500}
-                  placeholder="Red Wedding VIP Ticket"
-                  size="sm"
-                  sx={{
-                    '::placeholder': {
-                      color: 'gray.400', // Placeholder text color
-                      fontSize: { base: 'xs', md: 'sm' },
-                    },
-                  }}
-                  type="text"
-                  value={currentTicket.name}
-                  onChange={(e) => {
-                    setErrors({ ...errors, name: '' });
-                    setCurrentTicket({ ...currentTicket, name: e.target.value });
-                  }}
-                />
-              </FormControlComponent>
-              <FormControlComponent
-                errorText={errors.description}
-                label="Description*"
-                labelProps={{ fontSize: { base: 'xs', md: 'md' } }}
-                marginY={margins}
-              >
-                <Textarea
-                  borderRadius="5xl"
-                  height="80px"
-                  isInvalid={!!errors.description}
-                  maxLength={500}
-                  placeholder="This ticket includes a complimentary drink and an exclusive 1:1 conversation with Edmure Tully and Roslin Frey."
-                  size="sm"
-                  sx={{
-                    '::placeholder': {
-                      textAlign: 'top',
-                      color: 'gray.400', // Placeholder text color
-                      fontSize: { base: 'xs', md: 'sm' },
-                    },
-                  }}
-                  value={currentTicket.description}
-                  onChange={(e) => {
-                    setErrors({ ...errors, description: '' });
-                    setCurrentTicket({ ...currentTicket, description: e.target.value });
-                  }}
-                />
-              </FormControlComponent>
-              <Show above="md">
-                <CustomDateRangePicker
-                  ctaComponent={datePickerCTA(
-                    'Ticket sales valid through*',
-                    errors.salesValidThrough,
-                    currentTicket.salesValidThrough,
-                    () => {
-                      setIsSalesValidModalOpen(true);
-                    },
-                  )}
-                  endDate={
-                    currentTicket.salesValidThrough.endDate
-                      ? new Date(currentTicket.salesValidThrough.endDate)
-                      : null
-                  }
-                  isDatePickerOpen={isSalesValidModalOpen}
-                  maxDate={
-                    eventDate.endDate ? new Date(eventDate.endDate) : new Date(eventDate.startDate)
-                  }
-                  minDate={new Date()}
-                  scale="0.85"
-                  setIsDatePickerOpen={setIsSalesValidModalOpen}
-                  startDate={
-                    currentTicket.salesValidThrough.startDate
-                      ? new Date(currentTicket.salesValidThrough.startDate)
-                      : null
-                  }
-                  onDateChange={(startDate, endDate) => {
-                    setCurrentTicket({
-                      ...currentTicket,
-                      salesValidThrough: {
-                        ...currentTicket.salesValidThrough,
-                        startDate: startDate ? startDate.getTime() : 0,
-                        endDate: endDate ? endDate.getTime() : undefined,
+      <ModalContent maxH="95vh" overflowY="auto" padding={8} paddingY={6}>
+        <Show above="md">
+          <Grid columnGap={6} templateColumns="5fr 3fr" templateRows="8fr 2fr">
+            {/* Top-left: Form Section */}
+            <GridItem colSpan={1} rowSpan={1}>
+              <VStack align="stretch" flex="1.5" spacing={0}>
+                <FormControlComponent
+                  errorText={errors.name}
+                  label="Ticket name*"
+                  labelProps={{ fontSize: { base: 'xs', md: 'md' } }}
+                  marginY={margins}
+                >
+                  <Input
+                    borderRadius="5xl"
+                    height="35px"
+                    isInvalid={!!errors.name}
+                    maxLength={500}
+                    placeholder="Red Wedding VIP Ticket"
+                    size="sm"
+                    sx={{
+                      '::placeholder': {
+                        color: 'gray.400', // Placeholder text color
+                        fontSize: { base: 'xs', md: 'sm' },
                       },
-                    });
-                  }}
-                  onTimeChange={(startTime, endTime) => {
-                    setCurrentTicket({
-                      ...currentTicket,
-                      salesValidThrough: { ...currentTicket.salesValidThrough, startTime, endTime },
-                    });
-                  }}
-                />
-              </Show>
-              <Hide above="md">
-                <CustomDateRangePickerMobile
-                  ctaComponent={datePickerCTA(
-                    'Ticket sales valid through*',
-                    errors.salesValidThrough,
-                    currentTicket.salesValidThrough,
-                    () => {
-                      setIsSalesValidModalOpen(true);
-                    },
-                  )}
-                  endDate={
-                    currentTicket.salesValidThrough.endDate
-                      ? new Date(currentTicket.salesValidThrough.endDate)
-                      : null
-                  }
-                  isDatePickerOpen={isSalesValidModalOpen}
-                  maxDate={
-                    eventDate.endDate ? new Date(eventDate.endDate) : new Date(eventDate.startDate)
-                  }
-                  minDate={new Date()}
-                  scale="0.85"
-                  setIsDatePickerOpen={setIsSalesValidModalOpen}
-                  startDate={
-                    currentTicket.salesValidThrough.startDate
-                      ? new Date(currentTicket.salesValidThrough.startDate)
-                      : null
-                  }
-                  onDateChange={(startDate, endDate) => {
-                    setCurrentTicket({
-                      ...currentTicket,
-                      salesValidThrough: {
-                        ...currentTicket.salesValidThrough,
-                        startDate: startDate ? startDate.getTime() : 0,
-                        endDate: endDate ? endDate.getTime() : undefined,
+                    }}
+                    type="text"
+                    value={currentTicket.name}
+                    onChange={(e) => {
+                      setErrors({ ...errors, name: '' });
+                      setCurrentTicket({ ...currentTicket, name: e.target.value });
+                    }}
+                  />
+                </FormControlComponent>
+                <FormControlComponent
+                  errorText={errors.description}
+                  label="Description*"
+                  labelProps={{ fontSize: { base: 'xs', md: 'md' } }}
+                  marginY={margins}
+                >
+                  <Textarea
+                    borderRadius="5xl"
+                    height="80px"
+                    isInvalid={!!errors.description}
+                    maxLength={500}
+                    placeholder="This ticket includes a complimentary drink and an exclusive 1:1 conversation with Edmure Tully and Roslin Frey."
+                    size="sm"
+                    sx={{
+                      '::placeholder': {
+                        textAlign: 'top',
+                        color: 'gray.400', // Placeholder text color
+                        fontSize: { base: 'xs', md: 'sm' },
                       },
-                    });
-                  }}
-                  onTimeChange={(startTime, endTime) => {
-                    setCurrentTicket({
-                      ...currentTicket,
-                      salesValidThrough: { ...currentTicket.salesValidThrough, startTime, endTime },
-                    });
-                  }}
-                />
-              </Hide>
-              <Show above="md">
-                <CustomDateRangePicker
-                  ctaComponent={datePickerCTA(
-                    'Grants event entry through*',
-                    errors.passValidThrough,
-                    currentTicket.passValidThrough,
-                    () => {
-                      setIsPassValidModalOpen(true);
-                    },
-                  )}
-                  endDate={
-                    currentTicket.passValidThrough.endDate
-                      ? new Date(currentTicket.passValidThrough.endDate)
-                      : null
-                  }
-                  isDatePickerOpen={isPassValidModalOpen}
-                  maxDate={
-                    eventDate.endDate ? new Date(eventDate.endDate) : new Date(eventDate.startDate)
-                  }
-                  minDate={new Date(eventDate.startDate)}
-                  scale="0.85"
-                  setIsDatePickerOpen={setIsPassValidModalOpen}
-                  startDate={
-                    currentTicket.passValidThrough.startDate
-                      ? new Date(currentTicket.passValidThrough.startDate)
-                      : null
-                  }
-                  onDateChange={(startDate, endDate) => {
-                    setCurrentTicket({
-                      ...currentTicket,
-                      salesValidThrough: {
-                        ...currentTicket.passValidThrough,
-                        startDate: startDate ? startDate.getTime() : 0,
-                        endDate: endDate ? endDate.getTime() : undefined,
+                    }}
+                    value={currentTicket.description}
+                    onChange={(e) => {
+                      setErrors({ ...errors, description: '' });
+                      setCurrentTicket({ ...currentTicket, description: e.target.value });
+                    }}
+                  />
+                </FormControlComponent>
+                <Show above="md">
+                  <CustomDateRangePicker
+                    ctaComponent={datePickerCTA(
+                      'Ticket sales valid through*',
+                      errors.salesValidThrough,
+                      currentTicket.salesValidThrough,
+                      () => {
+                        setIsSalesValidModalOpen(true);
                       },
-                    });
-                  }}
-                  onTimeChange={(startTime, endTime) => {
-                    setCurrentTicket({
-                      ...currentTicket,
-                      passValidThrough: { ...currentTicket.passValidThrough, startTime, endTime },
-                    });
-                  }}
-                />
-              </Show>
-              <Hide above="md">
-                <CustomDateRangePickerMobile
-                  ctaComponent={datePickerCTA(
-                    'Grants event entry through*',
-                    errors.passValidThrough,
-                    currentTicket.passValidThrough,
-                    () => {
-                      setIsPassValidModalOpen(true);
-                    },
-                  )}
-                  endDate={
-                    currentTicket.passValidThrough.endDate
-                      ? new Date(currentTicket.passValidThrough.endDate)
-                      : null
-                  }
-                  isDatePickerOpen={isPassValidModalOpen}
-                  maxDate={
-                    eventDate.endDate ? new Date(eventDate.endDate) : new Date(eventDate.startDate)
-                  }
-                  minDate={new Date(eventDate.startDate)}
-                  scale="0.85"
-                  setIsDatePickerOpen={setIsPassValidModalOpen}
-                  startDate={
-                    currentTicket.passValidThrough.startDate
-                      ? new Date(currentTicket.passValidThrough.startDate)
-                      : null
-                  }
-                  onDateChange={(startDate, endDate) => {
-                    setCurrentTicket({
-                      ...currentTicket,
-                      salesValidThrough: {
-                        ...currentTicket.passValidThrough,
-                        startDate: startDate ? startDate.getTime() : 0,
-                        endDate: endDate ? endDate.getTime() : undefined,
-                      },
-                    });
-                  }}
-                  onTimeChange={(startTime, endTime) => {
-                    setCurrentTicket({
-                      ...currentTicket,
-                      passValidThrough: { ...currentTicket.passValidThrough, startTime, endTime },
-                    });
-                  }}
-                />
-              </Hide>
-              <FormControlComponent
-                errorText={errors.maxSupply}
-                helperText="The maximum number of guests that can purchase this ticket type"
-                helperTextProps={{ fontSize: { base: '2xs', md: 'xs' }, marginY: '-1' }}
-                label="Number of tickets*"
-                labelProps={{ fontSize: { base: 'xs', md: 'md' } }}
-                marginY={margins}
-              >
-                <Input
-                  ref={inputRef}
-                  borderRadius="5xl"
-                  isInvalid={!!errors.maxSupply}
-                  marginY="0"
-                  maxLength={500}
-                  placeholder="Number of tickets"
-                  size="sm"
-                  sx={{
-                    '::placeholder': {
-                      color: 'gray.400', // Placeholder text color
-                      fontSize: { base: 'xs', md: 'sm' },
-                    },
-                  }}
-                  type="number"
-                  value={currentTicket.maxSupply || ''}
-                  onChange={(e) => {
-                    let val = e.target.value;
-                    if (parseInt(e.target.value) < 0) {
-                      val = '0';
+                    )}
+                    endDate={currentTicket.salesValidThrough.endDate}
+                    isDatePickerOpen={isSalesValidModalOpen}
+                    maxDate={
+                      eventDate.endDate
+                        ? new Date(eventDate.endDate)
+                        : new Date(eventDate.startDate)
                     }
+                    minDate={new Date()}
+                    scale="0.85"
+                    setIsDatePickerOpen={setIsSalesValidModalOpen}
+                    startDate={currentTicket.salesValidThrough.startDate}
+                    onDateChange={(startDate, endDate) => {
+                      setCurrentTicket({
+                        ...currentTicket,
+                        salesValidThrough: {
+                          ...currentTicket.salesValidThrough,
+                          startDate,
+                          endDate,
+                        },
+                      });
+                    }}
+                    onTimeChange={(startTime, endTime) => {
+                      setCurrentTicket({
+                        ...currentTicket,
+                        salesValidThrough: {
+                          ...currentTicket.salesValidThrough,
+                          startTime,
+                          endTime,
+                        },
+                      });
+                    }}
+                  />
+                </Show>
+                <Hide above="md">
+                  <CustomDateRangePickerMobile
+                    ctaComponent={datePickerCTA(
+                      'Ticket sales valid through*',
+                      errors.salesValidThrough,
+                      currentTicket.salesValidThrough,
+                      () => {
+                        setIsSalesValidModalOpen(true);
+                      },
+                    )}
+                    endDate={currentTicket.salesValidThrough.endDate}
+                    isDatePickerOpen={isSalesValidModalOpen}
+                    maxDate={
+                      eventDate.endDate
+                        ? new Date(eventDate.endDate)
+                        : new Date(eventDate.startDate)
+                    }
+                    minDate={new Date()}
+                    scale="0.85"
+                    setIsDatePickerOpen={setIsSalesValidModalOpen}
+                    startDate={currentTicket.salesValidThrough.startDate}
+                    onDateChange={(startDate, endDate) => {
+                      setCurrentTicket({
+                        ...currentTicket,
+                        salesValidThrough: {
+                          ...currentTicket.salesValidThrough,
+                          startDate,
+                          endDate,
+                        },
+                      });
+                    }}
+                    onTimeChange={(startTime, endTime) => {
+                      setCurrentTicket({
+                        ...currentTicket,
+                        salesValidThrough: {
+                          ...currentTicket.salesValidThrough,
+                          startTime,
+                          endTime,
+                        },
+                      });
+                    }}
+                  />
+                </Hide>
+                <Show above="md">
+                  <CustomDateRangePicker
+                    ctaComponent={datePickerCTA(
+                      'Grants event entry through*',
+                      errors.passValidThrough,
+                      currentTicket.passValidThrough,
+                      () => {
+                        setIsPassValidModalOpen(true);
+                      },
+                    )}
+                    endDate={currentTicket.passValidThrough.endDate}
+                    isDatePickerOpen={isPassValidModalOpen}
+                    maxDate={
+                      eventDate.endDate
+                        ? new Date(eventDate.endDate)
+                        : new Date(eventDate.startDate)
+                    }
+                    minDate={new Date(eventDate.startDate)}
+                    scale="0.85"
+                    setIsDatePickerOpen={setIsPassValidModalOpen}
+                    startDate={currentTicket.passValidThrough.startDate}
+                    onDateChange={(startDate, endDate) => {
+                      setCurrentTicket({
+                        ...currentTicket,
+                        passValidThrough: { ...currentTicket.passValidThrough, startDate, endDate },
+                      });
+                    }}
+                    onTimeChange={(startTime, endTime) => {
+                      setCurrentTicket({
+                        ...currentTicket,
+                        passValidThrough: { ...currentTicket.passValidThrough, startTime, endTime },
+                      });
+                    }}
+                  />
+                </Show>
+                <Hide above="md">
+                  <CustomDateRangePickerMobile
+                    ctaComponent={datePickerCTA(
+                      'Grants event entry through*',
+                      errors.passValidThrough,
+                      currentTicket.passValidThrough,
+                      () => {
+                        setIsPassValidModalOpen(true);
+                      },
+                    )}
+                    endDate={currentTicket.passValidThrough.endDate}
+                    isDatePickerOpen={isPassValidModalOpen}
+                    maxDate={
+                      eventDate.endDate
+                        ? new Date(eventDate.endDate)
+                        : new Date(eventDate.startDate)
+                    }
+                    minDate={new Date(eventDate.startDate)}
+                    scale="0.85"
+                    setIsDatePickerOpen={setIsPassValidModalOpen}
+                    startDate={currentTicket.passValidThrough.startDate}
+                    onDateChange={(startDate, endDate) => {
+                      setCurrentTicket({
+                        ...currentTicket,
+                        passValidThrough: { ...currentTicket.passValidThrough, startDate, endDate },
+                      });
+                    }}
+                    onTimeChange={(startTime, endTime) => {
+                      setCurrentTicket({
+                        ...currentTicket,
+                        passValidThrough: { ...currentTicket.passValidThrough, startTime, endTime },
+                      });
+                    }}
+                  />
+                </Hide>
+                <FormControlComponent
+                  errorText={errors.maxSupply}
+                  helperText="The maximum number of guests that can purchase this ticket type"
+                  helperTextProps={{ fontSize: { base: '2xs', md: 'xs' }, marginY: '-1' }}
+                  label="Number of tickets*"
+                  labelProps={{ fontSize: { base: 'xs', md: 'md' } }}
+                  marginY={margins}
+                >
+                  <Input
+                    ref={inputRef}
+                    borderRadius="5xl"
+                    isInvalid={!!errors.maxSupply}
+                    marginY="0"
+                    maxLength={500}
+                    placeholder="Number of tickets"
+                    size={{ base: 'sm', md: 'md' }}
+                    sx={{
+                      '::placeholder': {
+                        color: 'gray.400', // Placeholder text color
+                        fontSize: { base: 'xs', md: 'sm' },
+                      },
+                    }}
+                    type="number"
+                    value={currentTicket.maxSupply || ''}
+                    onChange={(e) => {
+                      let val = e.target.value;
+                      if (parseInt(e.target.value) < 0) {
+                        val = '0';
+                      }
 
-                    setErrors({ ...errors, maxSupply: '' });
-                    setCurrentTicket({ ...currentTicket, maxSupply: parseInt(val) });
-                  }}
+                      setErrors({ ...errors, maxSupply: '' });
+                      setCurrentTicket({ ...currentTicket, maxSupply: parseInt(val) });
+                    }}
+                  />
+                </FormControlComponent>
+                <FormControlComponent
+                  errorText={errors.maxPurchases}
+                  helperText="The maximum number of tickets purchisable per person"
+                  helperTextProps={{ fontSize: { base: '2xs', md: 'xs' }, marginY: '-1' }}
+                  label="Tickets per guest*"
+                  labelProps={{ fontSize: { base: 'xs', md: 'md' } }}
+                  marginY={margins}
+                >
+                  <Input
+                    borderRadius="5xl"
+                    isInvalid={!!errors.maxPurchases}
+                    marginY="0"
+                    maxLength={500}
+                    placeholder="Number of tickets"
+                    size={{ base: 'sm', md: 'md' }}
+                    sx={{
+                      '::placeholder': {
+                        color: 'gray.400', // Placeholder text color
+                        fontSize: { base: 'xs', md: 'sm' },
+                      },
+                    }}
+                    type="number"
+                    value={currentTicket.maxPurchases || ''}
+                    onChange={(e) => {
+                      let val = e.target.value;
+                      if (val === '') {
+                        val = '0';
+                      }
+
+                      if (parseInt(e.target.value) < 0) {
+                        val = '0';
+                      }
+
+                      setErrors({ ...errors, maxPurchases: '' });
+                      setCurrentTicket({ ...currentTicket, maxPurchases: parseInt(val) });
+                    }}
+                  />
+                </FormControlComponent>
+              </VStack>
+            </GridItem>
+
+            {/* Top-right: Ticket Preview Section */}
+            <GridItem colSpan={1} rowSpan={1}>
+              <VStack align="stretch" spacing={4}>
+                <Box maxW="sm" w="100%">
+                  {' '}
+                  {/* You can adjust 'sm' to the max width you want */}
+                  <DynamicTicketPreview currentTicket={currentTicket} />
+                </Box>
+              </VStack>
+            </GridItem>
+
+            {/* Bottom-left: Price Selector */}
+            <GridItem colSpan={1} rowSpan={1}>
+              <Center h="100%" w="100%">
+                <TicketPriceSelector
+                  currentTicket={currentTicket}
+                  errors={errors}
+                  formData={formData}
+                  setCurrentTicket={setCurrentTicket}
                 />
-              </FormControlComponent>
-              <TicketPriceSelector
-                currentTicket={currentTicket}
-                errors={errors}
-                formData={formData}
-                setCurrentTicket={setCurrentTicket}
-              />
-            </VStack>
-            <VStack align="stretch" flex="1" spacing={4} w="50%">
-              <DynamicTicketPreview currentTicket={currentTicket} />
+              </Center>
+            </GridItem>
+
+            {/* Bottom-right: Artwork Selector */}
+            <GridItem colSpan={1} rowSpan={1}>
               <FormControlComponent
                 label="Ticket artwork*"
                 labelProps={{ fontSize: { base: 'xs', md: 'md' } }}
                 marginY={margins}
               >
-                <ImageFileInput
+                <ImageFileInputSmall
                   accept=" image/jpeg, image/png, image/gif"
                   ctaText="Upload artwork"
                   errorMessage={errors.artwork}
-                  flexProps={{ height: '20px' }}
                   isInvalid={!!errors.artwork}
                   preview={preview}
                   selectedFile={currentTicket.artwork}
@@ -567,11 +612,11 @@ export const ModifyTicketModal = ({
                   }}
                 />
               </FormControlComponent>
-            </VStack>
-          </HStack>
+            </GridItem>
+          </Grid>
         </Show>
-        <Hide above="lg">
-          <VStack align="stretch" spacing={4}>
+        <Hide above="md">
+          <VStack align="stretch" paddingBottom={4} spacing={1}>
             <FormControlComponent
               errorText={errors.name}
               label="Ticket name*"
@@ -636,11 +681,7 @@ export const ModifyTicketModal = ({
                     setIsSalesValidModalOpen(true);
                   },
                 )}
-                endDate={
-                  currentTicket.salesValidThrough.endDate
-                    ? new Date(currentTicket.salesValidThrough.endDate)
-                    : null
-                }
+                endDate={currentTicket.salesValidThrough.endDate}
                 isDatePickerOpen={isSalesValidModalOpen}
                 maxDate={
                   eventDate.endDate ? new Date(eventDate.endDate) : new Date(eventDate.startDate)
@@ -648,19 +689,11 @@ export const ModifyTicketModal = ({
                 minDate={new Date()}
                 scale="0.85"
                 setIsDatePickerOpen={setIsSalesValidModalOpen}
-                startDate={
-                  currentTicket.salesValidThrough.startDate
-                    ? new Date(currentTicket.salesValidThrough.startDate)
-                    : null
-                }
+                startDate={currentTicket.salesValidThrough.startDate}
                 onDateChange={(startDate, endDate) => {
                   setCurrentTicket({
                     ...currentTicket,
-                    salesValidThrough: {
-                      ...currentTicket.salesValidThrough,
-                      startDate: startDate ? startDate.getTime() : 0,
-                      endDate: endDate ? endDate.getTime() : undefined,
-                    },
+                    salesValidThrough: { ...currentTicket.salesValidThrough, startDate, endDate },
                   });
                 }}
                 onTimeChange={(startTime, endTime) => {
@@ -681,11 +714,7 @@ export const ModifyTicketModal = ({
                     setIsSalesValidModalOpen(true);
                   },
                 )}
-                endDate={
-                  currentTicket.salesValidThrough.endDate
-                    ? new Date(currentTicket.salesValidThrough.endDate)
-                    : null
-                }
+                endDate={currentTicket.salesValidThrough.endDate}
                 isDatePickerOpen={isSalesValidModalOpen}
                 maxDate={
                   eventDate.endDate ? new Date(eventDate.endDate) : new Date(eventDate.startDate)
@@ -693,19 +722,11 @@ export const ModifyTicketModal = ({
                 minDate={new Date()}
                 scale="0.85"
                 setIsDatePickerOpen={setIsSalesValidModalOpen}
-                startDate={
-                  currentTicket.salesValidThrough.startDate
-                    ? new Date(currentTicket.salesValidThrough.startDate)
-                    : null
-                }
+                startDate={currentTicket.salesValidThrough.startDate}
                 onDateChange={(startDate, endDate) => {
                   setCurrentTicket({
                     ...currentTicket,
-                    salesValidThrough: {
-                      ...currentTicket.salesValidThrough,
-                      startDate: startDate ? startDate.getTime() : 0,
-                      endDate: endDate ? endDate.getTime() : undefined,
-                    },
+                    salesValidThrough: { ...currentTicket.salesValidThrough, startDate, endDate },
                   });
                 }}
                 onTimeChange={(startTime, endTime) => {
@@ -726,11 +747,7 @@ export const ModifyTicketModal = ({
                     setIsPassValidModalOpen(true);
                   },
                 )}
-                endDate={
-                  currentTicket.passValidThrough.endDate
-                    ? new Date(currentTicket.passValidThrough.endDate)
-                    : null
-                }
+                endDate={currentTicket.passValidThrough.endDate}
                 isDatePickerOpen={isPassValidModalOpen}
                 maxDate={
                   eventDate.endDate ? new Date(eventDate.endDate) : new Date(eventDate.startDate)
@@ -738,19 +755,11 @@ export const ModifyTicketModal = ({
                 minDate={new Date(eventDate.startDate)}
                 scale="0.85"
                 setIsDatePickerOpen={setIsPassValidModalOpen}
-                startDate={
-                  currentTicket.passValidThrough.startDate
-                    ? new Date(currentTicket.passValidThrough.startDate)
-                    : null
-                }
+                startDate={currentTicket.passValidThrough.startDate}
                 onDateChange={(startDate, endDate) => {
                   setCurrentTicket({
                     ...currentTicket,
-                    salesValidThrough: {
-                      ...currentTicket.passValidThrough,
-                      startDate: startDate ? startDate.getTime() : 0,
-                      endDate: endDate ? endDate.getTime() : undefined,
-                    },
+                    passValidThrough: { ...currentTicket.passValidThrough, startDate, endDate },
                   });
                 }}
                 onTimeChange={(startTime, endTime) => {
@@ -771,11 +780,7 @@ export const ModifyTicketModal = ({
                     setIsPassValidModalOpen(true);
                   },
                 )}
-                endDate={
-                  currentTicket.passValidThrough.endDate
-                    ? new Date(currentTicket.passValidThrough.endDate)
-                    : null
-                }
+                endDate={currentTicket.passValidThrough.endDate}
                 isDatePickerOpen={isPassValidModalOpen}
                 maxDate={
                   eventDate.endDate ? new Date(eventDate.endDate) : new Date(eventDate.startDate)
@@ -783,19 +788,11 @@ export const ModifyTicketModal = ({
                 minDate={new Date(eventDate.startDate)}
                 scale="0.85"
                 setIsDatePickerOpen={setIsPassValidModalOpen}
-                startDate={
-                  currentTicket.passValidThrough.startDate
-                    ? new Date(currentTicket.passValidThrough.startDate)
-                    : null
-                }
+                startDate={currentTicket.passValidThrough.startDate}
                 onDateChange={(startDate, endDate) => {
                   setCurrentTicket({
                     ...currentTicket,
-                    salesValidThrough: {
-                      ...currentTicket.passValidThrough,
-                      startDate: startDate ? startDate.getTime() : 0,
-                      endDate: endDate ? endDate.getTime() : undefined,
-                    },
+                    passValidThrough: { ...currentTicket.passValidThrough, startDate, endDate },
                   });
                 }}
                 onTimeChange={(startTime, endTime) => {
@@ -821,7 +818,7 @@ export const ModifyTicketModal = ({
                 marginY="0"
                 maxLength={500}
                 placeholder="Number of tickets"
-                size="sm"
+                size={{ base: 'sm', md: 'md' }}
                 sx={{
                   '::placeholder': {
                     color: 'gray.400', // Placeholder text color

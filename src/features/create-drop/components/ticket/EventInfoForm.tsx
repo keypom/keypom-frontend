@@ -198,24 +198,16 @@ const EventInfoForm = (props: EventStepFormProps) => {
         <Show above="md">
           <CustomDateRangePicker
             ctaComponent={datePickerCTA}
-            endDate={formData.date.value.endDate ? new Date(formData.date.value.endDate) : null}
+            endDate={formData.date.value.endDate}
             isDatePickerOpen={isDatePickerOpen}
             maxDate={null}
             minDate={new Date()}
             setIsDatePickerOpen={setIsDatePickerOpen}
-            startDate={
-              formData.date.value.startDate ? new Date(formData.date.value.startDate) : null
-            }
+            startDate={formData.date.value.startDate}
             onDateChange={(startDate, endDate) => {
               setFormData({
                 ...formData,
-                date: {
-                  value: {
-                    ...formData.date,
-                    startDate: startDate?.getTime() || 0,
-                    endDate: endDate ? endDate.getTime() : undefined,
-                  },
-                },
+                date: { value: { ...formData.date, startDate, endDate } },
               });
             }}
             onTimeChange={(startTime, endTime) => {
@@ -229,25 +221,17 @@ const EventInfoForm = (props: EventStepFormProps) => {
         <Hide above="md">
           <CustomDateRangePickerMobile
             ctaComponent={datePickerCTA}
-            endDate={formData.date.value.endDate ? new Date(formData.date.value.endDate) : null}
+            endDate={formData.date.value.endDate}
             isDatePickerOpen={isDatePickerOpen}
             maxDate={null}
             minDate={new Date()}
             openDirection="top-right"
             setIsDatePickerOpen={setIsDatePickerOpen}
-            startDate={
-              formData.date.value.startDate ? new Date(formData.date.value.startDate) : null
-            }
+            startDate={formData.date.value.startDate}
             onDateChange={(startDate, endDate) => {
               setFormData({
                 ...formData,
-                date: {
-                  value: {
-                    ...formData.date,
-                    startDate: startDate?.getTime() || 0,
-                    endDate: endDate ? endDate.getTime() : undefined,
-                  },
-                },
+                date: { value: { ...formData.date.value, startDate, endDate } },
               });
             }}
             onTimeChange={(startTime, endTime) => {

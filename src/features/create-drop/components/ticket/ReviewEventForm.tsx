@@ -21,12 +21,12 @@ import { type ColumnItem } from '@/components/Table/types';
 import { DeleteIcon } from '@/components/Icons';
 import { DataTable } from '@/components/Table';
 import { truncateAddress } from '@/utils/truncateAddress';
+import { dateAndTimeToText } from '@/features/drop-manager/utils/parseDates';
 
 import { type EventStepFormProps } from '../../routes/CreateTicketDropPage';
 
 import { PreviewTicketModal } from './PreviewTicketModal';
 import { defaultTicket, type TicketInfoFormMetadata } from './CreateTicketsForm';
-import { eventDateToPlaceholder } from './EventInfoForm';
 
 const columns: ColumnItem[] = [
   {
@@ -210,7 +210,7 @@ const ReviewEventForm = (props: EventStepFormProps) => {
                 Event date
               </Heading>
               <Heading fontFamily="body" fontSize="md" fontWeight="400" textColor="gray.600">
-                {eventDateToPlaceholder('', formData.date.value)}
+                {dateAndTimeToText(formData.date.value)}
               </Heading>
             </VStack>
 

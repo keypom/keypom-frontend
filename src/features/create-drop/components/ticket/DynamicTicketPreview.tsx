@@ -56,21 +56,23 @@ export const DynamicTicketPreview = ({
               {currentTicket.description}
             </Heading>
           ) : (
-            <VStack>
-              <Box bg={placeholderColor} borderRadius="xl" height="10px" width="30%" />
-              <Box bg={placeholderColor} borderRadius="xl" height="10px" width="30%" />
-              <Box bg={placeholderColor} borderRadius="xl" height="10px" width="30%" />
-              <Box bg={placeholderColor} borderRadius="xl" height="10px" width="30%" />
+            <VStack align="left" py="2" spacing={1}>
+              <Box bg={placeholderColor} borderRadius="xl" height="10px" width="100%" />
+              <Box bg={placeholderColor} borderRadius="xl" height="10px" width="100%" />
+              <Box bg={placeholderColor} borderRadius="xl" height="10px" width="100%" />
+              <Box bg={placeholderColor} borderRadius="xl" height="10px" width="60%" />
             </VStack>
           )}
         </VStack>
         <HStack marginTop="5 !important">
           <IconButton
+            isDisabled
             aria-label="plus-button-icon"
             icon={<MinusButtonIcon color="gray.600" h="3px" w="10px" />} // replace with your actual icon
             variant="outline"
           />
           <Button
+            isDisabled
             border="1px solid transparent"
             borderColor="gray.200"
             borderRadius="6xl"
@@ -82,6 +84,7 @@ export const DynamicTicketPreview = ({
             1
           </Button>
           <IconButton
+            isDisabled
             aria-label="plus-button-icon"
             icon={<PlusButtonIcon h="28px" />} // replace with your actual icon
             variant="outline"
