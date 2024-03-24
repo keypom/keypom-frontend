@@ -1,10 +1,22 @@
-import { HStack, Image, Heading, VStack, Divider, Hide, Button, useToast } from '@chakra-ui/react';
+import {
+  HStack,
+  Image,
+  Heading,
+  VStack,
+  Divider,
+  Button,
+  useToast,
+  Box,
+  Text,
+  Flex,
+  Hide,
+} from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
 
 import { EVENTS_WORKER_BASE } from '@/constants/common';
 import keypomInstance from '@/lib/keypom';
-import ToggleSwitch from '@/components/ToggleSwitch/ToggleSwitch';
 import { useAppContext } from '@/contexts/AppContext';
+import ToggleSwitch from '@/components/ToggleSwitch/ToggleSwitch';
 
 import { type EventStepFormProps } from '../../routes/CreateTicketDropPage';
 
@@ -14,19 +26,6 @@ const purchaseWithStripe = new URL(
 );
 
 const STRIPE_PURCHASE_IMAGE = purchaseWithStripe.href.replace(purchaseWithStripe.search, '');
-
-const contentItem = (title: string, subtitle: string) => {
-  return (
-    <VStack align="start" marginTop="1" spacing="0">
-      <Heading color="gray.700" fontFamily="body" fontSize="md" fontWeight="700" textAlign="left">
-        {title}
-      </Heading>
-      <Heading color="gray.500" fontFamily="body" fontSize="md" fontWeight="400" textAlign="left">
-        {subtitle}
-      </Heading>
-    </VStack>
-  );
-};
 
 function uuidv4() {
   return '10000000-1000-4000-8000-100000000000'.replace(/[018]/g, (c) =>
@@ -52,6 +51,17 @@ const AcceptPaymentForm = (props: EventStepFormProps) => {
 
   const [isLoading, setIsLoading] = useState(false);
 
+  const checkForPriorStripeConnected = () => {
+    const stripeAccountId = localStorage.getItem('STRIPE_ACCOUNT_ID');
+    if (stripeAccountId) {
+      console.log('Stripe Account Connected: ', stripeAccountId);
+
+      setFormData({ ...formData, stripeAccountId, acceptStripePayments: false });
+    }
+
+    return stripeAccountId;
+  };
+
   useEffect(() => {
     const body = localStorage.getItem('STRIPE_ACCOUNT_INFO');
     if (body) {
@@ -59,9 +69,15 @@ const AcceptPaymentForm = (props: EventStepFormProps) => {
       if (window.location.href.includes(`successMessage=${uuid as string}`)) {
         console.log('Stripe Account Connected: ', stripeAccountId);
         localStorage.removeItem('STRIPE_ACCOUNT_INFO');
+
+        localStorage.setItem('STRIPE_ACCOUNT_ID', stripeAccountId);
         setFormData({ ...formData, stripeAccountId, acceptStripePayments: true });
       }
     }
+  }, []);
+
+  useEffect(() => {
+    checkForPriorStripeConnected();
   }, []);
 
   useEffect(() => {
@@ -82,9 +98,12 @@ const AcceptPaymentForm = (props: EventStepFormProps) => {
         isClosable: true,
       });
     }
+    if (checkForPriorStripeConnected()) {
+      return;
+    }
 
     setIsLoading(true);
-    const stripeAccountId = await keypomInstance.getStripeAccountId(accountId!);
+    const stripeAccountId = await keypomInstance.getStripeAccountId(accountId || '');
 
     if (stripeAccountId) {
       setFormData({ ...formData, stripeAccountId, acceptStripePayments: true });
@@ -96,7 +115,7 @@ const AcceptPaymentForm = (props: EventStepFormProps) => {
     const uuid = uuidv4();
     try {
       const body = {
-        accountId: accountId!,
+        accountId,
         redirectUrl: `${window.location.origin}/drop/ticket/new?successMessage=${uuid}`,
       };
 
@@ -127,42 +146,58 @@ const AcceptPaymentForm = (props: EventStepFormProps) => {
   };
 
   return (
-    <HStack align="start" justify="space-between" marginTop="10">
-      <VStack align="start" alignItems="start">
-        <Heading color="gray.800" fontSize="3xl" fontWeight="700" textAlign="left">
-          Enable Stripe Checkout
+    <Flex
+      align="center"
+      bg="white"
+      borderRadius="lg"
+      direction={{ base: 'column', lg: 'row' }}
+      gap={4}
+      justify="center"
+      m={8}
+      p={8}
+      shadow="xl"
+    >
+      <VStack align="start" flex="1.6" spacing={5}>
+        <Heading color="gray.700" fontSize="2xl" fontWeight="600">
+          Payment Options
         </Heading>
-        <Heading
-          alignSelf="left"
-          color="gray.400"
-          fontFamily="body"
-          fontSize="md"
-          fontWeight="400"
-          paddingBottom="3"
-          textAlign="left"
-        >
-          Enable easy checkout with Stripe. Attendees will be able to purchase tickets with credit
-          cards.
-        </Heading>
+        <Text color="gray.500" fontSize="lg">
+          Select your preferred methods for payment processing.
+        </Text>
 
-        {contentItem(
-          'Withdraw to Bank Account',
-          'Directly withdraw any earnings to your bank account.',
-        )}
-
-        {contentItem('Easy checkout', 'No need for attendees to create a wallet.')}
-
-        <VStack alignItems="start" paddingTop="5" spacing="0" textAlign="left" w="full">
-          <HStack justify="space-between" spacing="auto" width="100%">
-            <Heading
-              color="gray.800"
-              fontFamily="body"
-              fontSize="md"
-              fontWeight="700"
-              textAlign="left"
-            >
-              Enable Stripe
-            </Heading>
+        <Box bg="gray.50" borderRadius="md" p={4} w="full">
+          <Heading color="gray.600" fontSize="xl" fontWeight="500">
+            $NEAR Checkout
+          </Heading>
+          <Text color="gray.500" my={2}>
+            Allow ticket purchases with $NEAR.
+          </Text>
+          <Divider my={2} />
+          <HStack justify="space-between">
+            <Text color="gray.600" fontWeight="500">
+              NEAR Payments
+            </Text>
+            <ToggleSwitch
+              handleToggle={() => {
+                handleToggle(false);
+              }}
+              size="lg"
+              toggle={formData.acceptNearPayments}
+            />
+          </HStack>
+        </Box>
+        <Box bg="gray.50" borderRadius="md" p={4} w="full">
+          <Heading color="gray.600" fontSize="xl" fontWeight="500">
+            Stripe Checkout
+          </Heading>
+          <Text color="gray.500" my={2}>
+            Allow ticket purchases with credit cards.
+          </Text>
+          <Divider my={2} />
+          <HStack justify="space-between">
+            <Text color="gray.600" fontWeight="500">
+              Stripe Payments
+            </Text>
             <ToggleSwitch
               disabled={!formData.stripeAccountId}
               handleToggle={() => {
@@ -172,90 +207,26 @@ const AcceptPaymentForm = (props: EventStepFormProps) => {
               toggle={formData.acceptStripePayments}
             />
           </HStack>
-          {!formData.stripeAccountId && (
-            <Heading
-              color="red.500"
-              fontFamily="body"
-              fontSize="md"
-              fontWeight="400"
-              textAlign="left"
-            >
-              Connect Stripe to enable payments
-            </Heading>
-          )}
-        </VStack>
+        </Box>
 
-        {!formData.stripeAccountId ? (
-          <Button
-            autoFocus={false}
-            isDisabled={false}
-            isLoading={isLoading}
-            my="5"
-            variant="secondary"
-            width="full"
-            onClick={() => {
-              handleConnectStripe();
-            }}
-          >
-            Connect Stripe Account
-          </Button>
-        ) : (
-          <Button
-            autoFocus={false}
-            isDisabled={true}
-            isLoading={isLoading}
-            my="5"
-            variant="secondary"
-            width="full"
-          >
-            Stripe Account Connected
-          </Button>
-        )}
-
-        <Divider bgColor="gray.300" height="3px" my="3" />
-        <Heading color="gray.800" fontSize="3xl" fontWeight="700" marginTop="5" textAlign="left">
-          Enable $NEAR Checkout
-        </Heading>
-        <Heading
-          alignSelf="left"
-          color="gray.400"
-          fontFamily="body"
-          fontSize="md"
-          fontWeight="400"
-          textAlign="left"
+        <Button
+          colorScheme="blue"
+          isDisabled={formData.stripeAccountId !== undefined || !accountId}
+          isLoading={isLoading}
+          size="lg"
+          w="full"
+          onClick={!formData.stripeAccountId ? handleConnectStripe : undefined}
         >
-          Allow attendees to purchase tickets with $NEAR. The funds will go directly into your
-          wallet.
-        </Heading>
-
-        <HStack justify="space-between" paddingTop="4" spacing="auto" width="100%">
-          <Heading
-            color="gray.800"
-            fontFamily="body"
-            fontSize="md"
-            fontWeight="700"
-            textAlign="left"
-          >
-            Enable NEAR Payments
-          </Heading>
-          <ToggleSwitch
-            handleToggle={() => {
-              handleToggle(false);
-            }}
-            size="lg"
-            toggle={formData.acceptNearPayments}
-          />
-        </HStack>
+          {!formData.stripeAccountId ? 'Connect Stripe Account' : 'Stripe Account Connected'}
+        </Button>
       </VStack>
-      <Hide below="md">
-        <Image
-          alt="Stripe Purchase Illustration"
-          objectFit="cover"
-          src={STRIPE_PURCHASE_IMAGE}
-          w="40%"
-        />
+
+      <Hide below="lg">
+        <Box flex="1">
+          <Image alt="Stripe Purchase Illustration" borderRadius="md" src={STRIPE_PURCHASE_IMAGE} />
+        </Box>
       </Hide>
-    </HStack>
+    </Flex>
   );
 };
 

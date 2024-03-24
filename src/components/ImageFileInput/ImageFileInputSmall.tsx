@@ -14,7 +14,7 @@ import {
 
 import { ImageIcon } from '../Icons';
 
-interface ImageFileInputProps extends InputProps {
+interface ImageFileInputSmallProps extends InputProps {
   label?: string;
   ctaText?: string;
   buttonText?: string;
@@ -24,7 +24,7 @@ interface ImageFileInputProps extends InputProps {
   flexProps?: FlexProps;
 }
 
-export const ImageFileInput = ({
+export const ImageFileInputSmall = ({
   label,
   ctaText = 'Browse or drag and drop your image here',
   buttonText = 'Browse images',
@@ -33,7 +33,7 @@ export const ImageFileInput = ({
   errorMessage,
   flexProps,
   ...props
-}: ImageFileInputProps) => {
+}: ImageFileInputSmallProps) => {
   return (
     <FormControl>
       {label && (
@@ -48,7 +48,7 @@ export const ImageFileInput = ({
           border="2px dashed"
           borderColor={errorMessage ? 'red.500' : 'gray.200'}
           borderRadius="6xl"
-          h={{ base: '12', md: '60' }}
+          h={{ base: '20' }}
           justify="center"
           position="relative"
           w="full"
@@ -66,6 +66,9 @@ export const ImageFileInput = ({
             top="0"
             type="file"
             zIndex="2"
+            onClick={(e) => {
+              console.log('File input clicked');
+            }}
             {...props}
           />
 
@@ -74,34 +77,29 @@ export const ImageFileInput = ({
           ) : (
             <Flex
               align="center"
-              flexDir={{ base: 'row', md: 'column' }}
+              flexDir="row"
               gap="4"
               h="full"
-              justify={{ base: 'space-between', md: 'center' }}
+              justify={{ base: 'space-between' }}
               left="0"
-              maxW={{ base: 'none', md: '11.75rem' }}
               mx="auto"
-              p={{ base: '4', md: 'auto' }}
+              p="4"
               position="relative"
               top="0"
               w="full"
               zIndex="1"
             >
-              <ImageIcon
-                color="gray.400"
-                h={{ base: '6', md: '1.875rem' }}
-                w={{ base: '6', md: '1.875rem' }}
-              />
+              <ImageIcon color="gray.400" h={{ base: '6' }} w={{ base: '6' }} />
               <Show above="md">
                 <Text color="gray.400">{ctaText}</Text>
               </Show>
               <Center
                 border="1px solid"
                 borderColor="gray.200"
-                borderRadius="full"
+                borderRadius="6xl"
                 color="gray.800"
-                px={{ base: '3', md: '4' }}
-                py={{ base: '1', md: '2' }}
+                px={{ base: '3' }}
+                py={{ base: '1' }}
               >
                 {buttonText}
               </Center>
@@ -110,7 +108,7 @@ export const ImageFileInput = ({
         </Flex>
       </InputGroup>
       {errorMessage && (
-        <Text fontSize={{ base: 'xs', md: 'sm' }} mt="6px" textAlign="left" variant="error">
+        <Text fontSize={{ base: 'xs' }} mt="6px" textAlign="left" variant="error">
           {errorMessage}
         </Text>
       )}

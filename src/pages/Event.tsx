@@ -437,11 +437,6 @@ export default function Event() {
       priceNear: ticketBeingPurchased.price,
     };
 
-    console.log('workerPayload', workerPayload);
-    console.log('drop', drop);
-    console.log('meta', meta);
-    console.log('dropData', dropData);
-
     if (purchaseType === 'free') {
       const response = await fetch(
         'https://stripe-worker.kp-capstone.workers.dev/purchase-free-tickets',
@@ -610,8 +605,6 @@ export default function Event() {
     for (const key in workerPayload.ticketKeys) {
       newWorkerPayload.ticketKey = workerPayload.ticketKeys[key];
 
-      console.log('sending confirmation email with newWorkerPayload', newWorkerPayload);
-
       // newWorkerPayload["ticketKeys"] = null;
       const response = await fetch(
         'https://email-worker.kp-capstone.workers.dev/send-confirmation-email',
@@ -766,6 +759,7 @@ export default function Event() {
         description: meta.description,
         salesValidThrough: extra.salesValidThrough,
         passValidThrough: extra.passValidThrough,
+        limitPerUser: extra.limitPerUser,
         supply,
         maxTickets: extra.maxSupply,
         soldTickets: supply,

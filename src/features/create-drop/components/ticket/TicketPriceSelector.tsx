@@ -67,7 +67,7 @@ export default function TicketPriceSelector({
     <FormControlComponent
       errorText={errors.price}
       label="Price per ticket (NEAR)*"
-      labelProps={{ fontSize: { base: 'xs', md: 'sm' } }}
+      labelProps={{ fontSize: { base: 'xs', md: 'md' } }}
       marginY="2"
     >
       <VStack alignItems="flex-start">
@@ -81,7 +81,7 @@ export default function TicketPriceSelector({
                 borderRadius="5xl"
                 color={currentTicket.priceNear === String(price) ? 'blue.500' : 'gray.500'}
                 display="flex"
-                fontSize="sm"
+                fontSize={{ base: 'xs', md: 'sm' }}
                 height="30px"
                 justifyContent="center"
                 sx={{
@@ -115,7 +115,7 @@ export default function TicketPriceSelector({
             height="30px"
             id="customPriceInput"
             placeholder="Custom"
-            size="sm"
+            size={{ base: 'xs', md: 'sm' }}
             sx={{
               bg: !presetPrices.includes(Number(currentTicket.priceNear))
                 ? 'linear-gradient(to bottom, var(--chakra-colors-blue-100), var(--chakra-colors-blue-100)) padding-box, linear-gradient(0deg, rgba(255,207,234,1) 0%, rgba(182,232,247,1) 100%) border-box'
