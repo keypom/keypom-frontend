@@ -74,6 +74,62 @@ export const validateDateAndTime = (requiredDateAndTime: DateAndTimeInfo): boole
   return true; // The current time is within event bounds
 };
 
+export const validateStartDateAndTime = (requiredDateAndTime: DateAndTimeInfo): boolean => {
+  // Get the current DateTime
+  const now = DateTime.now();
+  const nowDateOnly = now.startOf('day');
+
+  // Normalize the start and end dates to midnight for date comparisons
+  const requiredStartDate = DateTime.fromMillis(requiredDateAndTime.startDate).startOf('day');
+
+  // Check the date range first
+  if (nowDateOnly < requiredStartDate) {
+    return false;
+  }
+
+  // If it's the start date, check the start time
+  if (nowDateOnly.equals(requiredStartDate) && requiredDateAndTime.startTime) {
+    const startTimeMinutes = getTimeAsMinutes(requiredDateAndTime.startTime);
+    const currentMinutes = now.hour * 60 + (now.minute as number);
+    if (currentMinutes < startTimeMinutes) {
+      return false; // It's earlier than the start time
+    }
+  }
+
+  return true; // The current time is within event bounds
+};
+
+export const validateEndDateAndTime = (requiredDateAndTime: DateAndTimeInfo): boolean => {
+  // Get the current DateTime
+  const now = DateTime.now();
+  const nowDateOnly = now.startOf('day');
+
+  // Normalize the start and end dates to midnight for date comparisons
+  const requiredEndDate = requiredDateAndTime.endDate
+    ? DateTime.fromMillis(requiredDateAndTime.endDate).endOf('day') // Use end of the day for end date
+    : null;
+
+  // Check the date range first
+  if ((requiredEndDate && nowDateOnly > requiredEndDate)) {
+    return false;
+  }
+
+  // If it's the end date, check the end time
+  if (
+    requiredEndDate &&
+    nowDateOnly.equals(requiredEndDate.startOf('day')) &&
+    requiredDateAndTime.endTime
+  ) {
+    const endTimeMinutes = getTimeAsMinutes(requiredDateAndTime.endTime);
+    const currentMinutes = now.hour * 60 + (now.minute as number);
+    if (currentMinutes > endTimeMinutes) {
+      return false; // It's later than the end time
+    }
+  }
+
+  return true; // The current time is within event bounds
+};
+
 interface ValidateDropProps {
   drop: EventDrop;
   allTicketOptions: EventDrop[];
