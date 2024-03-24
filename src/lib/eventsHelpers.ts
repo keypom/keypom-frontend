@@ -21,7 +21,7 @@ export interface FunderEventMetadata {
   id: string;
   description: string;
   location: string;
-  date: EventDateInfo;
+  date: DateAndTimeInfo;
   artwork: string;
   dateCreated: string;
 
@@ -35,33 +35,61 @@ export interface FunderEventMetadata {
   salt?: string;
 }
 
-export interface EventDropMetadata extends TicketInfoMetadata {
-  dropName: string;
+export interface EventDrop {
+  drop_id: string;
+  funder_id: string;
+  drop_config: {
+    nft_keys_config: {
+      token_metadata: TicketInfoMetadata;
+    };
+  };
+}
+
+export interface DateAndTimeInfo {
+  startDate: number; // Milliseconds from Unix Epoch
+
+  startTime?: string; // Raw time string such as 9:00 AM
+  // For single day events, toDay is not required
+  endDate?: number; // Milliseconds from Unix Epoch
+  endTime?: string; // Raw time string such as 9:00 AM
+}
+
+export interface TicketMetadataExtra {
   eventId: string;
+  dateCreated: string;
+  salesValidThrough: DateAndTimeInfo;
+  passValidThrough: DateAndTimeInfo;
+  price: string;
+  maxSupply?: number;
 }
 
 export interface TicketInfoMetadata {
-  name: string;
+  title: string;
   description: string;
-  salesValidThrough: { time: string };
-  passValidThrough: { time: string };
-  price: string;
-  artwork: string;
-  maxSupply?: number;
+  media: string; // CID to IPFS. To render, use `${CLOUDFLARE_IPDS}/${media}`
+  extra: string; // Stringified TicketMetadataExtra
 }
 
 /// Maps UUID to Event Metadata
 export type FunderMetadata = Record<string, FunderEventMetadata>;
 
-export function isValidTicketInfo(ticketInfo) {
-  // Check if all required properties exist and are of type 'string'
-  return (
-    typeof ticketInfo.name === 'string' &&
-    typeof ticketInfo.eventId === 'string' &&
-    typeof ticketInfo.description === 'string' &&
-    typeof ticketInfo.price === 'string' &&
-    typeof ticketInfo.artwork === 'string'
-  );
+export function isValidTicketNFTMetadata(tokenMetadata: TicketInfoMetadata) {
+  try {
+    const extraMetadata: TicketMetadataExtra = JSON.parse(tokenMetadata.extra);
+
+    // Check if all required properties exist and are of type 'string'
+    return (
+      typeof tokenMetadata.title === 'string' &&
+      typeof tokenMetadata.description === 'string' &&
+      typeof tokenMetadata.media === 'string' &&
+      typeof extraMetadata.price === 'string' &&
+      typeof extraMetadata.salesValidThrough === 'object' &&
+      typeof extraMetadata.passValidThrough === 'object' &&
+      typeof extraMetadata.salesValidThrough.startDate === 'number'
+    );
+  } catch (e) {
+    return false;
+  }
 }
 
 const FIRST_DROP_BASE_COST = BigInt('15899999999999900000000');

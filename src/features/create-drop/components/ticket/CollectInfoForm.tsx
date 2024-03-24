@@ -45,6 +45,7 @@ export const CollectInfoFormValidation = (formData: TicketDropFormData) => {
 
 const CollectInfoForm = (props: EventStepFormProps) => {
   const { formData, setFormData } = props;
+  console.log('formData', formData);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [userInput, setUserInput] = useState('');
   const [originalQuestion, setOriginalQuestion] = useState<string | undefined>();

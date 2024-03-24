@@ -81,7 +81,7 @@ const ReviewEventForm = (props: EventStepFormProps) => {
 
     return data.map((item: TicketInfoFormMetadata) => ({
       id: item.name,
-      price: item.price === '0' ? 'Free' : item.price,
+      price: item.priceNear === '0' ? 'Free' : item.priceNear,
       numTickets: item.maxSupply,
       name: (
         <>
@@ -181,6 +181,7 @@ const ReviewEventForm = (props: EventStepFormProps) => {
         paddingTop="5"
         spacing="4"
         textAlign="left"
+        width="full"
       >
         <Heading fontFamily="body" fontSize="lg" fontWeight="500" textColor="gray.900">
           Let's make sure all your details are correct
@@ -193,8 +194,8 @@ const ReviewEventForm = (props: EventStepFormProps) => {
           src={URL.createObjectURL(formData.eventArtwork.value!)}
           width="full"
         />
-        <HStack align="top" spacing="6">
-          <Grid alignItems="start" gap={6} templateColumns="2fr 1fr">
+        <HStack align="top" justifyContent="space-between" minW="0" spacing="6" w="full">
+          <Grid alignItems="start" gap={6} templateColumns="2fr 1fr" w="full">
             <VStack align="left" spacing="2" textAlign="left">
               <Heading fontFamily="body" fontSize="md" fontWeight="500" textColor="gray.900">
                 Event name
@@ -239,11 +240,11 @@ const ReviewEventForm = (props: EventStepFormProps) => {
           excludeMobileColumns={[]}
           mt={{ base: '6', md: '4' }}
           showColumns={true}
-          showMobileTitles={[]}
+          showMobileTitles={['numTickets', 'priceNEAR']}
           type="create-tickets"
         />
         <Flex alignItems="flex-end" justifyContent="flex-end" w="full">
-          <Grid alignItems="center" gap={2} templateColumns="1fr auto">
+          <Grid alignItems="top" columnGap={4} rowGap={2} templateColumns="1fr auto">
             <GridItem>
               <Text fontWeight="bold">Event Setup</Text>
             </GridItem>
@@ -275,13 +276,28 @@ const ReviewEventForm = (props: EventStepFormProps) => {
             </GridItem>
 
             {/* Total with more space above */}
-            <GridItem pt={0}>
+            <GridItem justifySelf="top" pt={0}>
               <Text fontWeight="bold">Total</Text>
             </GridItem>
             <GridItem justifySelf="end" pt={0}>
-              <Text fontWeight="bold">
-                {`${keypomInstance.yoctoToNear(formData.costBreakdown.total)} NEAR`}
-              </Text>
+              <HStack justifyContent="space-between" width="full">
+                <Box> {/* Empty box to take up space and allow the text to align right */} </Box>
+                <VStack align="end" spacing="0">
+                  {' '}
+                  {/* Ensure VStack is aligning items to the end */}
+                  <Text fontWeight="bold">
+                    {`${keypomInstance.yoctoToNear(formData.costBreakdown.total)} NEAR`}
+                  </Text>
+                  {formData.nearPrice && (
+                    <Text fontWeight="normal">
+                      {`($${(
+                        parseFloat(keypomInstance.yoctoToNear(formData.costBreakdown.total)) *
+                        formData.nearPrice
+                      ).toFixed(2)})`}
+                    </Text>
+                  )}
+                </VStack>
+              </HStack>
             </GridItem>
           </Grid>
         </Flex>

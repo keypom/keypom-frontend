@@ -4,8 +4,11 @@ import { parseNearAmount } from 'keypom-js';
 import keypomInstance from '@/lib/keypom';
 import {
   calculateDepositCost,
+  type TicketMetadataExtra,
+  type DateAndTimeInfo,
   type FunderEventMetadata,
   type FunderMetadata,
+  type TicketInfoMetadata,
 } from '@/lib/eventsHelpers';
 import {
   deriveKeyFromPassword,
@@ -18,8 +21,6 @@ import { get } from '@/utils/localStorage';
 import { KEYPOM_MARKETPLACE_CONTRACT } from '@/constants/common';
 
 import { type TicketDropFormData } from '../../routes/CreateTicketDropPage';
-
-import { eventDateToPlaceholder } from './EventInfoForm';
 
 async function fileToArrayBuffer(file: File): Promise<ArrayBuffer> {
   return await new Promise((resolve, reject) => {
@@ -100,19 +101,12 @@ export const estimateCosts = async ({
   const funderMetadata: FunderMetadata =
     funderInfo === undefined || funderInfo === null ? {} : JSON.parse(funderInfo.metadata);
 
-  const date = formData.date.value.endTime
-    ? {
-        date: {
-          from: formData.date.value.startDate!.toISOString(),
-          to: formData.date.value.endDate!.toISOString(),
-        },
-        time: eventDateToPlaceholder('', formData.date.value),
-      }
-    : {
-        date: formData.date.value.startDate!.toISOString(),
-
-        time: eventDateToPlaceholder('', formData.date.value),
-      };
+  const date: DateAndTimeInfo = {
+    startDate: formData.date.value.startDate!.getTime(),
+    endDate: formData.date.value.endDate?.getTime() || undefined,
+    startTime: formData.date.value.startTime,
+    endTime: formData.date.value.endTime,
+  };
 
   const eventMetadata: FunderEventMetadata = {
     name: formData.eventName.value,
@@ -120,7 +114,7 @@ export const estimateCosts = async ({
     description: formData.eventDescription.value,
     location: formData.eventLocation.value,
     date,
-    artwork: 'bafybeiehk3mzsj2ih4u4fkvmkfrome3kars7xyy3bxh6xfjquws4flglqa', // Sample CID just for storage
+    artwork: 'bafybeiehk3mzsj2ih4u4fkvmkfrome3kars7xyy3bxh6xfjquws4flglqa',
     questions: formData.questions.map((question) => ({
       question: question.question,
       required: question.isRequired || false,
@@ -161,7 +155,7 @@ export const estimateCosts = async ({
 
     ticket_information[`${dropId}`] = {
       max_tickets: ticket.maxSupply,
-      price: parseNearAmount(ticket.price)!.toString(),
+      price: parseNearAmount(ticket.priceNear)!.toString(),
       sale_start: ticket.salesValidThrough.startDate
         ? ticket.salesValidThrough.startDate.getTime()
         : undefined,
@@ -208,13 +202,14 @@ export const createPayload = async ({
   formData,
   eventArtworkCid,
   ticketArtworkCids,
+  eventId,
 }: {
   accountId: string;
   formData: TicketDropFormData;
   eventArtworkCid: string;
   ticketArtworkCids: string[];
-}): Promise<Action[]> => {
-  const eventId = Date.now().toString();
+  eventId: string;
+}): Promise<{ actions: Action[]; dropIds: string[] }> => {
   const masterKey = get('MASTER_KEY');
 
   const funderInfo = await keypomInstance.viewCall({
@@ -224,19 +219,12 @@ export const createPayload = async ({
   const funderMetadata: FunderMetadata =
     funderInfo === undefined || funderInfo === null ? {} : JSON.parse(funderInfo.metadata);
 
-  const date = formData.date.value.endTime
-    ? {
-        date: {
-          from: formData.date.value.startDate!.toISOString(),
-          to: formData.date.value.endDate!.toISOString(),
-        },
-        time: eventDateToPlaceholder('', formData.date.value),
-      }
-    : {
-        date: formData.date.value.startDate!.toISOString(),
-
-        time: eventDateToPlaceholder('', formData.date.value),
-      };
+  const date: DateAndTimeInfo = {
+    startDate: formData.date.value.startDate!.getTime(),
+    endDate: formData.date.value.endDate?.getTime() || undefined,
+    startTime: formData.date.value.startTime,
+    endTime: formData.date.value.endTime,
+  };
 
   const eventMetadata: FunderEventMetadata = {
     name: formData.eventName.value,
@@ -282,49 +270,39 @@ export const createPayload = async ({
     const dropId = `${Date.now().toString()}-${ticket.name
       .replaceAll(' ', '')
       .toLocaleLowerCase()}`;
-    const passValidThroughTime =
-      ticket.passValidThrough.startDate && ticket.passValidThrough.endDate
-        ? {
-            date: {
-              from: ticket.passValidThrough.startDate.toISOString(),
-              to: ticket.passValidThrough.endDate.toISOString(),
-            },
-            time: eventDateToPlaceholder('', ticket.passValidThrough),
-          }
-        : {
-            date: ticket.passValidThrough.startDate!.toISOString(),
 
-            time: eventDateToPlaceholder('', ticket.passValidThrough),
-          };
+    const passValidThroughTime: DateAndTimeInfo = {
+      startDate: ticket.passValidThrough.startDate!.getTime(),
+      endDate: ticket.passValidThrough.endDate?.getTime() || undefined,
+      startTime: ticket.passValidThrough.startTime,
+      endTime: ticket.passValidThrough.endTime,
+    };
+    const salesValidThroughTime: DateAndTimeInfo = {
+      startDate: ticket.salesValidThrough.startDate!.getTime(),
+      endDate: ticket.salesValidThrough.endDate?.getTime() || undefined,
+      startTime: ticket.salesValidThrough.startTime,
+      endTime: ticket.salesValidThrough.endTime,
+    };
 
-    const salesValidThroughTime =
-      ticket.salesValidThrough.startDate && ticket.salesValidThrough.endDate
-        ? {
-            date: {
-              from: ticket.salesValidThrough.startDate.toISOString(),
-              to: ticket.salesValidThrough.endDate.toISOString(),
-            },
-            time: eventDateToPlaceholder('', ticket.salesValidThrough),
-          }
-        : {
-            date: ticket.salesValidThrough.startDate!.toISOString(),
-
-            time: eventDateToPlaceholder('', ticket.salesValidThrough),
-          };
-    const ticketDropMetadata = {
-      eventId,
-      name: ticket.name,
-      description: ticket.description,
-      artwork: ticketArtworkCids.shift(),
-      price: parseNearAmount(ticket.price)!.toString(),
+    const ticketExtra: TicketMetadataExtra = {
+      dateCreated: Date.now().toString(),
+      price: parseNearAmount(ticket.priceNear)!.toString(),
       salesValidThrough: salesValidThroughTime,
       passValidThrough: passValidThroughTime,
       maxSupply: ticket.maxSupply,
+      eventId,
+    };
+
+    const ticketNftInfo: TicketInfoMetadata = {
+      title: ticket.name,
+      description: ticket.description,
+      media: ticketArtworkCids.shift() || '',
+      extra: JSON.stringify(ticketExtra),
     };
 
     ticket_information[`${dropId}`] = {
       max_tickets: ticket.maxSupply,
-      price: parseNearAmount(ticket.price)!.toString(),
+      price: parseNearAmount(ticket.priceNear)!.toString(),
       sale_start: ticket.salesValidThrough.startDate
         ? ticket.salesValidThrough.startDate.getTime()
         : undefined,
@@ -334,7 +312,9 @@ export const createPayload = async ({
     };
 
     const dropConfig = {
-      metadata: JSON.stringify(ticketDropMetadata),
+      nft_keys_config: {
+        token_metadata: ticketNftInfo,
+      },
       add_key_allowlist: [KEYPOM_MARKETPLACE_CONTRACT],
       transfer_key_allowlist: [KEYPOM_MARKETPLACE_CONTRACT],
     };
@@ -385,5 +365,5 @@ export const createPayload = async ({
     },
   ];
 
-  return actions;
+  return { actions, dropIds: drop_ids };
 };

@@ -32,7 +32,8 @@ export const ClearEventInfoForm = () => {
 export const EventInfoFormValidation = (formData: TicketDropFormData) => {
   const newFormData = { ...formData };
   let isErr = false;
-  return { isErr, newFormData };
+  return { isErr, newFormData: formData };
+
   if (formData.eventName.value === '') {
     newFormData.eventName = { ...formData.eventName, error: 'Event name is required' };
     isErr = true;
@@ -106,6 +107,7 @@ export const eventDateToPlaceholder = (defaultTo: string, date: EventDate) => {
 
 const EventInfoForm = (props: EventStepFormProps) => {
   const { formData, setFormData } = props;
+  console.log('formData', formData);
 
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const [datePlaceholer, setDatePlaceholder] = useState('Select date and time');
@@ -288,7 +290,7 @@ const EventInfoForm = (props: EventStepFormProps) => {
           my={margins}
         >
           <ImageFileInput
-            accept=" image/jpeg, image/png, image/gif"
+            accept="image/jpeg, image/png, image/gif"
             errorMessage={formData.eventArtwork.error}
             isInvalid={!!formData.eventArtwork.error}
             preview={preview}

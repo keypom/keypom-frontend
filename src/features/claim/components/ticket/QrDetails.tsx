@@ -1,6 +1,9 @@
-import { Box, Button, Flex, Text, VStack } from '@chakra-ui/react';
+import { Box, Button, Flex, Heading, Text, VStack } from '@chakra-ui/react';
 import QRCode from 'react-qr-code';
 import { useNavigate } from 'react-router-dom';
+
+import { type TicketMetadataExtra } from '@/lib/eventsHelpers';
+import { dateAndTimeToText } from '@/features/drop-manager/utils/parseDates';
 
 interface QrDetailsProps {
   qrValue: string;
@@ -8,6 +11,7 @@ interface QrDetailsProps {
   eventName: string;
   eventId: string;
   funderId: string;
+  ticketInfoExtra?: TicketMetadataExtra;
 }
 
 export const QrDetails = ({
@@ -16,6 +20,7 @@ export const QrDetails = ({
   eventName,
   eventId,
   funderId,
+  ticketInfoExtra,
 }: QrDetailsProps) => {
   const navigate = useNavigate();
   const handleDownloadQrCode = () => {
@@ -72,15 +77,28 @@ export const QrDetails = ({
         <Button variant="outline" w="full" onClick={handleDownloadQrCode}>
           Download QR code
         </Button>
-        <Button
-          variant="outline"
-          w="full"
-          onClick={() => {
-            navigate(`/gallery/${funderId}:${eventId}#secretKey=${qrValue}`);
-          }}
-        >
-          Sell Ticket
-        </Button>
+        <VStack spacing="1" w="full">
+          <Button
+            variant="outline"
+            w="full"
+            onClick={() => {
+              navigate(`/gallery/${funderId}:${eventId}#secretKey=${qrValue}`);
+            }}
+          >
+            Sell Ticket
+          </Button>
+          <Heading
+            fontFamily="body"
+            fontSize={{ base: 'xs', md: 'xs' }}
+            fontWeight="500"
+            textAlign="center"
+          >
+            Can be sold through:
+          </Heading>
+          <Heading fontSize={{ base: 'xs', md: 'xs' }} fontWeight="500" textAlign="center">
+            {ticketInfoExtra && dateAndTimeToText(ticketInfoExtra?.salesValidThrough)}
+          </Heading>
+        </VStack>
       </VStack>
     </Flex>
   );

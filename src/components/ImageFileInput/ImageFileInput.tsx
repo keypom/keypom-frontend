@@ -66,6 +66,9 @@ export const ImageFileInput = ({
             top="0"
             type="file"
             zIndex="2"
+            onClick={(e) => {
+              console.log('File input clicked');
+            }}
             {...props}
           />
 
