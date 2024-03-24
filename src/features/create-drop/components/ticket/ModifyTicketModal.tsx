@@ -153,7 +153,7 @@ export const ModifyTicketModal = ({
     <FormControlComponent
       errorText={errorField}
       label={label}
-      labelProps={{ fontSize: { base: 'xs', md: 'sm' } }}
+      labelProps={{ fontSize: { base: 'xs', md: 'md' } }}
       marginY={margins}
     >
       <Input
@@ -167,7 +167,7 @@ export const ModifyTicketModal = ({
         sx={{
           '::placeholder': {
             color: 'gray.400', // Placeholder text color
-            fontSize: 'xs',
+            fontSize: { base: 'xs', md: 'sm' },
           },
           _invalid: {
             borderColor: 'red.300',
@@ -253,18 +253,18 @@ export const ModifyTicketModal = ({
   return (
     <Modal
       isOpen={isOpen}
-      size="xl"
+      size="3xl"
       onClose={() => {
         onClose(false, editedTicket);
       }}
     >
       <ModalOverlay backdropFilter="blur(0px)" bg="blackAlpha.600" opacity="1" />
-      <ModalContent maxH="90vh" overflowY="auto" padding={6} paddingY={1}>
+      <ModalContent maxH="90vh" overflowY="auto" padding={6} paddingY={3}>
         <VStack align="left" spacing={0} textAlign="left">
           <FormControlComponent
             errorText={errors.name}
             label="Ticket name*"
-            labelProps={{ fontSize: { base: 'xs', md: 'sm' } }}
+            labelProps={{ fontSize: { base: 'xs', md: 'md' } }}
             marginY={margins}
           >
             <Input
@@ -277,7 +277,7 @@ export const ModifyTicketModal = ({
               sx={{
                 '::placeholder': {
                   color: 'gray.400', // Placeholder text color
-                  fontSize: 'xs',
+                  fontSize: { base: 'xs', md: 'sm' },
                 },
               }}
               type="text"
@@ -291,7 +291,7 @@ export const ModifyTicketModal = ({
           <FormControlComponent
             errorText={errors.description}
             label="Description*"
-            labelProps={{ fontSize: { base: 'xs', md: 'sm' } }}
+            labelProps={{ fontSize: { base: 'xs', md: 'md' } }}
             marginY={margins}
           >
             <Textarea
@@ -299,13 +299,13 @@ export const ModifyTicketModal = ({
               height="80px"
               isInvalid={!!errors.description}
               maxLength={500}
-              placeholder="129 West 81st Street, Apartment 5A"
+              placeholder="This ticket includes a complimentary drink and an exclusive 1:1 conversation with Edmure Tully and Roslin Frey."
               size="sm"
               sx={{
                 '::placeholder': {
                   textAlign: 'top',
                   color: 'gray.400', // Placeholder text color
-                  fontSize: 'xs',
+                  fontSize: { base: 'xs', md: 'sm' },
                 },
               }}
               value={currentTicket.description}
@@ -442,9 +442,9 @@ export const ModifyTicketModal = ({
           <FormControlComponent
             errorText={errors.maxSupply}
             helperText="The maximum number of guests that can purchase this ticket type"
-            helperTextProps={{ fontSize: { base: 'xs', md: 'xs' }, marginY: '-1' }}
+            helperTextProps={{ fontSize: { base: '2xs', md: 'xs' }, marginY: '-1' }}
             label="Number of tickets*"
-            labelProps={{ fontSize: { base: 'xs', md: 'sm' } }}
+            labelProps={{ fontSize: { base: 'xs', md: 'md' } }}
             marginY={margins}
           >
             <Input
@@ -458,7 +458,7 @@ export const ModifyTicketModal = ({
               sx={{
                 '::placeholder': {
                   color: 'gray.400', // Placeholder text color
-                  fontSize: 'xs',
+                  fontSize: { base: 'xs', md: 'sm' },
                 },
               }}
               type="number"
@@ -482,7 +482,7 @@ export const ModifyTicketModal = ({
           />
           <FormControlComponent
             label="Ticket artwork*"
-            labelProps={{ fontSize: { base: 'xs', md: 'sm' } }}
+            labelProps={{ fontSize: { base: 'xs', md: 'md' } }}
             marginY={margins}
           >
             <ImageFileInput
