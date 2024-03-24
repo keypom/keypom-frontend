@@ -16,7 +16,7 @@ import {
 import { useParams, useNavigate } from 'react-router-dom';
 import { ExternalLinkIcon } from '@chakra-ui/icons';
 import { useCallback, useEffect, useState } from 'react';
-import { getPubFromSecret } from 'keypom-js';
+import { getPubFromSecret, formatNearAmount } from 'keypom-js';
 import { type Wallet } from '@near-wallet-selector/core';
 
 import { SellModal } from '@/features/gallery/components/SellModal';
@@ -106,6 +106,8 @@ export interface SellDropInfo {
   location: string;
   date: string;
   description: string;
+  maxNearPrice: number;
+  salesValidThrough: DateAndTimeInfo;
   publicKey: string;
   secretKey: string;
 }
@@ -246,15 +248,24 @@ export default function Event() {
       if (meta2?.date != null) {
         dateString = dateAndTimeToText(meta2.date);
       }
+      const maxNearPriceYocto = await keypomInstance.viewCall({
+        contractId: KEYPOM_MARKETPLACE_CONTRACT,
+        methodName: 'get_max_resale_for_drop',
+        args: { drop_id: dropID },
+      });
+      let maxNearPrice = parseFloat(formatNearAmount(maxNearPriceYocto, 3));
+      console.log(maxNearPrice)
       setSellDropInfo({
         name: meta2.name || 'Untitled',
         artwork: meta2.artwork || 'loading',
         questions: meta2.questions || [],
         location: meta2.location || 'loading',
         date: dateString,
+        salesValidThrough: meta.salesValidThrough,
         description: meta2.description || 'loading',
         publicKey,
         secretKey,
+        maxNearPrice,
       });
 
       setDoKeyModal(true);
@@ -437,11 +448,6 @@ export default function Event() {
       baseUrl: window.location.origin,
       priceNear: ticketBeingPurchased.price,
     };
-
-    console.log('workerPayload', workerPayload);
-    console.log('drop', drop);
-    console.log('meta', meta);
-    console.log('dropData', dropData);
 
     if (purchaseType === 'free') {
       const response = await fetch(
@@ -760,6 +766,7 @@ export default function Event() {
       const extra: TicketMetadataExtra = JSON.parse(meta.extra);
 
       const supply = await keypomInstance.getKeySupplyForTicket(ticket.drop_id);
+      
       return {
         id: ticket.drop_id,
         artwork: meta.media,
