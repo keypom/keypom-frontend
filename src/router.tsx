@@ -196,8 +196,13 @@ export const router = createBrowserRouter([
             ],
           },
           {
-            path: 'scanner',
-            element: <ScannerPage />,
+            path: 'scan',
+            children: [
+              {
+                path: 'event/:funderAndEventId',
+                element: <ScannerPage />,
+              },
+            ],
           },
         ],
       },
