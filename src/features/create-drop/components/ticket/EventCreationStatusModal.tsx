@@ -110,7 +110,7 @@ export const EventCreationStatusModal = ({
       isOpen={isOpen}
       size="xl"
       onClose={() => {
-        console.log('close');
+        // console.log('close');
       }}
     >
       <ModalOverlay backdropFilter="blur(0px)" bg="blackAlpha.600" opacity="1" />
