@@ -340,7 +340,7 @@ class KeypomJS {
       },
     });
     const message_nonce = keyInfo.message_nonce;
-    const message = `${signingMessage}${message_nonce.toString()}`;
+    const message = `${String(signingMessage)}${String(message_nonce.toString())}`;
     const message_bytes = new TextEncoder().encode(`${message}`);
     const signature = nacl.sign.detached(message_bytes, sk_bytes);
     const base64Signature = naclUtil.encodeBase64(signature);
