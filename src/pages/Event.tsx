@@ -28,8 +28,10 @@ import {
   type TicketInfoMetadata,
   type QuestionInfo,
   type TicketMetadataExtra,
+  type DateAndTimeInfo,
+  type EventDrop,
 } from '@/lib/eventsHelpers';
-import keypomInstance, { type EventDrop } from '@/lib/keypom';
+import keypomInstance from '@/lib/keypom';
 import { KEYPOM_MARKETPLACE_CONTRACT } from '@/constants/common';
 import { type DataItem } from '@/components/Table/types';
 import { dateAndTimeToText } from '@/features/drop-manager/utils/parseDates';
@@ -61,15 +63,8 @@ export interface TicketInterface {
   artwork: string;
   name: string;
   description: string;
-  salesValidThrough: {
-    time: string;
-  };
-  passValidThrough: {
-    time: string;
-    date?: {
-      from: string;
-    };
-  };
+  salesValidThrough: DateAndTimeInfo;
+  passValidThrough: DateAndTimeInfo;
   questions?: QuestionInfo[];
   supply: number;
   maxTickets: number | undefined;
@@ -433,8 +428,8 @@ export default function Event() {
       ticket_info: {
         location: drop.location,
         eventName: drop.name,
-        ticketType: meta.name,
-        eventDate: JSON.stringify(drop.date.date),
+        ticketType: dropData.drop_config.nft_keys_config.token_metadata.title,
+        eventDate: JSON.stringify(drop.date),
         ticketOwner: accountId || undefined, // (if signed in, this is signed in account, otherwise its none/empty)
         eventId: meta.eventId,
         dropId: ticketBeingPurchased.id,
@@ -447,6 +442,9 @@ export default function Event() {
     };
 
     console.log('workerPayload', workerPayload);
+    console.log('drop', drop);
+    console.log('meta', meta);
+    console.log('dropData', dropData);
 
     if (purchaseType === 'free') {
       const response = await fetch(

@@ -21,6 +21,7 @@ import { QrReader } from 'react-qr-reader';
 import keypomInstance from '@/lib/keypom';
 import { type TicketInterface, type EventInterface } from '@/pages/Event';
 import { type EventDrop, type TicketMetadataExtra } from '@/lib/eventsHelpers';
+import { dateAndTimeToText } from '@/features/drop-manager/utils/parseDates';
 
 interface VerifyModalProps {
   isOpen: boolean;
@@ -86,18 +87,16 @@ export const VerifyModal = ({ isOpen, onClose, event, eventId, accountId }: Veri
 
       const meta2 = drop;
 
-      const newDate = { time: '', date: undefined };
-
       setTicketData({
         name: meta2.name || 'Untitled',
         artwork: meta2.artwork || 'loading',
         questions: meta2.questions || [],
         description: meta2.description || 'loading',
-        passValidThrough: newDate, // TODO: fix this with dates revamped
+        passValidThrough: meta.passValidThrough,
         price: meta.price || 'loading',
         // WIP DATA BELOW
         id: '',
-        salesValidThrough: newDate,
+        salesValidThrough: meta.passValidThrough,
         supply: 0,
         soldTickets: 0,
         priceNear: '0',
@@ -207,7 +206,7 @@ export const VerifyModal = ({ isOpen, onClose, event, eventId, accountId }: Veri
               >
                 Ticket Date
               </Text>
-              <Text textAlign="left">{String(ticketData?.passValidThrough?.date?.from)}</Text>
+              <Text textAlign="left">{dateAndTimeToText(ticketData?.passValidThrough)}</Text>
             </>
           ) : null}
 
