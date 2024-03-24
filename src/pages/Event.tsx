@@ -634,9 +634,14 @@ export default function Event() {
     }
   };
 
-  const TicketPurchaseSuccessful = (workerPayload, responseBody) => {
+  const TicketPurchaseSuccessful = (workerPayload: WorkerPayload, responseBody) => {
     const priceLog: string = workerPayload.priceNear.toString();
     let description = `The item has been bought for ${priceLog} NEAR`;
+
+    const purchaseLocalStorageKey = `${PURCHASED_LOCAL_STORAGE_PREFIX}_${workerPayload.ticket_info.dropId}`;
+    let numTicketsPurchased = parseInt(localStorage.getItem(purchaseLocalStorageKey) || '0');
+    numTicketsPurchased += workerPayload.ticketAmount;
+    localStorage.setItem(purchaseLocalStorageKey, numTicketsPurchased.toString());
 
     if (workerPayload.ticketAmount > 1) {
       const amountLog: string = workerPayload.ticketAmount.toString();
