@@ -81,6 +81,7 @@ export const defaultTicket = {
     endDate: null,
   },
   maxSupply: 0,
+  maxPurchasaes: 1,
 };
 
 export interface TicketInfoFormMetadata {
@@ -91,6 +92,7 @@ export interface TicketInfoFormMetadata {
   salesValidThrough: EventDate;
   passValidThrough: EventDate;
   maxSupply: number;
+  maxPurchasaes: number;
 }
 
 const CreateTicketsForm = (props: EventStepFormProps) => {

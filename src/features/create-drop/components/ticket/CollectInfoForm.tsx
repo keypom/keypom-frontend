@@ -14,6 +14,7 @@ import {
 } from '../../routes/CreateTicketDropPage';
 
 import { ModifyQuestionModal } from './ModifyQuestionModal';
+import { EMAIL_QUESTION } from './helpers';
 
 const columns: ColumnItem[] = [
   {
@@ -89,14 +90,19 @@ const CollectInfoForm = (props: EventStepFormProps) => {
     if (data === undefined) return [];
 
     return data.map((item: { question: string; isRequired: boolean }) => ({
-      id: item.question, // Assuming `item` has a `question` property that can serve as `id`
+      id: item.question === EMAIL_QUESTION ? `${EMAIL_QUESTION} (required)` : item.question, // Assuming `item` has a `question` property that can serve as `id`
       isRequired: (
-        <ToggleSwitch handleToggle={() => handleToggle(item.question)} toggle={item.isRequired} />
+        <ToggleSwitch
+          disabled={item.question === EMAIL_QUESTION}
+          handleToggle={() => handleToggle(item.question)}
+          toggle={item.isRequired}
+        />
       ),
       action: (
         <HStack>
           <Button
             borderRadius="6xl"
+            isDisabled={item.question === EMAIL_QUESTION}
             size="md"
             variant="icon"
             onClick={() => {
@@ -107,6 +113,7 @@ const CollectInfoForm = (props: EventStepFormProps) => {
           </Button>
           <Button
             borderRadius="6xl"
+            isDisabled={item.question === EMAIL_QUESTION}
             size="md"
             variant="icon"
             onClick={() => {

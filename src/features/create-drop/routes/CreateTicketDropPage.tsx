@@ -30,6 +30,7 @@ import { ReviewEventForm } from '../components/ticket/ReviewEventForm';
 import { KeypomPasswordPromptModal } from '../components/ticket/KeypomPasswordPromptModal';
 import {
   createPayload,
+  EMAIL_QUESTION,
   estimateCosts,
   serializeMediaForWorker,
 } from '../components/ticket/helpers';
@@ -228,8 +229,8 @@ const placeholderData: TicketDropFormData = {
 
   // Step 2
   questions: [
+    { question: EMAIL_QUESTION, isRequired: true },
     { question: 'Full name', isRequired: true },
-    { question: 'Email address', isRequired: true },
     { question: 'How did you find out about this event?', isRequired: false },
   ],
 
@@ -409,6 +410,13 @@ export default function NewTicketDrop() {
     setIsSettingKey(false);
   };
 
+  const handleSkipped = () => {
+    setCurrentStep((prevStep) => prevStep + 1);
+    if (currentStep === 2) {
+      setFormData((prev) => ({ ...prev, questions: [] }));
+    }
+  };
+
   const nextStep = async () => {
     if (currentStep === 4) {
       payAndCreateEvent();
@@ -532,10 +540,7 @@ export default function NewTicketDrop() {
               <Button
                 fontSize={{ base: 'sm', md: 'base' }}
                 variant="secondary"
-                onClick={() => {
-                  setFormData((prev) => ({ ...prev, questions: [] }));
-                  setCurrentStep((prev) => prev + 1);
-                }}
+                onClick={handleSkipped}
               >
                 Skip
               </Button>

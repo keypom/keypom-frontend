@@ -27,19 +27,6 @@ const purchaseWithStripe = new URL(
 
 const STRIPE_PURCHASE_IMAGE = purchaseWithStripe.href.replace(purchaseWithStripe.search, '');
 
-const contentItem = (title: string, subtitle: string) => {
-  return (
-    <VStack align="start" marginTop="1" spacing="0">
-      <Heading color="gray.700" fontFamily="body" fontSize="md" fontWeight="700" textAlign="left">
-        {title}
-      </Heading>
-      <Heading color="gray.500" fontFamily="body" fontSize="md" fontWeight="400" textAlign="left">
-        {subtitle}
-      </Heading>
-    </VStack>
-  );
-};
-
 function uuidv4() {
   return '10000000-1000-4000-8000-100000000000'.replace(/[018]/g, (c) =>
     (+c ^ (crypto.getRandomValues(new Uint8Array(1))[0] & (15 >> (+c / 4)))).toString(16),
@@ -116,7 +103,7 @@ const AcceptPaymentForm = (props: EventStepFormProps) => {
     }
 
     setIsLoading(true);
-    const stripeAccountId = await keypomInstance.getStripeAccountId(accountId);
+    const stripeAccountId = await keypomInstance.getStripeAccountId(accountId || '');
 
     if (stripeAccountId) {
       setFormData({ ...formData, stripeAccountId, acceptStripePayments: true });
@@ -224,7 +211,7 @@ const AcceptPaymentForm = (props: EventStepFormProps) => {
 
         <Button
           colorScheme="blue"
-          isDisabled={formData.stripeAccountId}
+          isDisabled={formData.stripeAccountId !== undefined || !accountId}
           isLoading={isLoading}
           size="lg"
           w="full"

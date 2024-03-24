@@ -22,6 +22,8 @@ import { KEYPOM_MARKETPLACE_CONTRACT } from '@/constants/common';
 
 import { type TicketDropFormData } from '../../routes/CreateTicketDropPage';
 
+export const EMAIL_QUESTION = 'Email address';
+
 async function fileToArrayBuffer(file: File): Promise<ArrayBuffer> {
   return await new Promise((resolve, reject) => {
     if (!(file instanceof File)) {
