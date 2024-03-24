@@ -78,11 +78,11 @@ const Scanner = () => {
 
     const getEventData = async () => {
       try {
-        const eventInfo: FunderEventMetadata = await keypomInstance.getEventInfo({
+        const eventInfo: FunderEventMetadata | null = await keypomInstance.getEventInfo({
           accountId: funderId,
           eventId,
         });
-        if (Object.keys(eventInfo).length === 0) {
+        if (eventInfo == null || Object.keys(eventInfo).length === 0) {
           setIsErr(true);
           return;
         }
@@ -123,10 +123,10 @@ const Scanner = () => {
             validThrough: extra.passValidThrough,
           });
         });
-        console.log('Ticket Options', ticketOptions, 'Tickets Returned', ticketsReturned);
         setTicketOptions(ticketOptions);
       } catch (e) {
-        console.error(e);
+        // eslint-disable-next-line no-console
+        console.error('error getting event tickets:', e);
         setIsErr(true);
       }
     };

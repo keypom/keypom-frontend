@@ -239,7 +239,6 @@ export default function EventManagerPage() {
         accountId: accountId!,
         eventId,
       });
-      console.log('ticketsForEvent', ticketsForEvent);
 
       if (ticketsForEvent == null || ticketsForEvent.length === 0) {
         setIsErr(true);

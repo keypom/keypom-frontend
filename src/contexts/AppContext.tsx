@@ -49,13 +49,13 @@ const fetchPrice = async (url, parseData) => {
     const data = await response.json();
     return parseData(data);
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error('Fetch error:', error);
     return null;
   }
 };
 
 export const AppContextProvider = ({ children }: PropsWithChildren) => {
-  console.log('AppContextProvider');
   const [appModal, setAppModal] = useState<AppModalValues>({
     isOpen: false,
   });
@@ -86,7 +86,6 @@ export const AppContextProvider = ({ children }: PropsWithChildren) => {
     };
 
     if (triggerPriceFetch) {
-      console.log('fetching price of near: ', fetchAttempts);
       setFetchAttempts(fetchAttempts + 1);
       setTriggerPriceFetch(false);
       setPriceWithFallback();

@@ -29,6 +29,7 @@ import {
   type TicketMetadataExtra,
   type DateAndTimeInfo,
   type EventDrop,
+  type FunderEventMetadata,
 } from '@/lib/eventsHelpers';
 import keypomInstance from '@/lib/keypom';
 import { KEYPOM_MARKETPLACE_CONTRACT } from '@/constants/common';
@@ -237,14 +238,17 @@ export default function Event() {
         });
       }
 
-      const drop = await keypomInstance.getEventInfo({
+      const meta2: FunderEventMetadata | null = await keypomInstance.getEventInfo({
         accountId: funderId,
         eventId: keyinfoEventId,
       });
 
-      const meta2 = drop;
+      if (meta2 == null) {
+        throw new Error('The event does not exist.');
+      }
+
       let dateString = '';
-      if (meta2?.date != null) {
+      if (meta2.date != null) {
         dateString = dateAndTimeToText(meta2.date);
       }
       const maxNearPriceYocto = await keypomInstance.viewCall({
@@ -374,7 +378,7 @@ export default function Event() {
       eventId: keyinfoEventId,
     });
 
-    if (drop.pubKey == null || drop.pubKey === undefined) {
+    if (drop == null || drop === undefined || drop.pubKey == null || drop.pubKey === undefined) {
       toast({
         title: 'Purchase failed',
         description: 'This event does not have a public key',
@@ -861,6 +865,11 @@ export default function Event() {
       try {
         const drop = await keypomInstance.getEventInfo({ accountId: funderId, eventId });
 
+        if (drop == null) {
+          setNoDrop(true);
+          return;
+        }
+
         const meta = drop;
 
         let dateString = '';
@@ -892,14 +901,8 @@ export default function Event() {
         setIsLoading(false);
       } catch (error) {
         // eslint-disable-next-line
-        console.log('error loading event', error);
-        // toast({
-        //   title: 'Error loading event',
-        //   description: `please try again later`,
-        //   status: 'error',
-        //   duration: 5000,
-        //   isClosable: true,
-        // });
+        console.error('error loading event: ', error);
+
         setNoDrop(true);
       }
     };
