@@ -26,10 +26,10 @@ import { TicketCard } from '@/features/gallery/components/TicketCard';
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
 import { type QuestionInfo, type EventDropMetadata } from '@/lib/eventsHelpers';
 import keypomInstance, { type EventDrop } from '@/lib/keypom';
-import { KEYPOM_MARKETPLACE_CONTRACT } from '@/constants/common';
+import { KEYPOM_EVENTS_CONTRACT, KEYPOM_MARKETPLACE_CONTRACT } from '@/constants/common';
 import { type DataItem } from '@/components/Table/types';
 import { generateExecuteArgs } from 'keypom-js/lib/lib/trial-accounts/utils';
-import DeviceInfoSDK from '../utils/deviceInfoSDK';
+import { botCheck } from '../utils/botCheck';
 
 interface WorkerPayload {
   name: string | null;
@@ -51,6 +51,8 @@ interface WorkerPayload {
   priceNear: string;
   ticketKeys?: string[];
   ticketKey?: string;
+  network?: string;
+  linkdrop_secret_key?: string
 }
 
 export interface TicketInterface {
@@ -471,77 +473,43 @@ export default function Event() {
     };
 
     if (purchaseType === 'free') {
-      // Check if they are a bot
-      let base64Info = await DeviceInfoSDK.fetchIPDetails('8d3N9kjvn8BeUIs');
-      const xhr = new XMLHttpRequest();
-      xhr.open("POST", "https://api.shard.dog/check-bot", true);
-      xhr.setRequestHeader("Content-Type", "application/json");
-      xhr.setRequestHeader("x-device-fingerprint", base64Info);
-      xhr.onreadystatechange = function () {
-        console.log("hello")
-        if (xhr.readyState === XMLHttpRequest.DONE) {
-          if (xhr.status === 200) {
-            console.log('Data successfully sent to the server');
-            // Process response here, e.g., updating state based on the response
-            const responseContent = JSON.parse(xhr.responseText); // Adjust depending on actual response format
-            console.log(responseContent) // Adjust based on your actual response structure
-          } else {
-            console.error('Error sending data to the server');
-          }
-        }
-      };
+      let bot = await botCheck()
 
-      console.log("abc")
+      if(bot){
+        toast({
+          title: 'Purchase failed',
+          description: 'You have been identified as a bot and your purchase has been blocked',
+          status: 'error',
+          duration: 5000,
+          isClosable: true,
+        });
+        return;
+      }else{
+        toast({
+          title: 'Yippie!',
+          description: 'You are not a bot',
+          status: 'success',
+          duration: 5000,
+          isClosable: true,
+        });
+      }
 
-
-      let botResponse = await fetch('https://api.shard.dog/check-bot',
+      const response = await fetch(
+        'https://stripe-worker.kp-capstone.workers.dev/purchase-free-tickets',
         {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            "x-device-fingerprint": base64Info
           },
+          body: JSON.stringify(workerPayload),
         },
       );
-
-      console.log(botResponse)
-
-      // if (botResponse.ok){
-      //   let botResponseJSON = await botResponse.json();
-      //   console.log(botResponseJSON.body)
-      // }else{
-      //   console.log("Error fetching bot status")
-      // }
-
-
-      // console.log("Bot Status: ", bot)
-      // if(bot){
-      //   toast({
-      //     title: 'Purchase failed',
-      //     description: 'You have been identified as a bot and your purchase has been blocked',
-      //     status: 'error',
-      //     duration: 5000,
-      //     isClosable: true,
-      //   });
-      //   return;
-      // }
-
-      // const response = await fetch(
-      //   'https://stripe-worker.kp-capstone.workers.dev/purchase-free-tickets',
-      //   {
-      //     method: 'POST',
-      //     headers: {
-      //       'Content-Type': 'application/json',
-      //     },
-      //     body: JSON.stringify(workerPayload),
-      //   },
-      // );
-      // if (response.ok) {
-      //   const responseBody = await response.json();
-      //   TicketPurchaseSuccessful(workerPayload, responseBody);
-      // } else {
-      //   TicketPurchaseFailure(workerPayload, await response.json());
-      // }
+      if (response.ok) {
+        const responseBody = await response.json();
+        TicketPurchaseSuccessful(workerPayload, responseBody);
+      } else {
+        TicketPurchaseFailure(workerPayload, await response.json());
+      }
     } else if (purchaseType === 'near') {
       // put the workerPayload in local storage
       const { secretKeys, publicKeys } = await keypomInstance.GenerateTicketKeys(ticketAmount);
@@ -607,11 +575,6 @@ export default function Event() {
         });
       } else {
         // secondary
-        const memo = {
-          linkdrop_pk: ticketBeingPurchased.publicKey,
-          new_public_key: publicKeys[0],
-        }; // NftTransferMemo,
-
         if (wallet == null) {
           toast({
             title: 'Purchase failed',
@@ -622,6 +585,13 @@ export default function Event() {
           });
           return;
         }
+
+        const memo = {
+          linkdrop_pk: ticketBeingPurchased.publicKey,
+          new_public_key: publicKeys[0],
+        }; // NftTransferMemo,
+
+        let owner: string = await keypomInstance.getCurrentKeyOwner(KEYPOM_MARKETPLACE_CONTRACT, ticketBeingPurchased.publicKey)
 
         let linkdrop_keys = await generateKeys({numKeys: 1});
 
@@ -647,7 +617,34 @@ export default function Event() {
           ],
         });
 
-        // MIN_TODO: SEND LINKDROP EMAIL IF THIS TXN GOES THROUGH with linkdrop_keys.secretKeys[0] and process.env.REACT_APP_NETWORK_ID
+        let email_endpoint = "https://email-worker.kp-capstone.workers.dev/send-sold-confirmation-email"
+        // Seller did not have wallet when they bought, include linkdrop info in email
+        if(owner == KEYPOM_EVENTS_CONTRACT){
+          workerPayload.linkdrop_secret_key = linkdrop_keys.secretKeys[0];
+          workerPayload.network = process.env.REACT_APP_NETWORK_ID;
+          email_endpoint = email_endpoint + "-no-wallet"
+        }
+
+        const response = await fetch(
+          email_endpoint,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(workerPayload),
+          },
+        );
+
+        if (response.ok) {
+          // Email send
+          const responseBody = await response.json();
+          TicketPurchaseSuccessful(workerPayload, responseBody);
+        } else {
+          // Email not sent
+          TicketPurchaseFailure(workerPayload, await response.json());
+        }
+
       }
     } else if (purchaseType === 'stripe') {
       const response = await fetch(

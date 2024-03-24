@@ -45,6 +45,7 @@ import {
   type FunderMetadata,
 } from './eventsHelpers';
 import { decryptPrivateKey, decryptWithPrivateKey, deriveKeyFromPassword } from './cryptoHelpers';
+import { async } from 'rxjs';
 
 let instance: KeypomJS;
 const ACCOUNT_ID_REGEX = /^(([a-z\d]+[-_])*[a-z\d]+\.)*([a-z\d]+[-_])*[a-z\d]+$/;
@@ -286,7 +287,7 @@ class KeypomJS {
     return true;
   };
 
-  verifyDrop = async (contractId: string, secretKey: string) => {
+  verifyDrop = async (contractId: string, secretKey?: string) => {
     const { networkId, supportedKeypomContracts } = getEnv();
 
     if (
@@ -315,6 +316,22 @@ class KeypomJS {
 
     return keyInfo.cur_key_use;
   };
+
+  getCurrentKeyOwner = async (contractId: string, publicKey: string) => {
+    await this.verifyDrop(contractId);
+
+    const keyInfo = await this.viewAccount.viewFunctionV2({
+      contractId: KEYPOM_EVENTS_CONTRACT,
+      methodName: 'get_key_information',
+      args: { key: publicKey },
+    });
+
+    if (keyInfo === null || keyInfo === undefined) {
+      throw new Error('Key does not exist');
+    }
+
+    return keyInfo.owner_id;
+  }
 
   checkIfDropExists = async (secretKey: string) => {
     try {
