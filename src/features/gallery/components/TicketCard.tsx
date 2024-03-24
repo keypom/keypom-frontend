@@ -35,7 +35,7 @@ interface SurroundingLinkProps {
 
 export const TicketCard = ({ event, loading, surroundingNavLink, onSubmit }: TicketCardProps) => {
   let nav = '../gallery/';
-  if (event?.navurl) {
+  if (event?.navurl !== undefined && event?.navurl != null) {
     nav = '../gallery/' + String(event.navurl);
   }
 
@@ -59,9 +59,17 @@ export const TicketCard = ({ event, loading, surroundingNavLink, onSubmit }: Tic
     availableTickets = event.maxTickets - event.soldTickets;
   }
 
+  let showLimit = true;
+  if (limitPerUser > availableTickets) {
+    showLimit = false;
+  }
+  if (limitPerUser == null || limitPerUser === undefined) {
+    showLimit = false;
+  }
+
   useEffect(() => {
     if (event?.id !== undefined) {
-      const key = `${PURCHASED_LOCAL_STORAGE_PREFIX}_${event.id as string}`;
+      const key = `${PURCHASED_LOCAL_STORAGE_PREFIX as string}_${event.id as string}`;
       const purchased = localStorage.getItem(key);
       if (purchased) {
         setNumPurchased(parseInt(purchased));
@@ -272,11 +280,13 @@ export const TicketCard = ({ event, loading, surroundingNavLink, onSubmit }: Tic
                 incrementAmount={incrementAmount}
                 maxAmount={Math.min(limitPerUser - numPurchased, availableTickets)}
               />
-              <Text color="gray.400" fontSize="sm" fontWeight="400">
-                {`Limit of ${limitPerUser} per customer${
-                  numPurchased > 0 ? ` (${numPurchased} owned)` : ''
-                }`}
-              </Text>
+              {showLimit && (
+                <Text color="gray.400" fontSize="sm" fontWeight="400">
+                  {`Limit of ${limitPerUser} per customer${
+                    numPurchased > 0 ? ` (${numPurchased} owned)` : ''
+                  }`}
+                </Text>
+              )}
             </VStack>
           ) : null}
           {navButton ? (

@@ -102,7 +102,7 @@ export const PurchaseModal = ({
     setAmount(amount - 1);
   };
   const incrementAmount = () => {
-    const availableTickets = currentTicket.maxTickets - currentTicket.soldTickets;
+    const availableTickets = availableTickets;
     if (availableTickets <= 0) return;
 
     if (amount >= availableTickets) return;
@@ -204,6 +204,14 @@ export const PurchaseModal = ({
   }
 
   if (currentTicket == null || currentTicket === undefined) return null;
+  let showLimit = true;
+  const availableTickets = currentTicket.maxTickets - currentTicket.soldTickets;
+  if (currentTicket.limitPerUser > availableTickets) {
+    showLimit = false;
+  }
+  if (currentTicket.limitPerUser == null || currentTicket.limitPerUser === undefined) {
+    showLimit = false;
+  }
   return (
     <Modal
       isCentered
@@ -262,20 +270,22 @@ export const PurchaseModal = ({
                       <Text color="gray.800" fontSize="lg" fontWeight="semibold">
                         Ticket Amount
                       </Text>
-                      <Text color="gray.400" fontSize="sm" fontWeight="400">
-                        {`Limit of ${currentTicket.limitPerUser as string} per customer${
-                          numPurchased > 0 ? ` (${numPurchased} owned)` : ''
-                        }`}
-                      </Text>
+                      {showLimit && (
+                        <Text color="gray.400" fontSize="sm" fontWeight="400">
+                          {`Limit of ${currentTicket.limitPerUser as string} per customer${
+                            numPurchased > 0 ? ` (${numPurchased} owned)` : ''
+                          }`}
+                        </Text>
+                      )}
                     </VStack>
-                    {currentTicket.maxTickets - currentTicket.soldTickets > 1 ? (
+                    {availableTickets > 1 ? (
                       <TicketIncrementer
                         amount={amount}
                         decrementAmount={decrementAmount}
                         incrementAmount={incrementAmount}
                         maxAmount={Math.min(
                           currentTicket.limitPerUser - numPurchased,
-                          currentTicket.maxTickets - currentTicket.soldTickets,
+                          availableTickets,
                         )}
                       />
                     ) : (
@@ -399,12 +409,12 @@ export const PurchaseModal = ({
                     <Text color="gray.800" fontSize="lg" fontWeight="semibold">
                       Ticket Amount
                     </Text>
-                    {currentTicket.maxTickets - currentTicket.soldTickets > 1 ? (
+                    {availableTickets > 1 ? (
                       <TicketIncrementer
                         amount={amount}
                         decrementAmount={decrementAmount}
                         incrementAmount={incrementAmount}
-                        maxAmount={currentTicket.maxTickets - currentTicket.soldTickets}
+                        maxAmount={availableTickets}
                       />
                     ) : (
                       <Text color="gray.500" fontSize="lg">
