@@ -15,6 +15,7 @@ module.exports = {
     'prettier',
     'plugin:prettier/recommended',
   ],
+
   overrides: [],
   parser: '@typescript-eslint/parser',
   parserOptions: {
@@ -33,6 +34,12 @@ module.exports = {
     '@typescript-eslint',
   ],
   rules: {
+    'prettier/prettier': [
+      'error',
+      {
+        endOfLine: 'auto',
+      },
+    ],
     endOfLine: 'off',
     'react/react-in-jsx-scope': 'off',
     'react/jsx-sort-props': [

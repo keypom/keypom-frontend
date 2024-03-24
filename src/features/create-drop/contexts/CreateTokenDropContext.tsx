@@ -34,13 +34,11 @@ const CreateTokenDropContext = createContext<CreateTokenDropContextProps>({
     }) as Promise<PaymentData>),
   handleDropConfirmation: async (navigate: NavigateFunction) => {
     // Placeholder implementation
-    console.log('handleDropConfirmation called', navigate);
   },
   createLinksSWR: {
     data: { success: false },
     handleDropConfirmation: async () => {
       // Placeholder implementation for createLinksSWR's handleDropConfirmation
-      console.log('createLinksSWR handleDropConfirmation called');
     },
   },
 });

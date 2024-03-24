@@ -1,5 +1,15 @@
 import { type TicketInfoFormMetadata } from '@/features/create-drop/components/ticket/CreateTicketsForm';
 
+type AllDayEvent = string;
+interface MultiDayEvent {
+  from: string;
+  to: string;
+}
+export interface EventDateInfo {
+  time?: string;
+  date: AllDayEvent | MultiDayEvent;
+}
+
 export interface QuestionInfo {
   required: boolean;
   question: string;
@@ -80,6 +90,16 @@ export function isValidTicketNFTMetadata(tokenMetadata: TicketInfoMetadata) {
   } catch (e) {
     return false;
   }
+}
+export function isValidTicketInfo(ticketInfo) {
+  // Check if all required properties exist and are of type 'string'
+  return (
+    typeof ticketInfo.name === 'string' &&
+    typeof ticketInfo.eventId === 'string' &&
+    typeof ticketInfo.description === 'string' &&
+    typeof ticketInfo.price === 'string' &&
+    typeof ticketInfo.artwork === 'string'
+  );
 }
 
 const FIRST_DROP_BASE_COST = BigInt('15899999999999900000000');

@@ -88,7 +88,7 @@ class KeypomJS {
   nearConnection: nearAPI.Near;
   viewAccount: nearAPI.Account;
 
-  allEventsGallery: [];
+  allEventsGallery: any[];
 
   // Map the event ID to a set of drop IDs
   ticketDropsByEventId: Record<string, EventDrop[]> = {};
@@ -132,10 +132,10 @@ class KeypomJS {
 
   public static getInstance(): KeypomJS {
     if (
-      !KeypomJS.instance ||
+      KeypomJS.instance == null ||
+      KeypomJS.instance === undefined ||
       !(KeypomJS.instance instanceof KeypomJS) ||
-      this.instance === undefined ||
-      this.viewAccount === undefined
+      this.instance === undefined
     ) {
       KeypomJS.instance = new KeypomJS();
     }
@@ -155,8 +155,6 @@ class KeypomJS {
     });
     return res;
   };
-
-  SellTicket = async ({ accountId, message }) => {};
 
   getResalesForEvent = async ({ eventId }) => {
     return await this.viewAccount.viewFunctionV2({
@@ -192,15 +190,9 @@ class KeypomJS {
       },
       gas: '300000000000000',
     });
-    // try {
-
-    // } catch (e) {
-    //   console.log('error listing unowned ticket', e);
-    // }
   };
 
   GenerateResellSignature = async (keypair) => {
-    console.log('jsskeypair', keypair);
     const sk_bytes = bs58.decode(keypair.secretKey);
     // const secret_key = Buffer.from(sk_bytes).toString('base64');
 
@@ -218,14 +210,11 @@ class KeypomJS {
     });
     const message_nonce = key_info.message_nonce;
 
-    const message = `${signing_message}${message_nonce.toString()}`;
+    const message = `${String(signing_message)}${String(message_nonce.toString())}`;
     const message_bytes = new TextEncoder().encode(`${message}`);
-
-    console.log('js message bytes ', message_bytes);
 
     const signature = nacl.sign.detached(message_bytes, sk_bytes);
     // const isValid = nacl.sign.detached.verify(message_bytes, signature, keypair.publicKey.data)
-    // console.log("js verify: ", isValid)
     const base64_signature = naclUtil.encodeBase64(signature);
 
     return [base64_signature, signature];
@@ -245,26 +234,27 @@ class KeypomJS {
     if (limit > 50) {
       limit = 50;
     }
-    if (!this.allEventsGallery || this.allEventsGallery.length === 0) {
-      supply = await this.getEventSupply();
+    if (
+      this.allEventsGallery == null ||
+      this.allEventsGallery === undefined ||
+      this.allEventsGallery.length === 0
+    ) {
+      const supply = await this.getEventSupply();
       // initialize to length supply
       this.allEventsGallery = new Array(supply).fill(null);
     }
 
-    cached = this.allEventsGallery.slice(from_index, from_index + limit);
+    const cached = this.allEventsGallery.slice(from_index, parseInt(from_index) + parseInt(limit));
 
     const hasNoNulls = cached.every((item) => item !== null);
     const hasNoUndefineds = cached.every((item) => item !== undefined);
 
-    console.log('cache hasNoNulls', hasNoNulls && hasNoUndefineds);
-
     if (hasNoNulls && hasNoUndefineds) {
       // just return from cache
-      console.log('returning from cache');
       return cached;
     }
 
-    answer = await this.viewAccount.viewFunctionV2({
+    const answer = await this.viewAccount.viewFunctionV2({
       contractId,
       methodName: 'get_events',
       args: { limit, from_index },
@@ -337,9 +327,7 @@ class KeypomJS {
 
     try {
       await claim({ secretKey, password: passwordForClaim, accountId: 'foo' });
-    } catch (e) {
-      console.warn(e);
-    }
+    } catch (e) {}
 
     keyInfo = await getKeyInformation({ secretKey });
     if (keyInfo.remaining_uses === 2) {
@@ -405,7 +393,7 @@ class KeypomJS {
       }
 
       // Initialize the cache for this account if it doesn't exist
-      if (!this.dropStore[accountId]) {
+      if (this.dropStore[accountId] == null || this.dropStore[accountId] === undefined) {
         this.dropStore[accountId] = [];
       }
 
@@ -431,7 +419,6 @@ class KeypomJS {
 
       return this.dropStore[accountId];
     } catch (error) {
-      console.error('Error fetching drops:', error);
       throw new Error('Failed to fetch drops.');
     }
   };
@@ -533,7 +520,6 @@ class KeypomJS {
 
       return eventInfo;
     } catch (error) {
-      console.error('Error getting event info:', error);
       throw new Error('Error getting event info');
     }
   };
@@ -556,7 +542,6 @@ class KeypomJS {
       methodName: 'get_drop_supply_for_funder',
       args: { account_id: accountId },
     });
-
     const totalQueries = Math.ceil(numDrops / DROP_ITEMS_PER_QUERY);
     const pageIndices = Array.from({ length: totalQueries }, (_, index) => index);
 
@@ -616,7 +601,14 @@ class KeypomJS {
       await this.groupAllDropsForAccount({ accountId });
     }
 
-    return this.ticketDropsByEventId[eventId] || [];
+    if (
+      this.ticketDropsByEventId[eventId] != null &&
+      this.ticketDropsByEventId[eventId] !== undefined
+    ) {
+      return this.ticketDropsByEventId[eventId];
+    }
+
+    return [];
   };
 
   getEventsForAccount = async ({ accountId }: { accountId: string }) => {
@@ -638,7 +630,6 @@ class KeypomJS {
 
       return events;
     } catch (error) {
-      console.error('Error fetching drops:', error);
       throw new Error('Failed to fetch drops.');
     }
   };
@@ -698,7 +689,6 @@ class KeypomJS {
 
       return this.purchasedTicketsById[dropId];
     } catch (error) {
-      console.error('Failed to get keys info:', error);
       throw new Error('Failed to get keys info.');
     }
   };
@@ -723,12 +713,9 @@ class KeypomJS {
         },
       });
 
-      console.log('fetchedinfo', fetchedinfo);
-
       // Return the requested slice from the cache
       return fetchedinfo;
     } catch (e) {
-      console.error('Failed to get key info:', e);
       throw new Error('Failed to get key info.');
     }
   };
@@ -792,7 +779,6 @@ class KeypomJS {
       // Return the requested slice from the cache
       return this.purchasedTicketsById[dropId].dropKeyItems.slice(start, endIndex);
     } catch (e) {
-      console.error('Failed to get paginated keys info:', e);
       throw new Error('Failed to get paginated keys info.');
     }
   };
@@ -814,7 +800,7 @@ class KeypomJS {
       }
 
       // Initialize the cache for this account if it doesn't exist
-      if (!this.dropStore[accountId]) {
+      if (this.dropStore[accountId] == null || this.dropStore[accountId] === undefined) {
         this.dropStore[accountId] = [];
       }
 
@@ -828,7 +814,10 @@ class KeypomJS {
         const pageStart = pageIndex * DROP_ITEMS_PER_QUERY;
 
         // Only fetch if this page hasn't been cached yet
-        if (!this.dropStore[accountId][pageStart]) {
+        if (
+          this.dropStore[accountId][pageStart] == null ||
+          this.dropStore[accountId][pageStart] === undefined
+        ) {
           const pageDrops = await this.fetchDropsPage(accountId, pageIndex);
 
           // Cache each item from the page with its index as the key
@@ -841,7 +830,6 @@ class KeypomJS {
       // Return the requested slice from the cache
       return this.dropStore[accountId].slice(start, endIndex);
     } catch (error) {
-      console.error('Error fetching drops:', error);
       throw new Error('Failed to fetch drops.');
     }
   };
@@ -874,7 +862,9 @@ class KeypomJS {
     if (dropId !== undefined) {
       drop = await this.getDropInfo({ dropId: dropId.toString() });
     }
-    const { drop_id: id, metadata, next_key_id: totalKeys } = drop!;
+    if (drop == null || drop === undefined) throw new Error('Drop is null or undefined');
+
+    const { drop_id: id, metadata, next_key_id: totalKeys } = drop;
     const claimedKeys = await this.getAvailableKeys(id);
     const claimedText = `${totalKeys - claimedKeys} / ${totalKeys}`;
 
@@ -882,7 +872,8 @@ class KeypomJS {
 
     let type: string | null = '';
     try {
-      type = this.getDropType(drop!);
+      if (drop == null || drop === undefined) throw new Error('Drop is null or undefined');
+      type = this.getDropType(drop);
     } catch (_) {
       type = DROP_TYPE.OTHER;
     }
@@ -895,7 +886,7 @@ class KeypomJS {
         description: '',
       };
       try {
-        const fcMethods = drop!.fc?.methods;
+        const fcMethods = drop.fc?.methods;
         if (
           fcMethods === undefined ||
           fcMethods.length === 0 ||
@@ -905,7 +896,7 @@ class KeypomJS {
           throw new Error('Unable to retrieve function calls.');
         }
 
-        const { nftData } = await this.getNFTorTokensMetadata(fcMethods[0][0], drop!.drop_id);
+        const { nftData } = await this.getNFTorTokensMetadata(fcMethods[0][0], drop.drop_id);
 
         nftMetadata = {
           media: `${CLOUDFLARE_IPFS}/${nftData?.metadata?.media}`, // eslint-disable-line
@@ -913,7 +904,7 @@ class KeypomJS {
           description: nftData?.metadata?.description,
         };
       } catch (e) {
-        console.error('failed to get nft metadata', e); // eslint-disable-line no-console
+        throw new Error('Failed to get NFT metadata.');
       }
       nftHref = nftMetadata?.media || 'assets/image-not-found.png';
     }
@@ -1009,8 +1000,9 @@ class KeypomJS {
       const dropName = this.getDropMetadata(dropInfo.metadata).dropName;
       const totalKeys = dropInfo.next_key_id;
       if (
-        !this.keyStore[dropId] ||
-        (this.keyStore[dropId] && this.keyStore[dropId].totalKeys !== totalKeys)
+        this.keyStore[dropId] == null ||
+        this.keyStore[dropId] === undefined ||
+        (this.keyStore[dropId] != null && this.keyStore[dropId].totalKeys !== totalKeys)
       ) {
         // Initialize the cache for this drop
         this.keyStore[dropId] = {
@@ -1036,7 +1028,6 @@ class KeypomJS {
 
       return this.keyStore[dropId];
     } catch (error) {
-      console.error('Failed to get keys info:', error);
       throw new Error('Failed to get keys info.');
     }
   }
@@ -1053,24 +1044,28 @@ class KeypomJS {
   }) => {
     try {
       // Initialize the cache for this drop if it doesn't exist
-      if (!this.keyStore[dropId]) {
-        const dropInfo = await this.getDropInfo({ dropId });
-        const dropName = this.getDropMetadata(dropInfo.metadata).dropName;
-        const totalKeys = dropInfo.next_key_id;
+      if (this.keyStore[dropId] == null || this.keyStore[dropId] === undefined)
+        throw new Error('Drop is null or undefined');
 
-        this.keyStore[dropId] = {
-          dropName,
-          dropKeyItems: Array(totalKeys).fill(null), // Initialize with nulls
-          totalKeys,
-        };
-      }
+      const dropInfo = await this.getDropInfo({ dropId });
+      const dropName = this.getDropMetadata(dropInfo.metadata).dropName;
+      const totalKeys = dropInfo.next_key_id;
+
+      this.keyStore[dropId] = {
+        dropName,
+        dropKeyItems: Array(totalKeys).fill(null), // Initialize with nulls
+        totalKeys,
+      };
 
       // Calculate the end index
       const endIndex = Math.min(start + limit, this.keyStore[dropId].totalKeys);
 
       // Fetch and cache batches as needed
       for (let i = start; i < endIndex; i += KEY_ITEMS_PER_QUERY) {
-        if (!this.keyStore[dropId].dropKeyItems[i]) {
+        if (
+          this.keyStore[dropId].dropKeyItems[i] == null ||
+          this.keyStore[dropId].dropKeyItems[i] === undefined
+        ) {
           // Fetch the keys for this batch
           const batchLimit = Math.min(KEY_ITEMS_PER_QUERY, endIndex - i);
           await this.fetchKeyBatch(dropId, i, batchLimit);
@@ -1080,7 +1075,6 @@ class KeypomJS {
       // Return the requested slice from the cache
       return this.keyStore[dropId].dropKeyItems.slice(start, endIndex);
     } catch (e) {
-      console.error('Failed to get keys info:', e);
       throw new Error('Failed to get keys info.');
     }
   };
@@ -1094,7 +1088,6 @@ class KeypomJS {
     try {
       await this.getDropInfo({ secretKey });
     } catch (err) {
-      console.error(err);
       throw new Error('This drop has been claimed.');
     }
 
@@ -1152,8 +1145,7 @@ class KeypomJS {
         args: { mint_id: parseFloat(dropId) },
       });
     } catch (err) {
-      console.error('NFT series not found');
-      // throw new Error('NFT series not found');
+      throw new Error('NFT series not found');
     }
 
     // show tokens if NFT series not found

@@ -19,7 +19,6 @@ import {
 } from '@chakra-ui/react';
 import { useEffect, useRef, useState } from 'react';
 import { SearchIcon } from '@chakra-ui/icons';
-import { type ProtocolReturnedDrop } from 'keypom-js';
 
 import { DropManagerPagination } from '@/features/all-drops/components/DropManagerPagination';
 import {
@@ -50,7 +49,7 @@ import { eventDateToPlaceholder } from '@/features/create-drop/components/ticket
 export default function Gallery() {
   // const isSecondary = props.isSecondary || false;
   // pagination
-  const [hasPagination, setHasPagination] = useState<boolean>(false);
+  // const [hasPagination, setHasPagination] = useState<boolean>(false);
   const [numPages, setNumPages] = useState<number>(0);
   const [curPage, setCurPage] = useState<number>(0);
 
@@ -66,7 +65,7 @@ export default function Gallery() {
 
   const datePickerCTA = (
     // formData.date.error
-    <FormControlComponent errorText={} label="">
+    <FormControlComponent errorText="" label="">
       <Input
         readOnly
         isInvalid={false} //! !formData.date.error
@@ -116,7 +115,7 @@ export default function Gallery() {
 
   const [searchTerm, setSearchTerm] = useState<string>('');
   // const [numOwnedDrops, setNumOwnedDrops] = useState<number>(0);
-  const [filteredDataItems, setFilteredDataItems] = useState<DataItem[]>([]);
+  const [filteredDataItems, setFilteredDataItems] = useState<any[]>([]);
   // const [wallet, setWallet] = useState({});
 
   const [banner, setBanner] = useState('');
@@ -212,8 +211,8 @@ export default function Gallery() {
       // Apply search filter
       drops = drops.filter((drop) => {
         return (
-          drop.name.toLowerCase().includes(searchTerm) ||
-          drop.description.toLowerCase().includes(searchTerm)
+          drop.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          drop.description.toLowerCase().includes(searchTerm.toLowerCase())
         );
       });
     }
@@ -222,27 +221,32 @@ export default function Gallery() {
 
     if (selectedFilters.eventDate.startDate !== null) {
       drops = drops.filter((drop) => {
-        if (drop == undefined) return false;
+        if (drop === undefined) return false;
         let dateString = drop.date.date;
         // take start date, check if it is a string or object
         if (typeof drop.date.date !== 'string') {
           dateString = drop.date.date.from;
         }
         const date = new Date(dateString);
-        return date >= selectedFilters.eventDate.startDate;
+        return (
+          selectedFilters.eventDate.startDate !== null &&
+          date >= selectedFilters.eventDate.startDate
+        );
       });
     }
 
     if (selectedFilters.eventDate.endDate !== null) {
       drops = drops.filter((drop) => {
-        if (drop == undefined) return false;
+        if (drop === undefined) return false;
         let dateString = drop.date.date;
         // take start date, check if it is a string or object
         if (typeof drop.date.date !== 'string') {
           dateString = drop.date.date.to;
         }
         const date = new Date(dateString);
-        return date <= selectedFilters.eventDate.endDate;
+        return (
+          selectedFilters.eventDate.endDate !== null && date <= selectedFilters.eventDate.endDate
+        );
       });
     }
 
@@ -280,7 +284,7 @@ export default function Gallery() {
     return formatter.format(date);
   };
 
-  const [numOwnedEvents, setNumOwnedEvents] = useState<number>(0);
+  // const [numOwnedEvents, setNumOwnedEvents] = useState<number>(0);
 
   const handleGetAllEvents = async () => {
     setIsAllDropsLoading(true);
@@ -289,8 +293,8 @@ export default function Gallery() {
       from_index: 0,
     });
 
-    const numEvents = eventListings.length;
-    setNumOwnedEvents(numEvents);
+    // const numEvents = eventListings.length;
+    // setNumOwnedEvents(numEvents);
 
     const dropDataPromises = eventListings.map(async (event) => {
       // get metadata from drop.event_id and drop.funder_id
@@ -302,24 +306,31 @@ export default function Gallery() {
       // for each ticket in the event, get the supply
       let supply = 0;
       let maxTickets = 0;
-      const prices = [];
+      const prices: number[] = [];
+
+      interface TicketData {
+        max_tickets: number; // or the correct type
+        price: number; // or the correct type
+        // add other properties as needed
+      }
 
       for (const [name, ticketdata] of Object.entries(event.ticket_info)) {
         const thissupply = await keypomInstance.getKeySupplyForTicket(name);
-        supply += thissupply;
-        maxTickets += ticketdata.max_tickets;
-        prices.push(ticketdata.price);
+        const ticketData = ticketdata as TicketData;
+        supply += parseInt(thissupply);
+        maxTickets += ticketData.max_tickets;
+        prices.push(ticketData.price);
       }
 
       let dateString = '';
-      if (eventInfo?.date) {
+      if (eventInfo?.date != null) {
         dateString =
           typeof eventInfo.date.date === 'string'
             ? eventInfo.date.date
             : `${eventInfo.date.date.from} to ${eventInfo.date.date.to}`;
       }
 
-      if (event == undefined || eventInfo == undefined) {
+      if (event === undefined || eventInfo === undefined) {
         return null;
       }
 
@@ -339,7 +350,7 @@ export default function Gallery() {
         numTickets,
         description: truncateAddress(eventInfo.description, 'end', 128),
         eventId: event.event_id,
-        navurl: String(event.funder_id) + ':' + event.event_id,
+        navurl: String(event.funder_id) + ':' + String(event.event_id),
       };
     });
 
@@ -366,7 +377,7 @@ export default function Gallery() {
 
     // Loop until we have enough filtered drops to fill the page size
     let dropsFetched = 0;
-    let filteredDrops: ProtocolReturnedDrop[] = [];
+    let filteredDrops = [];
     while (dropsFetched < totalSupply && filteredDrops.length < selectedFilters.pageSize) {
       const eventListings = await keypomInstance.GetMarketListings({
         limit: 6,
@@ -379,7 +390,7 @@ export default function Gallery() {
     }
 
     // Now, map over the filtered drops and set the data
-    const dropDataPromises = filteredDrops.map(async (event) => {
+    const dropDataPromises = filteredDrops.map(async (event: any) => {
       // get metadata from drop.event_id and drop.funder_id
       const eventInfo = await keypomInstance.getEventInfo({
         accountId: event.funder_id,
@@ -390,21 +401,21 @@ export default function Gallery() {
       let supply = 0;
       let maxTickets = 0;
 
-      for (const [name, ticketdata] of Object.entries(event.ticket_info)) {
+      for (const [name, ticketdata] of Object.entries(event.ticket_info) as [string, any]) {
         const thissupply = await keypomInstance.getKeySupplyForTicket(name);
-        supply += thissupply;
-        maxTickets += ticketdata.max_tickets;
+        supply += parseInt(thissupply);
+        maxTickets += parseInt(ticketdata.max_tickets);
       }
 
       let dateString = '';
-      if (eventInfo?.date) {
+      if (eventInfo?.date != null) {
         dateString =
           typeof eventInfo.date.date === 'string'
             ? eventInfo.date.date
             : `${eventInfo.date.date.from} to ${eventInfo.date.date.to}`;
       }
 
-      if (event == undefined || eventInfo == undefined) {
+      if (event === undefined || eventInfo === undefined) {
         return null;
       }
 
@@ -423,7 +434,7 @@ export default function Gallery() {
         numTickets,
         description: truncateAddress(eventInfo.description, 'end', 128),
         eventId: event.event_id,
-        navurl: String(event.funder_id) + ':' + event.event_id,
+        navurl: String(event.funder_id) + ':' + String(event.event_id),
       };
     });
 
@@ -442,20 +453,20 @@ export default function Gallery() {
   };
 
   useEffect(() => {
-    if (filteredDataItems.length == 0 || banner !== '') return;
+    if (filteredDataItems.length === 0 || banner !== '') return;
     const randomElement = filteredDataItems[Math.floor(Math.random() * filteredDataItems.length)];
 
     setBanner(randomElement.media);
   }, [filteredDataItems]);
 
   useEffect(() => {
-    if (keypomInstance == undefined) return;
+    if (keypomInstance === undefined) return;
     // First get enough data with the current filters to fill the page size
     handleGetInitialDrops();
   }, [keypomInstance]);
 
   useEffect(() => {
-    if (keypomInstance == undefined) return;
+    if (keypomInstance === undefined) return;
     // In parallel, fetch all the events
     handleGetAllEvents();
   }, [selectedFilters, keypomInstance]);
@@ -490,10 +501,10 @@ export default function Gallery() {
     // map over the filtered drops and clean the date
     gridData = gridData.map((drop) => {
       let dateString = drop.dateString;
-      if (drop.dateString == undefined) {
+      if (drop.dateString === undefined) {
         dateString = drop.date.date;
         if (typeof drop.date.date !== 'string') {
-          dateString = drop.date.date.from + ' to ' + drop.date.date.to;
+          dateString = String(drop.date.date.from) + ' to ' + String(drop.date.date.to);
         }
       }
 
@@ -555,13 +566,13 @@ export default function Gallery() {
               <CustomDateRangePicker
                 ctaComponent={datePickerCTA}
                 endDate={selectedFilters.eventDate.endDate}
-                endTime={selectedFilters.eventDate.endTime}
+                // endTime={selectedFilters.eventDate.endTime}
                 isDatePickerOpen={isDatePickerOpen}
                 maxDate={null}
                 minDate={new Date()}
                 setIsDatePickerOpen={setIsDatePickerOpen}
                 startDate={selectedFilters.eventDate.startDate}
-                startTime={selectedFilters.eventDate.startTime}
+                //  startTime={selectedFilters.eventDate.startTime}
                 onDateChange={(startDate, endDate) => {
                   setSelectedFilters((prevFilters) => ({
                     ...prevFilters,
@@ -599,9 +610,9 @@ export default function Gallery() {
               </Menu>
               <Box w="260px">
                 <Flex justifyContent="flex-end">
-                  {(!isAllDropsLoading && (
+                  {!isAllDropsLoading && (
                     <Menu>
-                      {({ isOpen }) => (
+                      {isOpen && (
                         <HStack>
                           <DropDownButton
                             isOpen={isOpen}
@@ -613,7 +624,8 @@ export default function Gallery() {
                         </HStack>
                       )}
                     </Menu>
-                  )) || (
+                  )}
+                  {isAllDropsLoading && (
                     <HStack>
                       <Skeleton></Skeleton>
                       <Button
@@ -653,14 +665,14 @@ export default function Gallery() {
           <CustomDateRangePickerMobile
             ctaComponent={datePickerCTA}
             endDate={selectedFilters.eventDate.endDate}
-            endTime={selectedFilters.eventDate.endTime}
+            // endTime={selectedFilters.eventDate.endTime}
             isDatePickerOpen={isDatePickerOpen}
             maxDate={null}
             minDate={new Date()}
             openDirection="top-start"
             setIsDatePickerOpen={setIsDatePickerOpen}
             startDate={selectedFilters.eventDate.startDate}
-            startTime={selectedFilters.eventDate.startTime}
+            // startTime={selectedFilters.eventDate.startTime}
             onDateChange={(startDate, endDate) => {
               setSelectedFilters((prevFilters) => ({
                 ...prevFilters,
@@ -713,7 +725,6 @@ export default function Gallery() {
         curPage={curPage}
         handleNextPage={handleNextPage}
         handlePrevPage={handlePrevPage}
-        hasPagination={hasPagination}
         isLoading={isAllDropsLoading}
         numPages={numPages}
         pageSizeMenuItems={pageSizeMenuItems}

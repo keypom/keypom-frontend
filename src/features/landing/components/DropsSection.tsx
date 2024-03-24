@@ -47,6 +47,7 @@ export const DropsSection = () => {
       icon: <StarIcon height={{ base: '6', md: '7' }} width={{ base: '6', md: '7' }} />,
       content: (
         <DropsTemplate
+          ctaDisabled={false}
           ctaOnClick={() => {
             dropCta('token');
           }}

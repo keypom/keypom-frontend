@@ -15,16 +15,14 @@ import { NavLink } from 'react-router-dom';
 import { useState } from 'react';
 
 import { IconBox } from '@/components/IconBox';
+import { type EventInterface } from '@/pages/Event';
+import { type DataItem } from '@/components/Table/types';
 
 import { TicketIncrementer } from './TicketIncrementer';
 
 interface TicketCardProps {
-  input: string;
-  setInput: (input: string) => void;
-  isOpen: boolean;
-  onClose: () => void;
-  onSubmit: () => void;
-  event: any;
+  onSubmit?: (ticket: any, ticketAmount: any) => Promise<void>;
+  event: EventInterface | DataItem;
   loading: boolean;
   surroundingNavLink: boolean;
 }
@@ -39,27 +37,45 @@ export const TicketCard = ({ event, loading, surroundingNavLink, onSubmit }: Tic
     nav = '../gallery/' + String(event.navurl);
   }
 
+  console.log('event', event);
+
   const [amount, setAmount] = useState(1);
 
   const decrementAmount = () => {
     if (amount === 1) return;
     setAmount(amount - 1);
   };
-  const incrementAmount = (e) => {
-    const availableTickets = event.maxTickets - event.soldTickets;
+  const incrementAmount = () => {
+    let availableTickets = 0;
+    if (
+      event.maxTickets !== undefined &&
+      event.maxTickets !== null &&
+      event.soldTickets !== undefined &&
+      event.soldTickets !== null &&
+      typeof event.maxTickets === 'number' &&
+      typeof event.soldTickets === 'number'
+    ) {
+      availableTickets = event.maxTickets - event.soldTickets;
+    }
     if (availableTickets <= 0) return;
 
     if (amount >= availableTickets) return;
 
-    if (event.numTickets !== 'unlimited' && amount >= event.numTickets) return;
+    if (
+      event.numTickets !== undefined &&
+      event.numTickets !== 'unlimited' &&
+      typeof event.numTickets === 'number' &&
+      amount >= event.numTickets
+    )
+      return;
     setAmount(amount + 1);
   };
 
   const SurroundingLink = ({ children }: SurroundingLinkProps) => {
     return surroundingNavLink ? (
-      <NavLink height="100%" to={nav}>
-        {children}
-      </NavLink>
+      <Box height="100%">
+        <NavLink to={nav}>{children}</NavLink>
+      </Box>
     ) : (
       <Box height="100%">{children}</Box>
     );
@@ -98,14 +114,31 @@ export const TicketCard = ({ event, loading, surroundingNavLink, onSubmit }: Tic
             </Skeleton>
           </CardBody>
           <CardFooter>
-            <Skeleton align="start" spacing={2}>
-              <SkeletonText my="2px">Event on {event.type}</SkeletonText>
-              <SkeletonText my="2px">Event in {event.id}</SkeletonText>
+            <Skeleton>
+              <SkeletonText my="2px">Event loading</SkeletonText>
+              <SkeletonText my="2px">Event loading</SkeletonText>
             </Skeleton>
           </CardFooter>
         </Card>
       </IconBox>
     );
+  }
+  let available = 0;
+  if (typeof event?.maxTickets === 'number' && typeof event?.supply === 'number') {
+    available = event?.maxTickets - event?.supply;
+  }
+  let alt = '';
+  if (event?.name != null) {
+    alt = String(event?.name);
+  }
+  let src = '';
+  if (event?.media != null) {
+    src = String(event?.media);
+  }
+
+  let multPrice = 0;
+  if (typeof event.price === 'string' && event?.price != null && amount != null) {
+    multPrice = parseFloat(event.price) * amount;
   }
   return (
     <IconBox
@@ -128,12 +161,12 @@ export const TicketCard = ({ event, loading, surroundingNavLink, onSubmit }: Tic
       <SurroundingLink>
         <Box height="full" m="20px" position="relative">
           <ChakraImage
-            alt={event.name}
+            alt={alt}
             border="0px"
             borderRadius="md"
             height="200px"
             objectFit="cover"
-            src={event.media}
+            src={src}
             width="100%"
           />
 
@@ -141,20 +174,24 @@ export const TicketCard = ({ event, loading, surroundingNavLink, onSubmit }: Tic
             <>
               <Badge
                 borderRadius="full"
+                color="grey"
                 p={1}
                 position="absolute"
                 right="5"
                 top="25"
                 variant="gray"
                 //   border="1px solid black"
-                color="grey"
               >
                 ∞ of {event.numTickets} available
               </Badge>
             </>
           ) : (
             <>
-              {event.numTickets === '0' ? (
+              {event.numTickets === '0' ||
+              event.maxTickets === undefined ||
+              event.maxTickets == null ||
+              event.supply == null ||
+              event.supply === undefined ? (
                 <>
                   <Badge
                     borderRadius="full"
@@ -180,14 +217,22 @@ export const TicketCard = ({ event, loading, surroundingNavLink, onSubmit }: Tic
                   top="15"
                   variant="gray"
                 >
-                  {event.maxTickets - event.supply} of {event.maxTickets} available
+                  {available} of {event.maxTickets} available
                 </Badge>
               )}
             </>
           )}
 
-          <Box align="left" color="black">
-            <Text as="h2" color="black.800" fontSize="xl" fontWeight="medium" mt="3" size="sm">
+          <Box color="black">
+            <Text
+              align="left"
+              as="h2"
+              color="black.800"
+              fontSize="xl"
+              fontWeight="medium"
+              mt="3"
+              size="sm"
+            >
               {event.name}
             </Text>
           </Box>
@@ -214,7 +259,7 @@ export const TicketCard = ({ event, loading, surroundingNavLink, onSubmit }: Tic
           {navButton ? (
             <>
               <Box h="14"></Box>
-              <NavLink display="flex" flexDirection="column" height="100%" to={nav}>
+              <NavLink to={nav}>
                 <Box flexGrow={1} />
                 <Button bottom="35" left="0" mt="2" position="absolute" w="100%">
                   {' '}
@@ -236,7 +281,14 @@ export const TicketCard = ({ event, loading, surroundingNavLink, onSubmit }: Tic
                   onSubmit(event, amount);
                 }}
               >
-                Buy for {event.price * amount} NEAR
+                {event.numTickets === '0' ||
+                event.maxTickets === undefined ||
+                event.supply === undefined ||
+                event.price === undefined ? (
+                  <> Sold Out </>
+                ) : (
+                  <> Buy for {multPrice} NEAR </>
+                )}
               </Button>
             </>
           )}
