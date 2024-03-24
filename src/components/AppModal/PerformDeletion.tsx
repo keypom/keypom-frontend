@@ -160,6 +160,7 @@ export const performDeletionLogic = async ({
       ),
     });
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error('Error during deletion:', error);
     // Error Modal
     setAppModal({

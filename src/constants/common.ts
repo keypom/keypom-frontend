@@ -25,6 +25,7 @@ export const MAX_FILE_SIZE = 10000000;
 export const WORKER_BASE_URL = 'https://keypom-nft-storage.keypom.workers.dev/';
 export const EVENTS_WORKER_IPFS_PINNING = 'https://stripe-worker.kp-capstone.workers.dev/ipfs-pin';
 export const EVENTS_WORKER_BASE = 'https://stripe-worker.kp-capstone.workers.dev';
+export const EMAIL_WORKER_BASE = 'https://email-worker.kp-capstone.workers.dev';
 
 export const PAGE_SIZE_LIMIT = 5;
 export const NFT_ATTEMPT_KEY = 'NFT_ATTEMPT';
