@@ -58,6 +58,8 @@ export const PurchaseModal = ({
   const [currentTicket, setCurrentTicket] = useState(ticket);
   const [numPurchased, setNumPurchased] = useState(0);
 
+  console.log('EVENT: ', event);
+
   useEffect(() => {
     setCurrentTicket(ticket);
 
