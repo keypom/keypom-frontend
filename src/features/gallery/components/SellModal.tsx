@@ -3,7 +3,6 @@ import {
   Button,
   FormControl,
   FormErrorMessage,
-  FormHelperText,
   Input,
   Modal,
   ModalCloseButton,
@@ -34,7 +33,7 @@ interface SellModalProps {
 }
 
 const disableSellButton = (nearInput: string, maxNearPrice: number, isError: boolean) => {
-  let nearInputNum = parseFloat(nearInput);
+  const nearInputNum = parseFloat(nearInput);
   return isError || isNaN(nearInputNum) || nearInputNum > maxNearPrice || nearInputNum < MIN_NEAR_SELL
 }
 
@@ -57,9 +56,9 @@ export const SellModal = ({
   };
 
   // Check if the ticket is valid to sell.
-  const ticketSellStartDateValid = false && validateStartDateAndTime(event.salesValidThrough);
+  const ticketSellStartDateValid = validateStartDateAndTime(event.salesValidThrough);
   const ticketSellEndDateValid = validateEndDateAndTime(event.salesValidThrough);
-  const ticketSellDateValid = false && validateDateAndTime(event.salesValidThrough);
+  const ticketSellDateValid = validateDateAndTime(event.salesValidThrough);
 
   const isSellError = (input === '' || !ticketSellDateValid);
   const nearInput = parseFloat(input);
@@ -79,6 +78,7 @@ export const SellModal = ({
         onCloseComplete: () => setIsTicketValidToastOpen(false),
       });
     }
+    return;
   };
 
   // Display not valid 
@@ -86,7 +86,6 @@ export const SellModal = ({
     showToast();
   }
 
-  // console.log(Date())
   return (
     <Modal isCentered closeOnOverlayClick={false} isOpen={isOpen} size={'xl'} onClose={onClose}>
       <ModalOverlay backdropFilter="blur(0px)" bg="blackAlpha.600" opacity="1" />
@@ -136,7 +135,7 @@ export const SellModal = ({
             {!isSellError ? (
               event.maxNearPrice >= nearInput && nearInput >= MIN_NEAR_SELL ?
               (
-                  <FormLabel marginTop="2" color="red.400" fontSize="sm" lineHeight="normal">
+                  <FormLabel color="red.400" fontSize="sm" lineHeight="normal" marginTop="2">
                     You will receive $NEAR, not USD when sold.
                   </FormLabel>
               ) : event.maxNearPrice < nearInput ? (
