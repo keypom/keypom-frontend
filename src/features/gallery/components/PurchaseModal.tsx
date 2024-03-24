@@ -15,7 +15,7 @@ import {
   StackDivider,
   Box,
 } from '@chakra-ui/react';
-import { createRef, useEffect, useRef, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { type WalletSelector } from '@near-wallet-selector/core';
 
 import { type EventInterface } from '@/pages/Event';
@@ -53,43 +53,22 @@ export const PurchaseModal = ({
   stripeAccountId,
 }: PurchaseModalProps) => {
   const [showErrors, setShowErrors] = useState(false);
-
-  const emailInputRef = useRef<string>();
-  // Initialize questionInputRefs with the correct length and fill it with refs
-  const questionInputRefs = useRef({});
-
-  useEffect(() => {
-    // Dynamically create a ref for each question and store it in the questionInputRefs object
-    event.questions.forEach((question, index) => {
-      if (!questionInputRefs.current[question.question]) {
-        questionInputRefs.current[question.question] = createRef();
-      }
-    });
-  }, [event.questions]);
+  const [email, setEmail] = useState('');
+  const [questionResponses, setQuestionResponses] = useState({});
 
   const preOnSubmit = (type) => {
-    const emailValue = emailInputRef.current?.value || '';
-    console.log('emailValue', emailValue);
-    if (emailValue === '') {
+    if (email === '') {
       setShowErrors(true);
       return;
     }
 
-    // Create an object that maps each question to its answer
-    const questionValues = {};
-    for (let i = 0; i < event.questions.length; i++) {
-      const required = event.questions[i].required;
-
-      if (questionInputRefs.current[event.questions[i].question].current !== null) {
-        const curAnswer = questionInputRefs.current[event.questions[i].question].current.value;
-        if (required && !curAnswer) {
-          setShowErrors(true); // Assume we show errors if email is empty
-          return;
-        }
-
-        questionValues[event.questions[i].question] = curAnswer;
-      } else if (required) {
-        setShowErrors(true); // Assume we show errors if email is empty
+    for (const question of event.questions) {
+      if (
+        question.required &&
+        (questionResponses[question.question] === '' ||
+          questionResponses[question.question] === undefined)
+      ) {
+        setShowErrors(true);
         return;
       }
     }
@@ -97,7 +76,7 @@ export const PurchaseModal = ({
     setShowErrors(false); // Reset error state before validation
 
     // You may want to transform questionValues into the desired format for onSubmit
-    onSubmit(emailValue, questionValues, type, ticket.isSecondary);
+    onSubmit(email, questionResponses, type, ticket.isSecondary);
   };
 
   // Use the useEffect hook to set the focus when the questionValues state changes
@@ -119,51 +98,13 @@ export const PurchaseModal = ({
     setAmount(amount + 1);
   };
 
-  const EventQuestions = ({ maxToShow = 4 }: { maxToShow?: number }) => (
-    <>
-      <Heading as="h3" fontSize="2xl" fontWeight="bold">
-        Organizer Questions
-      </Heading>
-      {event.questions.slice(0, maxToShow).map((question, index) => {
-        // Ensure refs array has a ref object for each question
+  const handleEmailChange = useCallback((e) => {
+    setEmail(e.target.value);
+  }, []);
 
-        const questionKey = question.question; // Use a unique identifier for each question
-        if (questionInputRefs.current[questionKey].current === null) {
-          questionInputRefs.current[questionKey] = createRef();
-        }
-
-        const error =
-          question.required &&
-          (questionInputRefs.current[questionKey].current?.value === '' ||
-            questionInputRefs.current[questionKey].current === null);
-        return (
-          <FormControl key={index} isInvalid={error && showErrors} mt={0} w="100%">
-            <FormLabel
-              color="gray.700"
-              fontSize="md"
-              fontWeight="medium"
-              htmlFor={`question_${index}`}
-            >
-              {questionKey} {question.required && <span style={{ color: 'red' }}>*</span>}
-            </FormLabel>
-            <Input
-              ref={questionInputRefs.current[questionKey]}
-              _hover={{ borderColor: 'gray.400' }}
-              bg="gray.50"
-              borderColor="gray.300"
-              focusBorderColor="blue.500"
-              id={`question_${index}`}
-              maxLength={50}
-              size="md"
-              type="text"
-              w="100%"
-              // No onChange or value prop needed, as we're accessing the input value directly through the ref
-            />
-          </FormControl>
-        );
-      })}
-    </>
-  );
+  const handleQuestionChange = useCallback((questionText, answer) => {
+    setQuestionResponses((prev) => ({ ...prev, [questionText]: answer }));
+  }, []);
 
   // purchase button version
   const stripeRegistered = stripeEnabledEvent;
@@ -323,14 +264,53 @@ export const PurchaseModal = ({
               </VStack>
               <VStack align="stretch" p="6" spacing="6" w="full">
                 {/* Right side: Dynamic Event Questions */}
-                <EventQuestions />
+                <Heading as="h3" fontSize="2xl" fontWeight="bold">
+                  Organizer Questions
+                </Heading>
+                {event.questions.slice(0, 4).map((question, index) => {
+                  // Ensure refs array has a ref object for each question
+                  //
+                  const questionKey = question.question;
+                  const error =
+                    question.required &&
+                    (questionResponses[questionKey] === '' ||
+                      questionResponses[questionKey] === undefined);
+
+                  return (
+                    <FormControl key={index} isInvalid={error && showErrors} mt={0} w="100%">
+                      <FormLabel
+                        color="gray.700"
+                        fontSize="md"
+                        fontWeight="medium"
+                        htmlFor={`question_${index}`}
+                      >
+                        {questionKey} {question.required && <span style={{ color: 'red' }}>*</span>}
+                      </FormLabel>
+                      <Input
+                        _hover={{ borderColor: 'gray.400' }}
+                        bg="gray.50"
+                        borderColor="gray.300"
+                        focusBorderColor="blue.500"
+                        id={`question_${index}`}
+                        maxLength={50}
+                        size="md"
+                        type="text"
+                        value={questionResponses[questionKey]}
+                        w="100%"
+                        onChange={(e) => {
+                          handleQuestionChange(questionKey, e.target.value);
+                        }}
+                        // No onChange or value prop needed, as we're accessing the input value directly through the ref
+                      />
+                    </FormControl>
+                  );
+                })}
                 {/* Email and Purchase Section */}
-                <FormControl isInvalid={emailInputRef.current?.value === '' && showErrors} mb="4">
+                <FormControl isInvalid={email === '' && showErrors} mb="4">
                   <FormLabel color="gray.700" fontSize="md" fontWeight="medium" htmlFor="email">
                     Email
                   </FormLabel>
                   <Input
-                    ref={emailInputRef} // Correctly set the ref here
                     _focus={{ borderColor: 'blue.500' }}
                     _hover={{ borderColor: 'gray.400' }}
                     bg="gray.50"
@@ -342,6 +322,8 @@ export const PurchaseModal = ({
                     placeholder="Enter your email"
                     size="lg"
                     type="email"
+                    value={email}
+                    onChange={handleEmailChange}
                   />
                 </FormControl>
               </VStack>
@@ -407,12 +389,11 @@ export const PurchaseModal = ({
             </VStack>
             <VStack align="stretch" paddingTop="6" spacing="6" w="full">
               {/* Email and Purchase Section */}
-              <FormControl isInvalid={isError && showErrors}>
+              <FormControl isInvalid={email === '' && showErrors}>
                 <FormLabel fontSize="lg" fontWeight="medium" htmlFor="email">
                   Email
                 </FormLabel>
                 <Input
-                  ref={emailInputRef} // Correctly set the ref here
                   _focus={{ borderColor: 'blue.500' }}
                   _hover={{ borderColor: 'gray.400' }}
                   bg="gray.50"
@@ -423,6 +404,8 @@ export const PurchaseModal = ({
                   placeholder="Enter your email"
                   size="lg"
                   type="email"
+                  value={email}
+                  onChange={handleEmailChange}
                 />
               </FormControl>
             </VStack>
