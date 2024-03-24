@@ -296,6 +296,11 @@ export default function Gallery() {
         eventId: event.event_id,
       });
 
+      // filter out events with null info
+      if (eventInfo === null) {
+        return null;
+      }
+
       // for each ticket in the event, get the supply
       let supply = 0;
       let maxTickets = 0;
@@ -401,7 +406,7 @@ export default function Gallery() {
         dateString = dateAndTimeToText(eventInfo.date);
       }
 
-      if (event === undefined || eventInfo === undefined) {
+      if (event == null || event === undefined || eventInfo == null || eventInfo === undefined) {
         return null;
       }
 
