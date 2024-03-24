@@ -120,6 +120,8 @@ export interface SellDropInfo {
 }
 
 export default function Event() {
+  const simulateStripe: boolean = false;
+
   const params = useParams();
   if (params.eventID == null || params.eventID === undefined) {
     return (
@@ -443,8 +445,10 @@ export default function Event() {
         eventName: drop.name,
         ticketType: dropData.drop_config.nft_keys_config.token_metadata.title,
         eventDate: JSON.stringify(drop.date),
+        //TODO MIN: change this back
+        ticketOwner: simulateStripe ? undefined : "minqi.testnet",
         // ticketOwner: accountId || undefined, // (if signed in, this is signed in account, otherwise its none/empty)
-        ticketOwner: undefined, // (if signed in, this is signed in account, otherwise its none/empty)
+        // ticketOwner: undefined, // (if signed in, this is signed in account, otherwise its none/empty)
         eventId: meta.eventId,
         dropId: ticketBeingPurchased.id,
         funderId,
@@ -532,8 +536,9 @@ export default function Event() {
           newKeys.push({
             public_key: publicKey,
             metadata: encryptedValues,
+            //TODO MIN: change this back
             //key_owner: accountId,
-            key_owner: null
+            key_owner: simulateStripe ? null : "minqi.testnet"
           });
         }
 
