@@ -46,6 +46,7 @@ function EventPagePreview({
       )}
       <VStack alignItems="left" px={16} spacing={4} textAlign="left" w="100%">
         <Heading
+          isTruncated
           color="gray.600"
           fontSize="lg"
           fontWeight="700"
@@ -56,13 +57,20 @@ function EventPagePreview({
           {eventName || 'Event name'}
         </Heading>
         <HStack align="top" spacing={4} w="100%">
-          <VStack align="start" w="60%">
+          <VStack align="start" maxW="60%" w="60%">
             <Heading color="gray.600" fontFamily="body" fontSize="2xs" fontWeight="700">
               Event details
             </Heading>
             {eventDescription ? (
               // Assuming you want to display the event description when it exists
-              <Heading color="gray.600" fontFamily="body" fontSize="2xs" fontWeight="400">
+              <Heading
+                color="gray.600"
+                fontFamily="body"
+                fontSize="2xs"
+                fontWeight="400"
+                whiteSpace="normal" // This will ensure that text wraps
+                wordBreak="break-word"
+              >
                 {eventDescription}
               </Heading>
             ) : (
@@ -82,7 +90,14 @@ function EventPagePreview({
               </Heading>
               {eventLocation ? (
                 // Assuming you want to display the event description when it exists
-                <Heading color="gray.600" fontFamily="body" fontSize="2xs" fontWeight="400">
+                <Heading
+                  color="gray.600"
+                  fontFamily="body"
+                  fontSize="2xs"
+                  fontWeight="400"
+                  whiteSpace="normal" // This will ensure that text wraps
+                  wordBreak="break-word"
+                >
                   {eventLocation}
                 </Heading>
               ) : (

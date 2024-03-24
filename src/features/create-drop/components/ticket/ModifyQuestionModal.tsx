@@ -1,5 +1,7 @@
 import { Button, Input, Modal, ModalContent, ModalOverlay, Text, VStack } from '@chakra-ui/react';
 
+import { EMAIL_QUESTION } from './helpers';
+
 interface ModifyQuestionModalProps {
   allQuestions: Array<{ id: string; isRequired: boolean }>;
   isOpen: boolean;
@@ -17,7 +19,10 @@ export const ModifyQuestionModal = ({
   setUserInput,
   originalQuestion,
 }: ModifyQuestionModalProps) => {
-  const canAddQuestion = !allQuestions.some((question) => question.id === userInput);
+  let canAddQuestion = !allQuestions.some((question) => question.id === userInput);
+  if (userInput === EMAIL_QUESTION) {
+    canAddQuestion = false;
+  }
   return (
     <Modal
       isOpen={isOpen}

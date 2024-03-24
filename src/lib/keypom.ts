@@ -7,7 +7,6 @@ import {
   getFTMetadata,
   claim,
   getKeyInformation,
-  hashPassword,
   getPubFromSecret,
   formatNearAmount,
   formatLinkdropUrl,
@@ -195,7 +194,6 @@ class KeypomJS {
 
   GenerateResellSignature = async (keypair) => {
     const sk_bytes = bs58.decode(keypair.secretKey);
-    // const secret_key = Buffer.from(sk_bytes).toString('base64');
 
     const signing_message = await this.viewAccount.viewFunctionV2({
       contractId: KEYPOM_EVENTS_CONTRACT,
@@ -215,7 +213,6 @@ class KeypomJS {
     const message_bytes = new TextEncoder().encode(`${message}`);
 
     const signature = nacl.sign.detached(message_bytes, sk_bytes);
-    // const isValid = nacl.sign.detached.verify(message_bytes, signature, keypair.publicKey.data)
     const base64_signature = naclUtil.encodeBase64(signature);
 
     return [base64_signature, signature];
@@ -335,21 +332,47 @@ class KeypomJS {
     }
   };
 
-  claimTicket = async (secretKey: string, password: string) => {
-    let keyInfo = await getKeyInformation({ secretKey });
-    const publicKey: string = getPubFromSecret(secretKey);
-    const passwordForClaim = await hashPassword(
-      password + publicKey + keyInfo.cur_key_use.toString(),
+  onEventTicketScanned = async (secretKey: string) => {
+    const pubKey = getPubFromSecret(secretKey);
+
+    const keypomGlobalSecretKey = await this.GetGlobalKey();
+    const keypomKeypair = nearAPI.KeyPair.fromString(keypomGlobalSecretKey);
+    await myKeyStore.setKey(networkId, KEYPOM_EVENTS_CONTRACT, keypomKeypair);
+    const keypomAccount = new nearAPI.Account(
+      this.nearConnection.connection,
+      KEYPOM_EVENTS_CONTRACT,
     );
 
-    try {
-      await claim({ secretKey, password: passwordForClaim, accountId: 'foo' });
-    } catch (e) {}
+    const sk_bytes = bs58.decode(secretKey);
+    const signingMessage = await this.viewAccount.viewFunctionV2({
+      contractId: KEYPOM_EVENTS_CONTRACT,
+      methodName: 'get_signing_message',
+      args: {},
+    });
+    const keyInfo = await this.viewAccount.viewFunctionV2({
+      contractId: KEYPOM_EVENTS_CONTRACT,
+      methodName: 'get_key_information',
+      args: {
+        key: pubKey,
+      },
+    });
+    const message_nonce = keyInfo.message_nonce;
+    const message = `${String(signingMessage)}${String(message_nonce.toString())}`;
+    const message_bytes = new TextEncoder().encode(`${message}`);
+    const signature = nacl.sign.detached(message_bytes, sk_bytes);
+    const base64Signature = naclUtil.encodeBase64(signature);
+    const gasToAttach = keyInfo.required_gas;
 
-    keyInfo = await getKeyInformation({ secretKey });
-    if (keyInfo.remaining_uses === 2) {
-      throw new Error('Password is incorrect. Please try again.');
-    }
+    await keypomAccount.functionCall({
+      contractId: KEYPOM_EVENTS_CONTRACT,
+      methodName: 'claim',
+      args: {
+        account_id: KEYPOM_EVENTS_CONTRACT,
+        signature: base64Signature,
+        linkdrop_pk: pubKey,
+      },
+      gas: gasToAttach,
+    });
   };
 
   // valid contract id -> v1-3.keypom.testnet
@@ -524,7 +547,7 @@ class KeypomJS {
   }: {
     accountId: string;
     eventId: string;
-  }): Promise<FunderEventMetadata> => {
+  }): Promise<FunderEventMetadata | null> => {
     try {
       const funderInfo = await this.viewCall({
         methodName: 'get_funder_info',
@@ -533,11 +556,14 @@ class KeypomJS {
 
       const funderMeta: Record<string, FunderEventMetadata> = JSON.parse(funderInfo.metadata);
       const eventInfo: FunderEventMetadata = funderMeta[eventId];
+
       eventInfo.artwork = `${CLOUDFLARE_IPFS}/${eventInfo.artwork}`;
 
       return eventInfo;
     } catch (error) {
-      throw new Error('Error getting event info');
+      /* eslint-disable no-console */
+      console.error('Error getting event info', error);
+      return null;
     }
   };
 
@@ -577,7 +603,6 @@ class KeypomJS {
       ),
     );
 
-    console.log('allPagesDrops', allPagesDrops);
     let allDrops: EventDrop[] = allPagesDrops.flat(); // Assuming allPagesDrops is already defined and flattened.
     allDrops = allDrops.filter((drop) => {
       if (
@@ -591,7 +616,6 @@ class KeypomJS {
 
       return isValidTicketNFTMetadata(drop.drop_config.nft_keys_config.token_metadata);
     });
-    console.log('Fetched all drops', allDrops);
 
     // Add cloudflare IPFS prefix to media
     allDrops = allDrops.map((drop) => {

@@ -17,11 +17,11 @@ import { type ColumnItem } from '@/components/Table/types';
 import { CopyIcon, DeleteIcon } from '@/components/Icons';
 import { DataTable } from '@/components/Table';
 import { truncateAddress } from '@/utils/truncateAddress';
+import { type DateAndTimeInfo } from '@/lib/eventsHelpers';
 
 import {
   type TicketDropFormData,
   type EventStepFormProps,
-  type EventDate,
 } from '../../routes/CreateTicketDropPage';
 
 import { ModifyTicketModal } from './ModifyTicketModal';
@@ -71,26 +71,26 @@ export const defaultTicket = {
   name: '',
   description: '',
   artwork: undefined,
-  price: '0',
+  priceNear: '0',
   salesValidThrough: {
-    startDate: null,
-    endDate: null,
+    startDate: 0,
   },
   passValidThrough: {
-    startDate: null,
-    endDate: null,
+    startDate: 0,
   },
   maxSupply: 0,
+  maxPurchases: 0,
 };
 
 export interface TicketInfoFormMetadata {
   name: string;
   description: string;
   artwork: File | undefined;
-  price: string;
-  salesValidThrough: EventDate;
-  passValidThrough: EventDate;
+  priceNear: string;
+  salesValidThrough: DateAndTimeInfo;
+  passValidThrough: DateAndTimeInfo;
   maxSupply: number;
+  maxPurchases: number;
 }
 
 const CreateTicketsForm = (props: EventStepFormProps) => {
@@ -158,7 +158,7 @@ const CreateTicketsForm = (props: EventStepFormProps) => {
 
     return data.map((item: TicketInfoFormMetadata) => ({
       id: item.name,
-      price: item.price === '0' ? 'Free' : item.price,
+      price: item.priceNear === '0' ? 'Free' : item.priceNear,
       numTickets: item.maxSupply,
       name: (
         <>
@@ -274,6 +274,7 @@ const CreateTicketsForm = (props: EventStepFormProps) => {
         currentTicket={currentTicket}
         editedTicket={editedTicket}
         eventDate={formData.date.value}
+        formData={formData}
         isOpen={isModifyTicketModalOpen}
         setCurrentTicket={setCurrentTicket}
         onClose={handleModalClose}

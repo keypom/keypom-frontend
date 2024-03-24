@@ -15,13 +15,15 @@ import {
   Text,
   VStack,
   ModalContent,
+  useToast,
 } from '@chakra-ui/react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { type Wallet } from '@near-wallet-selector/core';
 
+import { share } from '@/utils/share';
 import { get } from '@/utils/localStorage';
-import { DeleteIcon } from '@/components/Icons';
+import { CopyIcon, DeleteIcon } from '@/components/Icons';
 import { type ColumnItem, type DataItem } from '@/components/Table/types';
 import { DataTable } from '@/components/Table';
 import { Breadcrumbs } from '@/components/Breadcrumbs';
@@ -103,6 +105,8 @@ const eventTableColumns: ColumnItem[] = [
 
 export default function EventManagerPage() {
   const { id: eventId = '' } = useParams();
+  const toast = useToast();
+
   const navigate = useNavigate();
   const { setAppModal } = useAppContext();
   const [wallet, setWallet] = useState<Wallet>();
@@ -235,7 +239,6 @@ export default function EventManagerPage() {
         accountId: accountId!,
         eventId,
       });
-      console.log('ticketsForEvent', ticketsForEvent);
 
       if (ticketsForEvent == null || ticketsForEvent.length === 0) {
         setIsErr(true);
@@ -402,6 +405,17 @@ export default function EventManagerPage() {
     }));
   };
 
+  const handleScanPageCopyClick = () => {
+    const link = `${window.location.origin}/scan/event/${accountId}:${(eventId || '').toString()}`;
+    share(link);
+    toast({ title: 'Copied!', status: 'success', duration: 1000, isClosable: true });
+  };
+
+  const handleScanPageShareClick = () => {
+    const url = `/scan/event/${accountId}:${(eventId || '').toString()}`;
+    window.open(url, '_blank');
+  };
+
   const data = useMemo(
     () => getTableRows(ticketData, handleDeleteClick),
     [getTableRows, ticketData, ticketData.length, handleDeleteClick],
@@ -460,7 +474,35 @@ export default function EventManagerPage() {
             </Button>
           </VStack>
         </HStack>
-        <HStack w="50%">
+
+        <VStack align="left" w="50%">
+          <HStack justify="space-between" paddingBottom="4" w="100%">
+            <Heading>Scan Tickets</Heading>
+            <HStack spacing="0">
+              <Button
+                borderRadius="6xl"
+                mr="1"
+                size="md"
+                variant="icon"
+                onClick={() => {
+                  handleScanPageCopyClick();
+                }}
+              >
+                <CopyIcon />
+              </Button>
+              <Button
+                borderRadius="6xl"
+                mr="1"
+                size="md"
+                variant="icon"
+                onClick={() => {
+                  handleScanPageShareClick();
+                }}
+              >
+                <ShareIcon color="gray.600" height="16px" width="16px" />
+              </Button>
+            </HStack>
+          </HStack>
           <Box
             bg="border.box"
             border="2px solid transparent"
@@ -478,7 +520,7 @@ export default function EventManagerPage() {
               <Heading>{getSoldKeys()}</Heading>
             </VStack>
           </Box>
-        </HStack>
+        </VStack>
       </VStack>
       {/* Desktop Menu */}
       <Show above="md">

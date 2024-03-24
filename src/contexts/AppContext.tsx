@@ -1,4 +1,4 @@
-import { createContext, type PropsWithChildren, useContext, useState } from 'react';
+import { createContext, type PropsWithChildren, useContext, useState, useEffect } from 'react';
 import { type ButtonProps } from '@chakra-ui/react';
 
 import { set } from '@/utils/localStorage';
@@ -34,19 +34,71 @@ export interface AppModalValues {
 
 interface AppContextValues {
   appModal: AppModalValues;
+  fetchAttempts: number;
   setAppModal: (args: AppModalValues) => void;
+  setTriggerPriceFetch: (trigger: boolean) => void;
+  nearPrice?: number;
+  setNearPrice: (price: number) => void;
 }
 
 const AppContext = createContext<AppContextValues | null>(null);
+
+const fetchPrice = async (url, parseData) => {
+  try {
+    const response = await fetch(url);
+    const data = await response.json();
+    return parseData(data);
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.error('Fetch error:', error);
+    return null;
+  }
+};
 
 export const AppContextProvider = ({ children }: PropsWithChildren) => {
   const [appModal, setAppModal] = useState<AppModalValues>({
     isOpen: false,
   });
+  const [nearPrice, setNearPrice] = useState<number>();
+  const [fetchAttempts, setFetchAttempts] = useState<number>(0);
+  const [triggerPriceFetch, setTriggerPriceFetch] = useState<boolean>(true);
+
+  useEffect(() => {
+    const setPriceWithFallback = async () => {
+      const coingeckoPrice = await fetchPrice(
+        'https://api.coingecko.com/api/v3/simple/price?ids=near&vs_currencies=usd',
+        (data) => data.near.usd,
+      );
+
+      if (coingeckoPrice !== null) {
+        setNearPrice(coingeckoPrice);
+        return;
+      }
+
+      const binancePrice = await fetchPrice(
+        'https://api.binance.com/api/v3/ticker/price?symbol=NEARUSDT',
+        (data) => data.price,
+      );
+
+      if (binancePrice !== null) {
+        setNearPrice(parseFloat(binancePrice));
+      }
+    };
+
+    if (triggerPriceFetch) {
+      setFetchAttempts(fetchAttempts + 1);
+      setTriggerPriceFetch(false);
+      setPriceWithFallback();
+    }
+  }, [triggerPriceFetch]);
 
   const value = {
     appModal,
     setAppModal,
+    fetchAttempts,
+    nearPrice,
+    setTriggerPriceFetch,
+    setNearPrice,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

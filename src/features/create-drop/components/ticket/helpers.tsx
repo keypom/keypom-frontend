@@ -5,7 +5,6 @@ import keypomInstance from '@/lib/keypom';
 import {
   calculateDepositCost,
   type TicketMetadataExtra,
-  type DateAndTimeInfo,
   type FunderEventMetadata,
   type FunderMetadata,
   type TicketInfoMetadata,
@@ -21,6 +20,8 @@ import { get } from '@/utils/localStorage';
 import { KEYPOM_MARKETPLACE_CONTRACT } from '@/constants/common';
 
 import { type TicketDropFormData } from '../../routes/CreateTicketDropPage';
+
+export const EMAIL_QUESTION = 'Email address';
 
 async function fileToArrayBuffer(file: File): Promise<ArrayBuffer> {
   return await new Promise((resolve, reject) => {
@@ -101,19 +102,12 @@ export const estimateCosts = async ({
   const funderMetadata: FunderMetadata =
     funderInfo === undefined || funderInfo === null ? {} : JSON.parse(funderInfo.metadata);
 
-  const date: DateAndTimeInfo = {
-    startDate: formData.date.value.startDate!.getTime(),
-    endDate: formData.date.value.endDate?.getTime() || undefined,
-    startTime: formData.date.value.startTime,
-    endTime: formData.date.value.endTime,
-  };
-
   const eventMetadata: FunderEventMetadata = {
     name: formData.eventName.value,
     dateCreated: Date.now().toString(),
     description: formData.eventDescription.value,
     location: formData.eventLocation.value,
-    date,
+    date: formData.date.value,
     artwork: 'bafybeiehk3mzsj2ih4u4fkvmkfrome3kars7xyy3bxh6xfjquws4flglqa',
     questions: formData.questions.map((question) => ({
       question: question.question,
@@ -155,13 +149,9 @@ export const estimateCosts = async ({
 
     ticket_information[`${dropId}`] = {
       max_tickets: ticket.maxSupply,
-      price: parseNearAmount(ticket.price)!.toString(),
-      sale_start: ticket.salesValidThrough.startDate
-        ? ticket.salesValidThrough.startDate.getTime()
-        : undefined,
-      sale_end: ticket.salesValidThrough.endDate
-        ? ticket.salesValidThrough.endDate.getTime()
-        : undefined,
+      price: parseNearAmount(ticket.priceNear)!.toString(),
+      sale_start: ticket.salesValidThrough.startDate || undefined,
+      sale_end: ticket.salesValidThrough.endDate || undefined,
     };
 
     const dropConfig = {
@@ -194,7 +184,7 @@ export const estimateCosts = async ({
     costBreakdown,
   }));
 
-  setCurrentStep((prevStep: number) => (prevStep < 3 ? prevStep + 1 : prevStep));
+  setCurrentStep((prevStep: number) => prevStep + 1);
 };
 
 export const createPayload = async ({
@@ -202,13 +192,14 @@ export const createPayload = async ({
   formData,
   eventArtworkCid,
   ticketArtworkCids,
+  eventId,
 }: {
   accountId: string;
   formData: TicketDropFormData;
   eventArtworkCid: string;
   ticketArtworkCids: string[];
-}): Promise<Action[]> => {
-  const eventId = Date.now().toString();
+  eventId: string;
+}): Promise<{ actions: Action[]; dropIds: string[] }> => {
   const masterKey = get('MASTER_KEY');
 
   const funderInfo = await keypomInstance.viewCall({
@@ -218,19 +209,12 @@ export const createPayload = async ({
   const funderMetadata: FunderMetadata =
     funderInfo === undefined || funderInfo === null ? {} : JSON.parse(funderInfo.metadata);
 
-  const date: DateAndTimeInfo = {
-    startDate: formData.date.value.startDate!.getTime(),
-    endDate: formData.date.value.endDate?.getTime() || undefined,
-    startTime: formData.date.value.startTime,
-    endTime: formData.date.value.endTime,
-  };
-
   const eventMetadata: FunderEventMetadata = {
     name: formData.eventName.value,
     dateCreated: Date.now().toString(),
     description: formData.eventDescription.value,
     location: formData.eventLocation.value,
-    date,
+    date: formData.date.value,
     artwork: eventArtworkCid,
     questions: formData.questions.map((question) => ({
       question: question.question,
@@ -270,25 +254,13 @@ export const createPayload = async ({
       .replaceAll(' ', '')
       .toLocaleLowerCase()}`;
 
-    const passValidThroughTime: DateAndTimeInfo = {
-      startDate: ticket.passValidThrough.startDate!.getTime(),
-      endDate: ticket.passValidThrough.endDate?.getTime() || undefined,
-      startTime: ticket.passValidThrough.startTime,
-      endTime: ticket.passValidThrough.endTime,
-    };
-    const salesValidThroughTime: DateAndTimeInfo = {
-      startDate: ticket.salesValidThrough.startDate!.getTime(),
-      endDate: ticket.salesValidThrough.endDate?.getTime() || undefined,
-      startTime: ticket.salesValidThrough.startTime,
-      endTime: ticket.salesValidThrough.endTime,
-    };
-
     const ticketExtra: TicketMetadataExtra = {
       dateCreated: Date.now().toString(),
-      price: parseNearAmount(ticket.price)!.toString(),
-      salesValidThrough: salesValidThroughTime,
-      passValidThrough: passValidThroughTime,
+      price: parseNearAmount(ticket.priceNear)!.toString(),
+      salesValidThrough: ticket.salesValidThrough,
+      passValidThrough: ticket.passValidThrough,
       maxSupply: ticket.maxSupply,
+      limitPerUser: ticket.maxPurchases,
       eventId,
     };
 
@@ -301,13 +273,9 @@ export const createPayload = async ({
 
     ticket_information[`${dropId}`] = {
       max_tickets: ticket.maxSupply,
-      price: parseNearAmount(ticket.price)!.toString(),
-      sale_start: ticket.salesValidThrough.startDate
-        ? ticket.salesValidThrough.startDate.getTime()
-        : undefined,
-      sale_end: ticket.salesValidThrough.endDate
-        ? ticket.salesValidThrough.endDate.getTime()
-        : undefined,
+      price: parseNearAmount(ticket.priceNear)!.toString(),
+      sale_start: ticket.salesValidThrough.startDate || undefined,
+      sale_end: ticket.salesValidThrough.endDate || undefined,
     };
 
     const dropConfig = {
@@ -364,5 +332,5 @@ export const createPayload = async ({
     },
   ];
 
-  return actions;
+  return { actions, dropIds: drop_ids };
 };

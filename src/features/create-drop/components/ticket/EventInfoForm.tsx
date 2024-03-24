@@ -1,15 +1,15 @@
-import { Input, HStack, VStack, Show, Hide } from '@chakra-ui/react';
+import { Input, HStack, VStack, Show, Hide, Box } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
 
 import CustomDateRangePicker from '@/components/DateRangePicker/DateRangePicker';
 import { ImageFileInput } from '@/components/ImageFileInput';
 import CustomDateRangePickerMobile from '@/components/DateRangePicker/MobileDateRangePicker';
 import { FormControlComponent } from '@/components/FormControl';
+import { dateAndTimeToText } from '@/features/drop-manager/utils/parseDates';
 
 import {
   type TicketDropFormData,
   type EventStepFormProps,
-  type EventDate,
 } from '../../routes/CreateTicketDropPage';
 
 import EventPagePreview from './EventPagePreview';
@@ -22,8 +22,7 @@ export const ClearEventInfoForm = () => {
     eventLocation: { value: '' },
     date: {
       value: {
-        startDate: null,
-        endDate: null,
+        startDate: 0,
       },
     },
   };
@@ -32,7 +31,8 @@ export const ClearEventInfoForm = () => {
 export const EventInfoFormValidation = (formData: TicketDropFormData) => {
   const newFormData = { ...formData };
   let isErr = false;
-  return { isErr, newFormData };
+  return { isErr, newFormData: formData };
+
   if (formData.eventName.value === '') {
     newFormData.eventName = { ...formData.eventName, error: 'Event name is required' };
     isErr = true;
@@ -61,47 +61,6 @@ export const EventInfoFormValidation = (formData: TicketDropFormData) => {
   }
 
   return { isErr, newFormData };
-};
-
-export const eventDateToPlaceholder = (defaultTo: string, date: EventDate) => {
-  if (!date.startDate || !date.endDate) {
-    return defaultTo; // Return the default placeholder if start or end date is not provided
-  }
-
-  let formattedDate = '';
-  let timeZone = '';
-
-  const start = new Date(date.startDate);
-  const end = new Date(date.endDate);
-  const startYear = start.getFullYear();
-  const endYear = end.getFullYear();
-  const startMonth = start.toLocaleDateString(undefined, { month: 'short' });
-  const startDay = start.toLocaleDateString(undefined, { day: 'numeric' });
-  const endMonth = end.toLocaleDateString(undefined, { month: 'short' });
-  const endDay = end.toLocaleDateString(undefined, { day: 'numeric' });
-
-  // Extract the time zone from the start date and use it at the end
-  timeZone = start.toLocaleDateString(undefined, { timeZoneName: 'short' }).split(', ').pop() || '';
-
-  formattedDate = `${startMonth} ${startDay}`;
-  if (date.startTime) {
-    formattedDate += ` (${date.startTime})`;
-  }
-
-  // Check if the year is the same for start and end date to decide if it should be repeated.
-  const sameYear = startYear === endYear;
-
-  formattedDate += ` - ${endMonth} ${endDay}`;
-  if (date.endTime) {
-    formattedDate += ` (${date.endTime})`;
-  }
-
-  // Append the year at the end only if start and end years are the same
-  formattedDate += sameYear ? `, ${endYear}` : `, ${startYear}, ${endYear}`;
-  // Append the time zone at the end
-  formattedDate += `, ${timeZone}`;
-
-  return formattedDate;
 };
 
 const EventInfoForm = (props: EventStepFormProps) => {
@@ -138,8 +97,8 @@ const EventInfoForm = (props: EventStepFormProps) => {
   };
 
   useEffect(() => {
-    const datePlaceholder = eventDateToPlaceholder('Select date and time', formData.date.value);
-    const datePreviewText = eventDateToPlaceholder('', formData.date.value);
+    const datePlaceholder = dateAndTimeToText(formData.date.value, 'Select date and time');
+    const datePreviewText = dateAndTimeToText(formData.date.value);
 
     setDatePlaceholder(datePlaceholder);
     setDatePreviewText(datePreviewText);
@@ -288,7 +247,7 @@ const EventInfoForm = (props: EventStepFormProps) => {
           my={margins}
         >
           <ImageFileInput
-            accept=" image/jpeg, image/png, image/gif"
+            accept="image/jpeg, image/png, image/gif"
             errorMessage={formData.eventArtwork.error}
             isInvalid={!!formData.eventArtwork.error}
             preview={preview}
@@ -301,13 +260,15 @@ const EventInfoForm = (props: EventStepFormProps) => {
       </VStack>
       <Hide below="md">
         <VStack align="start" paddingTop={5} w="100%">
-          <EventPagePreview
-            eventArtwork={preview}
-            eventDate={datePreviewText}
-            eventDescription={formData.eventDescription.value}
-            eventLocation={formData.eventLocation.value}
-            eventName={formData.eventName.value}
-          />
+          <Box maxW="lg" w="100%">
+            <EventPagePreview
+              eventArtwork={preview}
+              eventDate={datePreviewText}
+              eventDescription={formData.eventDescription.value}
+              eventLocation={formData.eventLocation.value}
+              eventName={formData.eventName.value}
+            />
+          </Box>
         </VStack>
       </Hide>
     </HStack>

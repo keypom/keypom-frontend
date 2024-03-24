@@ -11,7 +11,6 @@ import {
   HStack,
   Hide,
   Show,
-  VStack,
 } from '@chakra-ui/react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ExternalLinkIcon } from '@chakra-ui/icons';
@@ -30,6 +29,7 @@ import {
   type TicketMetadataExtra,
   type DateAndTimeInfo,
   type EventDrop,
+  type FunderEventMetadata,
 } from '@/lib/eventsHelpers';
 import keypomInstance from '@/lib/keypom';
 import { KEYPOM_EVENTS_CONTRACT, KEYPOM_MARKETPLACE_CONTRACT } from '@/constants/common';
@@ -159,7 +159,6 @@ export default function Event() {
   const [isLoading, setIsLoading] = useState(true);
   const [noDrop, setNoDrop] = useState(false);
   const [input, setInput] = useState('');
-  const [email, setEmail] = useState('');
   const [ticketList, setTicketList] = useState<TicketInterface[]>([]);
   const [resaleTicketList, setResaleTicketList] = useState<TicketInterface[]>([]);
   const [areTicketsLoading, setAreTicketsLoading] = useState(true);
@@ -248,14 +247,17 @@ export default function Event() {
         });
       }
 
-      const drop = await keypomInstance.getEventInfo({
+      const meta2: FunderEventMetadata | null = await keypomInstance.getEventInfo({
         accountId: funderId,
         eventId: keyinfoEventId,
       });
 
-      const meta2 = drop;
+      if (meta2 == null) {
+        throw new Error('The event does not exist.');
+      }
+
       let dateString = '';
-      if (meta2?.date != null) {
+      if (meta2.date != null) {
         dateString = dateAndTimeToText(meta2.date);
       }
       setSellDropInfo({
@@ -308,12 +310,10 @@ export default function Event() {
   const OpenPurchaseModal = async (ticket, ticketAmount) => {
     setTicketBeingPurchased(ticket);
     setTicketAmount(ticketAmount);
-    setEmail('');
     onOpen();
   };
 
   const ClosePurchaseModal = () => {
-    setEmail('');
     setTicketAmount(1);
     onClose();
   };
@@ -359,7 +359,7 @@ export default function Event() {
     return publicKey;
   }
 
-  const PurchaseTicket = async (questionValues, purchaseType, isSecondary) => {
+  const PurchaseTicket = async (email, questionValues, purchaseType, isSecondary) => {
     navigate('./');
 
 
@@ -379,7 +379,7 @@ export default function Event() {
       eventId: keyinfoEventId,
     });
 
-    if (drop.pubKey == null || drop.pubKey === undefined) {
+    if (drop == null || drop === undefined || drop.pubKey == null || drop.pubKey === undefined) {
       toast({
         title: 'Purchase failed',
         description: 'This event does not have a public key',
@@ -460,11 +460,6 @@ export default function Event() {
       baseUrl: window.location.origin,
       priceNear: ticketBeingPurchased.price,
     };
-
-    // console.log("dropData nft metadata", dropData.drop_config.nft_keys_config);
-
-    // console.log('workerPayload', workerPayload);
-    // console.log('meta', JSON.stringify(meta));
 
     if (purchaseType === 'free') {
       let bot = await botCheck()
@@ -900,6 +895,7 @@ export default function Event() {
         description: meta.description,
         salesValidThrough: extra.salesValidThrough,
         passValidThrough: extra.passValidThrough,
+        limitPerUser: extra.limitPerUser,
         supply,
         maxTickets: extra.maxSupply,
         soldTickets: supply,
@@ -989,6 +985,11 @@ export default function Event() {
       try {
         const drop = await keypomInstance.getEventInfo({ accountId: funderId, eventId });
 
+        if (drop == null) {
+          setNoDrop(true);
+          return;
+        }
+
         const meta = drop;
 
         let dateString = '';
@@ -1020,14 +1021,8 @@ export default function Event() {
         setIsLoading(false);
       } catch (error) {
         // eslint-disable-next-line
-        console.log('error loading event', error);
-        // toast({
-        //   title: 'Error loading event',
-        //   description: `please try again later`,
-        //   status: 'error',
-        //   duration: 5000,
-        //   isClosable: true,
-        // });
+        console.error('error loading event: ', error);
+
         setNoDrop(true);
       }
     };
@@ -1102,7 +1097,7 @@ export default function Event() {
 
             <Text> {event.description} </Text>
           </Box>
-          <Box flex="1" textAlign="left">
+          <Box flex="1" mr="20" textAlign="left">
             <Text
               as="h2"
               color="black.800"
@@ -1140,7 +1135,7 @@ export default function Event() {
         </HStack>
       </Show>
       <Hide above="md">
-        <VStack>
+        <Box>
           <Box flex="2" mr="20" textAlign="left">
             <Text
               as="h2"
@@ -1155,7 +1150,7 @@ export default function Event() {
 
             <Text> {event.description} </Text>
           </Box>
-          <Box flex="1" textAlign="left">
+          <Box flex="2" textAlign="left">
             <Text
               as="h2"
               color="black.800"
@@ -1166,13 +1161,10 @@ export default function Event() {
             >
               Location
             </Text>
-
             <Text>{event.location}</Text>
-
             <a href={mapHref} rel="noopener noreferrer" target="_blank">
               Open in Google Maps <ExternalLinkIcon mx="2px" />
             </a>
-
             <Text
               as="h2"
               color="black.800"
@@ -1185,12 +1177,11 @@ export default function Event() {
               Date
             </Text>
             <Text color="gray.400">{event.date}</Text>
-
             <Button mt="4" variant="primary" onClick={verifyOnOpen}>
               Verify Ticket
             </Button>
           </Box>
-        </VStack>
+        </Box>
       </Hide>
 
       <Heading as="h3" my="5" size="lg">
@@ -1248,13 +1239,10 @@ export default function Event() {
 
       <PurchaseModal
         amount={ticketAmount}
-        email={email}
         event={event}
         isOpen={isOpen}
         selector={selector}
         setAmount={setTicketAmount}
-        setEmail={setEmail}
-        stripeAccountId={stripeAccountId}
         stripeEnabledEvent={stripeEnabledEvent}
         ticket={ticketBeingPurchased}
         onClose={ClosePurchaseModal}

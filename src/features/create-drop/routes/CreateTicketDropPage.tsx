@@ -1,14 +1,20 @@
-import { Button, HStack } from '@chakra-ui/react';
+import { Button, HStack, useToast } from '@chakra-ui/react';
 import { type ReactElement, useState, useEffect } from 'react';
 import { type Action, type Wallet } from '@near-wallet-selector/core';
 
+import keypomInstance from '@/lib/keypom';
 import { get } from '@/utils/localStorage';
 import { type IBreadcrumbItem } from '@/components/Breadcrumbs';
 import { IconBox } from '@/components/IconBox';
 import { LinkIcon } from '@/components/Icons';
 import { Step } from '@/components/Step';
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
-import { EVENTS_WORKER_BASE, KEYPOM_EVENTS_CONTRACT } from '@/constants/common';
+import {
+  EVENTS_WORKER_BASE,
+  KEYPOM_EVENTS_CONTRACT,
+  KEYPOM_MARKETPLACE_CONTRACT,
+} from '@/constants/common';
+import { type DateAndTimeInfo } from '@/lib/eventsHelpers';
 
 import { CreateTicketDropLayout } from '../components/CreateTicketDropLayout';
 import { CollectInfoForm } from '../components/ticket/CollectInfoForm';
@@ -25,34 +31,40 @@ import { ReviewEventForm } from '../components/ticket/ReviewEventForm';
 import { KeypomPasswordPromptModal } from '../components/ticket/KeypomPasswordPromptModal';
 import {
   createPayload,
+  EMAIL_QUESTION,
   estimateCosts,
   serializeMediaForWorker,
 } from '../components/ticket/helpers';
+import { AcceptPaymentForm } from '../components/ticket/AcceptPaymentForm';
+import { EventCreationStatusModal } from '../components/ticket/EventCreationStatusModal';
 
 interface TicketStep {
   title: string;
+  description: string;
   name: string;
+  skippable: boolean;
+  canClearDetails: boolean;
   component: (props: EventStepFormProps) => ReactElement;
-}
-
-export interface EventDate {
-  startDate: Date | null;
-  endDate: Date | null;
-  startTime?: string;
-  endTime?: string;
 }
 
 export interface EventStepFormProps {
   formData: TicketDropFormData;
   setFormData: (data: TicketDropFormData) => void;
+  accountId: string | null | undefined;
 }
 
 export interface TicketDropFormData {
+  // Step 0
+  stripeAccountId?: string;
+  acceptStripePayments: boolean;
+  acceptNearPayments: boolean;
+  nearPrice?: number;
+
   // Step 1
   eventName: { value: string; error?: string };
   eventDescription: { value: string; error?: string };
   eventLocation: { value: string; error?: string };
-  date: { value: EventDate; error?: string };
+  date: { value: DateAndTimeInfo; error?: string };
   eventArtwork: { value: File | undefined; error?: string };
 
   // Step 2
@@ -82,96 +94,53 @@ const breadcrumbs: IBreadcrumbItem[] = [
 
 const formSteps: TicketStep[] = [
   {
+    name: 'stripePayments',
+    title: 'Payments',
+    description: 'Allow attendees to purchase with credit cards',
+    skippable: true,
+    canClearDetails: false,
+    component: (props: EventStepFormProps) => <AcceptPaymentForm {...props} />,
+  },
+  {
     name: 'eventInfo',
     title: 'Event info',
+    description: 'Enter the details for your new event',
+    canClearDetails: true,
+    skippable: false,
     component: (props: EventStepFormProps) => <EventInfoForm {...props} />,
   },
   {
     name: 'collectInfo',
-    title: 'Collect info',
+    title: 'Attendee info',
+    description: 'Collect information from attendees (optional)',
+    canClearDetails: true,
+    skippable: true,
     component: (props: EventStepFormProps) => <CollectInfoForm {...props} />,
   },
   {
     name: 'tickets',
     title: 'Tickets',
+    description: 'Create tickets for your event',
+    canClearDetails: true,
+    skippable: false,
     component: (props: EventStepFormProps) => <CreateTicketsForm {...props} />,
   },
   {
     name: 'review',
     title: 'Review',
+    description: 'Review the details of your event',
+    canClearDetails: false,
+    skippable: false,
     component: (props: EventStepFormProps) => <ReviewEventForm {...props} />,
   },
 ];
 
-// const placeholderData2 = {
-//   eventName: { value: 'Vandelay Industries Networking Event' },
-//   eventArtwork: { value: undefined },
-//   eventDescription: {
-//     value:
-//       'Meet with the best latex salesmen in the industry! This will be a once-in-a-lifetime opportunity to network and meet with people that you enjoy being with. Drink beer, laugh, have fun, and have a great time at this networking event! This will be a once-in-a-lifetime opportunity!',
-//   },
-//   eventLocation: { value: '129 West 81st Street, Apartment Suite 288.' },
-//   date: {
-//     value: {
-//       value: {
-//         value: { startDate: null, endDate: null },
-//         startDate: '2024-03-16T04:00:00.000Z',
-//         endDate: null,
-//       },
-//       startDate: new Date('2024-03-16T04:00:00.000Z'),
-//       endDate: new Date('2024-03-23T04:00:00.000Z'),
-//       startTime: '09:00 AM',
-//       endTime: '09:00 PM',
-//     },
-//   },
-//   questions: [
-//     { question: 'Full name', isRequired: true },
-//     { question: 'Email address', isRequired: true },
-//     { question: 'How did you find out about this event?', isRequired: false },
-//   ],
-//   tickets: [
-//     {
-//       name: 'VIP Ticket',
-//       description:
-//         'Get exclusive access to beer, fun, and games. Network with people, grant priority access to lines and skip the wait with this amazing ticket tier!',
-//       price: '5',
-//       artwork: undefined,
-//       salesValidThrough: {
-//         startDate: new Date('2024-03-13T04:00:00.000Z'),
-//         endDate: new Date('2024-03-23T04:00:00.000Z'),
-//       },
-//       passValidThrough: {
-//         startDate: new Date('2024-03-18T04:00:00.000Z'),
-//         endDate: new Date('2024-03-22T04:00:00.000Z'),
-//       },
-//       maxSupply: 5000,
-//     },
-//     {
-//       name: 'Standard Ticket',
-//       description: 'Get standard access to the networking event',
-//       artwork: undefined,
-//       price: '0',
-//       salesValidThrough: {
-//         startDate: new Date('2024-03-13T04:00:00.000Z'),
-//         endDate: new Date('2024-03-23T04:00:00.000Z'),
-//       },
-//       passValidThrough: {
-//         startDate: new Date('2024-03-18T04:00:00.000Z'),
-//         endDate: new Date('2024-03-22T04:00:00.000Z'),
-//       },
-//       maxSupply: 5000,
-//     },
-//   ],
-//   actions: [],
-//   costBreakdown: {
-//     perEvent: '0',
-//     perDrop: '0',
-//     total: '0',
-//     marketListing: '0',
-//   },
-// };
-
 const placeholderData: TicketDropFormData = {
+  // Step 0
+  nearPrice: undefined,
+  stripeAccountId: undefined,
+  acceptStripePayments: false,
+  acceptNearPayments: true,
   // Step 1
   eventName: { value: '' },
   eventArtwork: { value: undefined },
@@ -179,15 +148,14 @@ const placeholderData: TicketDropFormData = {
   eventLocation: { value: '' },
   date: {
     value: {
-      startDate: null,
-      endDate: null,
+      startDate: 0,
     },
   },
 
   // Step 2
   questions: [
+    { question: EMAIL_QUESTION, isRequired: true },
     { question: 'Full name', isRequired: true },
-    { question: 'Email address', isRequired: true },
     { question: 'How did you find out about this event?', isRequired: false },
   ],
 
@@ -204,10 +172,18 @@ const placeholderData: TicketDropFormData = {
 export default function NewTicketDrop() {
   const [currentStep, setCurrentStep] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const [eventCreationSuccess, setEventCreationSuccess] = useState<boolean | undefined>();
+  const [prevEventData, setPrevEventData] = useState<
+    | { priceByDropId?: Record<string, number>; eventId: string; stripeAccountId?: string }
+    | undefined
+  >();
+
   const [isSettingKey, setIsSettingKey] = useState(false);
   const [formData, setFormData] = useState<TicketDropFormData>(placeholderData);
   const { selector, accountId } = useAuthWalletContext();
   const [wallet, setWallet] = useState<Wallet>();
+  const toast = useToast();
 
   useEffect(() => {
     async function fetchWallet() {
@@ -224,15 +200,44 @@ export default function NewTicketDrop() {
     fetchWallet();
   }, [selector]);
 
+  useEffect(() => {
+    async function checkForEventCreation() {
+      const eventData = localStorage.getItem('EVENT_INFO_SUCCESS_DATA');
+
+      if (eventData) {
+        const { eventId, stripeAccountId, priceByDropId } = JSON.parse(eventData);
+        setPrevEventData({ priceByDropId, eventId, stripeAccountId });
+
+        try {
+          await keypomInstance.viewCall({
+            contractId: KEYPOM_MARKETPLACE_CONTRACT,
+            methodName: 'get_event_information',
+            args: { event_id: eventId },
+          });
+          setEventCreationSuccess(true);
+        } catch (e) {
+          setEventCreationSuccess(false);
+        }
+
+        localStorage.removeItem('EVENT_INFO_SUCCESS_DATA');
+      }
+    }
+
+    checkForEventCreation();
+  }, []);
+
   const handleClearForm = () => {
     switch (currentStep) {
-      case 0:
+      case 1:
         setFormData((prev) => ({ ...prev, ...ClearEventInfoForm() }));
         break;
-      case 1:
-        setFormData((prev) => ({ ...prev, questions: [] }));
-        break;
       case 2:
+        setFormData((prev) => ({
+          ...prev,
+          questions: [{ question: EMAIL_QUESTION, isRequired: true }],
+        }));
+        break;
+      case 3:
         setFormData((prev) => ({ ...prev, tickets: [] }));
         break;
       default:
@@ -271,7 +276,7 @@ export default function NewTicketDrop() {
       });
     } catch (error) {
       // eslint-disable-next-line no-console
-      console.log('error', error);
+      console.error('Error in payAndCreateEvent', error);
     }
 
     if (response?.ok) {
@@ -284,28 +289,72 @@ export default function NewTicketDrop() {
         ticketArtworkCids.push(cids[i + 1]);
       }
 
-      const actions: Action[] = await createPayload({
+      const eventId = Date.now().toString();
+      const { actions, dropIds }: { actions: Action[]; dropIds: string[] } = await createPayload({
         accountId: accountId!,
         formData,
+        eventId,
         eventArtworkCid,
         ticketArtworkCids,
       });
+
+      // Store event name, stripe account ID, event ID, object mapping ticket drop ID to USD cents
+      // ONLY if the user has accepted stripe payments
+      if (formData.acceptStripePayments && formData.stripeAccountId) {
+        const stripeAccountId = formData.stripeAccountId;
+
+        const priceByDropId = {};
+        for (let i = 0; i < formData.tickets.length; i++) {
+          const ticketDropId = dropIds[i];
+          const priceCents = Math.round(
+            parseFloat(formData.tickets[i].priceNear) * formData.nearPrice! * 100,
+          );
+          priceByDropId[ticketDropId] = priceCents;
+        }
+        const stripeAccountInfo = {
+          stripeAccountId,
+          eventId,
+          priceByDropId,
+        };
+        localStorage.setItem('EVENT_INFO_SUCCESS_DATA', JSON.stringify(stripeAccountInfo));
+      } else {
+        localStorage.setItem('EVENT_INFO_SUCCESS_DATA', JSON.stringify({ eventId }));
+      }
 
       await wallet.signAndSendTransaction({
         signerId: accountId!,
         receiverId: KEYPOM_EVENTS_CONTRACT,
         actions,
       });
+    } else {
+      toast({
+        title: 'Unable to upload event images',
+        description: `Please try again later. If the error persists, contact support.`,
+        status: 'error',
+        duration: 5000,
+        isClosable: true,
+      });
     }
     setIsSettingKey(false);
   };
 
+  const handleSkipped = () => {
+    setCurrentStep((prevStep) => prevStep + 1);
+    if (currentStep === 2) {
+      setFormData((prev) => ({
+        ...prev,
+        questions: [{ question: EMAIL_QUESTION, isRequired: true }],
+      }));
+    }
+  };
+
   const nextStep = async () => {
-    if (currentStep === 3) {
+    if (currentStep === 4) {
       payAndCreateEvent();
+      return;
     }
 
-    if (currentStep === 2) {
+    if (currentStep === 3) {
       const curMasterKey = get('MASTER_KEY');
       if (curMasterKey) {
         setIsSettingKey(true);
@@ -319,16 +368,17 @@ export default function NewTicketDrop() {
       } else {
         setIsModalOpen(true);
       }
-    } else {
-      let isErr = false;
-      if (currentStep === 0) {
-        const { isErr: eventInfoErr, newFormData } = EventInfoFormValidation(formData);
-        isErr = eventInfoErr;
-        setFormData(newFormData);
-      }
-      if (!isErr) {
-        setCurrentStep((prevStep) => (prevStep < formSteps.length - 1 ? prevStep + 1 : prevStep));
-      }
+      return;
+    }
+
+    let isErr = false;
+    if (currentStep === 1) {
+      const { isErr: eventInfoErr, newFormData } = EventInfoFormValidation(formData);
+      isErr = eventInfoErr;
+      setFormData(newFormData);
+    }
+    if (!isErr) {
+      setCurrentStep((prevStep) => prevStep + 1);
     }
   };
 
@@ -336,7 +386,23 @@ export default function NewTicketDrop() {
     setCurrentStep((prevStep) => (prevStep > 0 ? prevStep - 1 : prevStep));
   };
 
-  const CurrentStepComponent = formSteps[currentStep].component({ formData, setFormData });
+  const isNextDisabled = () => {
+    if (currentStep === 0) {
+      return !formData.acceptStripePayments && !formData.acceptNearPayments;
+    }
+
+    if (currentStep === 3) {
+      return formData.tickets.length < 1;
+    }
+
+    return false;
+  };
+
+  const CurrentStepComponent = formSteps[currentStep].component({
+    formData,
+    setFormData,
+    accountId,
+  });
   return (
     <>
       <KeypomPasswordPromptModal
@@ -344,9 +410,17 @@ export default function NewTicketDrop() {
         isSetting={isSettingKey}
         onModalClose={handleModalClose}
       />
+      <EventCreationStatusModal
+        isOpen={eventCreationSuccess !== undefined}
+        isSuccess={eventCreationSuccess === true}
+        prevEventData={prevEventData}
+        setIsOpen={() => {
+          setEventCreationSuccess(undefined);
+        }}
+      />
       <CreateTicketDropLayout
         breadcrumbs={breadcrumbs}
-        description="Enter the details for your new event"
+        description={formSteps[currentStep].description}
       >
         <IconBox
           icon={<LinkIcon h={{ base: '7', md: '9' }} />}
@@ -382,26 +456,29 @@ export default function NewTicketDrop() {
             >
               Back
             </Button>
-            <Button fontSize={{ base: 'sm', md: 'base' }} variant="ghost" onClick={handleClearForm}>
-              Clear all details
-            </Button>
+            {formSteps[currentStep].canClearDetails && (
+              <Button
+                fontSize={{ base: 'sm', md: 'base' }}
+                variant="ghost"
+                onClick={handleClearForm}
+              >
+                Clear all details
+              </Button>
+            )}
           </HStack>
           <HStack>
-            {currentStep === 1 && (
+            {formSteps[currentStep].skippable && (
               <Button
                 fontSize={{ base: 'sm', md: 'base' }}
                 variant="secondary"
-                onClick={() => {
-                  setFormData((prev) => ({ ...prev, questions: [] }));
-                  setCurrentStep(2);
-                }}
+                onClick={handleSkipped}
               >
                 Skip
               </Button>
             )}
             <Button
               fontSize={{ base: 'sm', md: 'base' }}
-              isDisabled={currentStep === 2 ? formData.tickets.length < 1 : false}
+              isDisabled={isNextDisabled()}
               isLoading={isSettingKey}
               onClick={nextStep}
             >
