@@ -1,4 +1,4 @@
-import { Button, IconButton, Modal, ModalContent, ModalOverlay } from '@chakra-ui/react';
+import { Button, IconButton, Modal, ModalContent, ModalOverlay, VStack } from '@chakra-ui/react';
 
 import { EyeIcon } from '@/components/Icons/EyeIcon';
 
@@ -51,15 +51,18 @@ export const PreviewTicketModal = ({
           width="60px"
           zIndex={1500} // Higher than ModalContent to overlap
         />
-        <DynamicTicketPreview currentTicket={currentTicket} />
-        <Button
-          variant="secondary"
-          onClick={() => {
-            setIsOpen(false);
-          }}
-        >
-          Close preview
-        </Button>
+        <VStack spacing="4" w="full">
+          <DynamicTicketPreview currentTicket={currentTicket} />
+          <Button
+            variant="secondary"
+            w="full"
+            onClick={() => {
+              setIsOpen(false);
+            }}
+          >
+            Close preview
+          </Button>
+        </VStack>
       </ModalContent>
     </Modal>
   );

@@ -1,4 +1,4 @@
-import { Input, HStack, VStack, Show, Hide } from '@chakra-ui/react';
+import { Input, HStack, VStack, Show, Hide, Box } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
 
 import CustomDateRangePicker from '@/components/DateRangePicker/DateRangePicker';
@@ -261,13 +261,15 @@ const EventInfoForm = (props: EventStepFormProps) => {
       </VStack>
       <Hide below="md">
         <VStack align="start" paddingTop={5} w="100%">
-          <EventPagePreview
-            eventArtwork={preview}
-            eventDate={datePreviewText}
-            eventDescription={formData.eventDescription.value}
-            eventLocation={formData.eventLocation.value}
-            eventName={formData.eventName.value}
-          />
+          <Box maxW="lg" w="100%">
+            <EventPagePreview
+              eventArtwork={preview}
+              eventDate={datePreviewText}
+              eventDescription={formData.eventDescription.value}
+              eventLocation={formData.eventLocation.value}
+              eventName={formData.eventName.value}
+            />
+          </Box>
         </VStack>
       </Hide>
     </HStack>
