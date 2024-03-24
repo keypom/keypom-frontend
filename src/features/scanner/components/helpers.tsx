@@ -110,7 +110,7 @@ export const validateEndDateAndTime = (requiredDateAndTime: DateAndTimeInfo): bo
     : null;
 
   // Check the date range first
-  if ((requiredEndDate && nowDateOnly > requiredEndDate)) {
+  if (requiredEndDate && nowDateOnly > requiredEndDate) {
     return false;
   }
 

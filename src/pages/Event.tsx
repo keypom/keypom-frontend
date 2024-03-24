@@ -256,8 +256,8 @@ export default function Event() {
         methodName: 'get_max_resale_for_drop',
         args: { drop_id: dropID },
       });
-      let maxNearPrice = parseFloat(formatNearAmount(maxNearPriceYocto, 3));
-      
+      const maxNearPrice = parseFloat(formatNearAmount(maxNearPriceYocto, 3));
+
       setSellDropInfo({
         name: meta2.name || 'Untitled',
         artwork: meta2.artwork || 'loading',
@@ -767,7 +767,7 @@ export default function Event() {
       const extra: TicketMetadataExtra = JSON.parse(meta.extra);
 
       const supply = await keypomInstance.getKeySupplyForTicket(ticket.drop_id);
-      
+
       return {
         id: ticket.drop_id,
         artwork: meta.media,

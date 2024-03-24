@@ -15,12 +15,16 @@ import {
   FormLabel,
 } from '@chakra-ui/react';
 import { Form } from 'react-router-dom';
-import { MIN_NEAR_SELL } from '@/constants/common';
+import { useState } from 'react';
 
+import { MIN_NEAR_SELL } from '@/constants/common';
 import { type SellDropInfo } from '@/pages/Event';
 import { useAppContext } from '@/contexts/AppContext';
-import { validateDateAndTime, validateEndDateAndTime, validateStartDateAndTime } from '@/features/scanner/components/helpers';
-import { useState } from 'react';
+import {
+  validateDateAndTime,
+  validateEndDateAndTime,
+  validateStartDateAndTime,
+} from '@/features/scanner/components/helpers';
 import { dateAndTimeToText } from '@/features/drop-manager/utils/parseDates';
 
 interface SellModalProps {
@@ -34,8 +38,10 @@ interface SellModalProps {
 
 const disableSellButton = (nearInput: string, maxNearPrice: number, isError: boolean) => {
   const nearInputNum = parseFloat(nearInput);
-  return isError || isNaN(nearInputNum) || nearInputNum > maxNearPrice || nearInputNum < MIN_NEAR_SELL
-}
+  return (
+    isError || isNaN(nearInputNum) || nearInputNum > maxNearPrice || nearInputNum < MIN_NEAR_SELL
+  );
+};
 
 const roundNumber = (num: number) => {
   return num.toFixed(2);
@@ -60,7 +66,7 @@ export const SellModal = ({
   const ticketSellEndDateValid = validateEndDateAndTime(event.salesValidThrough);
   const ticketSellDateValid = validateDateAndTime(event.salesValidThrough);
 
-  const isSellError = (input === '' || !ticketSellDateValid);
+  const isSellError = input === '' || !ticketSellDateValid;
   const nearInput = parseFloat(input);
 
   const [isTicketValidToastOpen, setIsTicketValidToastOpen] = useState(false);
@@ -70,19 +76,22 @@ export const SellModal = ({
     if (!isTicketValidToastOpen) {
       setIsTicketValidToastOpen(true);
       ticketSellNotValidToast({
-        title: ticketSellStartDateValid ? "Ticket sell date has not started." : "Ticket sell date has passed.",
+        title: ticketSellStartDateValid
+          ? 'Ticket sell date has not started.'
+          : 'Ticket sell date has passed.',
         description: `Tickets be can sold during: ${dateAndTimeToText(event.salesValidThrough)}.`,
         status: 'error',
         duration: null,
         isClosable: true,
-        onCloseComplete: () => setIsTicketValidToastOpen(false),
+        onCloseComplete: () => {
+          setIsTicketValidToastOpen(false);
+        },
       });
     }
-    return;
   };
 
-  // Display not valid 
-  if (!ticketSellDateValid){
+  // Display not valid
+  if (!ticketSellDateValid) {
     showToast();
   }
 
@@ -106,77 +115,74 @@ export const SellModal = ({
           Location
         </Text>
         <Text textAlign="left">{event.location}</Text>
-        {ticketSellDateValid && (<Form action="/" onSubmit={onSubmit}>
-          <FormControl isInvalid={disableSellButton(input, event.maxNearPrice, isSellError)}>
-          <HStack>
-            <Text
-              as="h2"
-              color="black.800"
-              fontSize="l"
-              fontWeight="medium"
-              my="4px"
-              textAlign="left"
-            >
-              Price in NEAR
-            </Text>
-            <Text
-              as="h2"
-              color="gray.400"
-              fontSize="l"
-              fontWeight="normal"
-              my="4px"
-              textAlign="left"
-            >
-              {!isSellError && nearPrice !== undefined?
-               ` (~$${roundNumber(nearPrice*nearInput)} USD)`:""}
-            </Text>
-          </HStack>
-            <Input type="number" value={input} onChange={handleInputChange} />
-            {!isSellError ? (
-              event.maxNearPrice >= nearInput && nearInput >= MIN_NEAR_SELL ?
-              (
+        {ticketSellDateValid && (
+          <Form action="/" onSubmit={onSubmit}>
+            <FormControl isInvalid={disableSellButton(input, event.maxNearPrice, isSellError)}>
+              <HStack>
+                <Text
+                  as="h2"
+                  color="black.800"
+                  fontSize="l"
+                  fontWeight="medium"
+                  my="4px"
+                  textAlign="left"
+                >
+                  Price in NEAR
+                </Text>
+                <Text
+                  as="h2"
+                  color="gray.400"
+                  fontSize="l"
+                  fontWeight="normal"
+                  my="4px"
+                  textAlign="left"
+                >
+                  {!isSellError && nearPrice !== undefined
+                    ? ` (~$${roundNumber(nearPrice * nearInput)} USD)`
+                    : ''}
+                </Text>
+              </HStack>
+              <Input type="number" value={input} onChange={handleInputChange} />
+              {!isSellError ? (
+                event.maxNearPrice >= nearInput && nearInput >= MIN_NEAR_SELL ? (
                   <FormLabel color="red.400" fontSize="sm" lineHeight="normal" marginTop="2">
                     You will receive $NEAR, not USD when sold.
                   </FormLabel>
-              ) : event.maxNearPrice < nearInput ? (
-                  <FormErrorMessage> Over max price of {roundNumber(event.maxNearPrice)} NEAR.</FormErrorMessage>
+                ) : event.maxNearPrice < nearInput ? (
+                  <FormErrorMessage>
+                    {' '}
+                    Over max price of {roundNumber(event.maxNearPrice)} NEAR.
+                  </FormErrorMessage>
                 ) : (
-                  <FormErrorMessage> Under min price of {roundNumber(MIN_NEAR_SELL)} NEAR.</FormErrorMessage>
+                  <FormErrorMessage>
+                    {' '}
+                    Under min price of {roundNumber(MIN_NEAR_SELL)} NEAR.
+                  </FormErrorMessage>
                 )
-            ) : (
-              <FormErrorMessage> Must be a valid number </FormErrorMessage>
-            )}
-            
-          </FormControl>
+              ) : (
+                <FormErrorMessage> Must be a valid number </FormErrorMessage>
+              )}
+            </FormControl>
 
-          <Box my="5"></Box>
-          <Button isDisabled={disableSellButton(input, event.maxNearPrice, isSellError)} type="submit" w="100%">
-            Put Ticket For Sale
-          </Button>
-        </Form>)}
-        { !ticketSellStartDateValid && (
-          <Text
-          as="h2"
-          color="red.400"
-          fontSize="l"
-          fontWeight="bold"
-          my="4px"
-          textAlign="left"
-        >
-          Ticket sell date has not started.
-        </Text>
+            <Box my="5"></Box>
+            <Button
+              isDisabled={disableSellButton(input, event.maxNearPrice, isSellError)}
+              type="submit"
+              w="100%"
+            >
+              Put Ticket For Sale
+            </Button>
+          </Form>
         )}
-        { !ticketSellEndDateValid && (
-          <Text
-          as="h2"
-          color="red.400"
-          fontSize="l"
-          fontWeight="bold"
-          my="4px"
-          textAlign="left"
-        >
-          Ticket sell date has passed.
-        </Text>
+        {!ticketSellStartDateValid && (
+          <Text as="h2" color="red.400" fontSize="l" fontWeight="bold" my="4px" textAlign="left">
+            Ticket sell date has not started.
+          </Text>
+        )}
+        {!ticketSellEndDateValid && (
+          <Text as="h2" color="red.400" fontSize="l" fontWeight="bold" my="4px" textAlign="left">
+            Ticket sell date has passed.
+          </Text>
         )}
 
         <ModalFooter>
