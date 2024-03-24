@@ -148,7 +148,6 @@ export default function Event() {
   const [isLoading, setIsLoading] = useState(true);
   const [noDrop, setNoDrop] = useState(false);
   const [input, setInput] = useState('');
-  const [email, setEmail] = useState('');
   const [ticketList, setTicketList] = useState<TicketInterface[]>([]);
   const [resaleTicketList, setResaleTicketList] = useState<TicketInterface[]>([]);
   const [areTicketsLoading, setAreTicketsLoading] = useState(true);
@@ -326,12 +325,10 @@ export default function Event() {
   const OpenPurchaseModal = async (ticket, ticketAmount) => {
     setTicketBeingPurchased(ticket);
     setTicketAmount(ticketAmount);
-    setEmail('');
     onOpen();
   };
 
   const ClosePurchaseModal = () => {
-    setEmail('');
     setTicketAmount(1);
     onClose();
   };
@@ -377,8 +374,12 @@ export default function Event() {
     return publicKey;
   }
 
-  const PurchaseTicket = async (questionValues, purchaseType, isSecondary) => {
+  const PurchaseTicket = async (email, questionValues, purchaseType, isSecondary) => {
     navigate('./');
+    console.log('purchasing ticket');
+    console.log('email: ', email);
+    console.log('questionValues: ', questionValues);
+    return;
 
     const dropData = await keypomInstance.getTicketDropInformation({
       dropID: ticketBeingPurchased.id,
@@ -1165,12 +1166,10 @@ export default function Event() {
 
       <PurchaseModal
         amount={ticketAmount}
-        email={email}
         event={event}
         isOpen={isOpen}
         selector={selector}
         setAmount={setTicketAmount}
-        setEmail={setEmail}
         stripeAccountId={stripeAccountId}
         stripeEnabledEvent={stripeEnabledEvent}
         ticket={ticketBeingPurchased}
