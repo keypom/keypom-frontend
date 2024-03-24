@@ -11,10 +11,12 @@ import {
   ModalFooter,
   ModalOverlay,
   Text,
+  HStack,
 } from '@chakra-ui/react';
 import { Form } from 'react-router-dom';
 
 import { type SellDropInfo } from '@/pages/Event';
+import { useAppContext } from '@/contexts/AppContext';
 
 interface SellModalProps {
   input: string;
@@ -25,6 +27,14 @@ interface SellModalProps {
   event: SellDropInfo;
 }
 
+const displayUSDPrice = (input: string) => {
+  return !isNaN(parseFloat(input));
+}
+
+const roundNumber = (num: number) => {
+  return num.toFixed(2);
+};
+
 export const SellModal = ({
   input,
   setInput,
@@ -33,6 +43,7 @@ export const SellModal = ({
   onSubmit,
   event,
 }: SellModalProps) => {
+  const { nearPrice } = useAppContext();
   // price input
   const handleInputChange = (e) => {
     setInput(e.target.value);
@@ -61,6 +72,7 @@ export const SellModal = ({
 
         <Form action="/" onSubmit={onSubmit}>
           <FormControl isInvalid={isError}>
+          <HStack>
             <Text
               as="h2"
               color="black.800"
@@ -71,6 +83,18 @@ export const SellModal = ({
             >
               Price in NEAR
             </Text>
+            <Text
+              as="h2"
+              color="gray.400"
+              fontSize="l"
+              fontWeight="normal"
+              my="4px"
+              textAlign="left"
+            >
+              {displayUSDPrice(input) && nearPrice !== undefined?
+               ` (~$${roundNumber(nearPrice*parseFloat(input))} USD)`:""}
+            </Text>
+          </HStack>
             <Input type="number" value={input} onChange={handleInputChange} />
             {!isError ? (
               <FormHelperText>
