@@ -37,7 +37,6 @@ export const createDropsForNFT = async (dropId, returnTransactions, data, setApp
       wrapWithDirectory: false,
     });
     media = root.toString();
-    console.log('CID', media);
   }
 
   let keys, requiredDeposit;
@@ -100,19 +99,18 @@ export const createDropsForNFT = async (dropId, returnTransactions, data, setApp
     }`;
     let res;
     try {
-      console.log('uploading to worker', url);
       res = await fetch(url, {
         method: 'POST',
         body: file,
       }).then(async (r) => await r.json());
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.warn('cfw error', error);
       res = { error };
     }
 
-    console.log('response from worker', res);
-
     if (res.error) {
+      // eslint-disable-next-line no-console
       console.warn('cfw error', res.error);
 
       const mediaErrorModal = () =>
@@ -155,8 +153,6 @@ export const createDropsForNFT = async (dropId, returnTransactions, data, setApp
     }
 
     await update(NFT_ATTEMPT_KEY, (val) => ({ ...val, seriesClaimed: true, fileUploaded: true }));
-
-    console.log('response from worker', res);
   }
 
   try {
@@ -220,11 +216,11 @@ export const handleFinishNFTDrop = async (setAppModal) => {
   try {
     res = await createDropsForNFT(data.dropId, false, data, setAppModal);
   } catch (e) {
+    // eslint-disable-next-line no-console
     console.warn(e);
   }
 
   const { responses } = res;
-  console.log(responses);
   if (responses?.length > 0) {
     del(NFT_ATTEMPT_KEY);
   }

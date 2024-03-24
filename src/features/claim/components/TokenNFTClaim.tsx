@@ -108,7 +108,6 @@ export const TokenNFTClaim = ({
           label: 'Ok',
           func: () => {
             setAppModal({ isOpen: false });
-            console.log('tx acknowledged');
           },
         },
       ],
