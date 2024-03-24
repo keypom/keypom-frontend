@@ -17,7 +17,7 @@ import CustomDateRangePicker from '@/components/DateRangePicker/DateRangePicker'
 import CustomDateRangePickerMobile from '@/components/DateRangePicker/MobileDateRangePicker';
 import { ImageFileInput } from '@/components/ImageFileInput';
 
-import { type EventDate } from '../../routes/CreateTicketDropPage';
+import { type TicketDropFormData, type EventDate } from '../../routes/CreateTicketDropPage';
 
 import { type TicketInfoFormMetadata } from './CreateTicketsForm';
 import TicketPriceSelector from './TicketPriceSelector';
@@ -41,6 +41,7 @@ interface ModifyTicketModalProps {
   isOpen: boolean;
   onClose: (shouldAdd: boolean, editedTicket?: TicketInfoFormMetadata) => void;
   eventDate: EventDate;
+  formData: TicketDropFormData;
   allTickets: TicketInfoFormMetadata[];
   currentTicket: TicketInfoFormMetadata;
   setCurrentTicket: (ticket: TicketInfoFormMetadata) => void;
@@ -57,6 +58,7 @@ const parseTime = (timeString) => {
 export const ModifyTicketModal = ({
   isOpen,
   onClose,
+  formData,
   eventDate,
   allTickets,
   currentTicket,
@@ -125,7 +127,7 @@ export const ModifyTicketModal = ({
       isErr = true;
     }
 
-    if (!isValidNonNegativeNumber(currentTicket.price)) {
+    if (!isValidNonNegativeNumber(currentTicket.priceNear)) {
       newErrors.price = 'Price is required';
       isErr = true;
     }
@@ -475,6 +477,7 @@ export const ModifyTicketModal = ({
           <TicketPriceSelector
             currentTicket={currentTicket}
             errors={errors}
+            formData={formData}
             setCurrentTicket={setCurrentTicket}
           />
           <FormControlComponent

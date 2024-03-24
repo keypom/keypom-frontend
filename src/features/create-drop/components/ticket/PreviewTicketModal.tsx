@@ -121,7 +121,9 @@ export const PreviewTicketModal = ({
             </HStack>
 
             <Button borderRadius="6xl" marginTop="5 !important" variant="primary" w="full">
-              {currentTicket.price === '0' ? `Get for free` : `Buy for ${currentTicket.price} NEAR`}
+              {currentTicket.priceNear === '0'
+                ? `Get for free`
+                : `Buy for ${currentTicket.priceNear} NEAR`}
             </Button>
           </VStack>
           <Button

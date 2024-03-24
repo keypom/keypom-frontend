@@ -71,7 +71,7 @@ export const defaultTicket = {
   name: '',
   description: '',
   artwork: undefined,
-  price: '0',
+  priceNear: '0',
   salesValidThrough: {
     startDate: null,
     endDate: null,
@@ -87,7 +87,7 @@ export interface TicketInfoFormMetadata {
   name: string;
   description: string;
   artwork: File | undefined;
-  price: string;
+  priceNear: string;
   salesValidThrough: EventDate;
   passValidThrough: EventDate;
   maxSupply: number;
@@ -158,7 +158,7 @@ const CreateTicketsForm = (props: EventStepFormProps) => {
 
     return data.map((item: TicketInfoFormMetadata) => ({
       id: item.name,
-      price: item.price === '0' ? 'Free' : item.price,
+      price: item.priceNear === '0' ? 'Free' : item.priceNear,
       numTickets: item.maxSupply,
       name: (
         <>
@@ -274,6 +274,7 @@ const CreateTicketsForm = (props: EventStepFormProps) => {
         currentTicket={currentTicket}
         editedTicket={editedTicket}
         eventDate={formData.date.value}
+        formData={formData}
         isOpen={isModifyTicketModalOpen}
         setCurrentTicket={setCurrentTicket}
         onClose={handleModalClose}
