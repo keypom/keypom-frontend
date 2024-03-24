@@ -311,17 +311,17 @@ class KeypomJS {
   };
 
   getCurrentKeyOwner = async (contractId: string, publicKey: string) => {
-    await this.verifyDrop(contractId);
-
     const keyInfo = await this.viewAccount.viewFunctionV2({
       contractId: KEYPOM_EVENTS_CONTRACT,
       methodName: 'get_key_information',
       args: { key: publicKey },
     });
+    console.log("keyinfo: ", keyInfo)
 
     if (keyInfo === null || keyInfo === undefined) {
       throw new Error('Key does not exist');
     }
+
 
     return keyInfo.owner_id;
   }

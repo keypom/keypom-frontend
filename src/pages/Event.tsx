@@ -37,6 +37,7 @@ import { type DataItem } from '@/components/Table/types';
 import { dateAndTimeToText } from '@/features/drop-manager/utils/parseDates';
 import { generateExecuteArgs } from 'keypom-js/lib/lib/trial-accounts/utils';
 import { botCheck } from '../utils/botCheck';
+import { e } from 'mathjs';
 
 interface WorkerPayload {
   name: string | null;
@@ -51,12 +52,16 @@ interface WorkerPayload {
     eventId: string;
     dropId: string;
     funderId: string;
+    event_image_url: string;
+    ticket_image_url: string
   };
   purchaseEmail: string;
   stripeAccountId: string | undefined;
   baseUrl: string;
   priceNear: string;
+  // secret keys, for multiple primary purchases
   ticketKeys?: string[];
+  // single secret key to send in email
   ticketKey?: string;
   network?: string;
   linkdrop_secret_key?: string
@@ -355,6 +360,7 @@ export default function Event() {
   const PurchaseTicket = async (questionValues, purchaseType, isSecondary) => {
     navigate('./');
 
+
     const dropData = await keypomInstance.getTicketDropInformation({
       dropID: ticketBeingPurchased.id,
     });
@@ -425,6 +431,9 @@ export default function Event() {
       trimmedEmail = trimmedEmail.substring(0, 500);
     }
 
+    // console.log(ticketBeingPurchased)
+    // console.log('drop', drop.artwork);
+
     const workerPayload: WorkerPayload = {
       name: attendeeName,
       ticketAmount, // (number of tickets being purchase)
@@ -434,10 +443,13 @@ export default function Event() {
         eventName: drop.name,
         ticketType: dropData.drop_config.nft_keys_config.token_metadata.title,
         eventDate: JSON.stringify(drop.date),
-        ticketOwner: accountId || undefined, // (if signed in, this is signed in account, otherwise its none/empty)
+        // ticketOwner: accountId || undefined, // (if signed in, this is signed in account, otherwise its none/empty)
+        ticketOwner: undefined, // (if signed in, this is signed in account, otherwise its none/empty)
         eventId: meta.eventId,
         dropId: ticketBeingPurchased.id,
         funderId,
+        event_image_url: drop.artwork,
+        ticket_image_url: ticketBeingPurchased.artwork
       },
       purchaseEmail: trimmedEmail, // (currently just called email in userInfo)
       stripeAccountId,
@@ -445,10 +457,10 @@ export default function Event() {
       priceNear: ticketBeingPurchased.price,
     };
 
-    console.log('workerPayload', workerPayload);
-    console.log('drop', drop);
-    console.log('meta', meta);
-    console.log('dropData', dropData);
+    // console.log("dropData nft metadata", dropData.drop_config.nft_keys_config);
+
+    // console.log('workerPayload', workerPayload);
+    // console.log('meta', JSON.stringify(meta));
 
     if (purchaseType === 'free') {
       let bot = await botCheck()
@@ -520,7 +532,8 @@ export default function Event() {
           newKeys.push({
             public_key: publicKey,
             metadata: encryptedValues,
-            key_owner: accountId,
+            //key_owner: accountId,
+            key_owner: null
           });
         }
 
@@ -534,6 +547,8 @@ export default function Event() {
           });
           return;
         }
+
+        localStorage.setItem('purchaseType', "primary");
 
         await wallet.signAndSendTransaction({
           signerId: accountId || undefined,
@@ -567,6 +582,8 @@ export default function Event() {
           return;
         }
 
+        localStorage.setItem('purchaseType', "secondary");
+
         const memo = {
           linkdrop_pk: ticketBeingPurchased.publicKey,
           new_public_key: publicKeys[0],
@@ -575,6 +592,16 @@ export default function Event() {
         let owner: string = await keypomInstance.getCurrentKeyOwner(KEYPOM_MARKETPLACE_CONTRACT, ticketBeingPurchased.publicKey)
 
         let linkdrop_keys = await generateKeys({numKeys: 1});
+        console.log("owner: ", owner)
+        // Seller did not have wallet when they bought, include linkdrop info in email
+        if(owner == KEYPOM_EVENTS_CONTRACT){
+          console.log("seller did not have wallet when they bought")
+          workerPayload.linkdrop_secret_key = linkdrop_keys.secretKeys[0];
+          workerPayload.network = process.env.REACT_APP_NETWORK_ID;
+        }
+
+        console.log("workerPayload before signandsend", JSON.stringify(workerPayload))
+        localStorage.setItem('workerPayload', JSON.stringify(workerPayload));
 
         await wallet.signAndSendTransaction({
           signerId: accountId || undefined,
@@ -597,35 +624,6 @@ export default function Event() {
             },
           ],
         });
-
-        let email_endpoint = "https://email-worker.kp-capstone.workers.dev/send-sold-confirmation-email"
-        // Seller did not have wallet when they bought, include linkdrop info in email
-        if(owner == KEYPOM_EVENTS_CONTRACT){
-          workerPayload.linkdrop_secret_key = linkdrop_keys.secretKeys[0];
-          workerPayload.network = process.env.REACT_APP_NETWORK_ID;
-          email_endpoint = email_endpoint + "-no-wallet"
-        }
-
-        const response = await fetch(
-          email_endpoint,
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(workerPayload),
-          },
-        );
-
-        if (response.ok) {
-          // Email send
-          const responseBody = await response.json();
-          TicketPurchaseSuccessful(workerPayload, responseBody);
-        } else {
-          // Email not sent
-          TicketPurchaseFailure(workerPayload, await response.json());
-        }
-
       }
     } else if (purchaseType === 'stripe') {
       const response = await fetch(
@@ -658,7 +656,8 @@ export default function Event() {
     }
     // get workerpayload from local storage
     const workerPayloadStringified = localStorage.getItem('workerPayload');
-    if (workerPayloadStringified == null) {
+    const purchaseType = localStorage.getItem('purchaseType');
+    if (workerPayloadStringified == null || purchaseType == null) {
       return;
     }
 
@@ -670,15 +669,54 @@ export default function Event() {
     // Remove the near parameters from the URL
     navigate('./');
 
+    console.log("new payload post-redirect: ", JSON.stringify(workerPayload))
     const newWorkerPayload = workerPayload;
 
-    for (const key in workerPayload.ticketKeys) {
-      newWorkerPayload.ticketKey = workerPayload.ticketKeys[key];
+    // primary purchases are in batch, if one key has been added, then all of them should have been added.
+    if (workerPayload.ticketKeys == undefined || workerPayload.ticketKeys.length == 0) {
+      return;
+    }
+    let ticketPubKey = getPubFromSecret(workerPayload.ticketKeys[0]);
+    let keyInfo = await keypomInstance.getTicketKeyInformation({publicKey: ticketPubKey});
+    if(keyInfo == null){
+      return;
+    }
 
-      console.log('sending confirmation email with newWorkerPayload', newWorkerPayload);
+    if(purchaseType == "primary"){
+      for (const key in workerPayload.ticketKeys) {
+        let ticketKey = workerPayload.ticketKeys[key];
+
+        newWorkerPayload.ticketKey = ticketKey;
+
+        console.log('sending confirmation email with newWorkerPayload', newWorkerPayload);
+
+        // newWorkerPayload["ticketKeys"] = null;
+        const response = await fetch(
+          'https://email-worker.kp-capstone.workers.dev/send-confirmation-email',
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(newWorkerPayload),
+          },
+        );
+
+        if (response.ok) {
+          const responseBody = await response.json();
+          TicketPurchaseSuccessful(newWorkerPayload, responseBody);
+        } else {
+          // Error creating account
+          TicketPurchaseFailure(newWorkerPayload, await response.json());
+        }
+      }
+    }else if (purchaseType == "secondary"){
+      // send confirmation email first to buyer
+
+      newWorkerPayload.ticketKey = workerPayload.ticketKeys[0];
 
       // newWorkerPayload["ticketKeys"] = null;
-      const response = await fetch(
+      const response_buyer = await fetch(
         'https://email-worker.kp-capstone.workers.dev/send-confirmation-email',
         {
           method: 'POST',
@@ -689,13 +727,39 @@ export default function Event() {
         },
       );
 
-      if (response.ok) {
-        const responseBody = await response.json();
-        TicketPurchaseSuccessful(newWorkerPayload, responseBody);
-      } else {
-        // Error creating account
-        TicketPurchaseFailure(newWorkerPayload, await response.json());
+      console.log("sending email w ", JSON.stringify(workerPayload))
+
+      let email_endpoint = "https://email-worker.kp-capstone.workers.dev/send-sold-confirmation-email"
+      // Seller did not have wallet when they bought, include linkdrop info in email
+      if(workerPayload.linkdrop_secret_key != null || workerPayload.linkdrop_secret_key != undefined){
+        email_endpoint = email_endpoint + "-no-wallet"
       }
+
+      workerPayload["purchaseEmail"] = "minqianlu1129@gmail.com"
+      const seller_response = await fetch(
+        email_endpoint,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(workerPayload),
+        },
+      );
+
+      if (response_buyer.ok && seller_response.ok) {
+        // Email sent
+        const responseBody = await response_buyer.json();
+        TicketPurchaseSuccessful(workerPayload, responseBody);
+      } else {
+        // Email not sent
+        if(!response_buyer.ok){
+          TicketPurchaseFailure(workerPayload, await response_buyer.json());
+        }else{
+          TicketPurchaseFailure(workerPayload, await seller_response.json());
+        }
+      }
+
     }
   };
 

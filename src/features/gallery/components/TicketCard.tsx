@@ -37,7 +37,7 @@ export const TicketCard = ({ event, loading, surroundingNavLink, onSubmit }: Tic
     nav = '../gallery/' + String(event.navurl);
   }
 
-  console.log('event', event);
+  //console.log('event', event);
 
   const [amount, setAmount] = useState(1);
 
