@@ -526,7 +526,7 @@ export default function Event() {
         // free tickets can only be sold for 0.1N
         const nearSendPrice = "100000000000000000000000"
 
-        const { secretKeys, publicKeys } = await keypomInstance.GenerateTicketKeys(ticketAmount);
+        const { publicKeys } = await keypomInstance.GenerateTicketKeys(ticketAmount);
         const memo = {
           linkdrop_pk: ticketBeingPurchased.publicKey,
           new_public_key: publicKeys[0],
