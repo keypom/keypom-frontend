@@ -476,37 +476,99 @@ export default function Event() {
     };
 
     if (purchaseType === 'free') {
-      const bot = await botCheck()
+      if(!isSecondary){
+        const bot = await botCheck()
+  
+        if(bot){
+          toast({
+            title: 'Purchase failed',
+            description: 'You have been identified as a bot and your purchase has been blocked. Make sure your VPN is turned off.',
+            status: 'error',
+            duration: 5000,
+            isClosable: true,
+          });
+        }
+  
+        const response = await fetch(
+          'https://stripe-worker.kp-capstone.workers.dev/purchase-free-tickets',
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(workerPayload),
+          },
+        );
+  
+        if (response.ok) {
+          const responseBody = await response.json();
+          TicketPurchaseSuccessful(workerPayload, responseBody);
+        } else {
+          const responseBody = await response.json();
+          console.error('responseBody', responseBody);
+          TicketPurchaseFailure(workerPayload, await response.json());
+        }
+      }else{
+        // secondary
+        if (wallet == null) {
+          toast({
+            title: 'Purchase failed',
+            description: 'Wallet not found, reconnect it and try again',
+            status: 'error',
+            duration: 5000,
+            isClosable: true,
+          });
+          return;
+        }
 
-      if(bot){
-        toast({
-          title: 'Purchase failed',
-          description: 'You have been identified as a bot and your purchase has been blocked. Make sure your VPN is turned off.',
-          status: 'error',
-          duration: 5000,
-          isClosable: true,
+        localStorage.setItem('purchaseType', "secondary");
+
+        // free tickets can only be sold for 0.1N
+        const nearSendPrice = "100000000000000000000000"
+
+        const { secretKeys, publicKeys } = await keypomInstance.GenerateTicketKeys(ticketAmount);
+        const memo = {
+          linkdrop_pk: ticketBeingPurchased.publicKey,
+          new_public_key: publicKeys[0],
+        }; // NftTransferMemo,
+
+        const owner: string = await keypomInstance.getCurrentKeyOwner(KEYPOM_MARKETPLACE_CONTRACT, ticketBeingPurchased.publicKey)
+
+        const linkdrop_keys = await generateKeys({numKeys: 1});
+        console.log("owner: ", owner)
+        // Seller did not have wallet when they bought, include linkdrop info in email
+        if(owner === KEYPOM_EVENTS_CONTRACT){
+          console.log("seller did not have wallet when they bought")
+          workerPayload.linkdrop_secret_key = linkdrop_keys.secretKeys[0];
+          workerPayload.network = process.env.REACT_APP_NETWORK_ID;
+        }
+
+        console.log("workerPayload before signandsend", JSON.stringify(workerPayload))
+        localStorage.setItem('workerPayload', JSON.stringify(workerPayload));
+
+        await wallet.signAndSendTransaction({
+          signerId: accountId || undefined,
+          receiverId: KEYPOM_MARKETPLACE_CONTRACT,
+          actions: [
+            {
+              type: 'FunctionCall',
+              params: {
+                methodName: 'buy_resale',
+                args: {
+                  drop_id: ticketBeingPurchased.id,
+                  memo,
+                  new_owner: accountId,
+                  seller_new_linkdrop_pk: linkdrop_keys.publicKeys[0],
+                  seller_linkdrop_drop_id: Date.now().toString()
+                },
+                gas: '300000000000000',
+                // 0.1NEAR if not defined
+                deposit: nearSendPrice
+              },
+            },
+          ],
         });
       }
-
-      // const response = await fetch(
-      //   'https://stripe-worker.kp-capstone.workers.dev/purchase-free-tickets',
-      //   {
-      //     method: 'POST',
-      //     headers: {
-      //       'Content-Type': 'application/json',
-      //     },
-      //     body: JSON.stringify(workerPayload),
-      //   },
-      // );
-
-      // if (response.ok) {
-      //   const responseBody = await response.json();
-      //   TicketPurchaseSuccessful(workerPayload, responseBody);
-      // } else {
-      //   const responseBody = await response.json();
-      //   console.error('responseBody', responseBody);
-      //   TicketPurchaseFailure(workerPayload, await response.json());
-      // }
     } else if (purchaseType === 'near') {
       // put the workerPayload in local storage
       const { secretKeys, publicKeys } = await keypomInstance.GenerateTicketKeys(ticketAmount);
@@ -688,8 +750,7 @@ export default function Event() {
 
     if(purchaseType === "primary"){
       for (const key of workerPayload.ticketKeys) {
-        const ticketKey = workerPayload.ticketKeys[key];
-
+        const ticketKey = key;
         newWorkerPayload.ticketKey = ticketKey;
 
         console.log('sending confirmation email with newWorkerPayload', newWorkerPayload);
