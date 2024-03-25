@@ -80,6 +80,18 @@ export interface AttendeeKeyItem {
   message_nonce: number;
 }
 
+export interface TicketData {
+  max_tickets: number;
+  price: number;
+}
+
+export interface MarketListing {
+  event_id: string;
+  funder_id: string;
+  status: string;
+  ticket_info: TicketData[];
+}
+
 const KEY_ITEMS_PER_QUERY = 30;
 const DROP_ITEMS_PER_QUERY = 5;
 class KeypomJS {
@@ -251,7 +263,7 @@ class KeypomJS {
       return cached;
     }
 
-    const answer = await this.viewAccount.viewFunctionV2({
+    const answer: MarketListing[] = await this.viewAccount.viewFunctionV2({
       contractId,
       methodName: 'get_events',
       args: { limit, from_index },

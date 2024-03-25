@@ -27,7 +27,7 @@ import {
   SORT_MENU_ITEMS,
   createMenuItems,
 } from '@/features/all-drops/config/menuItems';
-import keypomInstance from '@/lib/keypom';
+import keypomInstance, { type MarketListing } from '@/lib/keypom';
 import { GalleryGrid } from '@/features/gallery/components/GalleryGrid';
 import { DropDownButton } from '@/features/all-drops/components/DropDownButton';
 import { FilterOptionsMobileButton } from '@/features/all-drops/components/FilterOptionsMobileButton';
@@ -277,16 +277,33 @@ export default function Gallery() {
 
   const handleGetAllEvents = async () => {
     setIsAllDropsLoading(true);
-    const eventListings = await keypomInstance.GetMarketListings({
-      limit: 50,
-      from_index: 0,
-    });
+    // First get the total supply of drops so we know when to stop fetching
+    const totalSupply = await keypomInstance.getEventSupply();
+    console.log('totalSupply', totalSupply);
+
+    // Loop until we have ALL drops
+    let dropsFetched = 0;
+    let allEventListings: MarketListing[] = [];
+
+    while (dropsFetched < totalSupply) {
+      const eventListings: MarketListing[] = await keypomInstance.GetMarketListings({
+        limit: 50,
+        from_index: dropsFetched,
+      });
+
+      dropsFetched += Number(eventListings.length);
+
+      allEventListings = allEventListings.concat(eventListings);
+    }
+
+    const eventListings = allEventListings;
 
     // const numEvents = eventListings.length;
     // setNumOwnedEvents(numEvents);
 
-    const dropDataPromises = eventListings.map(async (event) => {
+    const dropDataPromises = eventListings.map(async (event: MarketListing) => {
       // get metadata from drop.event_id and drop.funder_id
+      console.log('event123', event);
       const eventInfo = await keypomInstance.getEventInfo({
         accountId: event.funder_id,
         eventId: event.event_id,
@@ -302,15 +319,9 @@ export default function Gallery() {
       let maxTickets = 0;
       const prices: number[] = [];
 
-      interface TicketData {
-        max_tickets: number; // or the correct type
-        price: number; // or the correct type
-        // add other properties as needed
-      }
-
       for (const [name, ticketdata] of Object.entries(event.ticket_info)) {
         const thissupply = await keypomInstance.getKeySupplyForTicket(name);
-        const ticketData = ticketdata as TicketData;
+        const ticketData = ticketdata;
         supply += parseInt(thissupply);
         maxTickets += ticketData.max_tickets;
         prices.push(ticketData.price);
@@ -367,9 +378,10 @@ export default function Gallery() {
 
     // Loop until we have enough filtered drops to fill the page size
     let dropsFetched = 0;
-    let filteredDrops = [];
+    let filteredDrops: MarketListing[] = [];
+
     while (dropsFetched < totalSupply && filteredDrops.length < selectedFilters.pageSize) {
-      const eventListings = await keypomInstance.GetMarketListings({
+      const eventListings: MarketListing[] = await keypomInstance.GetMarketListings({
         limit: 6,
         from_index: dropsFetched,
       });
@@ -380,7 +392,7 @@ export default function Gallery() {
     }
 
     // Now, map over the filtered drops and set the data
-    const dropDataPromises = filteredDrops.map(async (event: any) => {
+    const dropDataPromises = filteredDrops.map(async (event: MarketListing) => {
       // get metadata from drop.event_id and drop.funder_id
       const eventInfo = await keypomInstance.getEventInfo({
         accountId: event.funder_id,
