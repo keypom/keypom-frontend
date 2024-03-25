@@ -80,7 +80,7 @@ export interface AttendeeKeyItem {
   message_nonce: number;
 }
 
-export interface TicketData {
+export interface MarketListingTicketData {
   max_tickets: number;
   price: number;
 }
@@ -89,17 +89,18 @@ export interface MarketListing {
   event_id: string;
   funder_id: string;
   status: string;
-  ticket_info: TicketData[];
+  ticket_info: MarketListingTicketData[];
 }
 
 const KEY_ITEMS_PER_QUERY = 30;
 const DROP_ITEMS_PER_QUERY = 5;
+const MARKETPLACE_ITEMS_PER_QUERY = 50;
 class KeypomJS {
   static instance: KeypomJS;
   nearConnection: nearAPI.Near;
   viewAccount: nearAPI.Account;
 
-  allEventsGallery: any[];
+  allEventsGallery: MarketListing[];
 
   // Map the event ID to a set of drop IDs
   ticketDropsByEventId: Record<string, EventDrop[]> = {};
@@ -239,40 +240,78 @@ class KeypomJS {
     return { publicKeys, secretKeys };
   };
 
-  GetMarketListings = async ({ contractId = KEYPOM_MARKETPLACE_CONTRACT, limit, from_index }) => {
-    if (limit > 50) {
-      limit = 50;
+  GetMarketListings = async ({ start, limit }: { start: number; limit: number }) => {
+    try {
+      const totalSupply = await this.getEventSupply();
+      if (limit <= 0) {
+        limit = totalSupply;
+      }
+      if (this.allEventsGallery === undefined || this.allEventsGallery.length !== totalSupply) {
+        this.allEventsGallery = new Array(totalSupply).fill(null);
+      }
+
+      // Calculate the end index for the requested market listings
+      const endIndex = Math.min(start + limit, this.allEventsGallery.length);
+
+      // Fetch and cache only the needed batches
+      for (let i = start; i < totalSupply; i += MARKETPLACE_ITEMS_PER_QUERY) {
+        const batchStart = i;
+        const batchEnd = Math.min(i + MARKETPLACE_ITEMS_PER_QUERY, endIndex);
+        if (this.allEventsGallery.slice(batchStart, batchEnd).some((item) => item === null)) {
+          // If any item in the range is null, fetch the batch
+          const answer: MarketListing[] = await this.viewAccount.viewFunctionV2({
+            contractId: KEYPOM_MARKETPLACE_CONTRACT,
+            methodName: 'get_events',
+            args: { from_index: batchStart, limit: batchEnd - batchStart },
+          });
+          // add answers to cache
+          for (let j = 0; j < answer.length; j++) {
+            this.allEventsGallery[batchStart + j] = answer[j];
+          }
+        }
+      }
+
+      // Return the requested slice from the cache
+      return this.allEventsGallery.slice(start, endIndex);
+    } catch (error) {
+      throw new Error('Failed to get all market listings due to error: ' + String(error));
     }
-    if (
-      this.allEventsGallery == null ||
-      this.allEventsGallery === undefined ||
-      this.allEventsGallery.length === 0
-    ) {
-      const supply = await this.getEventSupply();
-      // initialize to length supply
-      this.allEventsGallery = new Array(supply).fill(null);
-    }
-
-    const cached = this.allEventsGallery.slice(from_index, parseInt(from_index) + parseInt(limit));
-
-    const hasNoNulls = cached.every((item) => item !== null);
-    const hasNoUndefineds = cached.every((item) => item !== undefined);
-
-    if (hasNoNulls && hasNoUndefineds) {
-      // just return from cache
-      return cached;
-    }
-
-    const answer: MarketListing[] = await this.viewAccount.viewFunctionV2({
-      contractId,
-      methodName: 'get_events',
-      args: { limit, from_index },
-    });
-
-    this.allEventsGallery.splice(from_index, limit, ...answer);
-
-    return answer;
   };
+
+  // GetMarketListings = async ({ contractId = KEYPOM_MARKETPLACE_CONTRACT, limit, from_index }) => {
+  //   if (limit > 50) {
+  //     limit = 50;
+  //   }
+  //   if (
+  //     this.allEventsGallery == null ||
+  //     this.allEventsGallery === undefined ||
+  //     this.allEventsGallery.length === 0
+  //   ) {
+  //     const supply = await this.getEventSupply();
+  //     // initialize to length supply
+  //     this.allEventsGallery = new Array(supply).fill(null);
+  //   }
+
+  //   const cached = this.allEventsGallery.slice(from_index, parseInt(from_index) + parseInt(limit));
+
+  //   const hasNoNulls = cached.every((item) => item !== null);
+  //   const hasNoUndefineds = cached.every((item) => item !== undefined);
+
+  //   if (hasNoNulls && hasNoUndefineds) {
+  //     // just return from cache
+  //     return cached;
+  //   }
+
+  //   const answer: MarketListing[] = await this.viewAccount.viewFunctionV2({
+  //     contractId,
+  //     methodName: 'get_events',
+  //     args: { limit, from_index },
+  //   });
+
+  //   this.allEventsGallery.splice(from_index, limit, ...answer);
+
+  //   return answer;
+  // };
 
   validateAccountId = async (accountId: string) => {
     if (!(accountId.length >= 2 && accountId.length <= 64 && ACCOUNT_ID_REGEX.test(accountId))) {
