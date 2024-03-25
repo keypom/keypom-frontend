@@ -363,15 +363,14 @@ class KeypomJS {
       methodName: 'get_key_information',
       args: { key: publicKey },
     });
-    console.log("keyinfo: ", keyInfo)
+    console.log('keyinfo: ', keyInfo);
 
     if (keyInfo === null || keyInfo === undefined) {
       throw new Error('Key does not exist');
     }
 
-
     return keyInfo.owner_id;
-  }
+  };
 
   checkIfDropExists = async (secretKey: string) => {
     try {
@@ -546,12 +545,14 @@ class KeypomJS {
   };
 
   getEventStripeStatus = async (eventId: string) => {
-    return await this.viewCall({
+    const res = await this.viewCall({
       contractId: KEYPOM_MARKETPLACE_CONTRACT,
       methodName: 'event_stripe_status',
       args: { event_id: eventId },
     });
-  }
+    console.log('res', res);
+    return res;
+  };
 
   deleteEventFromFunderMetadata = async ({
     wallet,

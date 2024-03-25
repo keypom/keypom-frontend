@@ -786,7 +786,6 @@ export default function Event() {
           subtitle: 'Sending confirmation email',
           text: `Progress: ${currentLoadedKey} / ${keyCount}`,
         });
-        newWorkerPayload.ticketKey = workerPayload.ticketKeys[key];
 
         // newWorkerPayload["ticketKeys"] = null;
         const response = await fetch(EMAIL_WORKER_BASE + '/send-confirmation-email', {
@@ -1117,6 +1116,8 @@ export default function Event() {
         setStripeAccountId(stripeAccountId);
 
         const stripeEnabled = await keypomInstance.getEventStripeStatus(eventId);
+        console.log('stripeEnabled', stripeEnabled);
+        console.log('stripeAccountId', stripeAccountId);
         setStripeEnabledEvent(stripeEnabled);
 
         setEvent({
