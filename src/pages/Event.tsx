@@ -15,7 +15,7 @@ import {
 import { useParams, useNavigate } from 'react-router-dom';
 import { ExternalLinkIcon } from '@chakra-ui/icons';
 import { useCallback, useEffect, useState } from 'react';
-import { generateKeys, getPubFromSecret } from 'keypom-js';
+import { generateKeys, getPubFromSecret, formatNearAmount } from 'keypom-js';
 import { type Wallet } from '@near-wallet-selector/core';
 
 import { SellModal } from '@/features/gallery/components/SellModal';
@@ -32,7 +32,12 @@ import {
   type FunderEventMetadata,
 } from '@/lib/eventsHelpers';
 import keypomInstance from '@/lib/keypom';
-import { KEYPOM_EVENTS_CONTRACT, KEYPOM_MARKETPLACE_CONTRACT } from '@/constants/common';
+import { KEYPOM_EVENTS_CONTRACT,
+  EMAIL_WORKER_BASE,
+  EVENTS_WORKER_BASE,
+  KEYPOM_MARKETPLACE_CONTRACT,
+  PURCHASED_LOCAL_STORAGE_PREFIX,
+} from '@/constants/common';
 import { type DataItem } from '@/components/Table/types';
 import { dateAndTimeToText } from '@/features/drop-manager/utils/parseDates';
 import { generateExecuteArgs } from 'keypom-js/lib/lib/trial-accounts/utils';
@@ -78,6 +83,7 @@ export interface TicketInterface {
   supply: number;
   maxTickets: number | undefined;
   soldTickets: number;
+  limitPerUser: number;
   priceNear: string;
   dateString?: string;
   media?: string;
@@ -100,6 +106,7 @@ export interface EventInterface {
   navurl: string | undefined;
   maxTickets: number | undefined;
   soldTickets: number | undefined;
+  limitPerUser?: number;
   numTickets: number | string | undefined;
   id: number | undefined;
   media: string | undefined;
@@ -115,6 +122,8 @@ export interface SellDropInfo {
   location: string;
   date: string;
   description: string;
+  maxNearPrice: number;
+  salesValidThrough: DateAndTimeInfo;
   publicKey: string;
   secretKey: string;
 }
@@ -260,15 +269,24 @@ export default function Event() {
       if (meta2.date != null) {
         dateString = dateAndTimeToText(meta2.date);
       }
+      const maxNearPriceYocto = await keypomInstance.viewCall({
+        contractId: KEYPOM_MARKETPLACE_CONTRACT,
+        methodName: 'get_max_resale_for_drop',
+        args: { drop_id: dropID },
+      });
+      const maxNearPrice = parseFloat(formatNearAmount(maxNearPriceYocto, 3));
+
       setSellDropInfo({
         name: meta2.name || 'Untitled',
         artwork: meta2.artwork || 'loading',
         questions: meta2.questions || [],
         location: meta2.location || 'loading',
         date: dateString,
+        salesValidThrough: meta.salesValidThrough,
         description: meta2.description || 'loading',
         publicKey,
         secretKey,
+        maxNearPrice,
       });
 
       setDoKeyModal(true);
@@ -472,14 +490,6 @@ export default function Event() {
           isClosable: true,
         });
         return;
-      }else{
-        toast({
-          title: 'Yippie!',
-          description: 'You are not a bot',
-          status: 'success',
-          duration: 5000,
-          isClosable: true,
-        });
       }
 
       const response = await fetch(
@@ -625,16 +635,13 @@ export default function Event() {
         });
       }
     } else if (purchaseType === 'stripe') {
-      const response = await fetch(
-        'https://stripe-worker.kp-capstone.workers.dev/stripe/create-checkout-session',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(workerPayload),
+      const response = await fetch(EVENTS_WORKER_BASE + '/stripe/create-checkout-session', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         },
-      );
+        body: JSON.stringify(workerPayload),
+      });
       if (response.ok) {
         // Account created successfully
         const responseBody = await response.json();
@@ -662,6 +669,10 @@ export default function Event() {
 
     const workerPayload: WorkerPayload = JSON.parse(workerPayloadStringified);
 
+    const purchaseLocalStorageKey = `${PURCHASED_LOCAL_STORAGE_PREFIX}_${workerPayload.ticket_info.dropId}`;
+    let numTicketsPurchased = parseInt(localStorage.getItem(purchaseLocalStorageKey) || '0');
+    numTicketsPurchased += workerPayload.ticketAmount;
+    localStorage.setItem(purchaseLocalStorageKey, numTicketsPurchased.toString());
     // remove workerpayload from localstorage
     localStorage.removeItem('workerPayload');
 
@@ -690,8 +701,7 @@ export default function Event() {
         console.log('sending confirmation email with newWorkerPayload', newWorkerPayload);
 
         // newWorkerPayload["ticketKeys"] = null;
-        const response = await fetch(
-          'https://email-worker.kp-capstone.workers.dev/send-confirmation-email',
+        const response = await fetch(EMAIL_WORKER_BASE + '/send-confirmation-email',
           {
             method: 'POST',
             headers: {
@@ -715,8 +725,7 @@ export default function Event() {
       newWorkerPayload.ticketKey = workerPayload.ticketKeys[0];
 
       // newWorkerPayload["ticketKeys"] = null;
-      const response_buyer = await fetch(
-        'https://email-worker.kp-capstone.workers.dev/send-confirmation-email',
+      const response_buyer = await fetch(EMAIL_WORKER_BASE + '/send-confirmation-email',
         {
           method: 'POST',
           headers: {
@@ -773,9 +782,14 @@ export default function Event() {
     }
   };
 
-  const TicketPurchaseSuccessful = (workerPayload, responseBody) => {
+  const TicketPurchaseSuccessful = (workerPayload: WorkerPayload, responseBody) => {
     const priceLog: string = workerPayload.priceNear.toString();
     let description = `The item has been bought for ${priceLog} NEAR`;
+
+    const purchaseLocalStorageKey = `${PURCHASED_LOCAL_STORAGE_PREFIX}_${workerPayload.ticket_info.dropId}`;
+    let numTicketsPurchased = parseInt(localStorage.getItem(purchaseLocalStorageKey) || '0');
+    numTicketsPurchased += workerPayload.ticketAmount;
+    localStorage.setItem(purchaseLocalStorageKey, numTicketsPurchased.toString());
 
     if (workerPayload.ticketAmount > 1) {
       const amountLog: string = workerPayload.ticketAmount.toString();
@@ -897,6 +911,7 @@ export default function Event() {
       const extra: TicketMetadataExtra = JSON.parse(meta.extra);
 
       const supply = await keypomInstance.getKeySupplyForTicket(ticket.drop_id);
+
       return {
         id: ticket.drop_id,
         artwork: meta.media,
@@ -954,6 +969,7 @@ export default function Event() {
               dateString: ticket.dateString,
               description: ticket.description,
               id: ticket.id,
+              limitPerUser: ticket.limitPerUser,
               // location: ticket.location,
               maxTickets: 1,
               media: ticket.media,
