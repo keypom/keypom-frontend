@@ -27,7 +27,7 @@ import {
   SORT_MENU_ITEMS,
   createMenuItems,
 } from '@/features/all-drops/config/menuItems';
-import keypomInstance from '@/lib/keypom';
+import keypomInstance, { type MarketListing } from '@/lib/keypom';
 import { GalleryGrid } from '@/features/gallery/components/GalleryGrid';
 import { DropDownButton } from '@/features/all-drops/components/DropDownButton';
 import { FilterOptionsMobileButton } from '@/features/all-drops/components/FilterOptionsMobileButton';
@@ -37,7 +37,7 @@ import { FormControlComponent } from '@/components/FormControl';
 import CustomDateRangePickerMobile from '@/components/DateRangePicker/MobileDateRangePicker';
 import CustomDateRangePicker from '@/components/DateRangePicker/DateRangePicker';
 import { dateAndTimeToText } from '@/features/drop-manager/utils/parseDates';
-import { type DateAndTimeInfo } from '@/lib/eventsHelpers';
+import { type FunderEventMetadata, type DateAndTimeInfo } from '@/lib/eventsHelpers';
 
 // import myData from '../data/db.json';
 
@@ -61,27 +61,31 @@ export default function Gallery() {
 
   // date range picker
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
-  const [datePlaceholer, setDatePlaceholder] = useState('Select date and time');
+  const [datePlaceholder, setDatePlaceholder] = useState('Select date and time');
+  const margins = '0 !important';
 
   const datePickerCTA = (
     // formData.date.error
-    <FormControlComponent errorText="" label="">
+    <FormControlComponent errorText="" label="" my={margins}>
       <Input
         readOnly
+        backgroundColor="white"
+        border="2px solid"
+        borderColor="gray.200"
+        color="gray.400"
+        fontSize="md"
+        fontWeight="medium"
+        height="52px"
         isInvalid={false} //! !formData.date.error
-        placeholder={datePlaceholer}
+        m="0"
+        placeholder={datePlaceholder}
+        px="6"
         style={{ cursor: 'pointer' }}
         sx={{
           '::placeholder': {
-            color: 'gray.400', // Placeholder text color
-          },
-          _invalid: {
-            borderColor: 'red.300',
-            boxShadow: '0 0 0 1px #EF4444 !important',
+            color: 'gray.400',
           },
         }}
-        type="text"
-        width="100%"
         onClick={() => {
           setIsDatePickerOpen(true);
         }}
@@ -227,32 +231,28 @@ export default function Gallery() {
     ) {
       drops = drops.filter((drop) => {
         if (drop === undefined) return false;
-        let dateString = drop.date.date;
-        // take start date, check if it is a string or object
-        if (typeof drop.date.date !== 'string') {
-          dateString = drop.date.date.from;
-        }
-        const date = new Date(dateString).getTime();
+
         return (
           selectedFilters.eventDate.startDate !== null &&
-          date >= selectedFilters.eventDate.startDate
+          drop.date.startDate >= selectedFilters.eventDate.startDate
         );
       });
     }
 
     if (
-      selectedFilters.eventDate.endDate !== null &&
-      selectedFilters.eventDate.endDate !== undefined
+      selectedFilters.eventDate?.endDate !== null &&
+      selectedFilters.eventDate?.endDate !== undefined &&
+      selectedFilters.eventDate?.endDate !== 0
     ) {
       drops = drops.filter((drop) => {
         if (drop === undefined) return false;
-        let dateString = drop.date.date;
-        // take start date, check if it is a string or object
-        if (typeof drop.date.date !== 'string') {
-          dateString = drop.date.date.to;
-        }
-        const date = new Date(dateString).getTime();
-        return date <= selectedFilters.eventDate.endDate!;
+
+        if (selectedFilters.eventDate.endDate === undefined) return false;
+
+        return (
+          selectedFilters.eventDate.endDate !== null &&
+          drop.date.endDate <= selectedFilters.eventDate.endDate
+        );
       });
     }
 
@@ -277,21 +277,25 @@ export default function Gallery() {
     return drops;
   };
 
-  // const [numOwnedEvents, setNumOwnedEvents] = useState<number>(0);
+  useEffect(() => {
+    // in the rare case that initial is loaded after all, load all again
+    if (!isAllDropsLoading && isLoading) {
+      handleGetAllMarketListings();
+    }
+  }, [filteredDataItems]);
 
-  const handleGetAllEvents = async () => {
+  const handleGetAllMarketListings = async () => {
     setIsAllDropsLoading(true);
-    const eventListings = await keypomInstance.GetMarketListings({
-      limit: 50,
-      from_index: 0,
+    // First get the total supply of drops so we know when to stop fetching
+
+    const allEventListings: MarketListing[] = await keypomInstance.GetMarketListings({
+      limit: 0, // no limit
+      start: 0,
     });
 
-    // const numEvents = eventListings.length;
-    // setNumOwnedEvents(numEvents);
-
-    const dropDataPromises = eventListings.map(async (event) => {
+    const dropDataPromises = allEventListings.map(async (event: MarketListing) => {
       // get metadata from drop.event_id and drop.funder_id
-      const eventInfo = await keypomInstance.getEventInfo({
+      const eventInfo: FunderEventMetadata | null = await keypomInstance.getEventInfo({
         accountId: event.funder_id,
         eventId: event.event_id,
       });
@@ -306,15 +310,9 @@ export default function Gallery() {
       let maxTickets = 0;
       const prices: number[] = [];
 
-      interface TicketData {
-        max_tickets: number; // or the correct type
-        price: number; // or the correct type
-        // add other properties as needed
-      }
-
       for (const [name, ticketdata] of Object.entries(event.ticket_info)) {
         const thissupply = await keypomInstance.getKeySupplyForTicket(name);
-        const ticketData = ticketdata as TicketData;
+        const ticketData = ticketdata;
         supply += parseInt(thissupply);
         maxTickets += ticketData.max_tickets;
         prices.push(ticketData.price);
@@ -327,6 +325,13 @@ export default function Gallery() {
 
       if (event === undefined || eventInfo === undefined) {
         return null;
+      }
+
+      let endDate = new Date();
+      if (eventInfo.date.endDate != null) {
+        endDate = new Date(eventInfo.date.endDate);
+      } else {
+        endDate = new Date(eventInfo.date.startDate);
       }
 
       const numTickets = Object.keys(event.ticket_info).length;
@@ -344,6 +349,7 @@ export default function Gallery() {
         numTickets,
         description: truncateAddress(eventInfo.description, 'end', 128),
         eventId: event.event_id,
+        dateForPastCheck: endDate,
         navurl: String(event.funder_id) + ':' + String(event.event_id),
       };
     });
@@ -357,34 +363,23 @@ export default function Gallery() {
 
     setFilteredDataItems(dropData);
 
-    const totalPages = Math.ceil(dropDataPromises.length / selectedFilters.pageSize);
+    const totalPages = Math.ceil(dropData.length / selectedFilters.pageSize);
     setNumPages(totalPages);
 
     setCurPage(0);
     setIsAllDropsLoading(false);
   };
 
-  const handleGetInitialDrops = async () => {
+  const handleGetInitialMarketListings = async () => {
     // setIsLoading(true);
-    // First get the total supply of drops so we know when to stop fetching
-    const totalSupply = await keypomInstance.getEventSupply();
-
-    // Loop until we have enough filtered drops to fill the page size
-    let dropsFetched = 0;
-    let filteredDrops = [];
-    while (dropsFetched < totalSupply && filteredDrops.length < selectedFilters.pageSize) {
-      const eventListings = await keypomInstance.GetMarketListings({
-        limit: 6,
-        from_index: dropsFetched,
-      });
-
-      dropsFetched += Number(eventListings.length);
-
-      filteredDrops = filteredDrops.concat(eventListings);
-    }
+    // Get enough filtered drops to fill the page size
+    const marketListings: MarketListing[] = await keypomInstance.GetMarketListings({
+      limit: selectedFilters.pageSize,
+      start: 0,
+    });
 
     // Now, map over the filtered drops and set the data
-    const dropDataPromises = filteredDrops.map(async (event: any) => {
+    const dropDataPromises = marketListings.map(async (event: MarketListing) => {
       // get metadata from drop.event_id and drop.funder_id
       const eventInfo = await keypomInstance.getEventInfo({
         accountId: event.funder_id,
@@ -452,13 +447,13 @@ export default function Gallery() {
   useEffect(() => {
     if (keypomInstance === undefined) return;
     // First get enough data with the current filters to fill the page size
-    handleGetInitialDrops();
+    handleGetInitialMarketListings();
   }, [keypomInstance]);
 
   useEffect(() => {
     if (keypomInstance === undefined) return;
     // In parallel, fetch all the events
-    handleGetAllEvents();
+    handleGetAllMarketListings();
   }, [selectedFilters, keypomInstance]);
 
   const pageSizeMenuItems = createMenuItems({
@@ -495,7 +490,11 @@ export default function Gallery() {
 
   return (
     <Box p="10">
-      <ChakraImage alt={banner} height="300" objectFit="cover" src={banner} width="100%" />
+      {banner === '' ? (
+        <Skeleton height="300px" width="100%" />
+      ) : (
+        <ChakraImage alt={banner} height="300" objectFit="cover" src={banner} width="100%" />
+      )}
       <Heading py="4">Browse Events</Heading>
 
       <Show above="md">
@@ -512,7 +511,6 @@ export default function Gallery() {
                 color="gray.400"
                 fontSize="md"
                 fontWeight="medium"
-                h="52px"
                 height="52px"
                 placeholder="Search..."
                 px="6"
@@ -576,8 +574,8 @@ export default function Gallery() {
                 <Flex justifyContent="flex-end">
                   {!isAllDropsLoading && (
                     <Menu>
-                      {isOpen && (
-                        <HStack>
+                      {({ isOpen }) => (
+                        <Box>
                           <DropDownButton
                             isOpen={isOpen}
                             placeholder={`Tickets: ${selectedFilters.sort}`}
@@ -585,7 +583,7 @@ export default function Gallery() {
                             onClick={() => (popoverClicked.current += 1)}
                           />
                           <MenuList minWidth="auto">{sortOrderMenuItems}</MenuList>
-                        </HStack>
+                        </Box>
                       )}
                     </Menu>
                   )}

@@ -74,9 +74,9 @@ export const VerifyModal = ({ isOpen, onClose, event, eventId, accountId }: Veri
 
       // get drop info using the key info id
 
-      const dropID = keyinfo.token_id.split(':')[0];
+      const dropId = keyinfo.token_id.split(':')[0];
 
-      const dropData: EventDrop = await keypomInstance.getTicketDropInformation({ dropID });
+      const dropData: EventDrop = await keypomInstance.getTicketDropInformation({ dropId });
 
       // parse dropData's metadata to get eventId
       const meta: TicketMetadataExtra = JSON.parse(
@@ -220,9 +220,9 @@ export const VerifyModal = ({ isOpen, onClose, event, eventId, accountId }: Veri
           ) : null}
 
           <ModalFooter>
-            <Button variant={'secondary'} w="100%" onClick={checkData}>
+            {/* <Button variant={'secondary'} w="100%" onClick={checkData}>
               test
-            </Button>
+            </Button> */}
             <Button variant={'secondary'} w="100%" onClick={onClose}>
               Cancel
             </Button>

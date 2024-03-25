@@ -11,11 +11,12 @@ import {
   HStack,
   Hide,
   Show,
+  VStack,
 } from '@chakra-ui/react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ExternalLinkIcon } from '@chakra-ui/icons';
 import { useCallback, useEffect, useState } from 'react';
-import { getPubFromSecret, formatNearAmount } from 'keypom-js';
+import { generateKeys, getPubFromSecret, formatNearAmount } from 'keypom-js';
 import { type Wallet } from '@near-wallet-selector/core';
 
 import { SellModal } from '@/features/gallery/components/SellModal';
@@ -29,17 +30,21 @@ import {
   type TicketMetadataExtra,
   type DateAndTimeInfo,
   type EventDrop,
-  type FunderEventMetadata,
 } from '@/lib/eventsHelpers';
 import keypomInstance from '@/lib/keypom';
 import {
   EMAIL_WORKER_BASE,
+  KEYPOM_EVENTS_CONTRACT,
+  CLOUDFLARE_IPFS,
   EVENTS_WORKER_BASE,
   KEYPOM_MARKETPLACE_CONTRACT,
   PURCHASED_LOCAL_STORAGE_PREFIX,
 } from '@/constants/common';
 import { type DataItem } from '@/components/Table/types';
 import { dateAndTimeToText } from '@/features/drop-manager/utils/parseDates';
+import { LoadingModal } from '@/features/events-page/components/LoadingModal';
+
+import { botCheck } from '../utils/botCheck';
 
 interface WorkerPayload {
   name: string | null;
@@ -54,13 +59,19 @@ interface WorkerPayload {
     eventId: string;
     dropId: string;
     funderId: string;
+    event_image_url: string;
+    ticket_image_url: string;
   };
   purchaseEmail: string;
   stripeAccountId: string | undefined;
   baseUrl: string;
   priceNear: string;
+  // secret keys, for multiple primary purchases
   ticketKeys?: string[];
+  // single secret key to send in email
   ticketKey?: string;
+  network?: string;
+  linkdrop_secret_key?: string;
 }
 
 export interface TicketInterface {
@@ -87,6 +98,8 @@ export interface TicketInterface {
 export interface EventInterface {
   title: string;
   name: string;
+  stripeCheckout: boolean;
+  nearCheckout: boolean;
   artwork: string;
   location: string;
   date: string;
@@ -104,22 +117,23 @@ export interface EventInterface {
   supply: number | undefined;
   dateString: string | undefined;
   price: number | undefined;
+  dateForPastCheck: Date | undefined;
 }
 
-export interface SellDropInfo {
+export interface ResaleTicketInfo {
   name: string;
   artwork: string;
-  questions: QuestionInfo[];
-  location: string;
-  date: string;
   description: string;
-  maxNearPrice: number;
+  passValidThrough: DateAndTimeInfo;
   salesValidThrough: DateAndTimeInfo;
+  maxNearPrice: number;
   publicKey: string;
   secretKey: string;
 }
 
 export default function Event() {
+  // const simulateStripe: boolean = false;
+
   const params = useParams();
   if (params.eventID == null || params.eventID === undefined) {
     return (
@@ -156,13 +170,20 @@ export default function Event() {
   const [stripeAccountId, setStripeAccountId] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [noDrop, setNoDrop] = useState(false);
-  const [input, setInput] = useState('');
+  const [input, setInput] = useState('0.1');
   const [ticketList, setTicketList] = useState<TicketInterface[]>([]);
   const [resaleTicketList, setResaleTicketList] = useState<TicketInterface[]>([]);
   const [areTicketsLoading, setAreTicketsLoading] = useState(true);
   const [doKeyModal, setDoKeyModal] = useState(false);
 
-  const [sellDropInfo, setSellDropInfo] = useState<SellDropInfo | null>(null);
+  const [loadingModal, setLoadingModal] = useState(false);
+  const [loadingModalText, setLoadingModalText] = useState<{
+    title: string;
+    text: string;
+    subtitle: string;
+  }>({ title: '', text: '', subtitle: '' });
+
+  const [sellDropInfo, setSellDropInfo] = useState<ResaleTicketInfo | null>(null);
 
   // purchase modal
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -209,33 +230,38 @@ export default function Event() {
     CheckForNearRedirect();
   }, [keypomInstance, eventId, funderId]);
 
+  useEffect(() => {
+    CheckForSellSuccessToast();
+  }, []);
+
   const getKeyInformation = useCallback(async () => {
-    if (secretKey == null) {
+    if (
+      secretKey === null ||
+      secretKey === undefined ||
+      eventId === null ||
+      eventId === undefined
+    ) {
       return;
     }
 
     try {
       const publicKey: string = getPubFromSecret(secretKey);
 
-      const keyinfo = await keypomInstance.getTicketKeyInformation({
+      const keyInfo = await keypomInstance.getTicketKeyInformation({
         publicKey: String(publicKey),
       });
 
       // get drop info using the key info id
-
-      const dropID = keyinfo.token_id.split(':')[0];
-
-      // testing dropID = "1709145479199-Ground Ticket-14"
-
-      const dropData: EventDrop = await keypomInstance.getTicketDropInformation({ dropID });
+      const dropId = keyInfo.token_id.split(':')[0];
+      const dropData: EventDrop = await keypomInstance.getTicketDropInformation({ dropId });
 
       // parse dropData's metadata to get eventId
-      const meta: TicketMetadataExtra = JSON.parse(
-        dropData.drop_config.nft_keys_config.token_metadata.extra,
-      );
+      const ticketMetadata: TicketInfoMetadata =
+        dropData.drop_config.nft_keys_config.token_metadata;
+      const ticketMetadataExtra: TicketMetadataExtra = JSON.parse(ticketMetadata.extra);
 
-      const keyinfoEventId = meta.eventId;
-      if (keyinfoEventId !== eventId) {
+      const keyInfoEventId = ticketMetadataExtra.eventId;
+      if (keyInfoEventId !== eventId) {
         toast({
           title: 'Ticket does not match current event',
           description: `This ticket is for a different event, please scan it on the correct event page`,
@@ -245,37 +271,22 @@ export default function Event() {
         });
       }
 
-      const meta2: FunderEventMetadata | null = await keypomInstance.getEventInfo({
-        accountId: funderId,
-        eventId: keyinfoEventId,
-      });
-
-      if (meta2 == null) {
-        throw new Error('The event does not exist.');
-      }
-
-      let dateString = '';
-      if (meta2.date != null) {
-        dateString = dateAndTimeToText(meta2.date);
-      }
       const maxNearPriceYocto = await keypomInstance.viewCall({
         contractId: KEYPOM_MARKETPLACE_CONTRACT,
         methodName: 'get_max_resale_for_drop',
-        args: { drop_id: dropID },
+        args: { drop_id: dropId },
       });
       const maxNearPrice = parseFloat(formatNearAmount(maxNearPriceYocto, 3));
 
       setSellDropInfo({
-        name: meta2.name || 'Untitled',
-        artwork: meta2.artwork || 'loading',
-        questions: meta2.questions || [],
-        location: meta2.location || 'loading',
-        date: dateString,
-        salesValidThrough: meta.salesValidThrough,
-        description: meta2.description || 'loading',
+        name: ticketMetadata.title,
+        artwork: `${CLOUDFLARE_IPFS}/${ticketMetadata.media}`,
+        description: ticketMetadata.description,
+        salesValidThrough: ticketMetadataExtra.salesValidThrough,
+        passValidThrough: ticketMetadataExtra.passValidThrough,
+        maxNearPrice,
         publicKey,
         secretKey,
-        maxNearPrice,
       });
 
       setDoKeyModal(true);
@@ -289,7 +300,7 @@ export default function Event() {
         isClosable: true,
       });
     }
-  }, [secretKey, keypomInstance]);
+  }, [event, secretKey, keypomInstance]);
 
   // example: http://localhost:3000/gallery/minqi.testnet:152c9ef5-13de-40f6-9ec2-cc39f5886f4e#secretKey=ed25519:AXSwjeNg8qS8sFPSCK2eYK7UoQ3Kyyqt9oeKiJRd8pUhhEirhL2qbrs7tLBYpoGE4Acn8JbFL7FVjgyT2aDJaJx
   const loadingdata = [] as DataItem[];
@@ -370,7 +381,7 @@ export default function Event() {
     navigate('./');
 
     const dropData = await keypomInstance.getTicketDropInformation({
-      dropID: ticketBeingPurchased.id,
+      dropId: ticketBeingPurchased.id,
     });
 
     // parse dropData's metadata to get eventId
@@ -439,6 +450,9 @@ export default function Event() {
       trimmedEmail = trimmedEmail.substring(0, 500);
     }
 
+    const stripe_ticket_hash: string = dropData.drop_config.nft_keys_config.token_metadata.media;
+    const ticket_url_stripe = `https://cloudflare-ipfs.com/ipfs/${stripe_ticket_hash}`;
+
     const workerPayload: WorkerPayload = {
       name: attendeeName,
       ticketAmount, // (number of tickets being purchase)
@@ -452,6 +466,9 @@ export default function Event() {
         eventId: meta.eventId,
         dropId: ticketBeingPurchased.id,
         funderId,
+        event_image_url: drop.artwork,
+        ticket_image_url:
+          purchaseType === 'stripe' ? ticket_url_stripe : ticketBeingPurchased.artwork,
       },
       purchaseEmail: trimmedEmail, // (currently just called email in userInfo)
       stripeAccountId,
@@ -460,21 +477,102 @@ export default function Event() {
     };
 
     if (purchaseType === 'free') {
-      const response = await fetch(EVENTS_WORKER_BASE + '/purchase-free-tickets', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(workerPayload),
-      });
+      if (!isSecondary) {
+        const bot = await botCheck();
 
-      if (response.ok) {
-        const responseBody = await response.json();
-        TicketPurchaseSuccessful(workerPayload, responseBody);
+        if (bot) {
+          toast({
+            title: 'Purchase failed',
+            description:
+              'You have been identified as a bot and your purchase has been blocked. Make sure your VPN is turned off.',
+            status: 'error',
+            duration: 5000,
+            isClosable: true,
+          });
+        }
+
+        const response = await fetch(
+          'https://stripe-worker.kp-capstone.workers.dev/purchase-free-tickets',
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(workerPayload),
+          },
+        );
+
+        if (response.ok) {
+          const responseBody = await response.json();
+          TicketPurchaseSuccessful(workerPayload, responseBody);
+        } else {
+          const responseBody = await response.json();
+          console.error('responseBody', responseBody);
+          TicketPurchaseFailure(workerPayload, await response.json());
+        }
       } else {
-        const responseBody = await response.json();
-        console.error('responseBody', responseBody);
-        TicketPurchaseFailure(workerPayload, await response.json());
+        // secondary
+        if (wallet == null) {
+          toast({
+            title: 'Purchase failed',
+            description: 'Wallet not found, reconnect it and try again',
+            status: 'error',
+            duration: 5000,
+            isClosable: true,
+          });
+          return;
+        }
+
+        localStorage.setItem('purchaseType', 'secondary');
+
+        // free tickets can only be sold for 0.1N
+        const nearSendPrice = '100000000000000000000000';
+
+        const { publicKeys, secretKeys } = await keypomInstance.GenerateTicketKeys(ticketAmount);
+        workerPayload.ticketKeys = secretKeys;
+        const memo = {
+          linkdrop_pk: ticketBeingPurchased.publicKey,
+          new_public_key: publicKeys[0],
+        }; // NftTransferMemo,
+
+        const owner: string = await keypomInstance.getCurrentKeyOwner(
+          KEYPOM_MARKETPLACE_CONTRACT,
+          ticketBeingPurchased.publicKey,
+        );
+
+        const linkdrop_keys = await generateKeys({ numKeys: 1 });
+        // Seller did not have wallet when they bought, include linkdrop info in email
+        if (owner === KEYPOM_EVENTS_CONTRACT) {
+          console.log('seller did not have wallet when they bought');
+          workerPayload.linkdrop_secret_key = linkdrop_keys.secretKeys[0];
+          workerPayload.network = process.env.REACT_APP_NETWORK_ID;
+        }
+
+        console.log('workerPayload before signandsend', JSON.stringify(workerPayload));
+        localStorage.setItem('workerPayload', JSON.stringify(workerPayload));
+
+        await wallet.signAndSendTransaction({
+          signerId: accountId || undefined,
+          receiverId: KEYPOM_MARKETPLACE_CONTRACT,
+          actions: [
+            {
+              type: 'FunctionCall',
+              params: {
+                methodName: 'buy_resale',
+                args: {
+                  drop_id: ticketBeingPurchased.id,
+                  memo,
+                  new_owner: accountId,
+                  seller_new_linkdrop_pk: linkdrop_keys.publicKeys[0],
+                  seller_linkdrop_drop_id: Date.now().toString(),
+                },
+                gas: '300000000000000',
+                // 0.1NEAR if not defined
+                deposit: nearSendPrice,
+              },
+            },
+          ],
+        });
       }
     } else if (purchaseType === 'near') {
       // put the workerPayload in local storage
@@ -520,6 +618,8 @@ export default function Event() {
           return;
         }
 
+        localStorage.setItem('purchaseType', 'primary');
+
         await wallet.signAndSendTransaction({
           signerId: accountId || undefined,
           receiverId: KEYPOM_MARKETPLACE_CONTRACT,
@@ -541,11 +641,6 @@ export default function Event() {
         });
       } else {
         // secondary
-        const memo = {
-          linkdrop_pk: ticketBeingPurchased.publicKey,
-          new_public_key: publicKeys[0],
-        }; // NftTransferMemo,
-
         if (wallet == null) {
           toast({
             title: 'Purchase failed',
@@ -556,6 +651,30 @@ export default function Event() {
           });
           return;
         }
+
+        localStorage.setItem('purchaseType', 'secondary');
+
+        const memo = {
+          linkdrop_pk: ticketBeingPurchased.publicKey,
+          new_public_key: publicKeys[0],
+        }; // NftTransferMemo,
+
+        const owner: string = await keypomInstance.getCurrentKeyOwner(
+          KEYPOM_MARKETPLACE_CONTRACT,
+          ticketBeingPurchased.publicKey,
+        );
+
+        const linkdrop_keys = await generateKeys({ numKeys: 1 });
+        // Seller did not have wallet when they bought, include linkdrop info in email
+        if (owner === KEYPOM_EVENTS_CONTRACT) {
+          console.log('seller did not have wallet when they bought');
+          workerPayload.linkdrop_secret_key = linkdrop_keys.secretKeys[0];
+          workerPayload.network = process.env.REACT_APP_NETWORK_ID;
+        }
+
+        console.log('workerPayload before signandsend', JSON.stringify(workerPayload));
+        localStorage.setItem('workerPayload', JSON.stringify(workerPayload));
+
         await wallet.signAndSendTransaction({
           signerId: accountId || undefined,
           receiverId: KEYPOM_MARKETPLACE_CONTRACT,
@@ -568,6 +687,8 @@ export default function Event() {
                   drop_id: ticketBeingPurchased.id,
                   memo,
                   new_owner: accountId,
+                  seller_new_linkdrop_pk: linkdrop_keys.publicKeys[0],
+                  seller_linkdrop_drop_id: Date.now().toString(),
                 },
                 gas: '300000000000000',
                 deposit: nearSendPrice,
@@ -598,13 +719,32 @@ export default function Event() {
     }
   };
 
+  const CheckForSellSuccessToast = () => {
+    const price = localStorage.getItem('sellsuccessful');
+
+    if (price == null || price === undefined) {
+      return;
+    }
+
+    localStorage.removeItem('sellsuccessful');
+
+    toast({
+      title: 'Item put for sale successfully',
+      description: `Your item has been put for sale for ${price} NEAR`,
+      status: 'success',
+      duration: 5000,
+      isClosable: true,
+    });
+  };
+
   const CheckForNearRedirect = async () => {
     if (nearRedirect == null) {
       return;
     }
     // get workerpayload from local storage
     const workerPayloadStringified = localStorage.getItem('workerPayload');
-    if (workerPayloadStringified == null) {
+    const purchaseType = localStorage.getItem('purchaseType');
+    if (workerPayloadStringified == null || purchaseType == null) {
       return;
     }
 
@@ -622,11 +762,56 @@ export default function Event() {
 
     const newWorkerPayload = workerPayload;
 
-    for (const key in workerPayload.ticketKeys) {
-      newWorkerPayload.ticketKey = workerPayload.ticketKeys[key];
+    // primary purchases are in batch, if one key has been added, then all of them should have been added.
+    if (workerPayload.ticketKeys === undefined || workerPayload.ticketKeys.length === 0) {
+      return;
+    }
+    const ticketPubKey = getPubFromSecret(workerPayload.ticketKeys[0]);
+    const keyInfo = await keypomInstance.getTicketKeyInformation({ publicKey: ticketPubKey });
+    if (keyInfo === null) {
+      return;
+    }
 
+    if (purchaseType === 'primary') {
+      const keyCount = workerPayload.ticketKeys?.length;
+      let currentLoadedKey = 1;
+
+      for (const key of workerPayload.ticketKeys) {
+        const ticketKey = key;
+        newWorkerPayload.ticketKey = ticketKey;
+
+        setLoadingModal(true);
+        setLoadingModalText({
+          title: 'Purchase Successful',
+          subtitle: 'Sending confirmation email',
+          text: `Progress: ${currentLoadedKey} / ${keyCount}`,
+        });
+
+        // newWorkerPayload["ticketKeys"] = null;
+        const response = await fetch(EMAIL_WORKER_BASE + '/send-confirmation-email', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(newWorkerPayload),
+        });
+
+        currentLoadedKey++;
+
+        if (response.ok) {
+          const responseBody = await response.json();
+          TicketPurchaseSuccessful(newWorkerPayload, responseBody);
+        } else {
+          // Error creating account
+          TicketPurchaseFailure(newWorkerPayload, await response.json());
+        }
+      }
+    } else if (purchaseType === 'secondary') {
+      // send confirmation email first to buyer
+
+      newWorkerPayload.ticketKey = workerPayload.ticketKeys[0];
       // newWorkerPayload["ticketKeys"] = null;
-      const response = await fetch(EMAIL_WORKER_BASE + '/send-confirmation-email', {
+      const response_buyer = await fetch(EMAIL_WORKER_BASE + '/send-confirmation-email', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -634,14 +819,48 @@ export default function Event() {
         body: JSON.stringify(newWorkerPayload),
       });
 
-      if (response.ok) {
-        const responseBody = await response.json();
-        TicketPurchaseSuccessful(newWorkerPayload, responseBody);
+      if (response_buyer.ok) {
+        // Email sent
+        const responseBody = await response_buyer.json();
+        TicketPurchaseSuccessful(workerPayload, responseBody);
       } else {
-        // Error creating account
-        TicketPurchaseFailure(newWorkerPayload, await response.json());
+        // Email not sent
+        TicketPurchaseFailure(workerPayload, await response_buyer.json());
       }
+      /* ~~~~~~~~~~~~~~~~ SELLER SOLD EMAIL DISABLED UNTIL IPFS INTEGRATION ~~~~~~~~~~~~~~~~
+      let email_endpoint = EMAIL_WORKER_BASE + "/send-sold-confirmation-email"
+      // Seller did not have wallet when they bought, include linkdrop info in email
+      if(workerPayload.linkdrop_secret_key != null || workerPayload.linkdrop_secret_key != undefined){
+        email_endpoint = email_endpoint + "-no-wallet"
+      }
+
+      workerPayload["purchaseEmail"] = "minqianlu1129@gmail.com"
+      const seller_response = await fetch(
+        email_endpoint,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(workerPayload),
+        },
+      );
+
+      if (response_buyer.ok && seller_response.ok) {
+        // Email sent
+        const responseBody = await response_buyer.json();
+        TicketPurchaseSuccessful(workerPayload, responseBody);
+      } else {
+        // Email not sent
+        if(!response_buyer.ok){
+          TicketPurchaseFailure(workerPayload, await response_buyer.json());
+        }else{
+          TicketPurchaseFailure(workerPayload, await seller_response.json());
+        }
+      }
+      */
     }
+    setLoadingModal(false);
   };
 
   const TicketPurchaseSuccessful = (workerPayload: WorkerPayload, responseBody) => {
@@ -668,6 +887,8 @@ export default function Event() {
       duration: 5000,
       isClosable: true,
     });
+    // close modal
+    ClosePurchaseModal();
   };
 
   const TicketPurchaseFailure = (workerPayload, responseBody) => {
@@ -703,7 +924,17 @@ export default function Event() {
 
     setSellDropInfo(null);
 
-    const yoctoPrice = keypomInstance.nearToYocto(input);
+    const nearPrice = input;
+
+    // open up loading modal
+    setLoadingModal(true);
+    setLoadingModalText({
+      title: 'Selling Ticket',
+      subtitle: 'Please wait',
+      text: 'Your ticket is being put for sale',
+    });
+
+    const yoctoPrice = keypomInstance.nearToYocto(nearPrice);
 
     const signature = await keypomInstance.GenerateResellSignature({
       secretKey: sellInfo.secretKey,
@@ -737,14 +968,15 @@ export default function Event() {
       });
     }
 
+    // close loading modal
+    setLoadingModal(false);
+
+    navigate('./');
+
     if (sellsuccessful) {
-      toast({
-        title: 'Item put for sale successfully',
-        description: `Your item has been put for sale for ${input} NEAR`,
-        status: 'success',
-        duration: 5000,
-        isClosable: true,
-      });
+      // add a sellsuccessful to local storage
+      localStorage.setItem('sellsuccessful', nearPrice);
+      window.location.reload();
     }
   };
 
@@ -759,11 +991,8 @@ export default function Event() {
       eventId,
     });
 
-    const iseventavailable = await keypomInstance.getStripeEnabledEvents();
-    // check if this event is stripe enabled
-    const iseventstripeenabled = iseventavailable.includes(eventId);
-
-    setStripeEnabledEvent(iseventstripeenabled);
+    const eventStripeStatus = await keypomInstance.getEventStripeStatus(eventId);
+    setStripeEnabledEvent(eventStripeStatus);
 
     // get stripe id for account
     const stripeAccountId = await keypomInstance.getStripeAccountId(funderId);
@@ -871,27 +1100,35 @@ export default function Event() {
 
     const getEventData = async () => {
       try {
-        const drop = await keypomInstance.getEventInfo({ accountId: funderId, eventId });
+        const eventInfo = await keypomInstance.getEventInfo({ accountId: funderId, eventId });
 
-        if (drop == null) {
+        if (eventInfo === null || eventInfo === undefined) {
           setNoDrop(true);
           return;
         }
 
-        const meta = drop;
-
         let dateString = '';
-        if (meta?.date != null) {
-          dateString = dateAndTimeToText(meta.date);
+        if (eventInfo?.date != null) {
+          dateString = dateAndTimeToText(eventInfo.date);
         }
 
+        const stripeAccountId = await keypomInstance.getStripeAccountId(funderId);
+        setStripeAccountId(stripeAccountId);
+
+        const stripeEnabled = await keypomInstance.getEventStripeStatus(eventId);
+        console.log('stripeEnabled', stripeEnabled);
+        console.log('stripeAccountId', stripeAccountId);
+        setStripeEnabledEvent(stripeEnabled);
+
         setEvent({
-          name: meta.name || 'Untitled',
-          artwork: meta.artwork || 'loading',
-          questions: meta.questions || [],
-          location: meta.location || 'loading',
+          name: eventInfo.name || 'Untitled',
+          artwork: eventInfo.artwork || 'loading',
+          questions: eventInfo.questions || [],
+          location: eventInfo.location || 'loading',
           date: dateString,
-          description: meta.description || 'loading',
+          description: eventInfo.description || 'loading',
+          stripeCheckout: eventInfo.nearCheckout,
+          nearCheckout: eventInfo.nearCheckout,
           // WIP data below here
           title: '',
           pubKey: '',
@@ -905,6 +1142,7 @@ export default function Event() {
           supply: 0,
           dateString: '',
           price: 0,
+          dateForPastCheck: new Date(),
         });
         setIsLoading(false);
       } catch (error) {
@@ -947,7 +1185,6 @@ export default function Event() {
         w="100%"
         zIndex={-1}
       />
-
       <Box position="relative">
         <ChakraImage
           alt={event.title}
@@ -959,119 +1196,64 @@ export default function Event() {
         />
       </Box>
       <Box my="5" />
-
       <Box my="5" />
       {/* <Text>Details about the Event:</Text>
       <Text>Event ID: {eventID}</Text> */}
-
       {/* <Box backgroundColor={'white'} h="100vh" left="0" ml="0" position="absolute" w="100vw"></Box> */}
       <Heading as="h2" color="black" my="5" size="2xl">
         {event.name}
       </Heading>
-      {/* TODO: make these stacks change between hstack and vstack nicely */}
+      {/* For larger screens, show a horizontal stack */}
       <Show above="md">
-        <HStack>
-          <Box flex="2" mr="20" textAlign="left">
-            <Text
-              as="h2"
-              color="black.800"
-              fontSize="l"
-              fontWeight="bold"
-              my="4px"
-              textAlign="left"
-            >
+        <HStack alignItems="flex-start" spacing="20">
+          <Box flex="2">
+            <Text as="h2" color="black.800" fontSize="l" fontWeight="bold" my="4px">
               Event Details
             </Text>
-
-            <Text> {event.description} </Text>
+            <Text>{event.description}</Text>
           </Box>
-          <Box flex="1" mr="20" textAlign="left">
-            <Text
-              as="h2"
-              color="black.800"
-              fontSize="l"
-              fontWeight="bold"
-              my="4px"
-              textAlign="left"
-            >
+          <VStack alignItems="flex-start" flex="1">
+            <Text as="h2" color="black.800" fontSize="l" fontWeight="bold" my="4px">
               Location
             </Text>
-
             <Text>{event.location}</Text>
-
             <a href={mapHref} rel="noopener noreferrer" target="_blank">
               Open in Google Maps <ExternalLinkIcon mx="2px" />
             </a>
-
-            <Text
-              as="h2"
-              color="black.800"
-              fontSize="l"
-              fontWeight="bold"
-              mt="12px"
-              my="4px"
-              textAlign="left"
-            >
+            <Text as="h2" color="black.800" fontSize="l" fontWeight="bold" mt="12px" my="4px">
               Date
             </Text>
             <Text color="gray.400">{event.date}</Text>
-
             <Button mt="4" variant="primary" onClick={verifyOnOpen}>
               Verify Ticket
             </Button>
-          </Box>
+          </VStack>
         </HStack>
       </Show>
+
+      {/* For smaller screens, show a vertical stack */}
       <Hide above="md">
-        <Box>
-          <Box flex="2" mr="20" textAlign="left">
-            <Text
-              as="h2"
-              color="black.800"
-              fontSize="l"
-              fontWeight="bold"
-              my="4px"
-              textAlign="left"
-            >
-              Event Details
-            </Text>
-
-            <Text> {event.description} </Text>
-          </Box>
-          <Box flex="2" textAlign="left">
-            <Text
-              as="h2"
-              color="black.800"
-              fontSize="l"
-              fontWeight="bold"
-              my="4px"
-              textAlign="left"
-            >
-              Location
-            </Text>
-            <Text>{event.location}</Text>
-            <a href={mapHref} rel="noopener noreferrer" target="_blank">
-              Open in Google Maps <ExternalLinkIcon mx="2px" />
-            </a>
-            <Text
-              as="h2"
-              color="black.800"
-              fontSize="l"
-              fontWeight="bold"
-              mt="12px"
-              my="4px"
-              textAlign="left"
-            >
-              Date
-            </Text>
-            <Text color="gray.400">{event.date}</Text>
-            <Button mt="4" variant="primary" onClick={verifyOnOpen}>
-              Verify Ticket
-            </Button>
-          </Box>
-        </Box>
+        <VStack alignItems="flex-start" spacing="4">
+          <Text as="h2" color="black.800" fontSize="l" fontWeight="bold">
+            Event Details
+          </Text>
+          <Text>{event.description}</Text>
+          <Text as="h2" color="black.800" fontSize="l" fontWeight="bold">
+            Location
+          </Text>
+          <Text>{event.location}</Text>
+          <a href={mapHref} rel="noopener noreferrer" target="_blank">
+            Open in Google Maps <ExternalLinkIcon mx="2px" />
+          </a>
+          <Text as="h2" color="black.800" fontSize="l" fontWeight="bold">
+            Date
+          </Text>
+          <Text color="gray.400">{event.date}</Text>
+          <Button variant="primary" onClick={verifyOnOpen}>
+            Verify Ticket
+          </Button>
+        </VStack>
       </Hide>
-
       <Heading as="h3" my="5" size="lg">
         Tickets
       </Heading>
@@ -1098,15 +1280,13 @@ export default function Event() {
               ))}
         </SimpleGrid>
       </Box>
-
       {!areTicketsLoading && resaleTicketList.length > 0 ? (
         <Heading as="h3" my="5" size="lg">
-          Secondary Tickets
+          Secondary Market
         </Heading>
       ) : (
         <></>
       )}
-
       <Box h="full" mt="0" p="0px" pb={{ base: '6', md: '16' }} w="full">
         <SimpleGrid minChildWidth="280px" spacing={5}>
           {!areTicketsLoading ? (
@@ -1124,7 +1304,6 @@ export default function Event() {
           )}
         </SimpleGrid>
       </Box>
-
       <PurchaseModal
         amount={ticketAmount}
         event={event}
@@ -1136,24 +1315,32 @@ export default function Event() {
         onClose={ClosePurchaseModal}
         onSubmit={PurchaseTicket}
       />
-
       {doKeyModal && sellDropInfo != null && (
         <SellModal
-          event={sellDropInfo}
+          event={event}
           input={input}
           isOpen={doKeyModal && sellDropInfo != null}
+          saleInfo={sellDropInfo}
           setInput={setInput}
           onClose={CloseSellModal}
           onSubmit={SellTicket}
         />
       )}
-
       <VerifyModal
         accountId={funderId}
         event={event}
         eventId={eventId}
         isOpen={verifyIsOpen}
         onClose={verifyOnClose}
+      />
+      <LoadingModal
+        isOpen={loadingModal}
+        subtitle={loadingModalText.subtitle}
+        text={loadingModalText.text}
+        title={loadingModalText.title}
+        onClose={() => {
+          setLoadingModal(false);
+        }}
       />
     </Box>
   );

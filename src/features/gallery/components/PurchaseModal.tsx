@@ -56,6 +56,7 @@ export const PurchaseModal = ({
   const [email, setEmail] = useState('');
   const [questionResponses, setQuestionResponses] = useState({});
   const [currentTicket, setCurrentTicket] = useState(ticket);
+  const [loading, setLoading] = useState(false);
   const [numPurchased, setNumPurchased] = useState(0);
 
   useEffect(() => {
@@ -89,7 +90,7 @@ export const PurchaseModal = ({
     }
 
     setShowErrors(false); // Reset error state before validation
-
+    setLoading(true);
     // You may want to transform questionValues into the desired format for onSubmit
     onSubmit(email, questionResponses, type, currentTicket.isSecondary);
   };
@@ -128,8 +129,13 @@ export const PurchaseModal = ({
   const modalHeight = { base: '95vh', md: 'auto' };
 
   let PurchaseButton = <></>;
-
-  if (currentTicket?.price && parseInt(currentTicket.price) === 0) {
+  if (loading) {
+    PurchaseButton = (
+      <Button isLoading loadingText="Processing" w="100%">
+        Processing
+      </Button>
+    );
+  } else if (currentTicket?.price && parseInt(currentTicket.price) === 0) {
     // purchaseType = 3;
     PurchaseButton = (
       <Button
@@ -168,6 +174,7 @@ export const PurchaseModal = ({
     // purchaseType = 1;
     PurchaseButton = (
       <>
+        <Text>Sign in to purchase with NEAR</Text>
         <Button
           w="100%"
           onClick={() => {
@@ -176,7 +183,6 @@ export const PurchaseModal = ({
         >
           Checkout with Stripe
         </Button>
-        <Text>Sign in to purchase with NEAR</Text>
       </>
     );
   } else if (signedIn) {
@@ -244,8 +250,8 @@ export const PurchaseModal = ({
                 <Image
                   alt={`Event image for ${event.name}`}
                   borderRadius="md"
-                  h="auto"
-                  objectFit="cover"
+                  h="280px"
+                  objectFit="contain"
                   src={event.artwork}
                   w="full"
                 />
@@ -256,7 +262,7 @@ export const PurchaseModal = ({
                   <Text color="gray.600" fontSize="md">
                     {event.description}
                   </Text>
-                  <HStack justifyContent="space-between" pt="4">
+                  <HStack justifyContent="space-between" pt="4" textAlign="left">
                     <Text color="gray.800" fontSize="lg" fontWeight="semibold">
                       Admission Date
                     </Text>
