@@ -213,6 +213,7 @@ export const SellModal = ({
                     isDisabled={disableSellButton(input, saleInfo.maxNearPrice, isSellError)}
                     type="submit"
                     w="100%"
+                    onClick={onSubmit}
                   >
                     Put Ticket For Sale
                   </Button>
