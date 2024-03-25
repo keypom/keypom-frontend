@@ -324,7 +324,8 @@ export const createPayload = async ({
               event_id: eventId,
               funder_id: accountId,
               ticket_information,
-              stripe_status: formData.acceptStripePayments
+              stripe_status: formData.acceptStripePayments,
+              stripe_account_id: formData.stripeAccountId,
             }),
             attached_deposit: costBreakdown.marketListing,
           },
