@@ -777,8 +777,6 @@ export default function Event() {
     // Remove the near parameters from the URL
     navigate('./');
 
-    console.log('new payload post-redirect: ', JSON.stringify(workerPayload));
-    console.log('purchase type: ', purchaseType);
     const newWorkerPayload = workerPayload;
 
     // primary purchases are in batch, if one key has been added, then all of them should have been added.
@@ -793,7 +791,7 @@ export default function Event() {
 
     if (purchaseType === 'primary') {
       const keyCount = workerPayload.ticketKeys?.length;
-      const currentLoadedKey = 1;
+      let currentLoadedKey = 1;
 
       for (const key of workerPayload.ticketKeys) {
         const ticketKey = key;
@@ -816,6 +814,8 @@ export default function Event() {
           body: JSON.stringify(newWorkerPayload),
         });
 
+        currentLoadedKey++;
+
         if (response.ok) {
           const responseBody = await response.json();
           TicketPurchaseSuccessful(newWorkerPayload, responseBody);
@@ -828,7 +828,6 @@ export default function Event() {
       // send confirmation email first to buyer
 
       newWorkerPayload.ticketKey = workerPayload.ticketKeys[0];
-      console.log('sending confirmation with ');
       // newWorkerPayload["ticketKeys"] = null;
       const response_buyer = await fetch(EMAIL_WORKER_BASE + '/send-confirmation-email', {
         method: 'POST',
@@ -837,8 +836,6 @@ export default function Event() {
         },
         body: JSON.stringify(newWorkerPayload),
       });
-
-      currentLoadedKey += 1;
 
       if (response_buyer.ok) {
         // Email sent
