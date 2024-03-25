@@ -227,32 +227,28 @@ export default function Gallery() {
     ) {
       drops = drops.filter((drop) => {
         if (drop === undefined) return false;
-        let dateString = drop.date.date;
-        // take start date, check if it is a string or object
-        if (typeof drop.date.date !== 'string') {
-          dateString = drop.date.date.from;
-        }
-        const date = new Date(dateString).getTime();
+
         return (
           selectedFilters.eventDate.startDate !== null &&
-          date >= selectedFilters.eventDate.startDate
+          drop.date.startDate >= selectedFilters.eventDate.startDate
         );
       });
     }
 
     if (
-      selectedFilters.eventDate.endDate !== null &&
-      selectedFilters.eventDate.endDate !== undefined
+      selectedFilters.eventDate?.endDate !== null &&
+      selectedFilters.eventDate?.endDate !== undefined &&
+      selectedFilters.eventDate?.endDate !== 0
     ) {
       drops = drops.filter((drop) => {
         if (drop === undefined) return false;
-        let dateString = drop.date.date;
-        // take start date, check if it is a string or object
-        if (typeof drop.date.date !== 'string') {
-          dateString = drop.date.date.to;
-        }
-        const date = new Date(dateString).getTime();
-        return date <= selectedFilters.eventDate.endDate!;
+
+        if (selectedFilters.eventDate.endDate === undefined) return false;
+
+        return (
+          selectedFilters.eventDate.endDate !== null &&
+          drop.date.endDate <= selectedFilters.eventDate.endDate
+        );
       });
     }
 

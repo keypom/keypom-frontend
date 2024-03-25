@@ -561,7 +561,7 @@ class KeypomJS {
       return eventInfo;
     } catch (error) {
       /* eslint-disable no-console */
-      console.error('Error getting event info', error);
+      console.warn('Error getting event info', error);
       return null;
     }
   };
