@@ -106,6 +106,7 @@ export interface EventInterface {
   supply: number | undefined;
   dateString: string | undefined;
   price: number | undefined;
+  dateForPastCheck: Date | undefined;
 }
 
 export interface SellDropInfo {

@@ -37,7 +37,7 @@ import { FormControlComponent } from '@/components/FormControl';
 import CustomDateRangePickerMobile from '@/components/DateRangePicker/MobileDateRangePicker';
 import CustomDateRangePicker from '@/components/DateRangePicker/DateRangePicker';
 import { dateAndTimeToText } from '@/features/drop-manager/utils/parseDates';
-import { type DateAndTimeInfo } from '@/lib/eventsHelpers';
+import { type FunderEventMetadata, type DateAndTimeInfo } from '@/lib/eventsHelpers';
 
 // import myData from '../data/db.json';
 
@@ -61,27 +61,31 @@ export default function Gallery() {
 
   // date range picker
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
-  const [datePlaceholer, setDatePlaceholder] = useState('Select date and time');
+  const [datePlaceholder, setDatePlaceholder] = useState('Select date and time');
+  const margins = '0 !important';
 
   const datePickerCTA = (
     // formData.date.error
-    <FormControlComponent errorText="" label="">
+    <FormControlComponent errorText="" label="" my={margins}>
       <Input
         readOnly
+        backgroundColor="white"
+        border="2px solid"
+        borderColor="gray.200"
+        color="gray.400"
+        fontSize="md"
+        fontWeight="medium"
+        height="52px"
         isInvalid={false} //! !formData.date.error
-        placeholder={datePlaceholer}
+        m="0"
+        placeholder={datePlaceholder}
+        px="6"
         style={{ cursor: 'pointer' }}
         sx={{
           '::placeholder': {
-            color: 'gray.400', // Placeholder text color
-          },
-          _invalid: {
-            borderColor: 'red.300',
-            boxShadow: '0 0 0 1px #EF4444 !important',
+            color: 'gray.400',
           },
         }}
-        type="text"
-        width="100%"
         onClick={() => {
           setIsDatePickerOpen(true);
         }}
@@ -291,7 +295,7 @@ export default function Gallery() {
 
     const dropDataPromises = allEventListings.map(async (event: MarketListing) => {
       // get metadata from drop.event_id and drop.funder_id
-      const eventInfo = await keypomInstance.getEventInfo({
+      const eventInfo: FunderEventMetadata | null = await keypomInstance.getEventInfo({
         accountId: event.funder_id,
         eventId: event.event_id,
       });
@@ -323,6 +327,13 @@ export default function Gallery() {
         return null;
       }
 
+      let endDate = new Date();
+      if (eventInfo.date.endDate != null) {
+        endDate = new Date(eventInfo.date.endDate);
+      } else {
+        endDate = new Date(eventInfo.date.startDate);
+      }
+
       const numTickets = Object.keys(event.ticket_info).length;
       return {
         prices,
@@ -338,7 +349,7 @@ export default function Gallery() {
         numTickets,
         description: truncateAddress(eventInfo.description, 'end', 128),
         eventId: event.event_id,
-        navurl: String(event.funder_id) + ':' + String(event.event_id),
+        dateForPastCheck: endDate,
       };
     });
 
@@ -478,7 +489,11 @@ export default function Gallery() {
 
   return (
     <Box p="10">
-      <ChakraImage alt={banner} height="300" objectFit="cover" src={banner} width="100%" />
+      {banner === '' ? (
+        <Skeleton height="300px" width="100%" />
+      ) : (
+        <ChakraImage alt={banner} height="300" objectFit="cover" src={banner} width="100%" />
+      )}
       <Heading py="4">Browse Events</Heading>
 
       <Show above="md">
@@ -495,7 +510,6 @@ export default function Gallery() {
                 color="gray.400"
                 fontSize="md"
                 fontWeight="medium"
-                h="52px"
                 height="52px"
                 placeholder="Search..."
                 px="6"
@@ -559,8 +573,8 @@ export default function Gallery() {
                 <Flex justifyContent="flex-end">
                   {!isAllDropsLoading && (
                     <Menu>
-                      {isOpen && (
-                        <HStack>
+                      {({ isOpen }) => (
+                        <Box>
                           <DropDownButton
                             isOpen={isOpen}
                             placeholder={`Tickets: ${selectedFilters.sort}`}
@@ -568,7 +582,7 @@ export default function Gallery() {
                             onClick={() => (popoverClicked.current += 1)}
                           />
                           <MenuList minWidth="auto">{sortOrderMenuItems}</MenuList>
-                        </HStack>
+                        </Box>
                       )}
                     </Menu>
                   )}

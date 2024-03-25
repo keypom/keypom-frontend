@@ -42,7 +42,21 @@ export const TicketCard = ({ event, loading, surroundingNavLink, onSubmit }: Tic
   const [amount, setAmount] = useState(1);
   const [numPurchased, setNumPurchased] = useState(0);
   let availableTickets = 0;
-  let limitPerUser = 100000;
+  let limitPerUser = 100000; // default to a high number
+
+  let eventHasPassed = false;
+
+  if (
+    event?.dateForPastCheck !== undefined &&
+    event?.dateForPastCheck != null &&
+    event?.dateForPastCheck < new Date()
+  ) {
+    eventHasPassed = true;
+  }
+
+  if (eventHasPassed) {
+    nav = '../gallery/';
+  }
 
   if (
     event.maxTickets !== undefined &&
@@ -168,7 +182,7 @@ export const TicketCard = ({ event, loading, surroundingNavLink, onSubmit }: Tic
   return (
     <IconBox
       key={event.id}
-      _hover={{ transform: 'scale(1.02)' }}
+      _hover={eventHasPassed ? {} : { transform: 'scale(1.02)' }}
       borderRadius={{ base: '1rem', md: '6xl' }}
       h="full"
       m="0px"
@@ -294,9 +308,15 @@ export const TicketCard = ({ event, loading, surroundingNavLink, onSubmit }: Tic
               <Box h="14"></Box>
               <NavLink to={nav}>
                 <Box flexGrow={1} />
-                <Button bottom="35" left="0" mt="2" position="absolute" w="100%">
-                  {' '}
-                  Browse Event
+                <Button
+                  bottom="35"
+                  isDisabled={eventHasPassed}
+                  left="0"
+                  mt="2"
+                  position="absolute"
+                  w="100%"
+                >
+                  {eventHasPassed ? 'Event Passed' : 'Browse Event'}
                 </Button>
               </NavLink>
             </>
