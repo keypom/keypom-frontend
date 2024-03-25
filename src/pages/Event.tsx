@@ -451,7 +451,7 @@ export default function Event() {
     }
 
     const stripe_ticket_hash: string = dropData.drop_config.nft_keys_config.token_metadata.media;
-    const ticket_url_stripe: string = `https://cloudflare-ipfs.com/ipfs/${stripe_ticket_hash}`;
+    const ticket_url_stripe = `https://cloudflare-ipfs.com/ipfs/${stripe_ticket_hash}`;
 
     const workerPayload: WorkerPayload = {
       name: attendeeName,
