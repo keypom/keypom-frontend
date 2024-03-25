@@ -176,6 +176,7 @@ const AcceptPaymentForm = (props: EventStepFormProps) => {
               NEAR Payments
             </Text>
             <ToggleSwitch
+              disabled={true}
               handleToggle={() => {
                 handleToggle(false);
               }}

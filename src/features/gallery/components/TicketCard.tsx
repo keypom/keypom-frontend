@@ -320,7 +320,7 @@ export const TicketCard = ({ event, loading, surroundingNavLink, onSubmit }: Tic
                 event.price === undefined ? (
                   <> Sold Out </>
                 ) : (
-                  <> Buy for {multPrice} NEAR </>
+                  <> {multPrice === 0 ? `Get for free` : `Buy for ${multPrice} NEAR`} </>
                 )}
               </Button>
             </>

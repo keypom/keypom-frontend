@@ -87,6 +87,8 @@ export interface TicketInterface {
 export interface EventInterface {
   title: string;
   name: string;
+  stripeCheckout: boolean;
+  nearCheckout: boolean;
   artwork: string;
   location: string;
   date: string;
@@ -759,16 +761,6 @@ export default function Event() {
       eventId,
     });
 
-    const iseventavailable = await keypomInstance.getStripeEnabledEvents();
-    // check if this event is stripe enabled
-    const iseventstripeenabled = iseventavailable.includes(eventId);
-
-    setStripeEnabledEvent(iseventstripeenabled);
-
-    // get stripe id for account
-    const stripeAccountId = await keypomInstance.getStripeAccountId(funderId);
-    setStripeAccountId(stripeAccountId);
-
     const promises = ticketsForEvent.map(async (ticket) => {
       const meta: TicketInfoMetadata = ticket.drop_config.nft_keys_config.token_metadata;
       const extra: TicketMetadataExtra = JSON.parse(meta.extra);
@@ -871,27 +863,31 @@ export default function Event() {
 
     const getEventData = async () => {
       try {
-        const drop = await keypomInstance.getEventInfo({ accountId: funderId, eventId });
+        const eventInfo = await keypomInstance.getEventInfo({ accountId: funderId, eventId });
 
-        if (drop == null) {
+        if (eventInfo === null || eventInfo === undefined) {
           setNoDrop(true);
           return;
         }
 
-        const meta = drop;
-
         let dateString = '';
-        if (meta?.date != null) {
-          dateString = dateAndTimeToText(meta.date);
+        if (eventInfo?.date != null) {
+          dateString = dateAndTimeToText(eventInfo.date);
         }
 
+        const stripeAccountId = await keypomInstance.getStripeAccountId(funderId);
+        setStripeAccountId(stripeAccountId);
+        setStripeEnabledEvent(eventInfo.stripeCheckout && stripeAccountId !== '');
+
         setEvent({
-          name: meta.name || 'Untitled',
-          artwork: meta.artwork || 'loading',
-          questions: meta.questions || [],
-          location: meta.location || 'loading',
+          name: eventInfo.name || 'Untitled',
+          artwork: eventInfo.artwork || 'loading',
+          questions: eventInfo.questions || [],
+          location: eventInfo.location || 'loading',
           date: dateString,
-          description: meta.description || 'loading',
+          description: eventInfo.description || 'loading',
+          stripeCheckout: eventInfo.nearCheckout,
+          nearCheckout: eventInfo.nearCheckout,
           // WIP data below here
           title: '',
           pubKey: '',
