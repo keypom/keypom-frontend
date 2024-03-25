@@ -103,6 +103,8 @@ export const estimateCosts = async ({
     funderInfo === undefined || funderInfo === null ? {} : JSON.parse(funderInfo.metadata);
 
   const eventMetadata: FunderEventMetadata = {
+    stripeCheckout: formData.acceptStripePayments,
+    nearCheckout: formData.acceptNearPayments,
     name: formData.eventName.value,
     dateCreated: Date.now().toString(),
     description: formData.eventDescription.value,
@@ -210,6 +212,8 @@ export const createPayload = async ({
     funderInfo === undefined || funderInfo === null ? {} : JSON.parse(funderInfo.metadata);
 
   const eventMetadata: FunderEventMetadata = {
+    stripeCheckout: formData.acceptStripePayments,
+    nearCheckout: formData.acceptNearPayments,
     name: formData.eventName.value,
     dateCreated: Date.now().toString(),
     description: formData.eventDescription.value,
