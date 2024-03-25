@@ -316,7 +316,7 @@ export const TicketCard = ({ event, loading, surroundingNavLink, onSubmit }: Tic
                   position="absolute"
                   w="100%"
                 >
-                  {eventHasPassed ? 'Event Passed' : 'Browse Event'}
+                  {eventHasPassed ? 'Event Over' : 'Browse Event'}
                 </Button>
               </NavLink>
             </>
