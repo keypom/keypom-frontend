@@ -670,7 +670,6 @@ export default function Event() {
   }
 
   const SellTicket = async (event) => {
-    console.log('sell ticket: ', event);
     event.preventDefault();
     // sell the ticket with the secret key, give toast, and sell
     navigate('./');
