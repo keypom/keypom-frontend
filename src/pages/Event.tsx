@@ -209,6 +209,10 @@ export default function Event() {
     CheckForNearRedirect();
   }, [keypomInstance, eventId, funderId]);
 
+  useEffect(() => {
+    CheckForSellSuccessToast();
+  }, []);
+
   const getKeyInformation = useCallback(async () => {
     if (secretKey == null) {
       return;
@@ -595,6 +599,24 @@ export default function Event() {
     }
   };
 
+  const CheckForSellSuccessToast = () => {
+    const price = localStorage.getItem('sellsuccessful');
+
+    if (price == null || price === undefined) {
+      return;
+    }
+
+    localStorage.removeItem('sellsuccessful');
+
+    toast({
+      title: 'Item put for sale successfully',
+      description: `Your item has been put for sale for ${price} NEAR`,
+      status: 'success',
+      duration: 5000,
+      isClosable: true,
+    });
+  };
+
   const CheckForNearRedirect = async () => {
     if (nearRedirect == null) {
       return;
@@ -652,14 +674,8 @@ export default function Event() {
         // Error creating account
         TicketPurchaseFailure(newWorkerPayload, await response.json());
       }
-
-      if (currentLoadedKey === keyCount) {
-        setLoadingModalText('All emails have been sent');
-        setTimeout(() => {
-          setLoadingModal(false);
-        }, 2000);
-      }
     }
+    setLoadingModal(false);
   };
 
   const TicketPurchaseSuccessful = (workerPayload, responseBody) => {
@@ -718,7 +734,17 @@ export default function Event() {
 
     setSellDropInfo(null);
 
-    const yoctoPrice = keypomInstance.nearToYocto(input);
+    const nearPrice = input;
+
+    // open up loading modal
+    setLoadingModal(true);
+    setLoadingModalText({
+      title: 'Selling Ticket',
+      subtitle: 'Please wait',
+      text: 'Your ticket is being put for sale',
+    });
+
+    const yoctoPrice = keypomInstance.nearToYocto(nearPrice);
 
     const signature = await keypomInstance.GenerateResellSignature({
       secretKey: sellInfo.secretKey,
@@ -752,16 +778,16 @@ export default function Event() {
       });
     }
 
-    if (sellsuccessful) {
-      toast({
-        title: 'Item put for sale successfully',
-        description: `Your item has been put for sale for ${input} NEAR`,
-        status: 'success',
-        duration: 5000,
-        isClosable: true,
-      });
-    }
+    // close loading modal
+    setLoadingModal(false);
+
     navigate('./');
+
+    if (sellsuccessful) {
+      // add a sellsuccessful to local storage
+      localStorage.setItem('sellsuccessful', nearPrice);
+      window.location.reload();
+    }
   };
 
   const handleGetAllTickets = useCallback(async () => {
