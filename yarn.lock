@@ -2626,9 +2626,9 @@
     "@types/react" "*"
 
 "@types/react@*", "@types/react@^18.0.26", "@types/react@^18.0.27":
-  version "18.2.69"
-  resolved "https://registry.yarnpkg.com/@types/react/-/react-18.2.69.tgz#313ec21891b22bb7646a54cb4bdb8cddb0880271"
-  integrity sha512-W1HOMUWY/1Yyw0ba5TkCV+oqynRjG7BnteBB+B7JmAK7iw3l2SW+VGOxL+akPweix6jk2NNJtyJKpn4TkpfK3Q==
+  version "18.2.70"
+  resolved "https://registry.yarnpkg.com/@types/react/-/react-18.2.70.tgz#89a37f9e0a6a4931f4259c598f40fd44dd6abf71"
+  integrity sha512-hjlM2hho2vqklPhopNkXkdkeq6Lv8WSZTpr7956zY+3WS5cfYUewtCzsJLsbW5dEv3lfSeQ4W14ZFeKC437JRQ==
   dependencies:
     "@types/prop-types" "*"
     "@types/scheduler" "*"
@@ -3464,11 +3464,6 @@ cipher-base@^1.0.0, cipher-base@^1.0.1, cipher-base@^1.0.3:
     inherits "^2.0.1"
     safe-buffer "^5.0.1"
 
-classnames@^2.2.6:
-  version "2.5.1"
-  resolved "https://registry.yarnpkg.com/classnames/-/classnames-2.5.1.tgz#ba774c614be0f016da105c858e7159eae8e7687b"
-  integrity sha512-saHYOzhIQs6wy2sVxTM6bUDsQO4F50V9RQ22qBpEdCW+I+/Wmke2HOl6lS6dTpdxVhb88/I6+Hs+438c3lfUow==
-
 clean-stack@^2.0.0:
   version "2.2.0"
   resolved "https://registry.yarnpkg.com/clean-stack/-/clean-stack-2.2.0.tgz#ee8472dbb129e727b31e8a10a427dee9dfe4008b"
@@ -3521,6 +3516,11 @@ clone@^2.1.1:
   version "2.1.2"
   resolved "https://registry.yarnpkg.com/clone/-/clone-2.1.2.tgz#1b7f4b9f591f1e8f83670401600345a02887435f"
   integrity sha512-3Pe/CF1Nn94hyhIYpjtiLhdCoEoz0DqQ+988E9gmeEdQZlojxnOb74wctFyuwWQHzqyf9X7C7MG8juUpqBJT8w==
+
+clsx@^2.1.0:
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/clsx/-/clsx-2.1.0.tgz#e851283bcb5c80ee7608db18487433f7b23f77cb"
+  integrity sha512-m3iNNWpd9rl3jvvcBnu70ylMdrXt8Vlq4HYadnU5fwcOtvkSQWPmj7amUcDT2qYI7risszBjI5AUIUox9D16pg==
 
 code-excerpt@^4.0.0:
   version "4.0.0"
@@ -6761,12 +6761,12 @@ react-clientside-effect@^1.2.6:
     "@babel/runtime" "^7.12.13"
 
 react-datepicker@^6.2.0:
-  version "6.5.0"
-  resolved "https://registry.yarnpkg.com/react-datepicker/-/react-datepicker-6.5.0.tgz#e797f149450807213c4a2a2237ab574b63b0b4ef"
-  integrity sha512-VXufB/CH04O9K/puRxr7BGBD+2Hf9mSSwG9HMa6ZP+LXckCpibllOPuRYxk4kW8W22AfLps4MY04NJAgk4JpJg==
+  version "6.6.0"
+  resolved "https://registry.yarnpkg.com/react-datepicker/-/react-datepicker-6.6.0.tgz#0128547211c8fece08fef0b5406efffff2d36f1f"
+  integrity sha512-ERC0/Q4pPC9bNIcGUpdCbHc+oCxhkU3WI3UOGHkyJ3A9fqALCYpEmLc5S5xvAd7DuCDdbsyW97oRPM6pWWwjww==
   dependencies:
     "@floating-ui/react" "^0.26.2"
-    classnames "^2.2.6"
+    clsx "^2.1.0"
     date-fns "^3.3.1"
     prop-types "^15.7.2"
     react-onclickoutside "^6.13.0"

@@ -350,6 +350,7 @@ export default function Gallery() {
         description: truncateAddress(eventInfo.description, 'end', 128),
         eventId: event.event_id,
         dateForPastCheck: endDate,
+        navurl: String(event.funder_id) + ':' + String(event.event_id),
       };
     });
 

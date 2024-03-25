@@ -235,7 +235,12 @@ export default function Event() {
   }, []);
 
   const getKeyInformation = useCallback(async () => {
-    if (secretKey === null || eventId === null) {
+    if (
+      secretKey === null ||
+      secretKey === undefined ||
+      eventId === null ||
+      eventId === undefined
+    ) {
       return;
     }
 
@@ -536,7 +541,6 @@ export default function Event() {
         );
 
         const linkdrop_keys = await generateKeys({ numKeys: 1 });
-        console.log('owner: ', owner);
         // Seller did not have wallet when they bought, include linkdrop info in email
         if (owner === KEYPOM_EVENTS_CONTRACT) {
           console.log('seller did not have wallet when they bought');
@@ -661,7 +665,6 @@ export default function Event() {
         );
 
         const linkdrop_keys = await generateKeys({ numKeys: 1 });
-        console.log('owner: ', owner);
         // Seller did not have wallet when they bought, include linkdrop info in email
         if (owner === KEYPOM_EVENTS_CONTRACT) {
           console.log('seller did not have wallet when they bought');
@@ -990,7 +993,6 @@ export default function Event() {
     });
 
     const eventStripeStatus = await keypomInstance.getEventStripeStatus(eventId);
-    console.log(eventStripeStatus);
     setStripeEnabledEvent(eventStripeStatus);
 
     // get stripe id for account

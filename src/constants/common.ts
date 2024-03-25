@@ -32,7 +32,7 @@ export const NFT_ATTEMPT_KEY = 'NFT_ATTEMPT';
 export const PAGE_QUERY_PARAM = 'page';
 // export const KEYPOM_EVENTS_CONTRACT = '1711230915949-kp-ticketing.testnet';
 // export const KEYPOM_MARKETPLACE_CONTRACT = '1711230915949-marketplace.testnet';
-export const KEYPOM_EVENTS_CONTRACT = '1711375066761-kp-ticketing.testnet';
-export const KEYPOM_MARKETPLACE_CONTRACT = '1711375066761-marketplace.testnet';
+export const KEYPOM_EVENTS_CONTRACT = '1711377033875-kp-ticketing.testnet';
+export const KEYPOM_MARKETPLACE_CONTRACT = '1711377033875-marketplace.testnet';
 
 export const MIN_NEAR_SELL = 0.1;
