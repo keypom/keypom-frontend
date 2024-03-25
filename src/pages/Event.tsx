@@ -40,9 +40,7 @@ import { KEYPOM_EVENTS_CONTRACT,
 } from '@/constants/common';
 import { type DataItem } from '@/components/Table/types';
 import { dateAndTimeToText } from '@/features/drop-manager/utils/parseDates';
-import { generateExecuteArgs } from 'keypom-js/lib/lib/trial-accounts/utils';
 import { botCheck } from '../utils/botCheck';
-import { e } from 'mathjs';
 
 interface WorkerPayload {
   name: string | null;
@@ -450,8 +448,8 @@ export default function Event() {
       trimmedEmail = trimmedEmail.substring(0, 500);
     }
 
-    let stripe_ticket_hash = dropData.drop_config.nft_keys_config.token_metadata.media;
-    let ticket_url_stripe = `https://cloudflare-ipfs.com/ipfs/${stripe_ticket_hash}`;
+    const stripe_ticket_hash = dropData.drop_config.nft_keys_config.token_metadata.media;
+    const ticket_url_stripe = `https://cloudflare-ipfs.com/ipfs/${stripe_ticket_hash}`;
 
     const workerPayload: WorkerPayload = {
       name: attendeeName,
@@ -462,15 +460,12 @@ export default function Event() {
         eventName: drop.name,
         ticketType: dropData.drop_config.nft_keys_config.token_metadata.title,
         eventDate: JSON.stringify(drop.date),
-        //TODO MIN: change this back
-        // ticketOwner: simulateStripe ? undefined : "minqi.testnet",
         ticketOwner: accountId || undefined, // (if signed in, this is signed in account, otherwise its none/empty)
-        // ticketOwner: undefined, // (if signed in, this is signed in account, otherwise its none/empty)
         eventId: meta.eventId,
         dropId: ticketBeingPurchased.id,
         funderId,
         event_image_url: drop.artwork,
-        ticket_image_url: purchaseType == "stripe" ? ticket_url_stripe : ticketBeingPurchased.artwork
+        ticket_image_url: purchaseType === "stripe" ? ticket_url_stripe : ticketBeingPurchased.artwork
       },
       purchaseEmail: trimmedEmail, // (currently just called email in userInfo)
       stripeAccountId,
@@ -479,7 +474,7 @@ export default function Event() {
     };
 
     if (purchaseType === 'free') {
-      let bot = await botCheck()
+      const bot = await botCheck()
 
       if(bot){
         toast({
@@ -540,9 +535,7 @@ export default function Event() {
           newKeys.push({
             public_key: publicKey,
             metadata: encryptedValues,
-            //TODO MIN: change this back
             key_owner: accountId,
-            // key_owner: simulateStripe ? null : "minqi.testnet"
           });
         }
 
@@ -598,12 +591,12 @@ export default function Event() {
           new_public_key: publicKeys[0],
         }; // NftTransferMemo,
 
-        let owner: string = await keypomInstance.getCurrentKeyOwner(KEYPOM_MARKETPLACE_CONTRACT, ticketBeingPurchased.publicKey)
+        const owner: string = await keypomInstance.getCurrentKeyOwner(KEYPOM_MARKETPLACE_CONTRACT, ticketBeingPurchased.publicKey)
 
-        let linkdrop_keys = await generateKeys({numKeys: 1});
+        const linkdrop_keys = await generateKeys({numKeys: 1});
         console.log("owner: ", owner)
         // Seller did not have wallet when they bought, include linkdrop info in email
-        if(owner == KEYPOM_EVENTS_CONTRACT){
+        if(owner === KEYPOM_EVENTS_CONTRACT){
           console.log("seller did not have wallet when they bought")
           workerPayload.linkdrop_secret_key = linkdrop_keys.secretKeys[0];
           workerPayload.network = process.env.REACT_APP_NETWORK_ID;
@@ -686,15 +679,15 @@ export default function Event() {
     if (workerPayload.ticketKeys == undefined || workerPayload.ticketKeys.length == 0) {
       return;
     }
-    let ticketPubKey = getPubFromSecret(workerPayload.ticketKeys[0]);
-    let keyInfo = await keypomInstance.getTicketKeyInformation({publicKey: ticketPubKey});
+    const ticketPubKey = getPubFromSecret(workerPayload.ticketKeys[0]);
+    const keyInfo = await keypomInstance.getTicketKeyInformation({publicKey: ticketPubKey});
     if(keyInfo == null){
       return;
     }
 
-    if(purchaseType == "primary"){
-      for (const key in workerPayload.ticketKeys) {
-        let ticketKey = workerPayload.ticketKeys[key];
+    if(purchaseType === "primary"){
+      for (const key of workerPayload.ticketKeys) {
+        const ticketKey = workerPayload.ticketKeys[key];
 
         newWorkerPayload.ticketKey = ticketKey;
 
@@ -719,7 +712,7 @@ export default function Event() {
           TicketPurchaseFailure(newWorkerPayload, await response.json());
         }
       }
-    }else if (purchaseType == "secondary"){
+    }else if (purchaseType === "secondary"){
       // send confirmation email first to buyer
 
       newWorkerPayload.ticketKey = workerPayload.ticketKeys[0];
@@ -747,7 +740,7 @@ export default function Event() {
       console.log("sending email w ", JSON.stringify(workerPayload))
 
       /* ~~~~~~~~~~~~~~~~ SELLER SOLD EMAIL DISABLED UNTIL IPFS INTEGRATION ~~~~~~~~~~~~~~~~
-      let email_endpoint = "https://email-worker.kp-capstone.workers.dev/send-sold-confirmation-email"
+      let email_endpoint = EMAIL_WORKER_BASE + "/send-sold-confirmation-email"
       // Seller did not have wallet when they bought, include linkdrop info in email
       if(workerPayload.linkdrop_secret_key != null || workerPayload.linkdrop_secret_key != undefined){
         email_endpoint = email_endpoint + "-no-wallet"

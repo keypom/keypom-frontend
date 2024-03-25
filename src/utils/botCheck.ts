@@ -1,7 +1,5 @@
 import DeviceInfoSDK from './deviceInfoSDK';
 
-//8d3N9kjvn8BeUIs
-
 export async function botCheck() {
     const botURL = "https://api.shard.dog/check-bot";
     let bot = true;

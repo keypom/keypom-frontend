@@ -2,8 +2,8 @@
 
 class DeviceInfoSDK {
   getOSVersion() {
-    let userAgent = window.navigator.userAgent;
-    let platform = window.navigator.platform;
+    const userAgent = window.navigator.userAgent;
+    const platform = window.navigator.platform;
     let os = null;
     let osVersion = null;
 
@@ -25,7 +25,7 @@ class DeviceInfoSDK {
   }
 
   getBrowserInfo() {
-    let ua = navigator.userAgent;
+    const ua = navigator.userAgent;
     let tem;
     let M = ua.match(/(opera|chrome|safari|firefox|msie|trident(?=\/))\/?\s*(\d+)/i) || [];
     if (/trident/i.test(M[1])) {
