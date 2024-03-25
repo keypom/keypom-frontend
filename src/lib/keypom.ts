@@ -545,6 +545,14 @@ class KeypomJS {
     });
   };
 
+  getEventStripeStatus = async (eventId: string) => {
+    return await this.viewCall({
+      contractId: KEYPOM_MARKETPLACE_CONTRACT,
+      methodName: 'event_stripe_status',
+      args: { event_id: eventId },
+    });
+  }
+
   deleteEventFromFunderMetadata = async ({
     wallet,
     eventId,
@@ -799,12 +807,12 @@ class KeypomJS {
     return fetchedinfo;
   };
 
-  getTicketDropInformation = async ({ dropID }: { dropID: string }) => {
+  getTicketDropInformation = async ({ dropId }: { dropId: string }) => {
     try {
       const fetchedinfo = await this.viewCall({
         methodName: 'get_drop_information',
         args: {
-          drop_id: dropID,
+          drop_id: dropId,
         },
       });
 

@@ -30,12 +30,11 @@ import {
   type TicketMetadataExtra,
   type DateAndTimeInfo,
   type EventDrop,
-  type FunderEventMetadata,
 } from '@/lib/eventsHelpers';
 import keypomInstance from '@/lib/keypom';
-import {
-  KEYPOM_EVENTS_CONTRACT,
   EMAIL_WORKER_BASE,
+  KEYPOM_EVENTS_CONTRACT,
+  CLOUDFLARE_IPFS,
   EVENTS_WORKER_BASE,
   KEYPOM_MARKETPLACE_CONTRACT,
   PURCHASED_LOCAL_STORAGE_PREFIX,
@@ -117,17 +116,16 @@ export interface EventInterface {
   supply: number | undefined;
   dateString: string | undefined;
   price: number | undefined;
+  dateForPastCheck: Date | undefined;
 }
 
-export interface SellDropInfo {
+export interface ResaleTicketInfo {
   name: string;
   artwork: string;
-  questions: QuestionInfo[];
-  location: string;
-  date: string;
   description: string;
-  maxNearPrice: number;
+  passValidThrough: DateAndTimeInfo;
   salesValidThrough: DateAndTimeInfo;
+  maxNearPrice: number;
   publicKey: string;
   secretKey: string;
 }
@@ -171,12 +169,12 @@ export default function Event() {
   const [stripeAccountId, setStripeAccountId] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [noDrop, setNoDrop] = useState(false);
-  const [input, setInput] = useState('');
+  const [input, setInput] = useState('0.1');
   const [ticketList, setTicketList] = useState<TicketInterface[]>([]);
   const [resaleTicketList, setResaleTicketList] = useState<TicketInterface[]>([]);
   const [areTicketsLoading, setAreTicketsLoading] = useState(true);
   const [doKeyModal, setDoKeyModal] = useState(false);
-
+  
   const [loadingModal, setLoadingModal] = useState(false);
   const [loadingModalText, setLoadingModalText] = useState<{
     title: string;
@@ -236,32 +234,28 @@ export default function Event() {
   }, []);
 
   const getKeyInformation = useCallback(async () => {
-    if (secretKey == null) {
+    if (secretKey === null || eventId === null) {
       return;
     }
 
     try {
       const publicKey: string = getPubFromSecret(secretKey);
 
-      const keyinfo = await keypomInstance.getTicketKeyInformation({
+      const keyInfo = await keypomInstance.getTicketKeyInformation({
         publicKey: String(publicKey),
       });
 
       // get drop info using the key info id
-
-      const dropID = keyinfo.token_id.split(':')[0];
-
-      // testing dropID = "1709145479199-Ground Ticket-14"
-
-      const dropData: EventDrop = await keypomInstance.getTicketDropInformation({ dropID });
+      const dropId = keyInfo.token_id.split(':')[0];
+      const dropData: EventDrop = await keypomInstance.getTicketDropInformation({ dropId });
 
       // parse dropData's metadata to get eventId
-      const meta: TicketMetadataExtra = JSON.parse(
-        dropData.drop_config.nft_keys_config.token_metadata.extra,
-      );
+      const ticketMetadata: TicketInfoMetadata =
+        dropData.drop_config.nft_keys_config.token_metadata;
+      const ticketMetadataExtra: TicketMetadataExtra = JSON.parse(ticketMetadata.extra);
 
-      const keyinfoEventId = meta.eventId;
-      if (keyinfoEventId !== eventId) {
+      const keyInfoEventId = ticketMetadataExtra.eventId;
+      if (keyInfoEventId !== eventId) {
         toast({
           title: 'Ticket does not match current event',
           description: `This ticket is for a different event, please scan it on the correct event page`,
@@ -271,37 +265,22 @@ export default function Event() {
         });
       }
 
-      const meta2: FunderEventMetadata | null = await keypomInstance.getEventInfo({
-        accountId: funderId,
-        eventId: keyinfoEventId,
-      });
-
-      if (meta2 == null) {
-        throw new Error('The event does not exist.');
-      }
-
-      let dateString = '';
-      if (meta2.date != null) {
-        dateString = dateAndTimeToText(meta2.date);
-      }
       const maxNearPriceYocto = await keypomInstance.viewCall({
         contractId: KEYPOM_MARKETPLACE_CONTRACT,
         methodName: 'get_max_resale_for_drop',
-        args: { drop_id: dropID },
+        args: { drop_id: dropId },
       });
       const maxNearPrice = parseFloat(formatNearAmount(maxNearPriceYocto, 3));
 
       setSellDropInfo({
-        name: meta2.name || 'Untitled',
-        artwork: meta2.artwork || 'loading',
-        questions: meta2.questions || [],
-        location: meta2.location || 'loading',
-        date: dateString,
-        salesValidThrough: meta.salesValidThrough,
-        description: meta2.description || 'loading',
+        name: ticketMetadata.title,
+        artwork: `${CLOUDFLARE_IPFS}/${ticketMetadata.media}`,
+        description: ticketMetadata.description,
+        salesValidThrough: ticketMetadataExtra.salesValidThrough,
+        passValidThrough: ticketMetadataExtra.passValidThrough,
+        maxNearPrice,
         publicKey,
         secretKey,
-        maxNearPrice,
       });
 
       setDoKeyModal(true);
@@ -315,7 +294,7 @@ export default function Event() {
         isClosable: true,
       });
     }
-  }, [secretKey, keypomInstance]);
+  }, [event, secretKey, keypomInstance]);
 
   // example: http://localhost:3000/gallery/minqi.testnet:152c9ef5-13de-40f6-9ec2-cc39f5886f4e#secretKey=ed25519:AXSwjeNg8qS8sFPSCK2eYK7UoQ3Kyyqt9oeKiJRd8pUhhEirhL2qbrs7tLBYpoGE4Acn8JbFL7FVjgyT2aDJaJx
   const loadingdata = [] as DataItem[];
@@ -396,7 +375,7 @@ export default function Event() {
     navigate('./');
 
     const dropData = await keypomInstance.getTicketDropInformation({
-      dropID: ticketBeingPurchased.id,
+      dropId: ticketBeingPurchased.id,
     });
 
     // parse dropData's metadata to get eventId
@@ -1009,10 +988,9 @@ export default function Event() {
       eventId,
     });
 
-    const stripeEnabledEvents = await keypomInstance.getStripeEnabledEvents();
-    // check if this event is stripe enabled
-    const isEventStripeEnabled = stripeEnabledEvents.includes(eventId);
-    setStripeEnabledEvent(isEventStripeEnabled);
+    const eventStripeStatus = await keypomInstance.getEventStripeStatus(eventId);
+    console.log(eventStripeStatus)
+    setStripeEnabledEvent(eventStripeStatus);
 
     // get stripe id for account
     const stripeAccountId = await keypomInstance.getStripeAccountId(funderId);
@@ -1134,7 +1112,9 @@ export default function Event() {
 
         const stripeAccountId = await keypomInstance.getStripeAccountId(funderId);
         setStripeAccountId(stripeAccountId);
-        setStripeEnabledEvent(eventInfo.stripeCheckout && stripeAccountId !== '');
+
+        const stripeEnabled = await keypomInstance.getEventStripeStatus(eventId);
+        setStripeEnabledEvent(stripeEnabled);
 
         setEvent({
           name: eventInfo.name || 'Untitled',
@@ -1158,6 +1138,7 @@ export default function Event() {
           supply: 0,
           dateString: '',
           price: 0,
+          dateForPastCheck: new Date(),
         });
         setIsLoading(false);
       } catch (error) {
@@ -1332,9 +1313,10 @@ export default function Event() {
       />
       {doKeyModal && sellDropInfo != null && (
         <SellModal
-          event={sellDropInfo}
+          event={event}
           input={input}
           isOpen={doKeyModal && sellDropInfo != null}
+          saleInfo={sellDropInfo}
           setInput={setInput}
           onClose={CloseSellModal}
           onSubmit={SellTicket}

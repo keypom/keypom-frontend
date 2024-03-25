@@ -103,7 +103,6 @@ export const estimateCosts = async ({
     funderInfo === undefined || funderInfo === null ? {} : JSON.parse(funderInfo.metadata);
 
   const eventMetadata: FunderEventMetadata = {
-    stripeCheckout: formData.acceptStripePayments,
     nearCheckout: formData.acceptNearPayments,
     name: formData.eventName.value,
     dateCreated: Date.now().toString(),
@@ -212,7 +211,6 @@ export const createPayload = async ({
     funderInfo === undefined || funderInfo === null ? {} : JSON.parse(funderInfo.metadata);
 
   const eventMetadata: FunderEventMetadata = {
-    stripeCheckout: formData.acceptStripePayments,
     nearCheckout: formData.acceptNearPayments,
     name: formData.eventName.value,
     dateCreated: Date.now().toString(),
@@ -326,6 +324,7 @@ export const createPayload = async ({
               event_id: eventId,
               funder_id: accountId,
               ticket_information,
+              stripe_status: formData.acceptStripePayments
             }),
             attached_deposit: costBreakdown.marketListing,
           },
