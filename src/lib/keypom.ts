@@ -803,12 +803,12 @@ class KeypomJS {
     return fetchedinfo;
   };
 
-  getTicketDropInformation = async ({ dropID }: { dropID: string }) => {
+  getTicketDropInformation = async ({ dropId }: { dropId: string }) => {
     try {
       const fetchedinfo = await this.viewCall({
         methodName: 'get_drop_information',
         args: {
-          drop_id: dropID,
+          drop_id: dropId,
         },
       });
 
