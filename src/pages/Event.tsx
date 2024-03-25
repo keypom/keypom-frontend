@@ -11,6 +11,7 @@ import {
   HStack,
   Hide,
   Show,
+  VStack,
 } from '@chakra-ui/react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ExternalLinkIcon } from '@chakra-ui/icons';
@@ -31,16 +32,17 @@ import {
   type EventDrop,
 } from '@/lib/eventsHelpers';
 import keypomInstance from '@/lib/keypom';
-import { 
+  EMAIL_WORKER_BASE,
   KEYPOM_EVENTS_CONTRACT,
   CLOUDFLARE_IPFS,
-  EMAIL_WORKER_BASE,
   EVENTS_WORKER_BASE,
   KEYPOM_MARKETPLACE_CONTRACT,
   PURCHASED_LOCAL_STORAGE_PREFIX,
 } from '@/constants/common';
 import { type DataItem } from '@/components/Table/types';
 import { dateAndTimeToText } from '@/features/drop-manager/utils/parseDates';
+import { LoadingModal } from '@/features/events-page/components/LoadingModal';
+
 import { botCheck } from '../utils/botCheck';
 
 interface WorkerPayload {
@@ -57,7 +59,7 @@ interface WorkerPayload {
     dropId: string;
     funderId: string;
     event_image_url: string;
-    ticket_image_url: string
+    ticket_image_url: string;
   };
   purchaseEmail: string;
   stripeAccountId: string | undefined;
@@ -68,7 +70,7 @@ interface WorkerPayload {
   // single secret key to send in email
   ticketKey?: string;
   network?: string;
-  linkdrop_secret_key?: string
+  linkdrop_secret_key?: string;
 }
 
 export interface TicketInterface {
@@ -172,8 +174,15 @@ export default function Event() {
   const [resaleTicketList, setResaleTicketList] = useState<TicketInterface[]>([]);
   const [areTicketsLoading, setAreTicketsLoading] = useState(true);
   const [doKeyModal, setDoKeyModal] = useState(false);
+  
+  const [loadingModal, setLoadingModal] = useState(false);
+  const [loadingModalText, setLoadingModalText] = useState<{
+    title: string;
+    text: string;
+    subtitle: string;
+  }>({ title: '', text: '', subtitle: '' });
 
-  const [sellDropInfo, setSellDropInfo] = useState<ResaleTicketInfo | null>(null);
+  const [sellDropInfo, setSellDropInfo] = useState<SellDropInfo | null>(null);
 
   // purchase modal
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -219,6 +228,10 @@ export default function Event() {
 
     CheckForNearRedirect();
   }, [keypomInstance, eventId, funderId]);
+
+  useEffect(() => {
+    CheckForSellSuccessToast();
+  }, []);
 
   const getKeyInformation = useCallback(async () => {
     if (secretKey === null || eventId === null) {
@@ -448,7 +461,8 @@ export default function Event() {
         dropId: ticketBeingPurchased.id,
         funderId,
         event_image_url: drop.artwork,
-        ticket_image_url: purchaseType === "stripe" ? ticket_url_stripe : ticketBeingPurchased.artwork
+        ticket_image_url:
+          purchaseType === 'stripe' ? ticket_url_stripe : ticketBeingPurchased.artwork,
       },
       purchaseEmail: trimmedEmail, // (currently just called email in userInfo)
       stripeAccountId,
@@ -457,19 +471,20 @@ export default function Event() {
     };
 
     if (purchaseType === 'free') {
-      if(!isSecondary){
-        const bot = await botCheck()
-  
-        if(bot){
+      if (!isSecondary) {
+        const bot = await botCheck();
+
+        if (bot) {
           toast({
             title: 'Purchase failed',
-            description: 'You have been identified as a bot and your purchase has been blocked. Make sure your VPN is turned off.',
+            description:
+              'You have been identified as a bot and your purchase has been blocked. Make sure your VPN is turned off.',
             status: 'error',
             duration: 5000,
             isClosable: true,
           });
         }
-  
+
         const response = await fetch(
           'https://stripe-worker.kp-capstone.workers.dev/purchase-free-tickets',
           {
@@ -480,7 +495,7 @@ export default function Event() {
             body: JSON.stringify(workerPayload),
           },
         );
-  
+
         if (response.ok) {
           const responseBody = await response.json();
           TicketPurchaseSuccessful(workerPayload, responseBody);
@@ -489,7 +504,7 @@ export default function Event() {
           console.error('responseBody', responseBody);
           TicketPurchaseFailure(workerPayload, await response.json());
         }
-      }else{
+      } else {
         // secondary
         if (wallet == null) {
           toast({
@@ -502,10 +517,10 @@ export default function Event() {
           return;
         }
 
-        localStorage.setItem('purchaseType', "secondary");
+        localStorage.setItem('purchaseType', 'secondary');
 
         // free tickets can only be sold for 0.1N
-        const nearSendPrice = "100000000000000000000000"
+        const nearSendPrice = '100000000000000000000000';
 
         const { publicKeys, secretKeys } = await keypomInstance.GenerateTicketKeys(ticketAmount);
         workerPayload.ticketKeys = secretKeys;
@@ -514,18 +529,21 @@ export default function Event() {
           new_public_key: publicKeys[0],
         }; // NftTransferMemo,
 
-        const owner: string = await keypomInstance.getCurrentKeyOwner(KEYPOM_MARKETPLACE_CONTRACT, ticketBeingPurchased.publicKey)
+        const owner: string = await keypomInstance.getCurrentKeyOwner(
+          KEYPOM_MARKETPLACE_CONTRACT,
+          ticketBeingPurchased.publicKey,
+        );
 
-        const linkdrop_keys = await generateKeys({numKeys: 1});
-        console.log("owner: ", owner)
+        const linkdrop_keys = await generateKeys({ numKeys: 1 });
+        console.log('owner: ', owner);
         // Seller did not have wallet when they bought, include linkdrop info in email
-        if(owner === KEYPOM_EVENTS_CONTRACT){
-          console.log("seller did not have wallet when they bought")
+        if (owner === KEYPOM_EVENTS_CONTRACT) {
+          console.log('seller did not have wallet when they bought');
           workerPayload.linkdrop_secret_key = linkdrop_keys.secretKeys[0];
           workerPayload.network = process.env.REACT_APP_NETWORK_ID;
         }
 
-        console.log("workerPayload before signandsend", JSON.stringify(workerPayload))
+        console.log('workerPayload before signandsend', JSON.stringify(workerPayload));
         localStorage.setItem('workerPayload', JSON.stringify(workerPayload));
 
         await wallet.signAndSendTransaction({
@@ -541,11 +559,11 @@ export default function Event() {
                   memo,
                   new_owner: accountId,
                   seller_new_linkdrop_pk: linkdrop_keys.publicKeys[0],
-                  seller_linkdrop_drop_id: Date.now().toString()
+                  seller_linkdrop_drop_id: Date.now().toString(),
                 },
                 gas: '300000000000000',
                 // 0.1NEAR if not defined
-                deposit: nearSendPrice
+                deposit: nearSendPrice,
               },
             },
           ],
@@ -595,7 +613,7 @@ export default function Event() {
           return;
         }
 
-        localStorage.setItem('purchaseType', "primary");
+        localStorage.setItem('purchaseType', 'primary');
 
         await wallet.signAndSendTransaction({
           signerId: accountId || undefined,
@@ -629,25 +647,28 @@ export default function Event() {
           return;
         }
 
-        localStorage.setItem('purchaseType', "secondary");
+        localStorage.setItem('purchaseType', 'secondary');
 
         const memo = {
           linkdrop_pk: ticketBeingPurchased.publicKey,
           new_public_key: publicKeys[0],
         }; // NftTransferMemo,
 
-        const owner: string = await keypomInstance.getCurrentKeyOwner(KEYPOM_MARKETPLACE_CONTRACT, ticketBeingPurchased.publicKey)
+        const owner: string = await keypomInstance.getCurrentKeyOwner(
+          KEYPOM_MARKETPLACE_CONTRACT,
+          ticketBeingPurchased.publicKey,
+        );
 
-        const linkdrop_keys = await generateKeys({numKeys: 1});
-        console.log("owner: ", owner)
+        const linkdrop_keys = await generateKeys({ numKeys: 1 });
+        console.log('owner: ', owner);
         // Seller did not have wallet when they bought, include linkdrop info in email
-        if(owner === KEYPOM_EVENTS_CONTRACT){
-          console.log("seller did not have wallet when they bought")
+        if (owner === KEYPOM_EVENTS_CONTRACT) {
+          console.log('seller did not have wallet when they bought');
           workerPayload.linkdrop_secret_key = linkdrop_keys.secretKeys[0];
           workerPayload.network = process.env.REACT_APP_NETWORK_ID;
         }
 
-        console.log("workerPayload before signandsend", JSON.stringify(workerPayload))
+        console.log('workerPayload before signandsend', JSON.stringify(workerPayload));
         localStorage.setItem('workerPayload', JSON.stringify(workerPayload));
 
         await wallet.signAndSendTransaction({
@@ -663,7 +684,7 @@ export default function Event() {
                   memo,
                   new_owner: accountId,
                   seller_new_linkdrop_pk: linkdrop_keys.publicKeys[0],
-                  seller_linkdrop_drop_id: Date.now().toString()
+                  seller_linkdrop_drop_id: Date.now().toString(),
                 },
                 gas: '300000000000000',
                 deposit: nearSendPrice,
@@ -694,6 +715,24 @@ export default function Event() {
     }
   };
 
+  const CheckForSellSuccessToast = () => {
+    const price = localStorage.getItem('sellsuccessful');
+
+    if (price == null || price === undefined) {
+      return;
+    }
+
+    localStorage.removeItem('sellsuccessful');
+
+    toast({
+      title: 'Item put for sale successfully',
+      description: `Your item has been put for sale for ${price} NEAR`,
+      status: 'success',
+      duration: 5000,
+      isClosable: true,
+    });
+  };
+
   const CheckForNearRedirect = async () => {
     if (nearRedirect == null) {
       return;
@@ -717,8 +756,6 @@ export default function Event() {
     // Remove the near parameters from the URL
     navigate('./');
 
-    console.log("new payload post-redirect: ", JSON.stringify(workerPayload))
-    console.log("purchase type: ", purchaseType)
     const newWorkerPayload = workerPayload;
 
     // primary purchases are in batch, if one key has been added, then all of them should have been added.
@@ -726,28 +763,37 @@ export default function Event() {
       return;
     }
     const ticketPubKey = getPubFromSecret(workerPayload.ticketKeys[0]);
-    const keyInfo = await keypomInstance.getTicketKeyInformation({publicKey: ticketPubKey});
-    if(keyInfo === null){
+    const keyInfo = await keypomInstance.getTicketKeyInformation({ publicKey: ticketPubKey });
+    if (keyInfo === null) {
       return;
     }
 
-    if(purchaseType === "primary"){
+    if (purchaseType === 'primary') {
+      const keyCount = workerPayload.ticketKeys?.length;
+      let currentLoadedKey = 1;
+
       for (const key of workerPayload.ticketKeys) {
         const ticketKey = key;
         newWorkerPayload.ticketKey = ticketKey;
 
-        console.log('sending confirmation email with newWorkerPayload', newWorkerPayload);
+        setLoadingModal(true);
+        setLoadingModalText({
+          title: 'Purchase Successful',
+          subtitle: 'Sending confirmation email',
+          text: `Progress: ${currentLoadedKey} / ${keyCount}`,
+        });
+        newWorkerPayload.ticketKey = workerPayload.ticketKeys[key];
 
         // newWorkerPayload["ticketKeys"] = null;
-        const response = await fetch(EMAIL_WORKER_BASE + '/send-confirmation-email',
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(newWorkerPayload),
+        const response = await fetch(EMAIL_WORKER_BASE + '/send-confirmation-email', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
           },
-        );
+          body: JSON.stringify(newWorkerPayload),
+        });
+
+        currentLoadedKey++;
 
         if (response.ok) {
           const responseBody = await response.json();
@@ -757,21 +803,18 @@ export default function Event() {
           TicketPurchaseFailure(newWorkerPayload, await response.json());
         }
       }
-    }else if (purchaseType === "secondary"){
+    } else if (purchaseType === 'secondary') {
       // send confirmation email first to buyer
 
       newWorkerPayload.ticketKey = workerPayload.ticketKeys[0];
-      console.log("sending confirmation with ")
       // newWorkerPayload["ticketKeys"] = null;
-      const response_buyer = await fetch(EMAIL_WORKER_BASE + '/send-confirmation-email',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(newWorkerPayload),
+      const response_buyer = await fetch(EMAIL_WORKER_BASE + '/send-confirmation-email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         },
-      );
+        body: JSON.stringify(newWorkerPayload),
+      });
 
       if (response_buyer.ok) {
         // Email sent
@@ -813,8 +856,8 @@ export default function Event() {
         }
       }
       */
-
     }
+    setLoadingModal(false);
   };
 
   const TicketPurchaseSuccessful = (workerPayload: WorkerPayload, responseBody) => {
@@ -841,6 +884,8 @@ export default function Event() {
       duration: 5000,
       isClosable: true,
     });
+    // close modal
+    ClosePurchaseModal();
   };
 
   const TicketPurchaseFailure = (workerPayload, responseBody) => {
@@ -876,7 +921,17 @@ export default function Event() {
 
     setSellDropInfo(null);
 
-    const yoctoPrice = keypomInstance.nearToYocto(input);
+    const nearPrice = input;
+
+    // open up loading modal
+    setLoadingModal(true);
+    setLoadingModalText({
+      title: 'Selling Ticket',
+      subtitle: 'Please wait',
+      text: 'Your ticket is being put for sale',
+    });
+
+    const yoctoPrice = keypomInstance.nearToYocto(nearPrice);
 
     const signature = await keypomInstance.GenerateResellSignature({
       secretKey: sellInfo.secretKey,
@@ -910,14 +965,15 @@ export default function Event() {
       });
     }
 
+    // close loading modal
+    setLoadingModal(false);
+
+    navigate('./');
+
     if (sellsuccessful) {
-      toast({
-        title: 'Item put for sale successfully',
-        description: `Your item has been put for sale for ${input} NEAR`,
-        status: 'success',
-        duration: 5000,
-        isClosable: true,
-      });
+      // add a sellsuccessful to local storage
+      localStorage.setItem('sellsuccessful', nearPrice);
+      window.location.reload();
     }
   };
 
@@ -1125,7 +1181,6 @@ export default function Event() {
         w="100%"
         zIndex={-1}
       />
-
       <Box position="relative">
         <ChakraImage
           alt={event.title}
@@ -1137,119 +1192,64 @@ export default function Event() {
         />
       </Box>
       <Box my="5" />
-
       <Box my="5" />
       {/* <Text>Details about the Event:</Text>
       <Text>Event ID: {eventID}</Text> */}
-
       {/* <Box backgroundColor={'white'} h="100vh" left="0" ml="0" position="absolute" w="100vw"></Box> */}
       <Heading as="h2" color="black" my="5" size="2xl">
         {event.name}
       </Heading>
-      {/* TODO: make these stacks change between hstack and vstack nicely */}
+      {/* For larger screens, show a horizontal stack */}
       <Show above="md">
-        <HStack>
-          <Box flex="2" mr="20" textAlign="left">
-            <Text
-              as="h2"
-              color="black.800"
-              fontSize="l"
-              fontWeight="bold"
-              my="4px"
-              textAlign="left"
-            >
+        <HStack alignItems="flex-start" spacing="20">
+          <Box flex="2">
+            <Text as="h2" color="black.800" fontSize="l" fontWeight="bold" my="4px">
               Event Details
             </Text>
-
-            <Text> {event.description} </Text>
+            <Text>{event.description}</Text>
           </Box>
-          <Box flex="1" mr="20" textAlign="left">
-            <Text
-              as="h2"
-              color="black.800"
-              fontSize="l"
-              fontWeight="bold"
-              my="4px"
-              textAlign="left"
-            >
+          <VStack alignItems="flex-start" flex="1">
+            <Text as="h2" color="black.800" fontSize="l" fontWeight="bold" my="4px">
               Location
             </Text>
-
             <Text>{event.location}</Text>
-
             <a href={mapHref} rel="noopener noreferrer" target="_blank">
               Open in Google Maps <ExternalLinkIcon mx="2px" />
             </a>
-
-            <Text
-              as="h2"
-              color="black.800"
-              fontSize="l"
-              fontWeight="bold"
-              mt="12px"
-              my="4px"
-              textAlign="left"
-            >
+            <Text as="h2" color="black.800" fontSize="l" fontWeight="bold" mt="12px" my="4px">
               Date
             </Text>
             <Text color="gray.400">{event.date}</Text>
-
             <Button mt="4" variant="primary" onClick={verifyOnOpen}>
               Verify Ticket
             </Button>
-          </Box>
+          </VStack>
         </HStack>
       </Show>
+
+      {/* For smaller screens, show a vertical stack */}
       <Hide above="md">
-        <Box>
-          <Box flex="2" mr="20" textAlign="left">
-            <Text
-              as="h2"
-              color="black.800"
-              fontSize="l"
-              fontWeight="bold"
-              my="4px"
-              textAlign="left"
-            >
-              Event Details
-            </Text>
-
-            <Text> {event.description} </Text>
-          </Box>
-          <Box flex="2" textAlign="left">
-            <Text
-              as="h2"
-              color="black.800"
-              fontSize="l"
-              fontWeight="bold"
-              my="4px"
-              textAlign="left"
-            >
-              Location
-            </Text>
-            <Text>{event.location}</Text>
-            <a href={mapHref} rel="noopener noreferrer" target="_blank">
-              Open in Google Maps <ExternalLinkIcon mx="2px" />
-            </a>
-            <Text
-              as="h2"
-              color="black.800"
-              fontSize="l"
-              fontWeight="bold"
-              mt="12px"
-              my="4px"
-              textAlign="left"
-            >
-              Date
-            </Text>
-            <Text color="gray.400">{event.date}</Text>
-            <Button mt="4" variant="primary" onClick={verifyOnOpen}>
-              Verify Ticket
-            </Button>
-          </Box>
-        </Box>
+        <VStack alignItems="flex-start" spacing="4">
+          <Text as="h2" color="black.800" fontSize="l" fontWeight="bold">
+            Event Details
+          </Text>
+          <Text>{event.description}</Text>
+          <Text as="h2" color="black.800" fontSize="l" fontWeight="bold">
+            Location
+          </Text>
+          <Text>{event.location}</Text>
+          <a href={mapHref} rel="noopener noreferrer" target="_blank">
+            Open in Google Maps <ExternalLinkIcon mx="2px" />
+          </a>
+          <Text as="h2" color="black.800" fontSize="l" fontWeight="bold">
+            Date
+          </Text>
+          <Text color="gray.400">{event.date}</Text>
+          <Button variant="primary" onClick={verifyOnOpen}>
+            Verify Ticket
+          </Button>
+        </VStack>
       </Hide>
-
       <Heading as="h3" my="5" size="lg">
         Tickets
       </Heading>
@@ -1276,15 +1276,13 @@ export default function Event() {
               ))}
         </SimpleGrid>
       </Box>
-
       {!areTicketsLoading && resaleTicketList.length > 0 ? (
         <Heading as="h3" my="5" size="lg">
-          Secondary Tickets
+          Secondary Market
         </Heading>
       ) : (
         <></>
       )}
-
       <Box h="full" mt="0" p="0px" pb={{ base: '6', md: '16' }} w="full">
         <SimpleGrid minChildWidth="280px" spacing={5}>
           {!areTicketsLoading ? (
@@ -1302,7 +1300,6 @@ export default function Event() {
           )}
         </SimpleGrid>
       </Box>
-
       <PurchaseModal
         amount={ticketAmount}
         event={event}
@@ -1314,7 +1311,6 @@ export default function Event() {
         onClose={ClosePurchaseModal}
         onSubmit={PurchaseTicket}
       />
-
       {doKeyModal && sellDropInfo != null && (
         <SellModal
           event={event}
@@ -1326,13 +1322,21 @@ export default function Event() {
           onSubmit={SellTicket}
         />
       )}
-
       <VerifyModal
         accountId={funderId}
         event={event}
         eventId={eventId}
         isOpen={verifyIsOpen}
         onClose={verifyOnClose}
+      />
+      <LoadingModal
+        isOpen={loadingModal}
+        subtitle={loadingModalText.subtitle}
+        text={loadingModalText.text}
+        title={loadingModalText.title}
+        onClose={() => {
+          setLoadingModal(false);
+        }}
       />
     </Box>
   );
