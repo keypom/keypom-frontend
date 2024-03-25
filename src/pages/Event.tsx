@@ -29,7 +29,6 @@ import {
   type TicketMetadataExtra,
   type DateAndTimeInfo,
   type EventDrop,
-  type FunderEventMetadata,
 } from '@/lib/eventsHelpers';
 import keypomInstance from '@/lib/keypom';
 import {
@@ -106,15 +105,13 @@ export interface EventInterface {
   price: number | undefined;
 }
 
-export interface SellDropInfo {
+export interface ResaleTicketInfo {
   name: string;
   artwork: string;
-  questions: QuestionInfo[];
-  location: string;
-  date: string;
   description: string;
-  maxNearPrice: number;
+  passValidThrough: DateAndTimeInfo;
   salesValidThrough: DateAndTimeInfo;
+  maxNearPrice: number;
   publicKey: string;
   secretKey: string;
 }
@@ -162,7 +159,7 @@ export default function Event() {
   const [areTicketsLoading, setAreTicketsLoading] = useState(true);
   const [doKeyModal, setDoKeyModal] = useState(false);
 
-  const [sellDropInfo, setSellDropInfo] = useState<SellDropInfo | null>(null);
+  const [sellDropInfo, setSellDropInfo] = useState<ResaleTicketInfo | null>(null);
 
   // purchase modal
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -210,32 +207,28 @@ export default function Event() {
   }, [keypomInstance, eventId, funderId]);
 
   const getKeyInformation = useCallback(async () => {
-    if (secretKey == null) {
+    if (secretKey === null || eventId === null) {
       return;
     }
 
     try {
       const publicKey: string = getPubFromSecret(secretKey);
 
-      const keyinfo = await keypomInstance.getTicketKeyInformation({
+      const keyInfo = await keypomInstance.getTicketKeyInformation({
         publicKey: String(publicKey),
       });
 
       // get drop info using the key info id
-
-      const dropID = keyinfo.token_id.split(':')[0];
-
-      // testing dropID = "1709145479199-Ground Ticket-14"
-
-      const dropData: EventDrop = await keypomInstance.getTicketDropInformation({ dropID });
+      const dropId = keyInfo.token_id.split(':')[0];
+      const dropData: EventDrop = await keypomInstance.getTicketDropInformation({ dropId });
 
       // parse dropData's metadata to get eventId
-      const meta: TicketMetadataExtra = JSON.parse(
-        dropData.drop_config.nft_keys_config.token_metadata.extra,
-      );
+      const ticketMetadata: TicketInfoMetadata =
+        dropData.drop_config.nft_keys_config.token_metadata;
+      const ticketMetadataExtra: TicketMetadataExtra = JSON.parse(ticketMetadata.extra);
 
-      const keyinfoEventId = meta.eventId;
-      if (keyinfoEventId !== eventId) {
+      const keyInfoEventId = ticketMetadataExtra.eventId;
+      if (keyInfoEventId !== eventId) {
         toast({
           title: 'Ticket does not match current event',
           description: `This ticket is for a different event, please scan it on the correct event page`,
@@ -245,37 +238,22 @@ export default function Event() {
         });
       }
 
-      const meta2: FunderEventMetadata | null = await keypomInstance.getEventInfo({
-        accountId: funderId,
-        eventId: keyinfoEventId,
-      });
-
-      if (meta2 == null) {
-        throw new Error('The event does not exist.');
-      }
-
-      let dateString = '';
-      if (meta2.date != null) {
-        dateString = dateAndTimeToText(meta2.date);
-      }
       const maxNearPriceYocto = await keypomInstance.viewCall({
         contractId: KEYPOM_MARKETPLACE_CONTRACT,
         methodName: 'get_max_resale_for_drop',
-        args: { drop_id: dropID },
+        args: { drop_id: dropId },
       });
       const maxNearPrice = parseFloat(formatNearAmount(maxNearPriceYocto, 3));
 
       setSellDropInfo({
-        name: meta2.name || 'Untitled',
-        artwork: meta2.artwork || 'loading',
-        questions: meta2.questions || [],
-        location: meta2.location || 'loading',
-        date: dateString,
-        salesValidThrough: meta.salesValidThrough,
-        description: meta2.description || 'loading',
+        name: ticketMetadata.title,
+        artwork: ticketMetadata.media,
+        description: ticketMetadata.description,
+        salesValidThrough: ticketMetadataExtra.salesValidThrough,
+        passValidThrough: ticketMetadataExtra.passValidThrough,
+        maxNearPrice,
         publicKey,
         secretKey,
-        maxNearPrice,
       });
 
       setDoKeyModal(true);
@@ -289,7 +267,7 @@ export default function Event() {
         isClosable: true,
       });
     }
-  }, [secretKey, keypomInstance]);
+  }, [event, secretKey, keypomInstance]);
 
   // example: http://localhost:3000/gallery/minqi.testnet:152c9ef5-13de-40f6-9ec2-cc39f5886f4e#secretKey=ed25519:AXSwjeNg8qS8sFPSCK2eYK7UoQ3Kyyqt9oeKiJRd8pUhhEirhL2qbrs7tLBYpoGE4Acn8JbFL7FVjgyT2aDJaJx
   const loadingdata = [] as DataItem[];
@@ -370,7 +348,7 @@ export default function Event() {
     navigate('./');
 
     const dropData = await keypomInstance.getTicketDropInformation({
-      dropID: ticketBeingPurchased.id,
+      dropId: ticketBeingPurchased.id,
     });
 
     // parse dropData's metadata to get eventId
@@ -626,7 +604,8 @@ export default function Event() {
       newWorkerPayload.ticketKey = workerPayload.ticketKeys[key];
 
       // newWorkerPayload["ticketKeys"] = null;
-      const response = await fetch(EMAIL_WORKER_BASE + '/send-confirmation-email', {
+      const url = `${EMAIL_WORKER_BASE as string}/send-confirmation-email`;
+      const response = await fetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -1139,9 +1118,10 @@ export default function Event() {
 
       {doKeyModal && sellDropInfo != null && (
         <SellModal
-          event={sellDropInfo}
+          event={event}
           input={input}
           isOpen={doKeyModal && sellDropInfo != null}
+          saleInfo={sellDropInfo}
           setInput={setInput}
           onClose={CloseSellModal}
           onSubmit={SellTicket}
