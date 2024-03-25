@@ -32,6 +32,7 @@ import {
   type EventDrop,
 } from '@/lib/eventsHelpers';
 import keypomInstance from '@/lib/keypom';
+import {
   EMAIL_WORKER_BASE,
   KEYPOM_EVENTS_CONTRACT,
   CLOUDFLARE_IPFS,
@@ -174,7 +175,7 @@ export default function Event() {
   const [resaleTicketList, setResaleTicketList] = useState<TicketInterface[]>([]);
   const [areTicketsLoading, setAreTicketsLoading] = useState(true);
   const [doKeyModal, setDoKeyModal] = useState(false);
-  
+
   const [loadingModal, setLoadingModal] = useState(false);
   const [loadingModalText, setLoadingModalText] = useState<{
     title: string;
@@ -182,7 +183,7 @@ export default function Event() {
     subtitle: string;
   }>({ title: '', text: '', subtitle: '' });
 
-  const [sellDropInfo, setSellDropInfo] = useState<SellDropInfo | null>(null);
+  const [sellDropInfo, setSellDropInfo] = useState<ResaleTicketInfo | null>(null);
 
   // purchase modal
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -989,7 +990,7 @@ export default function Event() {
     });
 
     const eventStripeStatus = await keypomInstance.getEventStripeStatus(eventId);
-    console.log(eventStripeStatus)
+    console.log(eventStripeStatus);
     setStripeEnabledEvent(eventStripeStatus);
 
     // get stripe id for account
