@@ -32,6 +32,7 @@ import {
 } from '@/lib/eventsHelpers';
 import keypomInstance from '@/lib/keypom';
 import {
+  CLOUDFLARE_IPFS,
   EMAIL_WORKER_BASE,
   EVENTS_WORKER_BASE,
   KEYPOM_MARKETPLACE_CONTRACT,
@@ -153,7 +154,7 @@ export default function Event() {
   const [stripeAccountId, setStripeAccountId] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [noDrop, setNoDrop] = useState(false);
-  const [input, setInput] = useState('');
+  const [input, setInput] = useState('0.1');
   const [ticketList, setTicketList] = useState<TicketInterface[]>([]);
   const [resaleTicketList, setResaleTicketList] = useState<TicketInterface[]>([]);
   const [areTicketsLoading, setAreTicketsLoading] = useState(true);
@@ -247,7 +248,7 @@ export default function Event() {
 
       setSellDropInfo({
         name: ticketMetadata.title,
-        artwork: ticketMetadata.media,
+        artwork: `${CLOUDFLARE_IPFS}/${ticketMetadata.media}`,
         description: ticketMetadata.description,
         salesValidThrough: ticketMetadataExtra.salesValidThrough,
         passValidThrough: ticketMetadataExtra.passValidThrough,

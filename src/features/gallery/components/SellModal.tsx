@@ -62,7 +62,15 @@ export const SellModal = ({
   const { nearPrice } = useAppContext();
   // price input
   const handleInputChange = (e) => {
-    setInput(e.target.value);
+    const inputValue = e.target.value;
+
+    if (!isNaN(inputValue) && parseFloat(inputValue) > saleInfo.maxNearPrice) {
+      setInput(saleInfo.maxNearPrice.toString()); // Clamp to max price
+    } else if (!isNaN(inputValue) && parseFloat(inputValue) < MIN_NEAR_SELL) {
+      setInput(MIN_NEAR_SELL.toString()); // Clamp to min price
+    } else {
+      setInput(inputValue);
+    }
   };
 
   console.log('saleInfo', saleInfo);
@@ -132,7 +140,7 @@ export const SellModal = ({
               borderRadius="md"
               maxH="250px"
               objectFit="cover"
-              src={event.artwork}
+              src={saleInfo.artwork}
               w="full"
             />
             <VStack align="stretch" spacing="4">
@@ -148,14 +156,6 @@ export const SellModal = ({
                 </Text>
                 <Text color="gray.500" fontSize="lg">
                   {dateAndTimeToText(saleInfo.salesValidThrough)}
-                </Text>
-              </HStack>
-              <HStack justifyContent="space-between" pt="4">
-                <Text color="gray.800" fontSize="lg" fontWeight="semibold">
-                  Location
-                </Text>
-                <Text color="gray.500" fontSize="lg">
-                  {event.location}
                 </Text>
               </HStack>
               {ticketSellDateValid && (
@@ -190,7 +190,7 @@ export const SellModal = ({
                     <Input type="number" value={input} onChange={handleInputChange} />
                     {!isSellError ? (
                       saleInfo.maxNearPrice >= nearInput && nearInput >= MIN_NEAR_SELL ? (
-                        <FormLabel color="red.400" fontSize="sm" lineHeight="normal" marginTop="2">
+                        <FormLabel color="gray.400" fontSize="sm" lineHeight="normal" marginTop="2">
                           You will receive $NEAR, not USD when sold.
                         </FormLabel>
                       ) : saleInfo.maxNearPrice < nearInput ? (
