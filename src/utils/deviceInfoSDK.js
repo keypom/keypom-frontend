@@ -46,7 +46,7 @@ class DeviceInfoSDK {
   }
 
   fetchIPDetails(apiKey) {
-    const url = `https://pro.ip-api.com/json/?fields=17035263&key=${apiKey.toString()}`;
+    const url = `https://pro.ip-api.com/json/?fields=17035263&key=${String(apiKey)}`;
 
     return fetch(url)
       .then(response => response.json())
