@@ -220,9 +220,9 @@ export const VerifyModal = ({ isOpen, onClose, event, eventId, accountId }: Veri
           ) : null}
 
           <ModalFooter>
-            <Button variant={'secondary'} w="100%" onClick={checkData}>
+            {/* <Button variant={'secondary'} w="100%" onClick={checkData}>
               test
-            </Button>
+            </Button> */}
             <Button variant={'secondary'} w="100%" onClick={onClose}>
               Cancel
             </Button>

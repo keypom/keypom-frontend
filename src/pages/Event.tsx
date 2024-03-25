@@ -113,6 +113,7 @@ export interface EventInterface {
   supply: number | undefined;
   dateString: string | undefined;
   price: number | undefined;
+  dateForPastCheck: Date | undefined;
 }
 
 export interface SellDropInfo {
@@ -1101,6 +1102,7 @@ export default function Event() {
           supply: 0,
           dateString: '',
           price: 0,
+          dateForPastCheck: new Date(),
         });
         setIsLoading(false);
       } catch (error) {
