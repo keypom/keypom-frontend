@@ -902,6 +902,7 @@ export default function Event() {
           supply: 0,
           dateString: '',
           price: 0,
+          dateForPastCheck: new Date(),
         });
         setIsLoading(false);
       } catch (error) {
