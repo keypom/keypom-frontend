@@ -451,7 +451,7 @@ export default function Event() {
     }
 
     const stripe_ticket_hash = dropData.drop_config.nft_keys_config.token_metadata.media;
-    const ticket_url_stripe: string = `https://cloudflare-ipfs.com/ipfs/${stripe_ticket_hash}`;
+    const ticket_url_stripe = `https://cloudflare-ipfs.com/ipfs/${stripe_ticket_hash}`;
 
     const workerPayload: WorkerPayload = {
       name: attendeeName,
@@ -486,7 +486,6 @@ export default function Event() {
           duration: 5000,
           isClosable: true,
         });
-        return;
       }
 
       // const response = await fetch(
@@ -678,7 +677,7 @@ export default function Event() {
     const newWorkerPayload = workerPayload;
 
     // primary purchases are in batch, if one key has been added, then all of them should have been added.
-    if (workerPayload.ticketKeys == undefined || workerPayload.ticketKeys.length == 0) {
+    if (workerPayload.ticketKeys === undefined || workerPayload.ticketKeys.length === 0) {
       return;
     }
     const ticketPubKey = getPubFromSecret(workerPayload.ticketKeys[0]);
