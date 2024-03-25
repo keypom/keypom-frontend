@@ -3,6 +3,7 @@ import { Button, ModalContent, Text, VStack } from '@chakra-ui/react';
 
 import keypomInstance from '@/lib/keypom';
 import { KEYPOM_EVENTS_CONTRACT } from '@/constants/common';
+import { type EventDrop, type TicketInfoMetadata } from '@/lib/eventsHelpers';
 
 import ProgressModalContent from './ProgessModalContent';
 import CompletionModalContent from './CompletionModal';
@@ -37,10 +38,10 @@ export const performDeletionLogic = async ({
 
     let totalDeleted = 0;
     for (let i = 0; i < ticketData.length; i++) {
-      const curTicketData = ticketData[i];
+      const curTicketData: EventDrop = ticketData[i];
       const dropId = curTicketData.drop_id;
       const supplyForTicket = ticketSupplies[i];
-      const meta = JSON.parse(curTicketData.drop_config.metadata);
+      const meta: TicketInfoMetadata = curTicketData.drop_config.nft_keys_config.token_metadata;
 
       let deletedForTicket = 0;
       const deleteLimit = 50;
@@ -55,7 +56,7 @@ export const performDeletionLogic = async ({
             <ProgressModalContent
               message={`Deleting Ticket`}
               progress={(totalDeleted / totalSupplyTickets) * 100}
-              title={`Deleting: ${(meta.name as string) || 'Ticket'} (${
+              title={`Deleting: ${meta.title || 'Ticket'} (${
                 ticketData.length - (i + 1)
               } Tickets Types Left)`}
             />
@@ -88,11 +89,9 @@ export const performDeletionLogic = async ({
           canClose: false,
           modalContent: (
             <ProgressModalContent
-              message={`Deleting ${supplyForTicket.toString()} Purchased ${
-                meta.name as string
-              } Tickets`}
+              message={`Deleting ${supplyForTicket.toString()} Purchased ${meta.title} Tickets`}
               progress={(totalDeleted / totalSupplyTickets) * 100}
-              title={`Deleting: ${(meta.name as string) || 'Ticket'} (${
+              title={`Deleting: ${meta.title || 'Ticket'} (${
                 ticketData.length - (i + 1)
               } Tickets Types Left)`}
             />
@@ -161,6 +160,7 @@ export const performDeletionLogic = async ({
       ),
     });
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error('Error during deletion:', error);
     // Error Modal
     setAppModal({

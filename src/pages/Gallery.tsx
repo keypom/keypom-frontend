@@ -27,7 +27,7 @@ import {
   SORT_MENU_ITEMS,
   createMenuItems,
 } from '@/features/all-drops/config/menuItems';
-import keypomInstance from '@/lib/keypom';
+import keypomInstance, { type MarketListing } from '@/lib/keypom';
 import { GalleryGrid } from '@/features/gallery/components/GalleryGrid';
 import { DropDownButton } from '@/features/all-drops/components/DropDownButton';
 import { FilterOptionsMobileButton } from '@/features/all-drops/components/FilterOptionsMobileButton';
@@ -227,32 +227,28 @@ export default function Gallery() {
     ) {
       drops = drops.filter((drop) => {
         if (drop === undefined) return false;
-        let dateString = drop.date.date;
-        // take start date, check if it is a string or object
-        if (typeof drop.date.date !== 'string') {
-          dateString = drop.date.date.from;
-        }
-        const date = new Date(dateString).getTime();
+
         return (
           selectedFilters.eventDate.startDate !== null &&
-          date >= selectedFilters.eventDate.startDate
+          drop.date.startDate >= selectedFilters.eventDate.startDate
         );
       });
     }
 
     if (
-      selectedFilters.eventDate.endDate !== null &&
-      selectedFilters.eventDate.endDate !== undefined
+      selectedFilters.eventDate?.endDate !== null &&
+      selectedFilters.eventDate?.endDate !== undefined &&
+      selectedFilters.eventDate?.endDate !== 0
     ) {
       drops = drops.filter((drop) => {
         if (drop === undefined) return false;
-        let dateString = drop.date.date;
-        // take start date, check if it is a string or object
-        if (typeof drop.date.date !== 'string') {
-          dateString = drop.date.date.to;
-        }
-        const date = new Date(dateString).getTime();
-        return date <= selectedFilters.eventDate.endDate!;
+
+        if (selectedFilters.eventDate.endDate === undefined) return false;
+
+        return (
+          selectedFilters.eventDate.endDate !== null &&
+          drop.date.endDate <= selectedFilters.eventDate.endDate
+        );
       });
     }
 
@@ -277,19 +273,23 @@ export default function Gallery() {
     return drops;
   };
 
-  // const [numOwnedEvents, setNumOwnedEvents] = useState<number>(0);
+  useEffect(() => {
+    // in the rare case that initial is loaded after all, load all again
+    if (!isAllDropsLoading && isLoading) {
+      handleGetAllMarketListings();
+    }
+  }, [filteredDataItems]);
 
-  const handleGetAllEvents = async () => {
+  const handleGetAllMarketListings = async () => {
     setIsAllDropsLoading(true);
-    const eventListings = await keypomInstance.GetMarketListings({
-      limit: 50,
-      from_index: 0,
+    // First get the total supply of drops so we know when to stop fetching
+
+    const allEventListings: MarketListing[] = await keypomInstance.GetMarketListings({
+      limit: 0, // no limit
+      start: 0,
     });
 
-    // const numEvents = eventListings.length;
-    // setNumOwnedEvents(numEvents);
-
-    const dropDataPromises = eventListings.map(async (event) => {
+    const dropDataPromises = allEventListings.map(async (event: MarketListing) => {
       // get metadata from drop.event_id and drop.funder_id
       const eventInfo = await keypomInstance.getEventInfo({
         accountId: event.funder_id,
@@ -306,15 +306,9 @@ export default function Gallery() {
       let maxTickets = 0;
       const prices: number[] = [];
 
-      interface TicketData {
-        max_tickets: number; // or the correct type
-        price: number; // or the correct type
-        // add other properties as needed
-      }
-
       for (const [name, ticketdata] of Object.entries(event.ticket_info)) {
         const thissupply = await keypomInstance.getKeySupplyForTicket(name);
-        const ticketData = ticketdata as TicketData;
+        const ticketData = ticketdata;
         supply += parseInt(thissupply);
         maxTickets += ticketData.max_tickets;
         prices.push(ticketData.price);
@@ -357,34 +351,23 @@ export default function Gallery() {
 
     setFilteredDataItems(dropData);
 
-    const totalPages = Math.ceil(dropDataPromises.length / selectedFilters.pageSize);
+    const totalPages = Math.ceil(dropData.length / selectedFilters.pageSize);
     setNumPages(totalPages);
 
     setCurPage(0);
     setIsAllDropsLoading(false);
   };
 
-  const handleGetInitialDrops = async () => {
+  const handleGetInitialMarketListings = async () => {
     // setIsLoading(true);
-    // First get the total supply of drops so we know when to stop fetching
-    const totalSupply = await keypomInstance.getEventSupply();
-
-    // Loop until we have enough filtered drops to fill the page size
-    let dropsFetched = 0;
-    let filteredDrops = [];
-    while (dropsFetched < totalSupply && filteredDrops.length < selectedFilters.pageSize) {
-      const eventListings = await keypomInstance.GetMarketListings({
-        limit: 6,
-        from_index: dropsFetched,
-      });
-
-      dropsFetched += Number(eventListings.length);
-
-      filteredDrops = filteredDrops.concat(eventListings);
-    }
+    // Get enough filtered drops to fill the page size
+    const marketListings: MarketListing[] = await keypomInstance.GetMarketListings({
+      limit: selectedFilters.pageSize,
+      start: 0,
+    });
 
     // Now, map over the filtered drops and set the data
-    const dropDataPromises = filteredDrops.map(async (event: any) => {
+    const dropDataPromises = marketListings.map(async (event: MarketListing) => {
       // get metadata from drop.event_id and drop.funder_id
       const eventInfo = await keypomInstance.getEventInfo({
         accountId: event.funder_id,
@@ -452,13 +435,13 @@ export default function Gallery() {
   useEffect(() => {
     if (keypomInstance === undefined) return;
     // First get enough data with the current filters to fill the page size
-    handleGetInitialDrops();
+    handleGetInitialMarketListings();
   }, [keypomInstance]);
 
   useEffect(() => {
     if (keypomInstance === undefined) return;
     // In parallel, fetch all the events
-    handleGetAllEvents();
+    handleGetAllMarketListings();
   }, [selectedFilters, keypomInstance]);
 
   const pageSizeMenuItems = createMenuItems({

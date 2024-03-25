@@ -19,6 +19,8 @@ import { useCallback, useEffect, useState } from 'react';
 import { type WalletSelector } from '@near-wallet-selector/core';
 
 import { type EventInterface } from '@/pages/Event';
+import { EMAIL_QUESTION } from '@/features/create-drop/components/ticket/helpers';
+import { PURCHASED_LOCAL_STORAGE_PREFIX } from '@/constants/common';
 
 import { TicketIncrementer } from './TicketIncrementer';
 
@@ -55,9 +57,18 @@ export const PurchaseModal = ({
   const [questionResponses, setQuestionResponses] = useState({});
   const [currentTicket, setCurrentTicket] = useState(ticket);
   const [loading, setLoading] = useState(false);
+  const [numPurchased, setNumPurchased] = useState(0);
 
   useEffect(() => {
     setCurrentTicket(ticket);
+
+    if (ticket) {
+      const key = `${PURCHASED_LOCAL_STORAGE_PREFIX as string}_${ticket.id as string}`;
+      const purchased = localStorage.getItem(key);
+      if (purchased) {
+        setNumPurchased(parseInt(purchased));
+      }
+    }
     // Logic to handle updated ticket or ticketAmount
   }, [ticket, amount]); // Depend on ticket and ticketAmount
 
@@ -92,7 +103,6 @@ export const PurchaseModal = ({
     setAmount(amount - 1);
   };
   const incrementAmount = () => {
-    const availableTickets = currentTicket.maxTickets - currentTicket.soldTickets;
     if (availableTickets <= 0) return;
 
     if (amount >= availableTickets) return;
@@ -103,6 +113,7 @@ export const PurchaseModal = ({
 
   const handleEmailChange = useCallback((e) => {
     setEmail(e.target.value);
+    setQuestionResponses((prev) => ({ ...prev, [EMAIL_QUESTION]: e.target.value }));
   }, []);
 
   const handleQuestionChange = useCallback((questionText, answer) => {
@@ -163,6 +174,7 @@ export const PurchaseModal = ({
     // purchaseType = 1;
     PurchaseButton = (
       <>
+        <Text>Sign in to purchase with NEAR</Text>
         <Button
           w="100%"
           onClick={() => {
@@ -171,7 +183,6 @@ export const PurchaseModal = ({
         >
           Checkout with Stripe
         </Button>
-        <Text>Sign in to purchase with NEAR</Text>
       </>
     );
   } else if (signedIn) {
@@ -198,6 +209,14 @@ export const PurchaseModal = ({
   }
 
   if (currentTicket == null || currentTicket === undefined) return null;
+  let showLimit = true;
+  const availableTickets = currentTicket.maxTickets - currentTicket.soldTickets;
+  if (currentTicket.limitPerUser > availableTickets) {
+    showLimit = false;
+  }
+  if (currentTicket.limitPerUser == null || currentTicket.limitPerUser === undefined) {
+    showLimit = false;
+  }
   return (
     <Modal
       isCentered
@@ -251,16 +270,28 @@ export const PurchaseModal = ({
                       {currentTicket.dateString}
                     </Text>
                   </HStack>
-                  <HStack justifyContent="space-between">
-                    <Text color="gray.800" fontSize="lg" fontWeight="semibold">
-                      Ticket Amount
-                    </Text>
-                    {currentTicket.maxTickets - currentTicket.soldTickets > 1 ? (
+                  <HStack justifyContent="space-between" py={4}>
+                    <VStack align="left" spacing="0" textAlign="left" w="full">
+                      <Text color="gray.800" fontSize="lg" fontWeight="semibold">
+                        Ticket Amount
+                      </Text>
+                      {showLimit && (
+                        <Text color="gray.400" fontSize="sm" fontWeight="400">
+                          {`Limit of ${currentTicket.limitPerUser as string} per customer${
+                            numPurchased > 0 ? ` (${numPurchased} owned)` : ''
+                          }`}
+                        </Text>
+                      )}
+                    </VStack>
+                    {availableTickets > 1 ? (
                       <TicketIncrementer
                         amount={amount}
                         decrementAmount={decrementAmount}
                         incrementAmount={incrementAmount}
-                        maxAmount={currentTicket.maxTickets - currentTicket.soldTickets}
+                        maxAmount={Math.min(
+                          currentTicket.limitPerUser - numPurchased,
+                          availableTickets,
+                        )}
                       />
                     ) : (
                       <Text color="gray.500" fontSize="lg">
@@ -275,44 +306,47 @@ export const PurchaseModal = ({
                 <Heading as="h3" fontSize="2xl" fontWeight="bold">
                   Organizer Questions
                 </Heading>
-                {event.questions.slice(0, 4).map((question, index) => {
-                  // Ensure refs array has a ref object for each question
-                  //
-                  const questionKey = question.question;
-                  const error =
-                    question.required &&
-                    (questionResponses[questionKey] === '' ||
-                      questionResponses[questionKey] === undefined);
+                {event.questions
+                  .slice(0, 4)
+                  .filter((question) => question.question !== EMAIL_QUESTION)
+                  .map((question, index) => {
+                    const questionKey = question.question;
 
-                  return (
-                    <FormControl key={index} isInvalid={error && showErrors} mt={0} w="100%">
-                      <FormLabel
-                        color="gray.700"
-                        fontSize="md"
-                        fontWeight="medium"
-                        htmlFor={`question_${index}`}
-                      >
-                        {questionKey} {question.required && <span style={{ color: 'red' }}>*</span>}
-                      </FormLabel>
-                      <Input
-                        _hover={{ borderColor: 'gray.400' }}
-                        bg="gray.50"
-                        borderColor="gray.300"
-                        focusBorderColor="blue.500"
-                        id={`question_${index}`}
-                        maxLength={50}
-                        size="md"
-                        type="text"
-                        value={questionResponses[questionKey]}
-                        w="100%"
-                        onChange={(e) => {
-                          handleQuestionChange(questionKey, e.target.value);
-                        }}
-                        // No onChange or value prop needed, as we're accessing the input value directly through the ref
-                      />
-                    </FormControl>
-                  );
-                })}
+                    const error =
+                      question.required &&
+                      (questionResponses[questionKey] === '' ||
+                        questionResponses[questionKey] === undefined);
+
+                    return (
+                      <FormControl key={index} isInvalid={error && showErrors} mt={0} w="100%">
+                        <FormLabel
+                          color="gray.700"
+                          fontSize="md"
+                          fontWeight="medium"
+                          htmlFor={`question_${index}`}
+                        >
+                          {questionKey}{' '}
+                          {question.required && <span style={{ color: 'red' }}>*</span>}
+                        </FormLabel>
+                        <Input
+                          _hover={{ borderColor: 'gray.400' }}
+                          bg="gray.50"
+                          borderColor="gray.300"
+                          focusBorderColor="blue.500"
+                          id={`question_${index}`}
+                          maxLength={50}
+                          size="md"
+                          type="text"
+                          value={questionResponses[questionKey]}
+                          w="100%"
+                          onChange={(e) => {
+                            handleQuestionChange(questionKey, e.target.value);
+                          }}
+                          // No onChange or value prop needed, as we're accessing the input value directly through the ref
+                        />
+                      </FormControl>
+                    );
+                  })}
                 {/* Email and Purchase Section */}
                 <FormControl isInvalid={email === '' && showErrors} mb="4">
                   <FormLabel color="gray.700" fontSize="md" fontWeight="medium" htmlFor="email">
@@ -380,12 +414,12 @@ export const PurchaseModal = ({
                     <Text color="gray.800" fontSize="lg" fontWeight="semibold">
                       Ticket Amount
                     </Text>
-                    {currentTicket.maxTickets - currentTicket.soldTickets > 1 ? (
+                    {availableTickets > 1 ? (
                       <TicketIncrementer
                         amount={amount}
                         decrementAmount={decrementAmount}
                         incrementAmount={incrementAmount}
-                        maxAmount={currentTicket.maxTickets - currentTicket.soldTickets}
+                        maxAmount={availableTickets}
                       />
                     ) : (
                       <Text color="gray.500" fontSize="lg">
