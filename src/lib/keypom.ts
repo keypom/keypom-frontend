@@ -545,6 +545,14 @@ class KeypomJS {
     });
   };
 
+  getEventStripeStatus = async (eventId: string) => {
+    return await this.viewCall({
+      contractId: KEYPOM_MARKETPLACE_CONTRACT,
+      methodName: 'event_stripe_status',
+      args: { event_id: eventId },
+    });
+  }
+
   deleteEventFromFunderMetadata = async ({
     wallet,
     eventId,

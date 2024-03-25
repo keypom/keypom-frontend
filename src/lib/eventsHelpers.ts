@@ -18,7 +18,6 @@ export interface QuestionInfo {
 export interface FunderEventMetadata {
   // Stage 0
   nearCheckout: boolean;
-  stripeCheckout: boolean;
 
   // Stage 1
   name: string;

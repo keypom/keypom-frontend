@@ -951,10 +951,9 @@ export default function Event() {
       eventId,
     });
 
-    const stripeEnabledEvents = await keypomInstance.getStripeEnabledEvents();
-    // check if this event is stripe enabled
-    const isEventStripeEnabled = stripeEnabledEvents.includes(eventId);
-    setStripeEnabledEvent(isEventStripeEnabled);
+    const eventStripeStatus = await keypomInstance.getEventStripeStatus(eventId);
+    console.log(eventStripeStatus)
+    setStripeEnabledEvent(eventStripeStatus);
 
     // get stripe id for account
     const stripeAccountId = await keypomInstance.getStripeAccountId(funderId);
@@ -1076,7 +1075,9 @@ export default function Event() {
 
         const stripeAccountId = await keypomInstance.getStripeAccountId(funderId);
         setStripeAccountId(stripeAccountId);
-        setStripeEnabledEvent(eventInfo.stripeCheckout && stripeAccountId !== '');
+
+        const stripeEnabled = await keypomInstance.getEventStripeStatus(eventId);
+        setStripeEnabledEvent(stripeEnabled);
 
         setEvent({
           name: eventInfo.name || 'Untitled',
