@@ -449,7 +449,7 @@ export default function Event() {
     }
 
     const stripe_ticket_hash = dropData.drop_config.nft_keys_config.token_metadata.media;
-    const ticket_url_stripe = `https://cloudflare-ipfs.com/ipfs/${stripe_ticket_hash}`;
+    const ticket_url_stripe: string = `https://cloudflare-ipfs.com/ipfs/${stripe_ticket_hash}`;
 
     const workerPayload: WorkerPayload = {
       name: attendeeName,
@@ -479,7 +479,7 @@ export default function Event() {
       if(bot){
         toast({
           title: 'Purchase failed',
-          description: 'You have been identified as a bot and your purchase has been blocked',
+          description: 'You have been identified as a bot and your purchase has been blocked. Make sure your VPN is turned off.',
           status: 'error',
           duration: 5000,
           isClosable: true,
@@ -487,25 +487,25 @@ export default function Event() {
         return;
       }
 
-      const response = await fetch(
-        'https://stripe-worker.kp-capstone.workers.dev/purchase-free-tickets',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(workerPayload),
-        },
-      );
+      // const response = await fetch(
+      //   'https://stripe-worker.kp-capstone.workers.dev/purchase-free-tickets',
+      //   {
+      //     method: 'POST',
+      //     headers: {
+      //       'Content-Type': 'application/json',
+      //     },
+      //     body: JSON.stringify(workerPayload),
+      //   },
+      // );
 
-      if (response.ok) {
-        const responseBody = await response.json();
-        TicketPurchaseSuccessful(workerPayload, responseBody);
-      } else {
-        const responseBody = await response.json();
-        console.error('responseBody', responseBody);
-        TicketPurchaseFailure(workerPayload, await response.json());
-      }
+      // if (response.ok) {
+      //   const responseBody = await response.json();
+      //   TicketPurchaseSuccessful(workerPayload, responseBody);
+      // } else {
+      //   const responseBody = await response.json();
+      //   console.error('responseBody', responseBody);
+      //   TicketPurchaseFailure(workerPayload, await response.json());
+      // }
     } else if (purchaseType === 'near') {
       // put the workerPayload in local storage
       const { secretKeys, publicKeys } = await keypomInstance.GenerateTicketKeys(ticketAmount);
@@ -681,7 +681,7 @@ export default function Event() {
     }
     const ticketPubKey = getPubFromSecret(workerPayload.ticketKeys[0]);
     const keyInfo = await keypomInstance.getTicketKeyInformation({publicKey: ticketPubKey});
-    if(keyInfo == null){
+    if(keyInfo === null){
       return;
     }
 

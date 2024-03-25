@@ -24,7 +24,7 @@ export async function botCheck() {
                     resolve(bot);
                 } else {
                     console.error('Error sending data to the server');
-                    reject('Error sending data to the server');
+                    reject(new Error('Error sending data to the server'));
                 }
             }
         };

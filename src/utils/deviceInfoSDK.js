@@ -9,17 +9,17 @@ class DeviceInfoSDK {
 
     if (/Mac/.test(platform)) {
       os = "Mac";
-      osVersion = /Mac OS X ([\._\d]+)/.exec(userAgent)[1].replace("_", ".");
+      osVersion = /Mac OS X ([._\d]+)/.exec(userAgent)[1].replace("_", ".");
     } else if (/Win/.test(platform)) {
       os = "Windows";
-      osVersion = /Windows NT ([\._\d]+)/.exec(userAgent)[1];
+      osVersion = /Windows NT ([._\d]+)/.exec(userAgent)[1];
     } else if (/Linux/.test(platform)) {
       os = "Linux";
       osVersion = "";
     } else {
       os = "Unknown";
       osVersion = "";
-    }
+    }    
 
     return { os, osVersion };
   }
