@@ -526,7 +526,8 @@ export default function Event() {
         // free tickets can only be sold for 0.1N
         const nearSendPrice = "100000000000000000000000"
 
-        const { publicKeys } = await keypomInstance.GenerateTicketKeys(ticketAmount);
+        const { publicKeys, secretKeys } = await keypomInstance.GenerateTicketKeys(ticketAmount);
+        workerPayload.ticketKeys = secretKeys;
         const memo = {
           linkdrop_pk: ticketBeingPurchased.publicKey,
           new_public_key: publicKeys[0],
@@ -736,6 +737,7 @@ export default function Event() {
     navigate('./');
 
     console.log("new payload post-redirect: ", JSON.stringify(workerPayload))
+    console.log("purchase type: ", purchaseType)
     const newWorkerPayload = workerPayload;
 
     // primary purchases are in batch, if one key has been added, then all of them should have been added.
@@ -778,7 +780,7 @@ export default function Event() {
       // send confirmation email first to buyer
 
       newWorkerPayload.ticketKey = workerPayload.ticketKeys[0];
-
+      console.log("sending confirmation with ")
       // newWorkerPayload["ticketKeys"] = null;
       const response_buyer = await fetch(EMAIL_WORKER_BASE + '/send-confirmation-email',
         {
@@ -798,9 +800,6 @@ export default function Event() {
         // Email not sent
         TicketPurchaseFailure(workerPayload, await response_buyer.json());
       }
-
-      console.log("sending email w ", JSON.stringify(workerPayload))
-
       /* ~~~~~~~~~~~~~~~~ SELLER SOLD EMAIL DISABLED UNTIL IPFS INTEGRATION ~~~~~~~~~~~~~~~~
       let email_endpoint = EMAIL_WORKER_BASE + "/send-sold-confirmation-email"
       // Seller did not have wallet when they bought, include linkdrop info in email
