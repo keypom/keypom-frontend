@@ -15,7 +15,7 @@ import {
 import { useParams, useNavigate } from 'react-router-dom';
 import { ExternalLinkIcon } from '@chakra-ui/icons';
 import { useCallback, useEffect, useState } from 'react';
-import { getPubFromSecret, formatNearAmount } from 'keypom-js';
+import { generateKeys, getPubFromSecret, formatNearAmount } from 'keypom-js';
 import { type Wallet } from '@near-wallet-selector/core';
 
 import { SellModal } from '@/features/gallery/components/SellModal';
@@ -32,7 +32,7 @@ import {
   type FunderEventMetadata,
 } from '@/lib/eventsHelpers';
 import keypomInstance from '@/lib/keypom';
-import {
+import { KEYPOM_EVENTS_CONTRACT,
   EMAIL_WORKER_BASE,
   EVENTS_WORKER_BASE,
   KEYPOM_MARKETPLACE_CONTRACT,
@@ -40,6 +40,7 @@ import {
 } from '@/constants/common';
 import { type DataItem } from '@/components/Table/types';
 import { dateAndTimeToText } from '@/features/drop-manager/utils/parseDates';
+import { botCheck } from '../utils/botCheck';
 
 interface WorkerPayload {
   name: string | null;
@@ -54,13 +55,19 @@ interface WorkerPayload {
     eventId: string;
     dropId: string;
     funderId: string;
+    event_image_url: string;
+    ticket_image_url: string
   };
   purchaseEmail: string;
   stripeAccountId: string | undefined;
   baseUrl: string;
   priceNear: string;
+  // secret keys, for multiple primary purchases
   ticketKeys?: string[];
+  // single secret key to send in email
   ticketKey?: string;
+  network?: string;
+  linkdrop_secret_key?: string
 }
 
 export interface TicketInterface {
@@ -122,6 +129,8 @@ export interface SellDropInfo {
 }
 
 export default function Event() {
+  // const simulateStripe: boolean = false;
+
   const params = useParams();
   if (params.eventID == null || params.eventID === undefined) {
     return (
@@ -441,6 +450,9 @@ export default function Event() {
       trimmedEmail = trimmedEmail.substring(0, 500);
     }
 
+    const stripe_ticket_hash: string = dropData.drop_config.nft_keys_config.token_metadata.media;
+    const ticket_url_stripe = `https://cloudflare-ipfs.com/ipfs/${stripe_ticket_hash}`;
+
     const workerPayload: WorkerPayload = {
       name: attendeeName,
       ticketAmount, // (number of tickets being purchase)
@@ -454,6 +466,8 @@ export default function Event() {
         eventId: meta.eventId,
         dropId: ticketBeingPurchased.id,
         funderId,
+        event_image_url: drop.artwork,
+        ticket_image_url: purchaseType === "stripe" ? ticket_url_stripe : ticketBeingPurchased.artwork
       },
       purchaseEmail: trimmedEmail, // (currently just called email in userInfo)
       stripeAccountId,
@@ -462,21 +476,99 @@ export default function Event() {
     };
 
     if (purchaseType === 'free') {
-      const response = await fetch(EVENTS_WORKER_BASE + '/purchase-free-tickets', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(workerPayload),
-      });
+      if(!isSecondary){
+        const bot = await botCheck()
+  
+        if(bot){
+          toast({
+            title: 'Purchase failed',
+            description: 'You have been identified as a bot and your purchase has been blocked. Make sure your VPN is turned off.',
+            status: 'error',
+            duration: 5000,
+            isClosable: true,
+          });
+        }
+  
+        const response = await fetch(
+          'https://stripe-worker.kp-capstone.workers.dev/purchase-free-tickets',
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(workerPayload),
+          },
+        );
+  
+        if (response.ok) {
+          const responseBody = await response.json();
+          TicketPurchaseSuccessful(workerPayload, responseBody);
+        } else {
+          const responseBody = await response.json();
+          console.error('responseBody', responseBody);
+          TicketPurchaseFailure(workerPayload, await response.json());
+        }
+      }else{
+        // secondary
+        if (wallet == null) {
+          toast({
+            title: 'Purchase failed',
+            description: 'Wallet not found, reconnect it and try again',
+            status: 'error',
+            duration: 5000,
+            isClosable: true,
+          });
+          return;
+        }
 
-      if (response.ok) {
-        const responseBody = await response.json();
-        TicketPurchaseSuccessful(workerPayload, responseBody);
-      } else {
-        const responseBody = await response.json();
-        console.error('responseBody', responseBody);
-        TicketPurchaseFailure(workerPayload, await response.json());
+        localStorage.setItem('purchaseType', "secondary");
+
+        // free tickets can only be sold for 0.1N
+        const nearSendPrice = "100000000000000000000000"
+
+        const { publicKeys, secretKeys } = await keypomInstance.GenerateTicketKeys(ticketAmount);
+        workerPayload.ticketKeys = secretKeys;
+        const memo = {
+          linkdrop_pk: ticketBeingPurchased.publicKey,
+          new_public_key: publicKeys[0],
+        }; // NftTransferMemo,
+
+        const owner: string = await keypomInstance.getCurrentKeyOwner(KEYPOM_MARKETPLACE_CONTRACT, ticketBeingPurchased.publicKey)
+
+        const linkdrop_keys = await generateKeys({numKeys: 1});
+        console.log("owner: ", owner)
+        // Seller did not have wallet when they bought, include linkdrop info in email
+        if(owner === KEYPOM_EVENTS_CONTRACT){
+          console.log("seller did not have wallet when they bought")
+          workerPayload.linkdrop_secret_key = linkdrop_keys.secretKeys[0];
+          workerPayload.network = process.env.REACT_APP_NETWORK_ID;
+        }
+
+        console.log("workerPayload before signandsend", JSON.stringify(workerPayload))
+        localStorage.setItem('workerPayload', JSON.stringify(workerPayload));
+
+        await wallet.signAndSendTransaction({
+          signerId: accountId || undefined,
+          receiverId: KEYPOM_MARKETPLACE_CONTRACT,
+          actions: [
+            {
+              type: 'FunctionCall',
+              params: {
+                methodName: 'buy_resale',
+                args: {
+                  drop_id: ticketBeingPurchased.id,
+                  memo,
+                  new_owner: accountId,
+                  seller_new_linkdrop_pk: linkdrop_keys.publicKeys[0],
+                  seller_linkdrop_drop_id: Date.now().toString()
+                },
+                gas: '300000000000000',
+                // 0.1NEAR if not defined
+                deposit: nearSendPrice
+              },
+            },
+          ],
+        });
       }
     } else if (purchaseType === 'near') {
       // put the workerPayload in local storage
@@ -522,6 +614,8 @@ export default function Event() {
           return;
         }
 
+        localStorage.setItem('purchaseType', "primary");
+
         await wallet.signAndSendTransaction({
           signerId: accountId || undefined,
           receiverId: KEYPOM_MARKETPLACE_CONTRACT,
@@ -543,11 +637,6 @@ export default function Event() {
         });
       } else {
         // secondary
-        const memo = {
-          linkdrop_pk: ticketBeingPurchased.publicKey,
-          new_public_key: publicKeys[0],
-        }; // NftTransferMemo,
-
         if (wallet == null) {
           toast({
             title: 'Purchase failed',
@@ -558,6 +647,28 @@ export default function Event() {
           });
           return;
         }
+
+        localStorage.setItem('purchaseType', "secondary");
+
+        const memo = {
+          linkdrop_pk: ticketBeingPurchased.publicKey,
+          new_public_key: publicKeys[0],
+        }; // NftTransferMemo,
+
+        const owner: string = await keypomInstance.getCurrentKeyOwner(KEYPOM_MARKETPLACE_CONTRACT, ticketBeingPurchased.publicKey)
+
+        const linkdrop_keys = await generateKeys({numKeys: 1});
+        console.log("owner: ", owner)
+        // Seller did not have wallet when they bought, include linkdrop info in email
+        if(owner === KEYPOM_EVENTS_CONTRACT){
+          console.log("seller did not have wallet when they bought")
+          workerPayload.linkdrop_secret_key = linkdrop_keys.secretKeys[0];
+          workerPayload.network = process.env.REACT_APP_NETWORK_ID;
+        }
+
+        console.log("workerPayload before signandsend", JSON.stringify(workerPayload))
+        localStorage.setItem('workerPayload', JSON.stringify(workerPayload));
+
         await wallet.signAndSendTransaction({
           signerId: accountId || undefined,
           receiverId: KEYPOM_MARKETPLACE_CONTRACT,
@@ -570,6 +681,8 @@ export default function Event() {
                   drop_id: ticketBeingPurchased.id,
                   memo,
                   new_owner: accountId,
+                  seller_new_linkdrop_pk: linkdrop_keys.publicKeys[0],
+                  seller_linkdrop_drop_id: Date.now().toString()
                 },
                 gas: '300000000000000',
                 deposit: nearSendPrice,
@@ -606,7 +719,8 @@ export default function Event() {
     }
     // get workerpayload from local storage
     const workerPayloadStringified = localStorage.getItem('workerPayload');
-    if (workerPayloadStringified == null) {
+    const purchaseType = localStorage.getItem('purchaseType');
+    if (workerPayloadStringified == null || purchaseType == null) {
       return;
     }
 
@@ -622,27 +736,103 @@ export default function Event() {
     // Remove the near parameters from the URL
     navigate('./');
 
+    console.log("new payload post-redirect: ", JSON.stringify(workerPayload))
+    console.log("purchase type: ", purchaseType)
     const newWorkerPayload = workerPayload;
 
-    for (const key in workerPayload.ticketKeys) {
-      newWorkerPayload.ticketKey = workerPayload.ticketKeys[key];
+    // primary purchases are in batch, if one key has been added, then all of them should have been added.
+    if (workerPayload.ticketKeys === undefined || workerPayload.ticketKeys.length === 0) {
+      return;
+    }
+    const ticketPubKey = getPubFromSecret(workerPayload.ticketKeys[0]);
+    const keyInfo = await keypomInstance.getTicketKeyInformation({publicKey: ticketPubKey});
+    if(keyInfo === null){
+      return;
+    }
 
-      // newWorkerPayload["ticketKeys"] = null;
-      const response = await fetch(EMAIL_WORKER_BASE + '/send-confirmation-email', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(newWorkerPayload),
-      });
+    if(purchaseType === "primary"){
+      for (const key of workerPayload.ticketKeys) {
+        const ticketKey = key;
+        newWorkerPayload.ticketKey = ticketKey;
 
-      if (response.ok) {
-        const responseBody = await response.json();
-        TicketPurchaseSuccessful(newWorkerPayload, responseBody);
-      } else {
-        // Error creating account
-        TicketPurchaseFailure(newWorkerPayload, await response.json());
+        console.log('sending confirmation email with newWorkerPayload', newWorkerPayload);
+
+        // newWorkerPayload["ticketKeys"] = null;
+        const response = await fetch(EMAIL_WORKER_BASE + '/send-confirmation-email',
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(newWorkerPayload),
+          },
+        );
+
+        if (response.ok) {
+          const responseBody = await response.json();
+          TicketPurchaseSuccessful(newWorkerPayload, responseBody);
+        } else {
+          // Error creating account
+          TicketPurchaseFailure(newWorkerPayload, await response.json());
+        }
       }
+    }else if (purchaseType === "secondary"){
+      // send confirmation email first to buyer
+
+      newWorkerPayload.ticketKey = workerPayload.ticketKeys[0];
+      console.log("sending confirmation with ")
+      // newWorkerPayload["ticketKeys"] = null;
+      const response_buyer = await fetch(EMAIL_WORKER_BASE + '/send-confirmation-email',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(newWorkerPayload),
+        },
+      );
+
+      if (response_buyer.ok) {
+        // Email sent
+        const responseBody = await response_buyer.json();
+        TicketPurchaseSuccessful(workerPayload, responseBody);
+      } else {
+        // Email not sent
+        TicketPurchaseFailure(workerPayload, await response_buyer.json());
+      }
+      /* ~~~~~~~~~~~~~~~~ SELLER SOLD EMAIL DISABLED UNTIL IPFS INTEGRATION ~~~~~~~~~~~~~~~~
+      let email_endpoint = EMAIL_WORKER_BASE + "/send-sold-confirmation-email"
+      // Seller did not have wallet when they bought, include linkdrop info in email
+      if(workerPayload.linkdrop_secret_key != null || workerPayload.linkdrop_secret_key != undefined){
+        email_endpoint = email_endpoint + "-no-wallet"
+      }
+
+      workerPayload["purchaseEmail"] = "minqianlu1129@gmail.com"
+      const seller_response = await fetch(
+        email_endpoint,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(workerPayload),
+        },
+      );
+
+      if (response_buyer.ok && seller_response.ok) {
+        // Email sent
+        const responseBody = await response_buyer.json();
+        TicketPurchaseSuccessful(workerPayload, responseBody);
+      } else {
+        // Email not sent
+        if(!response_buyer.ok){
+          TicketPurchaseFailure(workerPayload, await response_buyer.json());
+        }else{
+          TicketPurchaseFailure(workerPayload, await seller_response.json());
+        }
+      }
+      */
+
     }
   };
 
@@ -760,6 +950,15 @@ export default function Event() {
     const resalePack: TicketInterface[][] = await keypomInstance.getResalesForEvent({
       eventId,
     });
+
+    const stripeEnabledEvents = await keypomInstance.getStripeEnabledEvents();
+    // check if this event is stripe enabled
+    const isEventStripeEnabled = stripeEnabledEvents.includes(eventId);
+    setStripeEnabledEvent(isEventStripeEnabled);
+
+    // get stripe id for account
+    const stripeAccountId = await keypomInstance.getStripeAccountId(funderId);
+    setStripeAccountId(stripeAccountId);
 
     const promises = ticketsForEvent.map(async (ticket) => {
       const meta: TicketInfoMetadata = ticket.drop_config.nft_keys_config.token_metadata;

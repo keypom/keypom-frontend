@@ -276,7 +276,7 @@ class KeypomJS {
     return true;
   };
 
-  verifyDrop = async (contractId: string, secretKey: string) => {
+  verifyDrop = async (contractId: string, secretKey?: string) => {
     const { networkId, supportedKeypomContracts } = getEnv();
 
     if (
@@ -305,6 +305,22 @@ class KeypomJS {
 
     return keyInfo.cur_key_use;
   };
+
+  getCurrentKeyOwner = async (contractId: string, publicKey: string) => {
+    const keyInfo = await this.viewAccount.viewFunctionV2({
+      contractId: KEYPOM_EVENTS_CONTRACT,
+      methodName: 'get_key_information',
+      args: { key: publicKey },
+    });
+    console.log("keyinfo: ", keyInfo)
+
+    if (keyInfo === null || keyInfo === undefined) {
+      throw new Error('Key does not exist');
+    }
+
+
+    return keyInfo.owner_id;
+  }
 
   checkIfDropExists = async (secretKey: string) => {
     try {
