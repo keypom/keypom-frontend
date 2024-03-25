@@ -16,6 +16,9 @@ export interface QuestionInfo {
 }
 
 export interface FunderEventMetadata {
+  // Stage 0
+  nearCheckout: boolean;
+
   // Stage 1
   name: string;
   id: string;
