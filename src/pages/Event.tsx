@@ -1116,6 +1116,8 @@ export default function Event() {
         setStripeAccountId(stripeAccountId);
 
         const stripeEnabled = await keypomInstance.getEventStripeStatus(eventId);
+        console.log('stripeEnabled', stripeEnabled);
+        console.log('stripeAccountId', stripeAccountId);
         setStripeEnabledEvent(stripeEnabled);
 
         setEvent({
