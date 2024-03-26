@@ -786,7 +786,6 @@ export default function Event() {
           subtitle: 'Sending confirmation email',
           text: `Progress: ${currentLoadedKey} / ${keyCount}`,
         });
-        newWorkerPayload.ticketKey = workerPayload.ticketKeys[key];
 
         // newWorkerPayload["ticketKeys"] = null;
         const response = await fetch(EMAIL_WORKER_BASE + '/send-confirmation-email', {
