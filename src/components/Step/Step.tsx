@@ -1,10 +1,8 @@
 import { Box, HStack, Text } from '@chakra-ui/react';
-import type React from 'react';
 
 export interface StepItem {
   title: string;
   name: string;
-  component: React.ReactNode;
 }
 
 export interface StepProps {

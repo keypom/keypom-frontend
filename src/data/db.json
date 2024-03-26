@@ -1,0 +1,104 @@
+{
+  "events": [
+    {
+      "id": 1,
+      "title": "Alcoholics Anonymous Meeting",
+      "description": "A funny event desciption yayay",
+      "location": "Waterloo On, CA",
+      "date": "2018-11-11",
+      "tickets": "10",
+      "price": "12.56",
+      "img": "img/alcohol.png"
+    },
+    {
+      "id": 2,
+      "title": "Paint Night",
+      "description": "A different event desciption yayay",
+      "location": "Waterloo On, CA",
+      "date": "2018-11-11",
+      "tickets": "10",
+      "price": "12.34",
+      "img": "img/paintticket.png"
+    },
+    {
+      "id": 3,
+      "title": "Art Show",
+      "description": "got this description from the db",
+      "location": "Toronto On, CA",
+      "date": "2022-11-11",
+      "tickets": "13",
+      "price": "43.21",
+      "img": "img/monalisa.png"
+    },
+    {
+      "id": 4,
+      "title": "Basketball Intermurals",
+      "description": "Another funny event desciption yayay",
+      "location": "Kitchener On, CA",
+      "date": "2021-12-12",
+      "tickets": "15",
+      "price": "11.13",
+      "img": "img/basketball.png"
+    },
+    {
+      "id": 5,
+      "title": "Ice Hockey Rink Signups",
+      "description": "A funny event desciption hurray ok",
+      "location": "Waterloo On, CA",
+      "date": "2021-10-12",
+      "tickets": "152",
+      "price": "42.00",
+      "img": "img/hockeyticket.png"
+    },
+    {
+      "id": 6,
+      "title": "Ballet",
+      "description": "A Ballet event desciption yayay",
+      "location": "Alaska, CA",
+      "date": "2021-10-12",
+      "tickets": "12",
+      "price": "3.99",
+      "img": "img/ballet.png"
+    },
+    {
+      "id": 7,
+      "title": "Car Show",
+      "location": "123 street, CA",
+      "description": "A Car event desciption yayay",
+      "date": "2021-10-1",
+      "tickets": "14",
+      "price": "19.99",
+      "img": "img/car.png"
+    },
+    {
+      "id": 8,
+      "title": "Friends Meetup",
+      "description": "A Friends event desciption yayay",
+      "location": "Waterloo On, CA",
+      "date": "2021-11-1",
+      "tickets": "112",
+      "price": "7.20",
+      "img": "img/friends.png"
+    },
+    {
+      "id": 9,
+      "title": "Hockey Game",
+      "description": "Hockey game for hockey enjoyers",
+      "location": "Waterloo On, CA",
+      "date": "2011-11-1",
+      "tickets": "111",
+      "price": "3.60",
+      "img": "img/hockeygame.png"
+    },
+    {
+      "id": 10,
+      "title": "Music Concert",
+      "description": "Music! Its fun",
+      "location": "Waterloo On, CA",
+      "date": "2024-1-1",
+      "tickets": "1000",
+      "price": "95.05",
+      "img": "img/music.png"
+    }
+  ]
+}

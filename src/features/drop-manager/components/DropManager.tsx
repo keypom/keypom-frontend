@@ -1,37 +1,48 @@
 import {
+  Menu,
+  Show,
+  Hide,
+  Spinner,
+  Text,
+  Image,
+  VStack,
+  MenuList,
   Box,
   Button,
   Heading,
   HStack,
-  Stack,
   type TableProps,
-  Text,
-  Skeleton,
   useToast,
+  useDisclosure,
 } from '@chakra-ui/react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { type ProtocolReturnedKeyInfo } from 'keypom-js';
 
 import { type ColumnItem, type DataItem } from '@/components/Table/types';
 import { DataTable } from '@/components/Table';
 import { Breadcrumbs } from '@/components/Breadcrumbs';
-import { NextButton, PrevButton } from '@/components/Pagination';
 import { file } from '@/utils/file';
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
 import { useAppContext } from '@/contexts/AppContext';
 import keypomInstance from '@/lib/keypom';
 import { useValidMasterKey } from '@/hooks/useValidMasterKey';
-import { usePagination } from '@/hooks/usePagination';
-import { PAGE_QUERY_PARAM, PAGE_SIZE_LIMIT } from '@/constants/common';
-import getConfig from '@/config/config';
 import { share } from '@/utils/share';
 import { setMasterKeyValidityModal } from '@/features/drop-manager/components/MasterKeyValidityModal';
+import { PAGE_SIZE_LIMIT } from '@/constants/common';
+import { DropManagerPagination } from '@/features/all-drops/components/DropManagerPagination';
+import { DropDownButton } from '@/features/all-drops/components/DropDownButton';
+import { FilterOptionsMobileButton } from '@/features/all-drops/components/FilterOptionsMobileButton';
+import { MobileDrawerMenu } from '@/features/all-drops/components/MobileDrawerMenu';
 
-import { INITIAL_SAMPLE_DATA } from '../constants/common';
+import {
+  KEY_CLAIM_STATUS_OPTIONS,
+  KEY_CLAIM_STATUS_ITEMS,
+  PAGE_SIZE_ITEMS,
+  createMenuItems,
+} from '../../../features/all-drops/config/menuItems';
 
 import { setConfirmationModalHelper } from './ConfirmationModal';
-import { setMissingDropModal } from './MissingDropModal';
 
 export interface DropKeyItem {
   id: number;
@@ -49,88 +60,66 @@ export type GetDataFn = (
 ) => DataItem[];
 
 interface DropManagerProps {
-  claimedHeaderText: string;
+  placeholderImage: string;
   getClaimedText: (dropSize: number) => string;
   tableColumns: ColumnItem[];
   showColumns?: boolean;
   getData: GetDataFn;
   tableProps?: TableProps;
   loading?: boolean;
+  dropImageSize?: string;
 }
 
 export const DropManager = ({
-  claimedHeaderText,
+  placeholderImage,
   getClaimedText,
   tableColumns = [],
   getData,
   showColumns = true,
+  dropImageSize = '150px',
   tableProps,
 }: DropManagerProps) => {
-  const [searchParams, setSearchParams] = useSearchParams();
   const { id: dropId = '' } = useParams();
   const navigate = useNavigate();
   const toast = useToast();
   const { setAppModal } = useAppContext();
   const [wallet, setWallet] = useState({});
   const { selector, accountId } = useAuthWalletContext();
+  const [dropData, setDropData] = useState<{
+    id: string;
+    name: string;
+    type: string;
+    media: string | undefined;
+    claimed: string;
+  }>({
+    id: '',
+    name: '',
+    type: '',
+    media: 'loading',
+    claimed: '',
+  });
   const [loading, setLoading] = useState(true);
+  const [isAllKeysLoading, setIsAllKeysLoading] = useState(true);
+
+  const popoverClicked = useRef(0);
+  const { isOpen, onOpen, onClose } = useDisclosure();
 
   const [name, setName] = useState('Untitled');
-  const [dropKeys, setDropKeys] = useState<DropKeyItem[]>([INITIAL_SAMPLE_DATA[0]]);
   const [totalKeys, setTotalKeys] = useState<number>(0);
   const [deleting, setDeleting] = useState<boolean>(false);
   const [exporting, setExporting] = useState<boolean>(false);
 
-  const {
-    setPagination,
-    hasPagination,
-    pagination,
-    isFirstPage,
-    isLastPage,
-    loading: paginationLoading,
-    handleNextPage,
-    handlePrevPage,
-  } = usePagination({
-    dataSize: totalKeys,
-    handlePrevApiCall: async () => {
-      const prevPageIndex = pagination.pageIndex - 1;
-      await handleGetDrops({
-        pageIndex: prevPageIndex,
-        pageSize: pagination.pageSize,
-      });
-      const newQueryParams = new URLSearchParams({
-        [PAGE_QUERY_PARAM]: (prevPageIndex + 1).toString(),
-      });
-      setSearchParams(newQueryParams);
-    },
-    handleNextApiCall: async () => {
-      const nextPageIndex = pagination.pageIndex + 1;
-      await handleGetDrops({
-        pageIndex: nextPageIndex,
-        pageSize: pagination.pageSize,
-      });
-      const newQueryParams = new URLSearchParams({
-        [PAGE_QUERY_PARAM]: (nextPageIndex + 1).toString(),
-      });
-      setSearchParams(newQueryParams);
-    },
+  const [numPages, setNumPages] = useState<number>(0);
+  const [curPage, setCurPage] = useState<number>(0);
+  const [selectedFilters, setSelectedFilters] = useState<{
+    status: string;
+    pageSize: number;
+  }>({
+    status: KEY_CLAIM_STATUS_OPTIONS.ANY,
+    pageSize: PAGE_SIZE_LIMIT,
   });
 
-  const getWallet = async () => {
-    if (selector === null) {
-      return;
-    }
-    try {
-      const selectorWallet = await selector?.wallet();
-      setWallet(selectorWallet);
-    } catch (err) {
-      console.log(err);
-    }
-  };
-
-  useEffect(() => {
-    getWallet();
-  }, [selector]);
+  const [filteredDropKeys, setFilteredDropKeys] = useState<DropKeyItem[]>([]);
 
   const { masterKeyValidity } = useValidMasterKey({ dropId });
   useEffect(() => {
@@ -147,52 +136,124 @@ export const DropManager = ({
     }
   }, [masterKeyValidity]);
 
-  const handleGetDrops = useCallback(
-    async ({ pageIndex = 0, pageSize = PAGE_SIZE_LIMIT }) => {
-      if (!accountId) return;
-      const keyInfoReturn = await keypomInstance.getKeysInfo(dropId, pageIndex, pageSize, () => {
-        setMissingDropModal(setAppModal); // User will be redirected if getDropInformation fails
-        navigate('/drops');
-      });
-      if (
-        keyInfoReturn === undefined ||
-        keyInfoReturn?.secretKeys === undefined ||
-        keyInfoReturn?.publicKeys === undefined
-      ) {
-        navigate('/drops');
-        return;
-      }
-      const { dropSize, dropName, publicKeys, secretKeys, keyInfo } = keyInfoReturn;
-      setTotalKeys(dropSize);
-      setName(dropName);
+  useEffect(() => {
+    if (!keypomInstance || !dropId) return;
 
-      setDropKeys(
-        secretKeys.map((key: string, i) => ({
-          id: i,
-          publicKey: publicKeys[i],
-          link: `${window.location.origin}/claim/${getConfig().contractId}#${key.replace(
-            'ed25519:',
-            '',
-          )}`,
-          slug: key.substring(8, 16),
-          hasClaimed: keyInfo[i] === null,
-          keyInfo: keyInfo[i],
-        })),
-      );
-
-      setLoading(false);
-    },
-    [pagination],
-  );
+    handleDropData(dropId);
+  }, [keypomInstance, dropId]);
 
   useEffect(() => {
-    // page query param should be indexed from 1
-    const pageQuery = searchParams.get('page');
-    const currentPageIndex = pageQuery !== null ? parseInt(pageQuery) - 1 : 0;
-    setPagination((pagination) => ({ ...pagination, pageIndex: currentPageIndex }));
+    if (!accountId) return;
 
-    handleGetDrops({ ...pagination, pageIndex: currentPageIndex });
+    // First get enough data with the current filters to fill the page size
+    handleGetInitialKeys();
   }, [accountId]);
+
+  useEffect(() => {
+    if (!accountId) return;
+
+    // In parallel, fetch all the drops
+    handleGetAllKeys();
+  }, [accountId, selectedFilters]);
+
+  useEffect(() => {
+    async function fetchWallet() {
+      if (!selector) return;
+      try {
+        const wallet = await selector.wallet();
+        setWallet(wallet);
+      } catch (error) {
+        console.error('Error fetching wallet:', error);
+        // Handle the error appropriately
+      }
+    }
+
+    fetchWallet();
+  }, [selector]);
+
+  const getTableType = () => {
+    if (filteredDropKeys.length === 0 && totalKeys === 0) {
+      return 'drop-manager';
+    }
+    return 'no-filtered-keys';
+  };
+
+  const handleDropData = async (dropId) => {
+    const dropData = await keypomInstance.getDropData({ dropId });
+    setName(dropData.name);
+    setDropData(dropData);
+  };
+
+  const handleFiltering = (keys) => {
+    if (selectedFilters.status !== KEY_CLAIM_STATUS_OPTIONS.ANY) {
+      keys = keys.filter((key) => {
+        if (selectedFilters.status === KEY_CLAIM_STATUS_OPTIONS.CLAIMED) {
+          return key.hasClaimed;
+        } else {
+          return !key.hasClaimed;
+        }
+      });
+    }
+    return keys;
+  };
+
+  const handleGetAllKeys = useCallback(async () => {
+    setIsAllKeysLoading(true);
+    const keyInfoReturn = await keypomInstance.getAllKeysInfo({ dropId });
+    const { dropKeyItems } = keyInfoReturn;
+    const filteredKeys = handleFiltering(dropKeyItems);
+    setFilteredDropKeys(filteredKeys);
+
+    const totalPages = Math.ceil(filteredKeys.length / selectedFilters.pageSize);
+    setNumPages(totalPages);
+
+    setCurPage(0);
+    setIsAllKeysLoading(false);
+  }, [accountId, selectedFilters, keypomInstance]);
+
+  const handleGetInitialKeys = useCallback(async () => {
+    setLoading(true);
+
+    const dropInfo = await keypomInstance.getDropInfo({ dropId });
+    const totalKeySupply = dropInfo.next_key_id;
+    setTotalKeys(totalKeySupply);
+
+    // Loop until we have enough filtered drops to fill the page size
+    let keysFetched = 0;
+    let filteredKeys = [];
+    while (keysFetched < totalKeySupply && filteredKeys.length < selectedFilters.pageSize) {
+      const dropKeyItems = await keypomInstance.getPaginatedKeysInfo({
+        dropId,
+        start: keysFetched,
+        limit: selectedFilters.pageSize,
+      });
+
+      keysFetched += dropKeyItems.length;
+
+      const curFiltered = handleFiltering(dropKeyItems);
+      filteredKeys = filteredKeys.concat(curFiltered);
+    }
+
+    if (filteredKeys.length !== 0) {
+      setFilteredDropKeys(filteredKeys);
+    }
+    setCurPage(0);
+    setLoading(false);
+  }, [accountId, selectedFilters, keypomInstance]);
+
+  const pageSizeMenuItems = createMenuItems({
+    menuItems: PAGE_SIZE_ITEMS,
+    onClick: (item) => {
+      handlePageSizeSelect(item);
+    },
+  });
+
+  const keyClaimStatusMenuItems = createMenuItems({
+    menuItems: KEY_CLAIM_STATUS_ITEMS,
+    onClick: (item) => {
+      handleKeyClaimStatusSelect(item);
+    },
+  });
 
   const breadcrumbItems = [
     {
@@ -204,6 +265,28 @@ export const DropManager = ({
       href: '',
     },
   ];
+
+  const handlePageSizeSelect = (item) => {
+    setSelectedFilters((prevFilters) => ({
+      ...prevFilters,
+      pageSize: parseInt(item.label),
+    }));
+  };
+
+  const handleKeyClaimStatusSelect = (item) => {
+    setSelectedFilters((prevFilters) => ({
+      ...prevFilters,
+      status: item.label,
+    }));
+  };
+
+  const handleNextPage = () => {
+    setCurPage((prev) => prev + 1);
+  };
+
+  const handlePrevPage = () => {
+    setCurPage((prev) => prev - 1);
+  };
 
   const handleExportCSVClick = async () => {
     if (data.length > 0) {
@@ -237,7 +320,6 @@ export const DropManager = ({
         },
         'drop',
       );
-      console.log('deleting drop', dropId);
       setDeleting(false);
     }
   };
@@ -263,89 +345,207 @@ export const DropManager = ({
   };
 
   const data = useMemo(
-    () => getData(dropKeys, handleDeleteClick, handleCopyClick),
-    [getData, dropKeys, dropKeys.length, handleCopyClick, handleDeleteClick],
+    () =>
+      getData(
+        filteredDropKeys.slice(
+          curPage * selectedFilters.pageSize,
+          (curPage + 1) * selectedFilters.pageSize,
+        ),
+        handleDeleteClick,
+        handleCopyClick,
+      ),
+    [getData, filteredDropKeys, filteredDropKeys.length, handleCopyClick, handleDeleteClick],
   );
 
   const allowAction = data.length > 0;
 
+  const mobileCancelButton = (
+    <Button
+      height="auto"
+      isDisabled={!allowAction}
+      isLoading={deleting}
+      lineHeight=""
+      px="6"
+      py="3"
+      textColor="red.500"
+      variant="secondary"
+      w={{ base: '100%' }}
+      onClick={handleCancelAllClick}
+    >
+      Cancel all
+    </Button>
+  );
+
   return (
     <Box px="1" py={{ base: '3.25rem', md: '5rem' }}>
       <Breadcrumbs items={breadcrumbItems} />
-      <Stack direction={{ base: 'column', md: 'row' }}>
-        {/* Left Section */}
-        <Box flexGrow="1">
-          <Stack
-            direction={{ base: 'column', md: 'row' }}
-            pb={{ base: '4', md: '6' }}
-            pt={{ base: '4', md: '10' }}
-            spacing={{ base: '4', md: '3.125rem' }}
-          >
-            {/* Drop name */}
-            <Stack maxW={{ base: 'full', md: '22.5rem' }}>
-              <Text color="gray.800">Drop name</Text>
-              <Skeleton isLoaded={!loading}>
-                <Heading>{name}</Heading>
-              </Skeleton>
-            </Stack>
-
-            {/* Drops claimed */}
-            <Stack maxW={{ base: 'full', md: '22.5rem' }}>
-              <Text color="gray.800">{claimedHeaderText}</Text>
-              <Skeleton isLoaded={!loading}>
-                <Heading>{getClaimedText(totalKeys)}</Heading>
-              </Skeleton>
-            </Stack>
-          </Stack>
-          <Text>Track link status and export them to CSV for use in email campaigns here.</Text>
-        </Box>
-
-        {/* Right Section */}
-        <HStack alignItems="end" justify="end" mt="1rem !important">
-          {hasPagination && (
-            <PrevButton
-              isDisabled={!!isFirstPage}
-              isLoading={paginationLoading.previous}
-              onClick={handlePrevPage}
+      {/* Drop info section */}
+      <VStack align="start" paddingTop="4" spacing="4">
+        <HStack>
+          {dropData.media === 'loading' ? (
+            <Spinner />
+          ) : (
+            <Image
+              alt={`Drop image for ${dropData.id}`}
+              borderRadius="12px"
+              boxSize={dropImageSize}
+              objectFit="cover"
+              src={dropData.media || placeholderImage} // Use dropData.media or fallback to placeholder
+              onError={(e) => {
+                // eslint-disable-next-line no-console
+                console.warn('error loading image', e);
+                setDropData((prev) => ({ ...prev, media: placeholderImage }));
+              }}
             />
           )}
-          <Button
-            isDisabled={!allowAction}
-            isLoading={deleting}
-            variant="secondary"
-            w={{ base: '100%', sm: 'initial' }}
-            onClick={handleCancelAllClick}
-          >
-            Cancel all
-          </Button>
-          <Button
-            isDisabled={!allowAction}
-            isLoading={exporting}
-            variant="secondary"
-            w={{ base: '100%', sm: 'initial' }}
-            onClick={handleExportCSVClick}
-          >
-            Export .CSV
-          </Button>
-          {hasPagination && (
-            <NextButton
-              isDisabled={!!isLastPage}
-              isLoading={paginationLoading.next}
-              onClick={handleNextPage}
-            />
-          )}
+          <VStack align="start">
+            <Heading fontFamily="" size="sm">
+              Drop name
+            </Heading>
+            <Heading size="lg">{dropData.name}</Heading>
+          </VStack>
         </HStack>
-      </Stack>
+        <HStack w="50%">
+          <Box
+            bg="border.box"
+            border="2px solid transparent"
+            borderRadius="12"
+            borderWidth="2px"
+            p={4}
+            w="100%" // Adjust based on your layout, 'fit-content' makes the box to fit its content size
+          >
+            <VStack align="start" spacing={1}>
+              {' '}
+              {/* Adjust spacing as needed */}
+              <Text color="gray.400" fontSize="lg" fontWeight="medium">
+                Claimed
+              </Text>
+              <Heading>{getClaimedText(totalKeys)}</Heading>
+            </VStack>
+          </Box>
+        </HStack>
+      </VStack>
+
+      {/* Desktop Menu */}
+      <Show above="md">
+        <HStack justify="space-between">
+          <Heading paddingBottom="0" paddingTop="4">
+            All Keys
+          </Heading>
+          {/* Right Section */}
+          <HStack alignItems="end" justify="end" mt="1rem !important">
+            <Menu>
+              {({ isOpen }) => (
+                <Box>
+                  <DropDownButton
+                    isOpen={isOpen}
+                    placeholder={`Status: ${selectedFilters.status}`}
+                    variant="secondary"
+                    onClick={() => (popoverClicked.current += 1)}
+                  />
+                  <MenuList minWidth="auto">{keyClaimStatusMenuItems}</MenuList>
+                </Box>
+              )}
+            </Menu>
+            <Button
+              height="auto"
+              isDisabled={!allowAction}
+              isLoading={deleting}
+              lineHeight=""
+              px="6"
+              py="3"
+              textColor="red.500"
+              variant="secondary"
+              w={{ base: '100%', sm: 'initial' }}
+              onClick={handleCancelAllClick}
+            >
+              Cancel all
+            </Button>
+            <Button
+              height="auto"
+              isDisabled={!allowAction}
+              isLoading={exporting}
+              lineHeight=""
+              px="6"
+              py="3"
+              variant="secondary"
+              w={{ base: '100%', sm: 'initial' }}
+              onClick={handleExportCSVClick}
+            >
+              Export .CSV
+            </Button>
+          </HStack>
+        </HStack>
+      </Show>
+
+      {/* Mobile Menu */}
+      <Hide above="md">
+        <VStack>
+          <Heading paddingTop="20px" size="2xl" textAlign="left" w="full">
+            All Keys
+          </Heading>
+
+          <HStack align="stretch" justify="space-between" w="full">
+            <FilterOptionsMobileButton
+              buttonTitle="More Options"
+              popoverClicked={popoverClicked}
+              onOpen={onOpen}
+            />
+            <Button
+              height="auto"
+              isDisabled={!allowAction}
+              isLoading={exporting}
+              lineHeight=""
+              px="6"
+              variant="secondary"
+              w={{ sm: 'initial' }}
+              onClick={handleExportCSVClick}
+            >
+              Export .CSV
+            </Button>
+          </HStack>
+        </VStack>
+      </Hide>
+
       <Box>
         <DataTable
           columns={tableColumns}
           data={data}
+          excludeMobileColumns={[]}
           loading={loading}
-          mt={{ base: '4', md: '6' }}
+          mt={{ base: '6', md: '4' }}
           showColumns={showColumns}
+          showMobileTitles={[]}
+          type={getTableType()}
           {...tableProps}
         />
+
+        <DropManagerPagination
+          curPage={curPage}
+          handleNextPage={handleNextPage}
+          handlePrevPage={handlePrevPage}
+          isLoading={isAllKeysLoading}
+          numPages={numPages}
+          pageSizeMenuItems={pageSizeMenuItems}
+          rowsSelectPlaceholder={selectedFilters.pageSize.toString()}
+          onClickRowsSelect={() => (popoverClicked.current += 1)}
+        />
       </Box>
+
+      {/* Mobile Popup Menu For Filtering */}
+      <MobileDrawerMenu
+        customButton={mobileCancelButton}
+        filters={[
+          {
+            label: 'Status',
+            value: selectedFilters.status,
+            menuItems: keyClaimStatusMenuItems,
+          },
+        ]}
+        isOpen={isOpen}
+        title="More Options"
+        onClose={onClose}
+      />
     </Box>
   );
 };

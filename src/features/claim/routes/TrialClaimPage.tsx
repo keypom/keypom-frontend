@@ -1,4 +1,4 @@
-import { Box, Button, Center, Heading, useBoolean, VStack } from '@chakra-ui/react';
+import { Box, Button, Center, Heading, VStack } from '@chakra-ui/react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { claimTrialAccountDrop, accountExists } from 'keypom-js';
@@ -24,7 +24,6 @@ const TrialClaimPage = () => {
   const navigate = useNavigate();
   const { contractId, secretKey } = useClaimParams();
   const { setAppModal } = useAppContext();
-  const [showInputWallet] = useBoolean(false);
   const [tokens] = useState<TokenAsset[]>([]);
   const [isClaimSuccessful, setIsClaimSuccessful] = useState(false);
   const [isClaimLoading, setIsClaimLoading] = useState(false);
@@ -44,7 +43,8 @@ const TrialClaimPage = () => {
     try {
       await keypomInstance.getTokenClaimInformation(contractId, secretKey);
     } catch (e) {
-      console.log(e);
+      // eslint-disable-next-line no-console
+      console.error(e);
       // `no drop ID for PK` is error we should pass through to the redirect URL
       setClaimError('No drop for this link!');
     }
@@ -217,7 +217,9 @@ const TrialClaimPage = () => {
                 label={`Your Account Name`}
                 message={`Create Your Account`}
                 noBackIcon={true}
-                onBack={showInputWallet.off}
+                onBack={() => {
+                  console.log(false);
+                }}
               />
             </VStack>
           </IconBox>
