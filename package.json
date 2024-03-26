@@ -9,7 +9,7 @@
     "devwindows": "del dist && xcopy .\\public .\\dist /s /e /h /I && parcel src/index.html -p 3000",
     "storybook": "yarn clean && yarn static && IS_STORYBOOK_VIEW=true parcel src/index.html -p 3000",
     "dev-mainnet": "yarn clean && yarn static && REACT_APP_CONTRACT_ID=v2.keypom.near REACT_APP_NETWORK_ID=mainnet parcel src/index.html -p 3000",
-    "build": "yarn static && parcel build src/index.html --public-url ./ --no-cache --no-source-maps",
+    "build": "yarn static && parcel build src/index.html --public-url ./ --no-cache",
     "build:analyze": "yarn static && parcel build src/index.html --public-url ./ --no-cache --reporter @parcel/reporter-bundle-analyzer",
     "static": "rm -rf dist && mkdir dist && cp -a ./public/* ./dist",
     "serve": "yarn build && npx serve dist -s",
