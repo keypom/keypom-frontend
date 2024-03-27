@@ -6,6 +6,7 @@ import { CopyIcon, DeleteIcon } from '@/components/Icons';
 import { DropManager, type GetDataFn } from '@/features/drop-manager/components/DropManager';
 import keypomInstance from '@/lib/keypom';
 
+import placeholderImage from '../../constants/placeholder-image.png';
 import { tableColumns } from '../../components/TableColumn';
 
 export default function NFTDropManagerPage() {
@@ -48,8 +49,9 @@ export default function NFTDropManagerPage() {
       action: (
         <>
           <Button
+            borderRadius="6xl"
             mr="1"
-            size="sm"
+            size="md"
             variant="icon"
             onClick={() => {
               handleCopyClick(item.link);
@@ -59,13 +61,14 @@ export default function NFTDropManagerPage() {
           </Button>
           {!item.hasClaimed && (
             <Button
-              size="sm"
+              borderRadius="6xl"
+              size="md"
               variant="icon"
               onClick={async () => {
                 await handleDeleteClick(item.publicKey);
               }}
             >
-              <DeleteIcon color="red" />
+              <DeleteIcon color="red.400" />
             </Button>
           )}
         </>
@@ -75,10 +78,10 @@ export default function NFTDropManagerPage() {
 
   return (
     <DropManager
-      claimedHeaderText="NFT editions claimed"
-      getClaimedText={(dropSize) => `${dropSize - availableKeys} / ${dropSize}`}
+      getClaimedText={(dropSize) => `${dropSize - availableKeys}/${dropSize}`}
       getData={getTableRows}
-      showColumns={false}
+      placeholderImage={placeholderImage}
+      showColumns={true}
       tableColumns={tableColumns}
     />
   );

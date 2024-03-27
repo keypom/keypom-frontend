@@ -33,9 +33,6 @@ const ClaimPage = () => {
         case DROP_TYPE.NFT:
           navigate(`/claim/nft/${contractId}?${searchParamsStr}#${secretKey}`);
           break;
-        case DROP_TYPE.TRIAL:
-          navigate(`/claim/trial/${contractId}?${searchParamsStr}#${secretKey}`);
-          break;
         default:
           throw new Error('This linkdrop is unsupported.');
       }

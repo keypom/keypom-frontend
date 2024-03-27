@@ -21,10 +21,10 @@ export const CreateNftDropSummary = () => {
     <DropSummary
       confirmButtonText="Pay and create links"
       data={data}
-      paymentData={paymentData}
+      paymentData={paymentData!}
       summaryData={summaryData}
       onConfirmClick={() => {
-        handleDropConfirmation(paymentData);
+        handleDropConfirmation(paymentData!);
       }}
     />
   );

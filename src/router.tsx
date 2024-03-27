@@ -20,14 +20,16 @@ const ProtectedRoute = React.lazy(
 const AllDropsPage = React.lazy(
   async () => await import('./features/all-drops/routes/AllDropsPage'),
 );
+
+const AllEventsPage = React.lazy(
+  async () => await import('./features/all-drops/routes/AllEventsPage'),
+);
+const TicketQRPage = React.lazy(async () => await import('@/features/ticket-qr/TicketQRPage'));
 const ClaimPage = React.lazy(async () => await import('@/features/claim/routes/ClaimRouter'));
 const ClaimTokenPage = React.lazy(
   async () => await import('@/features/claim/routes/TokenClaimPage'),
 );
 const ClaimNftPage = React.lazy(async () => await import('@/features/claim/routes/NFTClaimPage'));
-const ClaimTicketPage = React.lazy(
-  async () => await import('@/features/claim/routes/TicketClaimPage'),
-);
 const ClaimTrialPage = React.lazy(
   async () => await import('@/features/claim/routes/TrialClaimPage'),
 );
@@ -40,7 +42,9 @@ const CreateNftDropPage = React.lazy(
 const CreateTicketDropPage = React.lazy(
   async () => await import('@/features/create-drop/routes/CreateTicketDropPage'),
 );
-
+const EventManagerPage = React.lazy(
+  async () => await import('@/features/drop-manager/routes/events/EventManagerPage'),
+);
 const TokenDropManagerPage = React.lazy(
   async () => await import('@/features/drop-manager/routes/token/TokenDropManagerPage'),
 );
@@ -51,6 +55,10 @@ const TicketDropManagerPage = React.lazy(
   async () => await import('@/features/drop-manager/routes/ticket/TicketDropManagerPage'),
 );
 const EthDenverLandingPage = React.lazy(async () => await import('@/pages/EthDenver'));
+
+const Gallery = React.lazy(async () => await import('@/pages/Gallery'));
+
+const Event = React.lazy(async () => await import('@/pages/Event'));
 
 const ScannerPage = React.lazy(async () => await import('@/features/scanner/routes/ScannerPage'));
 
@@ -67,6 +75,20 @@ export const router = createBrowserRouter([
         element: <EthDenverLandingPage />,
       },
       {
+        path: 'gallery',
+        element: <Gallery />,
+        loader: () => {
+          import('@/lib/keypom').then(async (keypomLib) => {
+            await keypomLib.default.init();
+          });
+          return null;
+        },
+      },
+      {
+        path: 'gallery/:eventID',
+        element: <Event />,
+      },
+      {
         loader: () => {
           import('@/lib/keypom').then(async (keypomLib) => {
             await keypomLib.default.init();
@@ -81,6 +103,34 @@ export const router = createBrowserRouter([
                 <AllDropsPage />
               </ProtectedRoute>
             ),
+          },
+          {
+            path: 'events',
+            element: <ProtectedRoute />, // Wrap the AllEventsPage and its dynamic children with ProtectedRoute
+            children: [
+              {
+                index: true,
+                element: <AllEventsPage />, // Display AllEventsPage at /events
+              },
+              {
+                path: 'event/:id', // Match /events/event/:id
+                element: <EventManagerPage />,
+              },
+              {
+                path: 'ticket/:id', // Match /events/ticket/:id
+                element: <TicketDropManagerPage />,
+              },
+              // Add other paths as needed...
+            ],
+          },
+          {
+            path: 'tickets',
+            children: [
+              {
+                path: 'ticket/:id', // Match /events/event/:id
+                element: <TicketQRPage />,
+              },
+            ],
           },
           {
             path: 'drop',
@@ -119,10 +169,6 @@ export const router = createBrowserRouter([
                     path: 'new',
                     element: <CreateTicketDropPage />,
                   },
-                  {
-                    path: ':id',
-                    element: <TicketDropManagerPage />,
-                  },
                 ],
               },
             ],
@@ -140,14 +186,6 @@ export const router = createBrowserRouter([
                 element: <ClaimNftPage />,
               },
               {
-                path: 'gift/:contractId',
-                element: <ClaimTicketPage />,
-              },
-              {
-                path: 'ticket/:contractId',
-                element: <ClaimTicketPage />,
-              },
-              {
                 path: 'trial/:contractId',
                 element: <ClaimTrialPage />,
               },
@@ -158,8 +196,13 @@ export const router = createBrowserRouter([
             ],
           },
           {
-            path: 'scanner',
-            element: <ScannerPage />,
+            path: 'scan',
+            children: [
+              {
+                path: 'event/:funderAndEventId',
+                element: <ScannerPage />,
+              },
+            ],
           },
         ],
       },

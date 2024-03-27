@@ -16,25 +16,29 @@ import { type PaymentData, type PaymentItem, type SummaryItem } from '../types/t
 
 interface CreateTokenDropContextProps {
   getSummaryData: () => SummaryItem[];
-  getPaymentData: () => PaymentData;
-  handleDropConfirmation: () => void;
-  createLinksSWR: { data?: { success: boolean }; handleDropConfirmation: () => void };
+  getPaymentData: () => Promise<PaymentData>;
+  handleDropConfirmation: (navigate: NavigateFunction) => Promise<void>;
+  createLinksSWR: {
+    data?: { success: boolean };
+    handleDropConfirmation: (navigate: NavigateFunction) => Promise<void>;
+  };
 }
 
 const CreateTokenDropContext = createContext<CreateTokenDropContextProps>({
   getSummaryData: () => [{ type: 'text', name: '', value: '' }] as SummaryItem[],
-  getPaymentData: () => ({
-    costsData: [{ name: '', total: 0 }],
-    totalCost: 0,
-    confirmationText: '',
-  }),
-  handleDropConfirmation: function (): void {
-    throw new Error('Function not implemented.');
+  getPaymentData: async () =>
+    await (Promise.resolve({
+      costsData: [{ name: '', total: 0 }],
+      totalCost: 0,
+      confirmationText: '',
+    }) as Promise<PaymentData>),
+  handleDropConfirmation: async (navigate: NavigateFunction) => {
+    // Placeholder implementation
   },
   createLinksSWR: {
-    data: undefined,
-    handleDropConfirmation: function (): void {
-      throw new Error('Function not implemented.');
+    data: { success: false },
+    handleDropConfirmation: async () => {
+      // Placeholder implementation for createLinksSWR's handleDropConfirmation
     },
   },
 });
@@ -148,6 +152,15 @@ export const CreateTokenDropProvider = ({ children }: PropsWithChildren) => {
       precision: 14,
     });
     const totalCost = parseFloat(formatNearAmount(requiredDeposit!, 4));
+    // Ensure totalCost and totalLinkCost are numbers before performing subtraction.
+    const totalCostNumeric = Number(totalCost);
+    const totalLinkCostNumeric = Number(totalLinkCost);
+
+    // Perform the subtraction.
+    const difference = totalCostNumeric - totalLinkCostNumeric;
+
+    // Convert the result to a fixed decimal place number.
+    const totalNetworkFees = Number(difference.toFixed(4));
     const costsData: PaymentItem[] = [
       {
         name: 'Link cost',
@@ -156,7 +169,7 @@ export const CreateTokenDropProvider = ({ children }: PropsWithChildren) => {
       },
       {
         name: 'NEAR network fees',
-        total: Number((totalCost - totalLinkCost).toFixed(4)),
+        total: totalNetworkFees,
       },
       {
         name: 'Keypom fee',

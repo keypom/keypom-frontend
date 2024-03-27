@@ -51,28 +51,29 @@ const createLinks = async () => {
 
 interface CreateNftDropContextType {
   getSummaryData: () => SummaryItem[];
-  getPaymentData: () => PaymentData;
+  getPaymentData: () => Promise<PaymentData>;
   handleDropConfirmation: (paymentData: PaymentData) => void;
   createLinksSWR: {
     data?: { success: boolean };
-    handleDropConfirmation: () => void;
+    handleDropConfirmation: (paymentData: PaymentData) => void;
   };
 }
 
 const CreateNftDropContext = createContext<CreateNftDropContextType>({
   getSummaryData: () => [{ type: 'text', name: '', value: '' }] as SummaryItem[],
-  getPaymentData: () => ({
-    costsData: [{ name: '', total: 0 }],
-    totalCost: 0,
-    confirmationText: '',
-  }),
-  handleDropConfirmation: function (): void {
-    throw new Error('Function not implemented.');
+  getPaymentData: async () =>
+    await (Promise.resolve({
+      costsData: [{ name: '', total: 0 }],
+      totalCost: 0,
+      confirmationText: '',
+    }) as Promise<PaymentData>),
+  handleDropConfirmation: async function (): Promise<void> {
+    await Promise.resolve();
   },
   createLinksSWR: {
     data: { success: false },
-    handleDropConfirmation: function (): void {
-      throw new Error('Function not implemented.');
+    handleDropConfirmation: async function (): Promise<void> {
+      await Promise.resolve();
     },
   },
 });
@@ -191,19 +192,37 @@ export const CreateNftDropProvider = ({ children }: PropsWithChildren) => {
 
     const confirmationText = `Creating ${numKeys} for ${totalCost} NEAR`;
 
-    return { costsData, totalCost, confirmationText };
+    return { costsData, totalCost: parseFloat(totalCost), confirmationText };
   };
 
   const handleDropConfirmation = async (paymentData: PaymentData) => {
     const totalRequired = paymentData.costsData[3].total;
 
     await update(NFT_ATTEMPT_KEY, (val) => ({ ...val, confirmed: true }));
+    const wallet = await window.selector.wallet();
+    
+    // Injected wallets return promises
+    if(wallet.type === "injected"){
+      try{
+        await addToBalance({
+          wallet: await window.selector.wallet(),
+          amountYocto: totalRequired.toString(),
+          successUrl: window.location.origin + '/drop/nft/new',
+        });
+        
+        window.location.assign(window.location.origin + '/drop/nft/new');
+      }catch(e){
+        alert("Something went wrong. Please try again.");
+      }
+    }
+    else{
+      await addToBalance({
+        wallet: await window.selector.wallet(),
+        amountYocto: totalRequired.toString(),
+        successUrl: window.location.origin + '/drop/nft/new',
+      });
+    }
 
-    await addToBalance({
-      wallet: await window.selector.wallet(),
-      amountYocto: totalRequired.toString(),
-      successUrl: window.location.origin + '/drop/nft/new',
-    });
   };
 
   const createLinksSWR = {

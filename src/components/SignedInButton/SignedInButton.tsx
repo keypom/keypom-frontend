@@ -27,6 +27,10 @@ export const SignedInButton = () => {
   const { account, selector } = useAuthWalletContext();
 
   const handleSignOut = async () => {
+    if (!selector.isSignedIn()) {
+      console.error('Not signed in');
+      return;
+    }
     const wallet = await selector.wallet();
 
     wallet
@@ -37,7 +41,7 @@ export const SignedInButton = () => {
       })
       .catch((err) => {
         // eslint-disable-next-line no-console
-        console.log('Failed to sign out');
+        console.error('Failed to sign out');
         // eslint-disable-next-line no-console
         console.error(err);
       });
@@ -121,7 +125,7 @@ export const SignedInButton = () => {
             </MenuItem>
 
             <MenuItem icon={<KeyIcon height="15px" width="14px" />} onClick={handleMasterKey}>
-              Master Key
+              Site Password
             </MenuItem>
             <MenuItem icon={<SignOutIcon />} onClick={handleSignOut}>
               Sign out

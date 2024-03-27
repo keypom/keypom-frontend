@@ -1,11 +1,15 @@
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
+  Input,
+  Hide,
+  InputGroup,
+  InputLeftElement,
+  Icon,
+  Button,
   Badge,
   Box,
-  Button,
   HStack,
   Menu,
-  MenuButton,
-  MenuItem,
   MenuList,
   Show,
   Text,
@@ -15,32 +19,40 @@ import {
   Skeleton,
   VStack,
 } from '@chakra-ui/react';
-import { useCallback, useEffect, useRef, useState } from 'react';
 import { type ProtocolReturnedDrop } from 'keypom-js';
-import { ChevronDownIcon } from '@chakra-ui/icons';
-import { useSearchParams } from 'react-router-dom';
+import { SearchIcon } from '@chakra-ui/icons';
+import { useNavigate } from 'react-router-dom';
 
+import { PAGE_SIZE_LIMIT, DROP_TYPE } from '@/constants/common';
 import { useAppContext } from '@/contexts/AppContext';
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
 import { type ColumnItem, type DataItem } from '@/components/Table/types';
 import { DataTable } from '@/components/Table';
 import { DeleteIcon } from '@/components/Icons';
-import { truncateAddress } from '@/utils/truncateAddress';
-import { NextButton, PrevButton } from '@/components/Pagination';
-import { usePagination } from '@/hooks/usePagination';
-import { CLOUDFLARE_IPFS, DROP_TYPE, PAGE_QUERY_PARAM } from '@/constants/common';
 import keypomInstance from '@/lib/keypom';
-import { PopoverTemplate } from '@/components/PopoverTemplate';
 
-import { MENU_ITEMS } from '../config/menuItems';
+import {
+  DROP_TYPE_OPTIONS,
+  DROP_CLAIM_STATUS_OPTIONS,
+  DATE_FILTER_OPTIONS,
+  DROP_CLAIM_STATUS_ITEMS,
+  PAGE_SIZE_ITEMS,
+  DROP_TYPE_ITEMS,
+  DATE_FILTER_ITEMS,
+  CREATE_DROP_ITEMS,
+  createMenuItems,
+} from '../config/menuItems';
 
+import { DropDownButton } from './DropDownButton';
 import { MobileDrawerMenu } from './MobileDrawerMenu';
 import { setConfirmationModalHelper } from './ConfirmationModal';
+import { DropManagerPagination } from './DropManagerPagination';
+import { FilterOptionsMobileButton } from './FilterOptionsMobileButton';
 
 const COLUMNS: ColumnItem[] = [
   {
     id: 'dropName',
-    title: 'Drop name',
+    title: 'Name',
     selector: (drop) => drop.name,
     thProps: {
       minW: '240px',
@@ -55,7 +67,7 @@ const COLUMNS: ColumnItem[] = [
   },
   {
     id: 'dropType',
-    title: 'Drop type',
+    title: 'Type',
     selector: (drop) => drop.type,
     loadingElement: <Skeleton height="30px" />,
   },
@@ -77,159 +89,276 @@ const COLUMNS: ColumnItem[] = [
   },
 ];
 
-export default function AllDrops() {
-  const [searchParams, setSearchParams] = useSearchParams();
+interface AllDropsProps {
+  pageTitle: string;
+  hasDateFilter: boolean;
+  ctaButtonLabel: string;
+}
+
+export default function AllDrops({ pageTitle, hasDateFilter, ctaButtonLabel }: AllDropsProps) {
   const { setAppModal } = useAppContext();
+  const navigate = useNavigate();
+
+  const [numPages, setNumPages] = useState<number>(0);
+  const [curPage, setCurPage] = useState<number>(0);
 
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [isLoading, setIsLoading] = useState(true);
+  const [isAllDropsLoading, setIsAllDropsLoading] = useState(true);
   const popoverClicked = useRef(0);
 
-  const [dataSize, setDataSize] = useState<number>(0);
-  const [data, setData] = useState<Array<DataItem | null>>([]);
+  const [selectedFilters, setSelectedFilters] = useState<{
+    type: string;
+    search: string;
+    status: string;
+    date: string;
+    pageSize: number;
+  }>({
+    type: DROP_TYPE_OPTIONS.ANY,
+    search: '',
+    date: DATE_FILTER_OPTIONS.ANY,
+    status: DROP_CLAIM_STATUS_OPTIONS.ANY,
+    pageSize: PAGE_SIZE_LIMIT,
+  });
+  const [searchTerm, setSearchTerm] = useState<string>('');
+  const [numOwnedDrops, setNumOwnedDrops] = useState<number>(0);
+  const [filteredDataItems, setFilteredDataItems] = useState<DataItem[]>([]);
   const [wallet, setWallet] = useState({});
 
   const { selector, accountId } = useAuthWalletContext();
 
-  const {
-    setPagination,
-    hasPagination,
-    pagination,
-    isFirstPage,
-    isLastPage,
-    loading,
-    handleNextPage,
-    handlePrevPage,
-  } = usePagination({
-    dataSize,
-    handlePrevApiCall: async () => {
-      const prevPageIndex = pagination.pageIndex - 1;
-      await handleGetDrops({
-        start: prevPageIndex * pagination.pageSize,
-        limit: pagination.pageSize,
-      });
-      const newQueryParams = new URLSearchParams({
-        [PAGE_QUERY_PARAM]: (prevPageIndex + 1).toString(),
-      });
-      setSearchParams(newQueryParams);
-    },
-    handleNextApiCall: async () => {
-      const nextPageIndex = pagination.pageIndex + 1;
-      await handleGetDrops({
-        start: nextPageIndex * pagination.pageSize,
-        limit: pagination.pageSize,
-      });
-      const newQueryParams = new URLSearchParams({
-        [PAGE_QUERY_PARAM]: (nextPageIndex + 1).toString(),
-      });
-      setSearchParams(newQueryParams);
-    },
-  });
+  const handlePageSizeSelect = (item) => {
+    setSelectedFilters((prevFilters) => ({
+      ...prevFilters,
+      pageSize: parseInt(item.label),
+    }));
+  };
 
-  const handleGetDropsSize = async () => {
-    const numDrops = await keypomInstance.getDropSupplyForOwner({
-      accountId,
+  const handleDropTypeSelect = (item) => {
+    setSelectedFilters((prevFilters) => ({
+      ...prevFilters,
+      type: item.label,
+    }));
+  };
+
+  const handleDateSelect = (item) => {
+    setSelectedFilters((prevFilters) => ({
+      ...prevFilters,
+      date: item.label,
+    }));
+  };
+
+  const handleSearchChange = (event) => {
+    const { value } = event.target;
+    setSearchTerm(value);
+  };
+
+  const handleDropStatusSelect = (item) => {
+    setSelectedFilters((prevFilters) => ({
+      ...prevFilters,
+      status: item.label,
+    }));
+  };
+
+  const handleNextPage = () => {
+    setCurPage((prev) => prev + 1);
+  };
+
+  const handlePrevPage = () => {
+    setCurPage((prev) => prev - 1);
+  };
+
+  const handleKeyDown = (event) => {
+    if (event.key === 'Enter') {
+      setSelectedFilters((prevFilters) => ({
+        ...prevFilters,
+        search: searchTerm,
+      }));
+    }
+  };
+
+  const handleFiltering = async (drops) => {
+    // Apply the selected filters
+    if (selectedFilters.type !== DROP_TYPE_OPTIONS.ANY) {
+      drops = drops.filter(
+        (drop) =>
+          keypomInstance.getDropType(drop).toLowerCase() === selectedFilters.type.toLowerCase(),
+      );
+    }
+
+    if (selectedFilters.status !== DROP_CLAIM_STATUS_OPTIONS.ANY) {
+      // Convert each drop to a promise that resolves to either the drop or null
+      const dropsPromises = drops.map(async (drop) => {
+        const keysLeft = await keypomInstance.getAvailableKeys(drop.drop_id);
+        const isFullyClaimed = keysLeft === 0;
+        const isPartiallyClaimed = keysLeft > 0 && keysLeft < drop.next_key_id;
+        const isUnclaimed = keysLeft === drop.next_key_id;
+
+        if (
+          (isFullyClaimed && selectedFilters.status === DROP_CLAIM_STATUS_OPTIONS.FULLY) ||
+          (isPartiallyClaimed && selectedFilters.status === DROP_CLAIM_STATUS_OPTIONS.PARTIALLY) ||
+          (isUnclaimed && selectedFilters.status === DROP_CLAIM_STATUS_OPTIONS.UNCLAIMED)
+        ) {
+          return drop;
+        }
+        return null;
+      });
+
+      // Wait for all promises to resolve, then filter out the nulls
+      const resolvedDrops = await Promise.all(dropsPromises);
+      drops = resolvedDrops.filter((drop): drop is ProtocolReturnedDrop => drop !== null);
+    }
+
+    if (selectedFilters.search.trim() !== '') {
+      drops = drops.filter((drop) => {
+        const { dropName } = keypomInstance.getDropMetadata(drop.metadata);
+        return dropName.toLowerCase().includes(selectedFilters.search.toLowerCase());
+      });
+    }
+
+    if (selectedFilters.date !== DATE_FILTER_OPTIONS.ANY) {
+      drops = drops
+        .filter((drop: ProtocolReturnedDrop) => {
+          try {
+            const dropMeta = JSON.parse(drop.metadata || '{}');
+            const date = new Date(dropMeta.dateCreated);
+            return dropMeta.dateCreated && !isNaN(date.getTime()); // Ensures dateCreated is valid
+          } catch (e) {
+            return false; // Exclude drops with malformed metadata
+          }
+        })
+        .sort((a, b) => {
+          // Assuming metadata has been validated, no need for try-catch here
+          const dateA = new Date(JSON.parse(a.metadata).dateCreated).getTime();
+          const dateB = new Date(JSON.parse(b.metadata).dateCreated).getTime();
+          return selectedFilters.date === DATE_FILTER_OPTIONS.NEWEST
+            ? dateB - dateA
+            : dateA - dateB;
+        });
+    }
+
+    return drops;
+  };
+
+  const handleGetAllDrops = useCallback(async () => {
+    setIsAllDropsLoading(true);
+
+    const drops = await keypomInstance.getAllDrops({
+      accountId: accountId!,
     });
 
-    setDataSize(numDrops);
-  };
+    const filteredDrops = await handleFiltering(drops);
+    const dropData = await Promise.all(
+      filteredDrops.map(async (drop) => await keypomInstance.getDropData({ drop })),
+    );
+    setFilteredDataItems(dropData);
 
-  const setAllDropsData = async (drop: ProtocolReturnedDrop) => {
-    const { drop_id: id, metadata, next_key_id: totalKeys } = drop;
-    const claimedKeys = await keypomInstance.getAvailableKeys(id);
-    const claimedText = `${totalKeys - claimedKeys} / ${totalKeys}`;
+    const totalPages = Math.ceil(filteredDrops.length / selectedFilters.pageSize);
+    setNumPages(totalPages);
 
-    const { dropName } = keypomInstance.getDropMetadata(metadata);
+    setCurPage(0);
+    setIsAllDropsLoading(false);
+  }, [accountId, selectedFilters, keypomInstance]);
 
-    let type: string | null = '';
-    try {
-      type = keypomInstance.getDropType(drop);
-    } catch (_) {
-      type = DROP_TYPE.OTHER;
+  const handleGetInitialDrops = useCallback(async () => {
+    setIsLoading(true);
+
+    // First get the total supply of drops so we know when to stop fetching
+    const totalSupply = await keypomInstance.getDropSupplyForOwner({ accountId: accountId! });
+    setNumOwnedDrops(totalSupply);
+
+    // Loop until we have enough filtered drops to fill the page size
+    let dropsFetched = 0;
+    let filteredDrops: ProtocolReturnedDrop[] = [];
+    while (dropsFetched < totalSupply && filteredDrops.length < selectedFilters.pageSize) {
+      const drops = await keypomInstance.getPaginatedDrops({
+        accountId: accountId!,
+        start: dropsFetched,
+        limit: selectedFilters.pageSize,
+      });
+      dropsFetched += drops.length;
+
+      const curFiltered = await handleFiltering(drops);
+      filteredDrops = filteredDrops.concat(curFiltered);
     }
 
-    let nftHref: string | undefined;
-    if (type === DROP_TYPE.NFT) {
-      let nftMetadata = {
-        media: '',
-        title: '',
-        description: '',
-      };
+    // Now, map over the filtered drops and set the data
+    const dropData = await Promise.all(
+      filteredDrops.map(async (drop) => await keypomInstance.getDropData({ drop })),
+    );
+
+    if (filteredDataItems.length === 0) {
+      setFilteredDataItems(dropData);
+    }
+    setCurPage(0);
+    setIsLoading(false);
+  }, [accountId, selectedFilters, keypomInstance]);
+
+  useEffect(() => {
+    async function fetchWallet() {
+      if (!selector) return;
       try {
-        const fcMethods = drop.fc?.methods;
-        if (
-          fcMethods === undefined ||
-          fcMethods.length === 0 ||
-          fcMethods[0] === undefined ||
-          fcMethods[0][0] === undefined
-        ) {
-          throw new Error('Unable to retrieve function calls.');
-        }
-
-        const { nftData } = await keypomInstance.getNFTorTokensMetadata(
-          fcMethods[0][0],
-          drop.drop_id,
-        );
-
-        nftMetadata = {
-          media: `${CLOUDFLARE_IPFS}/${nftData?.metadata?.media}`, // eslint-disable-line
-          title: nftData?.metadata?.title,
-          description: nftData?.metadata?.description,
-        };
-
-        console.log(nftData);
-      } catch (e) {
-        console.error('failed to get nft metadata', e); // eslint-disable-line no-console
+        const wallet = await selector.wallet();
+        setWallet(wallet);
+      } catch (error) {
+        console.error('Error fetching wallet:', error);
+        // Handle the error appropriately
       }
-      nftHref = nftMetadata?.media || 'assets/image-not-found.png';
     }
 
-    return {
-      id,
-      name: truncateAddress(dropName, 'end', 48),
-      type: type?.toLowerCase(),
-      media: nftHref,
-      claimed: claimedText,
-    };
-  };
-
-  const handleGetDrops = useCallback(
-    async ({ start = 0, limit = pagination.pageSize }) => {
-      const drops = await keypomInstance.getDrops({ accountId, start, limit });
-
-      setWallet(await selector.wallet());
-
-      setData(
-        await Promise.all(
-          drops.map(async (drop) => {
-            return await setAllDropsData(drop);
-          }),
-        ),
-      );
-
-      setIsLoading(false);
-    },
-    [pagination],
-  );
+    fetchWallet();
+  }, [selector]);
 
   useEffect(() => {
     if (!accountId) return;
 
-    // page query param should be indexed from 1
-    const pageQuery = searchParams.get('page');
-    const currentPageIndex = pageQuery !== null ? parseInt(pageQuery) - 1 : 0;
-    setPagination((pagination) => ({ ...pagination, pageIndex: currentPageIndex }));
-    handleGetDropsSize();
-    handleGetDrops({ start: currentPageIndex * pagination.pageSize });
-  }, [accountId, searchParams]);
+    // First get enough data with the current filters to fill the page size
+    handleGetInitialDrops();
+  }, [accountId]);
 
-  const dropMenuItems = MENU_ITEMS.map((item) => (
-    <MenuItem key={item.label} {...item}>
-      {item.label}
-    </MenuItem>
-  ));
+  useEffect(() => {
+    if (!accountId) return;
 
-  const handleDeleteClick = (dropId) => {
+    // In parallel, fetch all the drops
+    handleGetAllDrops();
+  }, [accountId, selectedFilters]);
+
+  const createDropMenuItems = createMenuItems({
+    menuItems: CREATE_DROP_ITEMS,
+    onClick: (item) => {
+      navigate(item.label.includes('NFT') ? '/drop/nft/new' : '/drop/token/new');
+    },
+  });
+
+  const pageSizeMenuItems = createMenuItems({
+    menuItems: PAGE_SIZE_ITEMS,
+    onClick: (item) => {
+      handlePageSizeSelect(item);
+    },
+  });
+
+  const filterDropMenuItems = createMenuItems({
+    menuItems: DROP_TYPE_ITEMS,
+    onClick: (item) => {
+      handleDropTypeSelect(item);
+    },
+  });
+
+  const filterDataMenuItems = createMenuItems({
+    menuItems: DATE_FILTER_ITEMS,
+    onClick: (item) => {
+      handleDateSelect(item);
+    },
+  });
+
+  const dropStatusMenuItems = createMenuItems({
+    menuItems: DROP_CLAIM_STATUS_ITEMS,
+    onClick: (item) => {
+      handleDropStatusSelect(item);
+    },
+  });
+
+  const handleDeleteClick = (dropId: string | number) => {
     setConfirmationModalHelper(setAppModal, async () => {
       await keypomInstance.deleteDrops({
         wallet,
@@ -240,163 +369,230 @@ export default function AllDrops() {
   };
 
   const getTableRows = (): DataItem[] => {
-    if (data === undefined || data.length === 0) return [];
+    if (filteredDataItems === undefined || filteredDataItems.length === 0) return [];
 
-    return data.reduce((result: DataItem[], drop) => {
-      if (drop !== null) {
-        // show token drop manager for other drops type
-        const dropType =
-          (drop.type as string).toUpperCase() === DROP_TYPE.OTHER ? DROP_TYPE.TOKEN : drop.type;
-        const dataItem = {
-          ...drop,
-          name: <Text color="gray.800">{drop.name}</Text>,
-          type: (
-            <Text fontWeight="normal" mt="0.5" textTransform="capitalize">
-              {drop.type}
-            </Text>
-          ),
-          media: drop.media !== undefined && <Avatar src={drop.media as string} />,
-          claimed: <Badge variant="lightgreen">{drop.claimed} Claimed</Badge>,
-          action: (
-            <Button
-              size="sm"
-              variant="icon"
-              onClick={async (e) => {
-                e.stopPropagation();
-                handleDeleteClick(drop.id);
-              }}
-            >
-              <DeleteIcon color="red" />
-            </Button>
-          ),
-          href: `/drop/${(dropType as string).toLowerCase()}/${drop.id}`,
-        };
-        return [...result, dataItem];
-      }
-      return result;
-    }, []);
+    return filteredDataItems
+      .slice(curPage * selectedFilters.pageSize, (curPage + 1) * selectedFilters.pageSize)
+      .reduce((result: DataItem[], drop) => {
+        if (drop !== null) {
+          // show token drop manager for other drops type
+          const dropType =
+            (drop.type as string).toUpperCase() === DROP_TYPE.OTHER ? DROP_TYPE.TOKEN : drop.type;
+          const dataItem = {
+            ...drop,
+            name: (
+              <Text color="gray.800" fontWeight="medium">
+                {drop.name}
+              </Text>
+            ),
+            type: (
+              <Text fontWeight="normal" mt="0.5" textTransform="capitalize">
+                {drop.type}
+              </Text>
+            ),
+            media: drop.media !== undefined && <Avatar src={drop.media as string} />,
+            claimed: <Badge variant="lightgreen">{drop.claimed} Claimed</Badge>,
+            action: (
+              <Button
+                borderRadius="6xl"
+                size="md"
+                variant="icon"
+                onClick={async (e) => {
+                  e.stopPropagation();
+                  handleDeleteClick(drop.id);
+                }}
+              >
+                <DeleteIcon color="red.400" />
+              </Button>
+            ),
+            href: `/drop/${(dropType as string).toLowerCase()}/${drop.id}`,
+          };
+          return [...result, dataItem];
+        }
+        return result;
+      }, []);
   };
 
-  const createADropPopover = (menuIsOpen: boolean) => ({
-    header: 'Click here to create a drop!',
-    shouldOpen:
-      !isLoading &&
-      popoverClicked.current === 0 &&
-      !hasPagination &&
-      data.length === 0 &&
-      !menuIsOpen,
-  });
-
-  const CreateADropButton = ({ isOpen }: { isOpen: boolean }) => (
-    <PopoverTemplate {...createADropPopover(isOpen)}>
-      <MenuButton
-        as={Button}
-        isActive={isOpen}
-        px="6"
-        py="3"
-        rightIcon={<ChevronDownIcon />}
-        variant="secondary-content-box"
-        onClick={() => (popoverClicked.current += 1)}
-      >
-        Create a drop
-      </MenuButton>
-    </PopoverTemplate>
-  );
-  const CreateADropMobileButton = () => (
-    <PopoverTemplate placement="bottom" {...createADropPopover(false)}>
-      <Button
-        px="6"
-        py="3"
-        rightIcon={<ChevronDownIcon />}
-        variant="secondary-content-box"
-        onClick={() => {
-          popoverClicked.current += 1;
-          onOpen();
-        }}
-      >
-        Create a drop
-      </Button>
-    </PopoverTemplate>
-  );
+  const getTableType = () => {
+    if (filteredDataItems.length === 0 && numOwnedDrops === 0) {
+      return 'all-drops';
+    }
+    return 'no-filtered-drops';
+  };
 
   return (
     <Box minH="100%" minW="100%">
-      {/* Header Bar */}
-      {/* Desktop Dropdown Menu */}
-      <Show above="sm">
+      {/* Desktop Menu */}
+      <Show above="md">
+        <Heading py="4">{pageTitle}</Heading>
         <HStack alignItems="center" display="flex" spacing="auto">
-          <Heading>All drops</Heading>
-          <HStack>
-            {hasPagination && (
-              <PrevButton
-                id="all-drops"
-                isDisabled={!!isFirstPage}
-                isLoading={loading.previous}
-                onClick={handlePrevPage}
+          <HStack align="stretch" justify="space-between" w="full">
+            <InputGroup width="300px">
+              <InputLeftElement height="full" pointerEvents="none">
+                <Icon as={SearchIcon} color="gray.400" />
+              </InputLeftElement>
+              <Input
+                backgroundColor="white"
+                border="2px solid"
+                borderColor="gray.200"
+                color="gray.400"
+                fontSize="md"
+                fontWeight="medium"
+                height="full"
+                placeholder="Search..."
+                px="6"
+                sx={{
+                  '::placeholder': {
+                    color: 'gray.400', // Placeholder text color
+                  },
+                }}
+                value={searchTerm}
+                onChange={handleSearchChange}
+                onKeyDown={handleKeyDown}
               />
-            )}
-            <Menu>
-              {({ isOpen }) => (
-                <Box>
-                  <CreateADropButton isOpen={isOpen} />
-                  <MenuList>{dropMenuItems}</MenuList>
-                </Box>
+            </InputGroup>
+            <HStack>
+              <Menu>
+                {({ isOpen }) => (
+                  <Box>
+                    <DropDownButton
+                      isOpen={isOpen}
+                      placeholder={`Type: ${selectedFilters.type}`}
+                      variant="secondary"
+                      onClick={() => (popoverClicked.current += 1)}
+                    />
+                    <MenuList minWidth="auto">{filterDropMenuItems}</MenuList>
+                  </Box>
+                )}
+              </Menu>
+              {hasDateFilter && (
+                <Menu>
+                  {({ isOpen }) => (
+                    <Box>
+                      <DropDownButton
+                        isOpen={isOpen}
+                        placeholder={`Date: ${selectedFilters.type}`}
+                        variant="secondary"
+                        onClick={() => (popoverClicked.current += 1)}
+                      />
+                      <MenuList minWidth="auto">{filterDataMenuItems}</MenuList>
+                    </Box>
+                  )}
+                </Menu>
               )}
-            </Menu>
-
-            {hasPagination && (
-              <NextButton
-                id="all-drops"
-                isDisabled={!!isLastPage}
-                isLoading={loading.next}
-                onClick={handleNextPage}
-              />
-            )}
+              <Menu>
+                {({ isOpen }) => (
+                  <Box>
+                    <DropDownButton
+                      isOpen={isOpen}
+                      placeholder={`Claimed: ${selectedFilters.status}`}
+                      variant="secondary"
+                      onClick={() => (popoverClicked.current += 1)}
+                    />
+                    <MenuList minWidth="auto">{dropStatusMenuItems}</MenuList>
+                  </Box>
+                )}
+              </Menu>
+              <Menu>
+                {({ isOpen }) => (
+                  <Box>
+                    <DropDownButton
+                      isOpen={isOpen}
+                      placeholder={ctaButtonLabel}
+                      variant="primary"
+                      onClick={() => (popoverClicked.current += 1)}
+                    />
+                    <MenuList minWidth="auto">{createDropMenuItems}</MenuList>
+                  </Box>
+                )}
+              </Menu>
+            </HStack>
           </HStack>
         </HStack>
       </Show>
 
-      {/* Mobile Menu Button */}
-      <Show below="sm">
+      {/* Mobile Menu */}
+      <Hide above="md">
         <VStack spacing="20px">
           <Heading size="2xl" textAlign="left" w="full">
             All drops
           </Heading>
 
-          <HStack justify="space-between" w="full">
-            <CreateADropMobileButton />
-            {hasPagination && (
-              <HStack>
-                <PrevButton
-                  id="all-drops"
-                  isDisabled={!!isFirstPage}
-                  isLoading={loading.previous}
-                  onClick={handlePrevPage}
-                />
-                <NextButton
-                  id="all-drops"
-                  isDisabled={!!isLastPage}
-                  isLoading={loading.next}
-                  onClick={handleNextPage}
-                />
-              </HStack>
-            )}
+          <HStack align="stretch" justify="space-between" w="full">
+            <FilterOptionsMobileButton
+              buttonTitle="Filter Options"
+              popoverClicked={popoverClicked}
+              onOpen={onOpen}
+            />
+            <Menu>
+              {({ isOpen }) => (
+                <Box>
+                  <DropDownButton
+                    isOpen={isOpen}
+                    placeholder={ctaButtonLabel}
+                    variant="primary"
+                    onClick={() => (popoverClicked.current += 1)}
+                  />
+                  <MenuList minWidth="auto">{createDropMenuItems}</MenuList>
+                </Box>
+              )}
+            </Menu>
           </HStack>
         </VStack>
-      </Show>
+      </Hide>
 
       <DataTable
         columns={COLUMNS}
         data={getTableRows()}
+        excludeMobileColumns={[]}
         loading={isLoading}
-        mt={{ base: '6', md: '7' }}
-        type="all-drops"
+        mt={{ base: '6', md: '4' }}
+        showMobileTitles={[]}
+        type={getTableType()}
       />
 
-      {/* Mobile Menu For Creating Drop */}
-      <Show below="sm">
-        <MobileDrawerMenu isOpen={isOpen} onClose={onClose} />
-      </Show>
+      <DropManagerPagination
+        curPage={curPage}
+        handleNextPage={handleNextPage}
+        handlePrevPage={handlePrevPage}
+        isLoading={isAllDropsLoading}
+        numPages={numPages}
+        pageSizeMenuItems={pageSizeMenuItems}
+        rowsSelectPlaceholder={selectedFilters.pageSize.toString()}
+        type={'Rows'}
+        onClickRowsSelect={() => (popoverClicked.current += 1)}
+      />
+
+      {/* Mobile Popup Menu For Filtering */}
+      <MobileDrawerMenu
+        filters={[
+          {
+            label: 'Type',
+            value: selectedFilters.type,
+            menuItems: filterDropMenuItems,
+          },
+          ...(hasDateFilter
+            ? [
+                {
+                  label: 'Date',
+                  value: selectedFilters.date,
+                  menuItems: filterDataMenuItems,
+                },
+              ]
+            : []),
+          {
+            label: 'Claimed',
+            value: selectedFilters.status,
+            menuItems: dropStatusMenuItems,
+          },
+        ]}
+        handleKeyDown={handleKeyDown}
+        handleSearchChange={handleSearchChange}
+        isOpen={isOpen}
+        searchTerm={searchTerm}
+        title="Filter Options"
+        onClose={onClose}
+      />
     </Box>
   );
 }

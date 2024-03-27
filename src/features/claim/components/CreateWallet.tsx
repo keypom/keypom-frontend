@@ -27,12 +27,17 @@ export const CreateWallet = ({
 
   const handleWalletClick = async (walletName: string, wRef: any) => {
     try {
-      const url = await keypomInstance.generateExternalWalletLink(
-        walletName,
-        contractId,
-        secretKey,
-      );
-
+      let url = ""
+      if(walletName === `herewallet`){
+        url = `https://my.herewallet.app/linkdrop/${contractId}/${secretKey}`
+      }else{
+        url = await keypomInstance.generateExternalWalletLink(
+          walletName,
+          contractId,
+          secretKey,
+        );
+      }
+      
       window.setTimeout(async () => {
         // check if the drop still exists after X seconds, if its claimed, then we should show a message
         const isDropExist = await keypomInstance.checkIfDropExists(secretKey);
@@ -55,7 +60,7 @@ export const CreateWallet = ({
 
     // TODO replace with filter this is temporary
     // .filter((wallet) => wallets.includes(wallet.id))
-    .filter((wallet) => wallet.name === 'mynearwallet')
+    .filter((wallet) => wallet.name === 'mynearwallet' || wallet.name === 'herewallet')
 
     .map((options, index) => (
       <WalletOption
