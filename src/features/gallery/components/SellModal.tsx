@@ -16,7 +16,7 @@ import {
   FormLabel,
   FormErrorMessage,
 } from '@chakra-ui/react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 import { MIN_NEAR_SELL } from '@/constants/common';
 import { type ResaleTicketInfo, type EventInterface } from '@/pages/Event';
@@ -64,13 +64,15 @@ export const SellModal = ({
   const handleInputChange = (e) => {
     const inputValue = e.target.value;
 
-    if (!isNaN(inputValue) && parseFloat(inputValue) > saleInfo.maxNearPrice) {
-      setInput(saleInfo.maxNearPrice.toString()); // Clamp to max price
-    } else if (!isNaN(inputValue) && parseFloat(inputValue) < MIN_NEAR_SELL) {
-      setInput(MIN_NEAR_SELL.toString()); // Clamp to min price
-    } else {
-      setInput(inputValue);
-    }
+    setInput(inputValue)
+
+    // if (!isNaN(inputValue) && parseFloat(inputValue) > saleInfo.maxNearPrice) {
+    //   setInput(saleInfo.maxNearPrice.toString()); // Clamp to max price
+    // } else if (!isNaN(inputValue) && parseFloat(inputValue) < MIN_NEAR_SELL) {
+    //   setInput(MIN_NEAR_SELL.toString()); // Clamp to min price
+    // } else {
+    //   setInput(inputValue);
+    // }
   };
 
   console.log('saleInfo', saleInfo);
@@ -79,9 +81,10 @@ export const SellModal = ({
   // Check if the ticket is valid to sell.
   const ticketSellStartDateValid = validateStartDateAndTime(saleInfo.salesValidThrough);
   const ticketSellEndDateValid = validateEndDateAndTime(saleInfo.salesValidThrough);
-  const ticketSellDateValid = validateDateAndTime(saleInfo.salesValidThrough);
 
-  const isSellError = input === '' || !ticketSellDateValid;
+  const ticketSellDateValid = ticketSellStartDateValid && ticketSellEndDateValid;
+
+  const isSellError = input === '' || !ticketSellStartDateValid || !ticketSellEndDateValid;
   const nearInput = parseFloat(input);
 
   const [isTicketValidToastOpen, setIsTicketValidToastOpen] = useState(false);
@@ -90,27 +93,44 @@ export const SellModal = ({
   const showToast = () => {
     if (!isTicketValidToastOpen) {
       setIsTicketValidToastOpen(true);
-      ticketSellNotValidToast({
-        title: ticketSellStartDateValid
-          ? 'Ticket sell date has not started.'
-          : 'Ticket sell date has passed.',
-        description: `Tickets be can sold during: ${dateAndTimeToText(
-          saleInfo.salesValidThrough,
-        )}.`,
-        status: 'error',
-        duration: null,
-        isClosable: true,
-        onCloseComplete: () => {
-          setIsTicketValidToastOpen(false);
-        },
-      });
+      // Resales have not started
+      if(!ticketSellStartDateValid){
+        ticketSellNotValidToast({
+          title: 'Ticket resales have not started.',
+          description: `Tickets be can sold starting: ${dateAndTimeToText(
+            saleInfo.salesValidThrough,
+          )}.`,
+          status: 'error',
+          duration: 10000,
+          isClosable: true,
+          onCloseComplete: () => {
+            setIsTicketValidToastOpen(false);
+          },
+        });
+      // Resales ended
+      }else {
+        ticketSellNotValidToast({
+          title: 'Ticket resales have ended.',
+          description: `Tickets could be sold until: ${dateAndTimeToText(
+            saleInfo.salesValidThrough,
+          )}.`,
+          status: 'error',
+          duration: 10000,
+          isClosable: true,
+          onCloseComplete: () => {
+            setIsTicketValidToastOpen(false);
+          },
+        });
+      }
     }
   };
 
   // Display not valid
-  if (!ticketSellDateValid) {
-    showToast();
-  }
+  useEffect(() => {
+    if (!ticketSellDateValid) {
+      showToast();
+    }
+  }, [ticketSellDateValid]);
 
   const modalSize = '3xl';
   const modalPadding = { base: '8', md: '16' };
