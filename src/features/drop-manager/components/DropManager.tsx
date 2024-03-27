@@ -320,7 +320,6 @@ export const DropManager = ({
         },
         'drop',
       );
-      console.log('deleting drop', dropId);
       setDeleting(false);
     }
   };
@@ -393,7 +392,8 @@ export const DropManager = ({
               objectFit="cover"
               src={dropData.media || placeholderImage} // Use dropData.media or fallback to placeholder
               onError={(e) => {
-                console.log('error loading image', e);
+                // eslint-disable-next-line no-console
+                console.warn('error loading image', e);
                 setDropData((prev) => ({ ...prev, media: placeholderImage }));
               }}
             />

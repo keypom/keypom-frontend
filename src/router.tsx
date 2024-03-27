@@ -21,18 +21,15 @@ const AllDropsPage = React.lazy(
   async () => await import('./features/all-drops/routes/AllDropsPage'),
 );
 
-const TicketQRCodePage = React.lazy(async () => await import('./features/ticket-qr/TicketQRPage'));
 const AllEventsPage = React.lazy(
   async () => await import('./features/all-drops/routes/AllEventsPage'),
 );
+const TicketQRPage = React.lazy(async () => await import('@/features/ticket-qr/TicketQRPage'));
 const ClaimPage = React.lazy(async () => await import('@/features/claim/routes/ClaimRouter'));
 const ClaimTokenPage = React.lazy(
   async () => await import('@/features/claim/routes/TokenClaimPage'),
 );
 const ClaimNftPage = React.lazy(async () => await import('@/features/claim/routes/NFTClaimPage'));
-const ClaimTicketPage = React.lazy(
-  async () => await import('@/features/claim/routes/TicketClaimPage'),
-);
 const ClaimTrialPage = React.lazy(
   async () => await import('@/features/claim/routes/TrialClaimPage'),
 );
@@ -59,6 +56,10 @@ const TicketDropManagerPage = React.lazy(
 );
 const EthDenverLandingPage = React.lazy(async () => await import('@/pages/EthDenver'));
 
+const Gallery = React.lazy(async () => await import('@/pages/Gallery'));
+
+const Event = React.lazy(async () => await import('@/pages/Event'));
+
 const ScannerPage = React.lazy(async () => await import('@/features/scanner/routes/ScannerPage'));
 
 export const router = createBrowserRouter([
@@ -72,6 +73,20 @@ export const router = createBrowserRouter([
       {
         path: 'ethdenver',
         element: <EthDenverLandingPage />,
+      },
+      {
+        path: 'gallery',
+        element: <Gallery />,
+        loader: () => {
+          import('@/lib/keypom').then(async (keypomLib) => {
+            await keypomLib.default.init();
+          });
+          return null;
+        },
+      },
+      {
+        path: 'gallery/:eventID',
+        element: <Event />,
       },
       {
         loader: () => {
@@ -90,16 +105,6 @@ export const router = createBrowserRouter([
             ),
           },
           {
-            path: 'tickets',
-            children: [
-              {
-                path: 'ticket/:id', // Match /tickets/ticket/:id
-                element: <TicketQRCodePage />,
-              },
-              // Add other paths as needed...
-            ],
-          },
-          {
             path: 'events',
             element: <ProtectedRoute />, // Wrap the AllEventsPage and its dynamic children with ProtectedRoute
             children: [
@@ -116,6 +121,15 @@ export const router = createBrowserRouter([
                 element: <TicketDropManagerPage />,
               },
               // Add other paths as needed...
+            ],
+          },
+          {
+            path: 'tickets',
+            children: [
+              {
+                path: 'ticket/:id', // Match /events/event/:id
+                element: <TicketQRPage />,
+              },
             ],
           },
           {
@@ -172,14 +186,6 @@ export const router = createBrowserRouter([
                 element: <ClaimNftPage />,
               },
               {
-                path: 'gift/:contractId',
-                element: <ClaimTicketPage />,
-              },
-              {
-                path: 'ticket/:contractId',
-                element: <ClaimTicketPage />,
-              },
-              {
                 path: 'trial/:contractId',
                 element: <ClaimTrialPage />,
               },
@@ -190,8 +196,13 @@ export const router = createBrowserRouter([
             ],
           },
           {
-            path: 'scanner',
-            element: <ScannerPage />,
+            path: 'scan',
+            children: [
+              {
+                path: 'event/:funderAndEventId',
+                element: <ScannerPage />,
+              },
+            ],
           },
         ],
       },

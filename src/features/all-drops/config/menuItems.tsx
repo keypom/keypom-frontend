@@ -96,6 +96,24 @@ export const DROP_TYPE_ITEMS: MenuItemProps[] = [
   },
 ];
 
+export const GALLERY_PRICE_ITEMS: MenuItemProps[] = [
+  {
+    label: 'Any',
+  },
+  {
+    label: '<20',
+  },
+  {
+    label: '20-50',
+  },
+  {
+    label: '50-100',
+  },
+  {
+    label: '100+',
+  },
+];
+
 export const DROP_CLAIM_STATUS_ITEMS: MenuItemProps[] = [
   {
     label: 'Any',
@@ -165,5 +183,43 @@ export const PAGE_SIZE_ITEMS: MenuItemProps[] = [
   {
     label: '50',
     color: 'gray.600',
+  },
+];
+
+export const GALLERY_PAGE_SIZE_ITEMS: MenuItemProps[] = [
+  {
+    label: '6',
+    color: 'gray.600',
+  },
+  {
+    label: '12',
+    color: 'gray.600',
+  },
+  {
+    label: '18',
+    color: 'gray.600',
+  },
+  {
+    label: '24',
+    color: 'gray.600',
+  },
+  {
+    label: '60',
+    color: 'gray.600',
+  },
+];
+
+export const SORT_MENU_ITEMS: MenuItemProps[] = [
+  {
+    label: 'no sort',
+    // color: 'gray.600',
+  },
+  {
+    label: 'ascending',
+    // color: 'gray.600',
+  },
+  {
+    label: 'descending',
+    // color: 'gray.600',
   },
 ];

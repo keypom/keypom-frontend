@@ -1,13 +1,28 @@
-import { Box, Button, Flex, Text } from '@chakra-ui/react';
+import { Box, Button, Flex, Heading, Text, VStack } from '@chakra-ui/react';
 import QRCode from 'react-qr-code';
+import { useNavigate } from 'react-router-dom';
+
+import { type TicketMetadataExtra } from '@/lib/eventsHelpers';
+import { dateAndTimeToText } from '@/features/drop-manager/utils/parseDates';
 
 interface QrDetailsProps {
   qrValue: string;
   ticketName: string;
   eventName: string;
+  eventId: string;
+  funderId: string;
+  ticketInfoExtra?: TicketMetadataExtra;
 }
 
-export const QrDetails = ({ qrValue, ticketName, eventName }: QrDetailsProps) => {
+export const QrDetails = ({
+  qrValue,
+  ticketName,
+  eventName,
+  eventId,
+  funderId,
+  ticketInfoExtra,
+}: QrDetailsProps) => {
+  const navigate = useNavigate();
   const handleDownloadQrCode = () => {
     const svg = document.getElementById('QRCode');
 
@@ -58,9 +73,33 @@ export const QrDetails = ({ qrValue, ticketName, eventName }: QrDetailsProps) =>
       <Text color="gray.600" mb="6" size={{ base: 'sm', md: 'sm' }} textAlign="center">
         Save this QR code and show it at the event to gain entry.
       </Text>
-      <Button variant="outline" w="full" onClick={handleDownloadQrCode}>
-        Download QR code
-      </Button>
+      <VStack w="full">
+        <Button variant="outline" w="full" onClick={handleDownloadQrCode}>
+          Download QR code
+        </Button>
+        <VStack spacing="1" w="full">
+          <Button
+            variant="outline"
+            w="full"
+            onClick={() => {
+              navigate(`/gallery/${funderId}:${eventId}#secretKey=${qrValue}`);
+            }}
+          >
+            Sell Ticket
+          </Button>
+          <Heading
+            fontFamily="body"
+            fontSize={{ base: 'xs', md: 'xs' }}
+            fontWeight="500"
+            textAlign="center"
+          >
+            Can be sold through:
+          </Heading>
+          <Heading fontSize={{ base: 'xs', md: 'xs' }} fontWeight="500" textAlign="center">
+            {ticketInfoExtra && dateAndTimeToText(ticketInfoExtra?.salesValidThrough)}
+          </Heading>
+        </VStack>
+      </VStack>
     </Flex>
   );
 };

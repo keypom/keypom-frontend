@@ -31,6 +31,8 @@ interface MobileMenuProps {
 export const MobileMenu = ({ menuItems }: MobileMenuProps) => {
   const { isLoggedIn } = useAuthWalletContext();
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const isTicketSubdirectory =
+    location.pathname.startsWith('/tickets/') || location.pathname.startsWith('/claim/');
 
   const btnRef = useRef(null);
   return (
@@ -59,9 +61,11 @@ export const MobileMenu = ({ menuItems }: MobileMenuProps) => {
               })}
             </VStack>
           </DrawerBody>
-          <DrawerFooter flexDirection="row" justifyContent="center" pb="10">
-            {isLoggedIn ? <SignedInButton /> : <ConnectWalletButton w="50%" />}
-          </DrawerFooter>
+          {!isTicketSubdirectory && (
+            <DrawerFooter flexDirection="row" justifyContent="center" pb="10">
+              {isLoggedIn ? <SignedInButton /> : <ConnectWalletButton w="50%" />}
+            </DrawerFooter>
+          )}
         </DrawerContent>
       </Drawer>
     </Box>

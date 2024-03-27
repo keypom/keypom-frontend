@@ -34,8 +34,9 @@ import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
 import keypomInstance, { type AttendeeKeyItem } from '@/lib/keypom';
 import {
   type QuestionInfo,
-  type EventDropMetadata,
   type FunderEventMetadata,
+  type EventDrop,
+  type TicketMetadataExtra,
 } from '@/lib/eventsHelpers';
 import { type ColumnItem, type DataItem } from '@/components/Table/types';
 import { Breadcrumbs } from '@/components/Breadcrumbs';
@@ -44,7 +45,7 @@ import { FilterOptionsMobileButton } from '@/features/all-drops/components/Filte
 import { DataTable } from '@/components/Table';
 import { DropManagerPagination } from '@/features/all-drops/components/DropManagerPagination';
 import { MobileDrawerMenu } from '@/features/all-drops/components/MobileDrawerMenu';
-import { MASTER_KEY, PAGE_SIZE_LIMIT } from '@/constants/common';
+import { CLOUDFLARE_IPFS, MASTER_KEY, PAGE_SIZE_LIMIT } from '@/constants/common';
 import {
   createMenuItems,
   PAGE_SIZE_ITEMS,
@@ -117,11 +118,7 @@ export default function TicketManagerPage() {
   const [ticketsPurchased, setTicketsPurchased] = useState<number>(0);
   const [tableColumns, setTableColumns] = useState<ColumnItem[]>(ticketTableColumns);
   const [ticketsScanned, setTicketsScanned] = useState<number>(0);
-  const [dropData, setDropData] = useState<{
-    drop_id: string;
-    funder_id: string;
-    drop_config: { metadata: EventDropMetadata };
-  }>();
+  const [dropData, setDropData] = useState<EventDrop>();
 
   const [exporting, setExporting] = useState<boolean>(false);
   const [numPages, setNumPages] = useState<number>(0);
@@ -197,13 +194,13 @@ export default function TicketManagerPage() {
 
     const getDropData = async () => {
       try {
-        const drop: { drop_id: string; funder_id: string; drop_config: { metadata: string } } =
-          await keypomInstance.viewCall({
-            methodName: 'get_drop_information',
-            args: { drop_id: dropId },
-          });
-        const metadata: EventDropMetadata = JSON.parse(drop.drop_config.metadata);
-        setDropData({ ...drop, drop_config: { metadata } });
+        const drop: EventDrop = await keypomInstance.viewCall({
+          methodName: 'get_drop_information',
+          args: { drop_id: dropId },
+        });
+        drop.drop_config.nft_keys_config.token_metadata.media = `${CLOUDFLARE_IPFS}/${drop.drop_config.nft_keys_config.token_metadata.media}`;
+
+        setDropData(drop);
       } catch (e) {
         console.error('error', e);
         setIsErr(true);
@@ -219,17 +216,22 @@ export default function TicketManagerPage() {
 
     const getEventData = async () => {
       try {
-        const drop: { drop_id: string; funder_id: string; drop_config: { metadata: string } } =
-          await keypomInstance.viewCall({
-            methodName: 'get_drop_information',
-            args: { drop_id: dropId },
-          });
-        const metadata: EventDropMetadata = JSON.parse(drop.drop_config.metadata);
-
-        const eventInfo = await keypomInstance.getEventInfo({
-          accountId,
-          eventId: metadata.eventId,
+        const drop: EventDrop = await keypomInstance.viewCall({
+          methodName: 'get_drop_information',
+          args: { drop_id: dropId },
         });
+        const nftExtraObj: TicketMetadataExtra = JSON.parse(
+          drop.drop_config.nft_keys_config.token_metadata.extra,
+        );
+
+        const eventInfo: FunderEventMetadata | null = await keypomInstance.getEventInfo({
+          accountId,
+          eventId: nftExtraObj.eventId,
+        });
+        if (eventInfo == null) {
+          setIsErr(true);
+          return;
+        }
         setEventInfo(eventInfo);
 
         if (eventInfo?.questions) {
@@ -260,7 +262,8 @@ export default function TicketManagerPage() {
 
         setTableColumns((prevColumns) => [...questionColumns, ...prevColumns]);
       } catch (e) {
-        console.error('error in fooooooooo', e);
+        // eslint-disable-next-line no-console
+        console.error('error in getEventData', e);
         setIsErr(true);
       }
     };
@@ -465,7 +468,7 @@ export default function TicketManagerPage() {
         filteredKeys = filteredKeys.concat(curFiltered);
       }
 
-      if (filteredTicketData.length !== 0) {
+      if (filteredTicketData.length === 0) {
         setFilteredTicketData(filteredKeys);
       }
       setCurPage(0);
@@ -665,7 +668,7 @@ export default function TicketManagerPage() {
       href: `/events/event/${eventInfo?.id || ''}`,
     },
     {
-      name: dropData?.drop_config.metadata.name || '',
+      name: dropData?.drop_config.nft_keys_config.token_metadata.title || '',
       href: '',
     },
   ];
@@ -686,7 +689,7 @@ export default function TicketManagerPage() {
       {/* Drop info section */}
       <VStack align="start" paddingTop="4" spacing="4">
         <HStack>
-          {!dropData?.drop_config.metadata.artwork ? (
+          {!dropData?.drop_config.nft_keys_config.token_metadata.media ? (
             <Spinner />
           ) : (
             <Image
@@ -694,14 +697,16 @@ export default function TicketManagerPage() {
               borderRadius="12px"
               boxSize="150px"
               objectFit="cover"
-              src={dropData?.drop_config.metadata.artwork} // Use dropData.media or fallback to placeholder
+              src={dropData?.drop_config.nft_keys_config.token_metadata.media} // Use dropData.media or fallback to placeholder
             />
           )}
           <VStack align="start">
             <Heading fontFamily="" size="sm">
               Ticket name
             </Heading>
-            <Heading size="lg">{dropData?.drop_config.metadata.name} </Heading>
+            <Heading size="lg">
+              {dropData?.drop_config.nft_keys_config.token_metadata.title}{' '}
+            </Heading>
           </VStack>
         </HStack>
         <HStack justify="space-between" w="100%">

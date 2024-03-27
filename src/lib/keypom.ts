@@ -7,7 +7,6 @@ import {
   getFTMetadata,
   claim,
   getKeyInformation,
-  hashPassword,
   getPubFromSecret,
   formatNearAmount,
   formatLinkdropUrl,
@@ -23,17 +22,27 @@ import {
 } from 'keypom-js';
 import * as nearAPI from 'near-api-js';
 import { type Wallet } from '@near-wallet-selector/core';
+import * as bs58 from 'bs58';
+import * as nacl from 'tweetnacl';
+import * as naclUtil from 'tweetnacl-util';
 
 import { truncateAddress } from '@/utils/truncateAddress';
-import { CLOUDFLARE_IPFS, DROP_TYPE, KEYPOM_EVENTS_CONTRACT, MASTER_KEY } from '@/constants/common';
+import {
+  CLOUDFLARE_IPFS,
+  DROP_TYPE,
+  KEYPOM_EVENTS_CONTRACT,
+  KEYPOM_MARKETPLACE_CONTRACT,
+  MASTER_KEY,
+} from '@/constants/common';
 import getConfig from '@/config/config';
 import { get } from '@/utils/localStorage';
 
 import {
-  type EventDropMetadata,
-  isValidTicketInfo,
   type FunderEventMetadata,
   type FunderMetadata,
+  isValidTicketNFTMetadata,
+  type TicketMetadataExtra,
+  type EventDrop,
 } from './eventsHelpers';
 import { decryptPrivateKey, decryptWithPrivateKey, deriveKeyFromPassword } from './cryptoHelpers';
 
@@ -53,14 +62,6 @@ const connectionConfig = {
   explorerUrl: config.explorerUrl,
 };
 
-export interface EventDrop {
-  drop_id: string;
-  funder_id: string;
-  drop_config: {
-    metadata: string;
-  };
-}
-
 export interface DropKeyItem {
   id: number;
   publicKey: string;
@@ -79,12 +80,27 @@ export interface AttendeeKeyItem {
   message_nonce: number;
 }
 
+export interface MarketListingTicketData {
+  max_tickets: number;
+  price: number;
+}
+
+export interface MarketListing {
+  event_id: string;
+  funder_id: string;
+  status: string;
+  ticket_info: MarketListingTicketData[];
+}
+
 const KEY_ITEMS_PER_QUERY = 30;
 const DROP_ITEMS_PER_QUERY = 5;
+const MARKETPLACE_ITEMS_PER_QUERY = 50;
 class KeypomJS {
   static instance: KeypomJS;
   nearConnection: nearAPI.Near;
   viewAccount: nearAPI.Account;
+
+  allEventsGallery: MarketListing[];
 
   // Map the event ID to a set of drop IDs
   ticketDropsByEventId: Record<string, EventDrop[]> = {};
@@ -95,7 +111,7 @@ class KeypomJS {
     string,
     {
       totalKeys: number;
-      dropMeta: EventDropMetadata;
+      dropInfo: EventDrop;
       dropKeyItems: AttendeeKeyItem[];
     }
   > = {};
@@ -116,6 +132,8 @@ class KeypomJS {
     if (instance !== undefined) {
       throw new Error('New instance cannot be created!!');
     }
+
+    this.init();
   }
 
   async init() {
@@ -126,7 +144,8 @@ class KeypomJS {
 
   public static getInstance(): KeypomJS {
     if (
-      !KeypomJS.instance ||
+      KeypomJS.instance == null ||
+      KeypomJS.instance === undefined ||
       !(KeypomJS.instance instanceof KeypomJS) ||
       this.instance === undefined
     ) {
@@ -138,6 +157,8 @@ class KeypomJS {
 
   yoctoToNear = (yocto: string) => nearAPI.utils.format.formatNearAmount(yocto, 4);
 
+  nearToYocto = (near: string) => nearAPI.utils.format.parseNearAmount(near);
+
   viewCall = async ({ contractId = KEYPOM_EVENTS_CONTRACT, methodName, args }) => {
     const res = await this.viewAccount.viewFunctionV2({
       contractId,
@@ -146,6 +167,151 @@ class KeypomJS {
     });
     return res;
   };
+
+  getResalesForEvent = async ({ eventId }) => {
+    return await this.viewAccount.viewFunctionV2({
+      contractId: KEYPOM_MARKETPLACE_CONTRACT,
+      methodName: 'get_resales_per_event',
+      args: { event_id: eventId },
+    });
+  };
+
+  GetGlobalKey = async () => {
+    return await this.viewAccount.viewFunctionV2({
+      contractId: KEYPOM_EVENTS_CONTRACT,
+      methodName: 'get_global_secret_key',
+      args: {},
+    });
+  };
+
+  ListUnownedTickets = async ({ msg }) => {
+    // const publicKey = JSON.parse(msg).linkdrop_pk;
+    const keypomGlobalSecretKey = await this.GetGlobalKey();
+    const keypomKeypair = nearAPI.KeyPair.fromString(keypomGlobalSecretKey);
+    myKeyStore.setKey(networkId, KEYPOM_EVENTS_CONTRACT, keypomKeypair);
+    const keypomAccount = new nearAPI.Account(
+      this.nearConnection.connection,
+      KEYPOM_EVENTS_CONTRACT,
+    );
+    await keypomAccount.functionCall({
+      contractId: KEYPOM_EVENTS_CONTRACT,
+      methodName: 'nft_approve',
+      args: {
+        account_id: KEYPOM_MARKETPLACE_CONTRACT,
+        msg,
+      },
+      gas: '300000000000000',
+    });
+  };
+
+  GenerateResellSignature = async (keypair) => {
+    const sk_bytes = bs58.decode(keypair.secretKey);
+
+    const signing_message = await this.viewAccount.viewFunctionV2({
+      contractId: KEYPOM_EVENTS_CONTRACT,
+      methodName: 'get_signing_message',
+      args: {},
+    });
+    const key_info = await this.viewAccount.viewFunctionV2({
+      contractId: KEYPOM_EVENTS_CONTRACT,
+      methodName: 'get_key_information',
+      args: {
+        key: keypair.publicKey.toString(),
+      },
+    });
+    const message_nonce = key_info.message_nonce;
+
+    const message = `${String(signing_message)}${String(message_nonce.toString())}`;
+    const message_bytes = new TextEncoder().encode(`${message}`);
+
+    const signature = nacl.sign.detached(message_bytes, sk_bytes);
+    const base64_signature = naclUtil.encodeBase64(signature);
+
+    return [base64_signature, signature];
+  };
+
+  GenerateTicketKeys = async (numKeys) => {
+    const { publicKeys, secretKeys } = await generateKeys({
+      numKeys,
+      // rootEntropy: `${get(MASTER_KEY) as string}-${dropId}`,
+      // autoMetaNonceStart: start,
+    });
+
+    return { publicKeys, secretKeys };
+  };
+
+  GetMarketListings = async ({ start, limit }: { start: number; limit: number }) => {
+    try {
+      const totalSupply = await this.getEventSupply();
+      if (limit <= 0) {
+        limit = totalSupply;
+      }
+      if (this.allEventsGallery === undefined || this.allEventsGallery.length !== totalSupply) {
+        this.allEventsGallery = new Array(totalSupply).fill(null);
+      }
+
+      // Calculate the end index for the requested market listings
+      const endIndex = Math.min(start + limit, this.allEventsGallery.length);
+
+      // Fetch and cache only the needed batches
+      for (let i = start; i < totalSupply; i += MARKETPLACE_ITEMS_PER_QUERY) {
+        const batchStart = i;
+        const batchEnd = Math.min(i + MARKETPLACE_ITEMS_PER_QUERY, endIndex);
+        if (this.allEventsGallery.slice(batchStart, batchEnd).some((item) => item === null)) {
+          // If any item in the range is null, fetch the batch
+          const answer: MarketListing[] = await this.viewAccount.viewFunctionV2({
+            contractId: KEYPOM_MARKETPLACE_CONTRACT,
+            methodName: 'get_events',
+            args: { from_index: batchStart, limit: batchEnd - batchStart },
+          });
+          // add answers to cache
+          for (let j = 0; j < answer.length; j++) {
+            this.allEventsGallery[batchStart + j] = answer[j];
+          }
+        }
+      }
+
+      // Return the requested slice from the cache
+      return this.allEventsGallery.slice(start, endIndex);
+    } catch (error) {
+      throw new Error('Failed to get all market listings due to error: ' + String(error));
+    }
+  };
+
+  // GetMarketListings = async ({ contractId = KEYPOM_MARKETPLACE_CONTRACT, limit, from_index }) => {
+  //   if (limit > 50) {
+  //     limit = 50;
+  //   }
+  //   if (
+  //     this.allEventsGallery == null ||
+  //     this.allEventsGallery === undefined ||
+  //     this.allEventsGallery.length === 0
+  //   ) {
+  //     const supply = await this.getEventSupply();
+  //     // initialize to length supply
+  //     this.allEventsGallery = new Array(supply).fill(null);
+  //   }
+
+  //   const cached = this.allEventsGallery.slice(from_index, parseInt(from_index) + parseInt(limit));
+
+  //   const hasNoNulls = cached.every((item) => item !== null);
+  //   const hasNoUndefineds = cached.every((item) => item !== undefined);
+
+  //   if (hasNoNulls && hasNoUndefineds) {
+  //     // just return from cache
+  //     return cached;
+  //   }
+
+  //   const answer: MarketListing[] = await this.viewAccount.viewFunctionV2({
+  //     contractId,
+  //     methodName: 'get_events',
+  //     args: { limit, from_index },
+  //   });
+
+  //   this.allEventsGallery.splice(from_index, limit, ...answer);
+
+  //   return answer;
+  // };
 
   validateAccountId = async (accountId: string) => {
     if (!(accountId.length >= 2 && accountId.length <= 64 && ACCOUNT_ID_REGEX.test(accountId))) {
@@ -161,7 +327,7 @@ class KeypomJS {
     return true;
   };
 
-  verifyDrop = async (contractId: string, secretKey: string) => {
+  verifyDrop = async (contractId: string, secretKey?: string) => {
     const { networkId, supportedKeypomContracts } = getEnv();
 
     if (
@@ -191,6 +357,21 @@ class KeypomJS {
     return keyInfo.cur_key_use;
   };
 
+  getCurrentKeyOwner = async (contractId: string, publicKey: string) => {
+    const keyInfo = await this.viewAccount.viewFunctionV2({
+      contractId: KEYPOM_EVENTS_CONTRACT,
+      methodName: 'get_key_information',
+      args: { key: publicKey },
+    });
+    console.log('keyinfo: ', keyInfo);
+
+    if (keyInfo === null || keyInfo === undefined) {
+      throw new Error('Key does not exist');
+    }
+
+    return keyInfo.owner_id;
+  };
+
   checkIfDropExists = async (secretKey: string) => {
     try {
       await this.getDropInfo({ secretKey });
@@ -200,23 +381,47 @@ class KeypomJS {
     }
   };
 
-  claimTicket = async (secretKey: string, password: string) => {
-    let keyInfo = await getKeyInformation({ secretKey });
-    const publicKey: string = getPubFromSecret(secretKey);
-    const passwordForClaim = await hashPassword(
-      password + publicKey + keyInfo.cur_key_use.toString(),
+  onEventTicketScanned = async (secretKey: string) => {
+    const pubKey = getPubFromSecret(secretKey);
+
+    const keypomGlobalSecretKey = await this.GetGlobalKey();
+    const keypomKeypair = nearAPI.KeyPair.fromString(keypomGlobalSecretKey);
+    await myKeyStore.setKey(networkId, KEYPOM_EVENTS_CONTRACT, keypomKeypair);
+    const keypomAccount = new nearAPI.Account(
+      this.nearConnection.connection,
+      KEYPOM_EVENTS_CONTRACT,
     );
 
-    try {
-      await claim({ secretKey, password: passwordForClaim, accountId: 'foo' });
-    } catch (e) {
-      console.warn(e);
-    }
+    const sk_bytes = bs58.decode(secretKey);
+    const signingMessage = await this.viewAccount.viewFunctionV2({
+      contractId: KEYPOM_EVENTS_CONTRACT,
+      methodName: 'get_signing_message',
+      args: {},
+    });
+    const keyInfo = await this.viewAccount.viewFunctionV2({
+      contractId: KEYPOM_EVENTS_CONTRACT,
+      methodName: 'get_key_information',
+      args: {
+        key: pubKey,
+      },
+    });
+    const message_nonce = keyInfo.message_nonce;
+    const message = `${String(signingMessage)}${String(message_nonce.toString())}`;
+    const message_bytes = new TextEncoder().encode(`${message}`);
+    const signature = nacl.sign.detached(message_bytes, sk_bytes);
+    const base64Signature = naclUtil.encodeBase64(signature);
+    const gasToAttach = keyInfo.required_gas;
 
-    keyInfo = await getKeyInformation({ secretKey });
-    if (keyInfo.remaining_uses === 2) {
-      throw new Error('Password is incorrect. Please try again.');
-    }
+    await keypomAccount.functionCall({
+      contractId: KEYPOM_EVENTS_CONTRACT,
+      methodName: 'claim',
+      args: {
+        account_id: KEYPOM_EVENTS_CONTRACT,
+        signature: base64Signature,
+        linkdrop_pk: pubKey,
+      },
+      gas: gasToAttach,
+    });
   };
 
   // valid contract id -> v1-3.keypom.testnet
@@ -277,7 +482,7 @@ class KeypomJS {
       }
 
       // Initialize the cache for this account if it doesn't exist
-      if (!this.dropStore[accountId]) {
+      if (this.dropStore[accountId] == null || this.dropStore[accountId] === undefined) {
         this.dropStore[accountId] = [];
       }
 
@@ -303,7 +508,6 @@ class KeypomJS {
 
       return this.dropStore[accountId];
     } catch (error) {
-      console.error('Error fetching drops:', error);
       throw new Error('Failed to fetch drops.');
     }
   };
@@ -314,6 +518,40 @@ class KeypomJS {
       methodName: 'get_key_supply_for_drop',
       args: { drop_id: dropId },
     });
+  };
+
+  getEventSupply = async () => {
+    return await this.viewAccount.viewFunctionV2({
+      contractId: KEYPOM_MARKETPLACE_CONTRACT,
+      methodName: 'get_event_supply',
+      args: {},
+    });
+  };
+
+  getStripeAccountId = async (accountId: string) => {
+    return await this.viewCall({
+      contractId: KEYPOM_MARKETPLACE_CONTRACT,
+      methodName: 'get_stripe_id_for_account',
+      args: { account_id: accountId },
+    });
+  };
+
+  getStripeEnabledEvents = async () => {
+    return await this.viewCall({
+      contractId: KEYPOM_MARKETPLACE_CONTRACT,
+      methodName: 'get_stripe_enabled_events',
+      args: {},
+    });
+  };
+
+  getEventStripeStatus = async (eventId: string) => {
+    const res = await this.viewCall({
+      contractId: KEYPOM_MARKETPLACE_CONTRACT,
+      methodName: 'event_stripe_status',
+      args: { event_id: eventId },
+    });
+    console.log('res', res);
+    return res;
   };
 
   deleteEventFromFunderMetadata = async ({
@@ -368,24 +606,35 @@ class KeypomJS {
   }: {
     accountId: string;
     eventId: string;
-  }): Promise<FunderEventMetadata> => {
+  }): Promise<FunderEventMetadata | null> => {
     try {
       const funderInfo = await this.viewCall({
         methodName: 'get_funder_info',
         args: { account_id: accountId },
       });
-      const funderMeta = JSON.parse(funderInfo.metadata);
 
-      return funderMeta[eventId];
+      const funderMeta: Record<string, FunderEventMetadata> = JSON.parse(funderInfo.metadata);
+      const eventInfo: FunderEventMetadata = funderMeta[eventId];
+
+      if (eventInfo === undefined || eventInfo === null) {
+        throw new Error(`Event ${String(eventId)} not exist`);
+      }
+
+      eventInfo.artwork = `${CLOUDFLARE_IPFS}/${eventInfo.artwork}`;
+
+      return eventInfo;
     } catch (error) {
-      console.error('Error getting event info:', error);
-      throw new Error('Error getting event info');
+      /* eslint-disable no-console */
+      console.warn('Error getting event info', error);
+      return null;
     }
   };
 
   groupDropsByEvent = (drops: EventDrop[]) => {
     for (const eventDrop of drops) {
-      const metadata: EventDropMetadata = JSON.parse(eventDrop.drop_config.metadata);
+      const metadata: TicketMetadataExtra = JSON.parse(
+        eventDrop.drop_config.nft_keys_config.token_metadata.extra,
+      );
 
       if (!Object.hasOwn(this.ticketDropsByEventId, metadata.eventId)) {
         this.ticketDropsByEventId[metadata.eventId] = [];
@@ -399,7 +648,6 @@ class KeypomJS {
       methodName: 'get_drop_supply_for_funder',
       args: { account_id: accountId },
     });
-
     const totalQueries = Math.ceil(numDrops / DROP_ITEMS_PER_QUERY);
     const pageIndices = Array.from({ length: totalQueries }, (_, index) => index);
 
@@ -420,23 +668,33 @@ class KeypomJS {
 
     let allDrops: EventDrop[] = allPagesDrops.flat(); // Assuming allPagesDrops is already defined and flattened.
     allDrops = allDrops.filter((drop) => {
-      if (!drop.drop_id || !drop.funder_id || !drop.drop_config || !drop.drop_config.metadata) {
+      if (
+        !drop.drop_id ||
+        !drop.funder_id ||
+        !drop.drop_config ||
+        !drop.drop_config.nft_keys_config
+      ) {
         return false; // Drop does not have the required top-level structure
       }
 
-      try {
-        const metadata = JSON.parse(drop.drop_config.metadata);
+      return isValidTicketNFTMetadata(drop.drop_config.nft_keys_config.token_metadata);
+    });
 
-        // Check ticketInfo's structure
-        if (!isValidTicketInfo(metadata)) {
-          return false; // TicketInfo is invalid
-        }
-
-        return true; // Drop passes all checks
-      } catch (e) {
-        // JSON.parse failed, metadata is not a valid JSON string
-        return false;
-      }
+    // Add cloudflare IPFS prefix to media
+    allDrops = allDrops.map((drop) => {
+      return {
+        ...drop,
+        drop_config: {
+          ...drop.drop_config,
+          nft_keys_config: {
+            ...drop.drop_config.nft_keys_config,
+            token_metadata: {
+              ...drop.drop_config.nft_keys_config.token_metadata,
+              media: `${CLOUDFLARE_IPFS}/${drop.drop_config.nft_keys_config.token_metadata.media}`,
+            },
+          },
+        },
+      };
     });
 
     this.groupDropsByEvent(allDrops);
@@ -447,7 +705,14 @@ class KeypomJS {
       await this.groupAllDropsForAccount({ accountId });
     }
 
-    return this.ticketDropsByEventId[eventId] || [];
+    if (
+      this.ticketDropsByEventId[eventId] != null &&
+      this.ticketDropsByEventId[eventId] !== undefined
+    ) {
+      return this.ticketDropsByEventId[eventId];
+    }
+
+    return [];
   };
 
   getEventsForAccount = async ({ accountId }: { accountId: string }) => {
@@ -460,13 +725,15 @@ class KeypomJS {
 
       const events: FunderEventMetadata[] = [];
       for (const eventId in funderMeta) {
-        events.push(funderMeta[eventId]);
-        this.eventInfoById[eventId] = funderMeta[eventId];
+        const eventInfo: FunderEventMetadata = funderMeta[eventId];
+        eventInfo.artwork = `${CLOUDFLARE_IPFS}/${eventInfo.artwork}`;
+
+        events.push(eventInfo);
+        this.eventInfoById[eventId] = eventInfo;
       }
 
       return events;
     } catch (error) {
-      console.error('Error fetching drops:', error);
       throw new Error('Failed to fetch drops.');
     }
   };
@@ -499,7 +766,7 @@ class KeypomJS {
         // Initialize the cache for this drop
         this.purchasedTicketsById[dropId] = {
           dropKeyItems: new Array(totalKeys).fill(null),
-          dropMeta: JSON.parse(dropInfo.drop_config.metadata),
+          dropInfo,
           totalKeys,
         };
 
@@ -526,8 +793,34 @@ class KeypomJS {
 
       return this.purchasedTicketsById[dropId];
     } catch (error) {
-      console.error('Failed to get keys info:', error);
       throw new Error('Failed to get keys info.');
+    }
+  };
+
+  getTicketKeyInformation = async ({ publicKey }: { publicKey: string }) => {
+    const fetchedinfo = await this.viewAccount.viewFunctionV2({
+      contractId: KEYPOM_EVENTS_CONTRACT,
+      methodName: 'get_key_information',
+      args: {
+        key: publicKey,
+      },
+    });
+    return fetchedinfo;
+  };
+
+  getTicketDropInformation = async ({ dropId }: { dropId: string }) => {
+    try {
+      const fetchedinfo = await this.viewCall({
+        methodName: 'get_drop_information',
+        args: {
+          drop_id: dropId,
+        },
+      });
+
+      // Return the requested slice from the cache
+      return fetchedinfo;
+    } catch (e) {
+      throw new Error('Failed to get key info.');
     }
   };
 
@@ -546,7 +839,6 @@ class KeypomJS {
         methodName: 'get_drop_information',
         args: { drop_id: dropId },
       });
-      const meta: EventDropMetadata = JSON.parse(dropInfo.drop_config.metadata);
       const totalKeys = dropInfo.next_key_id;
 
       if (
@@ -554,7 +846,7 @@ class KeypomJS {
         this.purchasedTicketsById[dropId]?.totalKeys !== totalKeys
       ) {
         this.purchasedTicketsById[dropId] = {
-          dropMeta: meta,
+          dropInfo,
           dropKeyItems: new Array(totalKeys).fill(null),
           totalKeys,
         };
@@ -591,7 +883,6 @@ class KeypomJS {
       // Return the requested slice from the cache
       return this.purchasedTicketsById[dropId].dropKeyItems.slice(start, endIndex);
     } catch (e) {
-      console.error('Failed to get paginated keys info:', e);
       throw new Error('Failed to get paginated keys info.');
     }
   };
@@ -613,7 +904,7 @@ class KeypomJS {
       }
 
       // Initialize the cache for this account if it doesn't exist
-      if (!this.dropStore[accountId]) {
+      if (this.dropStore[accountId] == null || this.dropStore[accountId] === undefined) {
         this.dropStore[accountId] = [];
       }
 
@@ -627,7 +918,10 @@ class KeypomJS {
         const pageStart = pageIndex * DROP_ITEMS_PER_QUERY;
 
         // Only fetch if this page hasn't been cached yet
-        if (!this.dropStore[accountId][pageStart]) {
+        if (
+          this.dropStore[accountId][pageStart] == null ||
+          this.dropStore[accountId][pageStart] === undefined
+        ) {
           const pageDrops = await this.fetchDropsPage(accountId, pageIndex);
 
           // Cache each item from the page with its index as the key
@@ -640,7 +934,6 @@ class KeypomJS {
       // Return the requested slice from the cache
       return this.dropStore[accountId].slice(start, endIndex);
     } catch (error) {
-      console.error('Error fetching drops:', error);
       throw new Error('Failed to fetch drops.');
     }
   };
@@ -673,7 +966,9 @@ class KeypomJS {
     if (dropId !== undefined) {
       drop = await this.getDropInfo({ dropId: dropId.toString() });
     }
-    const { drop_id: id, metadata, next_key_id: totalKeys } = drop!;
+    if (drop == null || drop === undefined) throw new Error('Drop is null or undefined');
+
+    const { drop_id: id, metadata, next_key_id: totalKeys } = drop;
     const claimedKeys = await this.getAvailableKeys(id);
     const claimedText = `${totalKeys - claimedKeys} / ${totalKeys}`;
 
@@ -681,7 +976,8 @@ class KeypomJS {
 
     let type: string | null = '';
     try {
-      type = this.getDropType(drop!);
+      if (drop == null || drop === undefined) throw new Error('Drop is null or undefined');
+      type = this.getDropType(drop);
     } catch (_) {
       type = DROP_TYPE.OTHER;
     }
@@ -694,7 +990,7 @@ class KeypomJS {
         description: '',
       };
       try {
-        const fcMethods = drop!.fc?.methods;
+        const fcMethods = drop.fc?.methods;
         if (
           fcMethods === undefined ||
           fcMethods.length === 0 ||
@@ -704,7 +1000,7 @@ class KeypomJS {
           throw new Error('Unable to retrieve function calls.');
         }
 
-        const { nftData } = await this.getNFTorTokensMetadata(fcMethods[0][0], drop!.drop_id);
+        const { nftData } = await this.getNFTorTokensMetadata(fcMethods[0][0], drop.drop_id);
 
         nftMetadata = {
           media: `${CLOUDFLARE_IPFS}/${nftData?.metadata?.media}`, // eslint-disable-line
@@ -712,7 +1008,7 @@ class KeypomJS {
           description: nftData?.metadata?.description,
         };
       } catch (e) {
-        console.error('failed to get nft metadata', e); // eslint-disable-line no-console
+        throw new Error('Failed to get NFT metadata.');
       }
       nftHref = nftMetadata?.media || 'assets/image-not-found.png';
     }
@@ -808,8 +1104,9 @@ class KeypomJS {
       const dropName = this.getDropMetadata(dropInfo.metadata).dropName;
       const totalKeys = dropInfo.next_key_id;
       if (
-        !this.keyStore[dropId] ||
-        (this.keyStore[dropId] && this.keyStore[dropId].totalKeys !== totalKeys)
+        this.keyStore[dropId] == null ||
+        this.keyStore[dropId] === undefined ||
+        (this.keyStore[dropId] != null && this.keyStore[dropId].totalKeys !== totalKeys)
       ) {
         // Initialize the cache for this drop
         this.keyStore[dropId] = {
@@ -835,7 +1132,6 @@ class KeypomJS {
 
       return this.keyStore[dropId];
     } catch (error) {
-      console.error('Failed to get keys info:', error);
       throw new Error('Failed to get keys info.');
     }
   }
@@ -852,24 +1148,28 @@ class KeypomJS {
   }) => {
     try {
       // Initialize the cache for this drop if it doesn't exist
-      if (!this.keyStore[dropId]) {
-        const dropInfo = await this.getDropInfo({ dropId });
-        const dropName = this.getDropMetadata(dropInfo.metadata).dropName;
-        const totalKeys = dropInfo.next_key_id;
+      if (this.keyStore[dropId] == null || this.keyStore[dropId] === undefined)
+        throw new Error('Drop is null or undefined');
 
-        this.keyStore[dropId] = {
-          dropName,
-          dropKeyItems: Array(totalKeys).fill(null), // Initialize with nulls
-          totalKeys,
-        };
-      }
+      const dropInfo = await this.getDropInfo({ dropId });
+      const dropName = this.getDropMetadata(dropInfo.metadata).dropName;
+      const totalKeys = dropInfo.next_key_id;
+
+      this.keyStore[dropId] = {
+        dropName,
+        dropKeyItems: Array(totalKeys).fill(null), // Initialize with nulls
+        totalKeys,
+      };
 
       // Calculate the end index
       const endIndex = Math.min(start + limit, this.keyStore[dropId].totalKeys);
 
       // Fetch and cache batches as needed
       for (let i = start; i < endIndex; i += KEY_ITEMS_PER_QUERY) {
-        if (!this.keyStore[dropId].dropKeyItems[i]) {
+        if (
+          this.keyStore[dropId].dropKeyItems[i] == null ||
+          this.keyStore[dropId].dropKeyItems[i] === undefined
+        ) {
           // Fetch the keys for this batch
           const batchLimit = Math.min(KEY_ITEMS_PER_QUERY, endIndex - i);
           await this.fetchKeyBatch(dropId, i, batchLimit);
@@ -879,7 +1179,6 @@ class KeypomJS {
       // Return the requested slice from the cache
       return this.keyStore[dropId].dropKeyItems.slice(start, endIndex);
     } catch (e) {
-      console.error('Failed to get keys info:', e);
       throw new Error('Failed to get keys info.');
     }
   };
@@ -893,7 +1192,6 @@ class KeypomJS {
     try {
       await this.getDropInfo({ secretKey });
     } catch (err) {
-      console.error(err);
       throw new Error('This drop has been claimed.');
     }
 
@@ -951,8 +1249,7 @@ class KeypomJS {
         args: { mint_id: parseFloat(dropId) },
       });
     } catch (err) {
-      console.error('NFT series not found');
-      // throw new Error('NFT series not found');
+      throw new Error('NFT series not found');
     }
 
     // show tokens if NFT series not found

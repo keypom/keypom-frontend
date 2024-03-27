@@ -35,4 +35,12 @@ export const EMPTY_TABLE_TEXT_MAP = {
     heading: `No tickets found with the current filters`,
     text: `Please try different filters`,
   },
+  'collect-info': {
+    heading: `You don't have any attendee questions`,
+    text: `Add some if you want!`,
+  },
+  'create-tickets': {
+    heading: `You don't have any tickets`,
+    text: `Create a new ticket!`,
+  },
 };

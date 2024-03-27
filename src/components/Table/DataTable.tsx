@@ -1,7 +1,6 @@
 import {
   TableContainer,
   Show,
-  Hide,
   Tbody,
   Table,
   type TableProps,
@@ -42,7 +41,9 @@ interface DataTableProps extends TableProps {
     | 'all-tickets'
     | 'no-filtered-events'
     | 'all-events'
-    | 'no-filtered-tickets';
+    | 'no-filtered-tickets'
+    | 'create-tickets'
+    | 'collect-info';
   showColumns?: boolean;
   columns: ColumnItem[];
   data: DataItem[];
@@ -138,7 +139,7 @@ export const DataTable = ({
           </Show>
 
           {/* Mobile table */}
-          <Hide above="md">
+          <Show below="md">
             <MobileDataTable
               columns={columns}
               data={data}
@@ -147,7 +148,7 @@ export const DataTable = ({
               showMobileTitles={showMobileTitles}
               {...props}
             />
-          </Hide>
+          </Show>
         </>
       ) : (
         <IconBox h="full" mt={{ base: '6', md: '7' }} pb={{ base: '6', md: '16' }} w="full">
