@@ -62,6 +62,10 @@ export const Navbar = (props: NavbarProps) => {
     </Link>
   ));
 
+  if (isTicketSubdirectory) {
+    return null;
+  }
+
   return (
     <Box position="sticky" zIndex={100} {...props}>
       <Flex

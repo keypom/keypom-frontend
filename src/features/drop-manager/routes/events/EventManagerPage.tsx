@@ -41,6 +41,7 @@ import { ShareIcon } from '@/components/Icons/ShareIcon';
 import { NotFound404 } from '@/components/NotFound404';
 import useDeletion from '@/components/AppModal/useDeletion';
 import { performDeletionLogic } from '@/components/AppModal/PerformDeletion';
+import { truncateAddress } from '@/utils/truncateAddress';
 
 import { handleExportCSVClick } from '../../components/ExportToCsv';
 import { dateAndTimeToText } from '../../utils/parseDates';
@@ -346,10 +347,10 @@ export default function EventManagerPage() {
           />
           <VStack align="left">
             <Heading fontFamily="body" fontSize={{ md: 'lg' }} fontWeight="bold">
-              {item.name}
+              {truncateAddress(`${item.name}`, 'end', 16)}
             </Heading>
             <Heading fontFamily="body" fontSize={{ md: 'md' }} fontWeight="light">
-              {item.description}
+              {truncateAddress(`${item.description}`, 'end', 64)}
             </Heading>
             <VStack align="left" spacing={0}>
               <Heading

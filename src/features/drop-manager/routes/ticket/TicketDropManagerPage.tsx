@@ -84,13 +84,18 @@ const ticketTableColumns: ColumnItem[] = [
 ];
 
 export const CLAIM_STATUS = {
-  2: {
+  3: {
     name: 'Purchased',
     bg: 'gray.100',
     text: 'gray.600',
   },
-  1: {
+  2: {
     name: 'Scanned',
+    bg: 'yellow.50',
+    text: 'yellow.600',
+  },
+  1: {
+    name: 'Onboarded',
     bg: 'green.50',
     text: 'green.600',
   },
@@ -600,6 +605,7 @@ export default function TicketManagerPage() {
   const getTableRows: GetAttendeeDataFn = (data) => {
     if (data === undefined || eventInfo === undefined) return [];
     return data.map((item) => {
+      console.log('Item: ', item);
       const mapped = {
         id: item.id, // Assuming `item` has a `drop_id` property that can serve as `id`
         ticketId: truncateAddress(`${item.publicKey.split('ed25519:')[1]}`, 'end', 16),

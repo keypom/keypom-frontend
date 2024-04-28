@@ -8,6 +8,12 @@ const TWITTER_LINK = 'https://twitter.com/keypomxyz';
 const NEAR_LINK = 'https://near.org/';
 
 export const Footer = (props: FooterProps) => {
+  const isTicketSubdirectory =
+    location.pathname.startsWith('/tickets/') || location.pathname.startsWith('/claim/');
+
+  if (isTicketSubdirectory) {
+    return null;
+  }
   return (
     // TODO: ask designer for color coded in design system
     <Box bgColor="#222734" zIndex="dropdown" {...props}>

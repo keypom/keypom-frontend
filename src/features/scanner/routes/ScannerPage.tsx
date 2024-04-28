@@ -28,6 +28,7 @@ import {
   type DateAndTimeInfo,
 } from '@/lib/eventsHelpers';
 import { dateAndTimeToText } from '@/features/drop-manager/utils/parseDates';
+import { KEYPOM_EVENTS_CONTRACT } from '@/constants/common';
 
 import { getDropFromSecretKey, validateDrop } from '../components/helpers';
 import { LoadingOverlay } from '../components/LoadingOverlay';
@@ -181,7 +182,8 @@ const Scanner = () => {
         const secretKey = result.getText();
         const dropInfo = await getDropFromSecretKey(secretKey);
         if (dropInfo) {
-          const { drop, usesRemaining } = dropInfo;
+          const { drop, usesRemaining, maxKeyUses } = dropInfo;
+          const curUse = maxKeyUses - usesRemaining + 1;
           // Check if the ticket has already been scanned
           if (stateRef.current.ticketsToScan.includes(secretKey)) {
             // This now correctly checks against the most up-to-date ticketsToScan
@@ -190,7 +192,7 @@ const Scanner = () => {
             return;
           }
 
-          if (usesRemaining !== 2) {
+          if (curUse !== 1) {
             setScanStatus('error');
             setStatusMessage('Ticket has already been used.');
             return;
@@ -236,7 +238,7 @@ const Scanner = () => {
       ticketsToProcess.map(async (ticket) => {
         try {
           // Placeholder for your actual ticket processing logic
-          await keypomInstance.onEventTicketScanned(ticket);
+          await keypomInstance.claimEventTicket(ticket, { account_id: KEYPOM_EVENTS_CONTRACT });
           // Process successful, remove from the ref queue
           stateRef.current.ticketsToScan = stateRef.current.ticketsToScan.filter(
             (t) => t !== ticket,

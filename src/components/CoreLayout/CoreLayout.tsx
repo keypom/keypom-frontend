@@ -15,6 +15,9 @@ const AppModal = React.lazy(
 export const CoreLayout = () => {
   const layoutBg =
     'none, linear-gradient(180deg, rgba(239, 250, 253, 0.4) 0%, rgba(239, 250, 253, 0.6) 27.41%), #FFFFFF;';
+  const isTicketSubdirectory =
+    location.pathname.startsWith('/tickets/') || location.pathname.startsWith('/claim/');
+
   return (
     <Flex
       alignItems="flex-start"
@@ -38,7 +41,15 @@ export const CoreLayout = () => {
         zIndex="0"
       />
       <Navbar w="full" />
-      <Box as="main" flex="1" maxW="75rem" mx="auto" px="5" w="full" zIndex="2">
+      <Box
+        as="main"
+        flex="1"
+        maxW={isTicketSubdirectory ? '' : '75rem'}
+        mx="auto"
+        px={isTicketSubdirectory ? '0' : '5'}
+        w="full"
+        zIndex="2"
+      >
         <Outlet />
       </Box>
       <Footer w="full" />

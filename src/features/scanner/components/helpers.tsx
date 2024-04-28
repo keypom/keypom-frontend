@@ -7,10 +7,11 @@ import {
   type EventDrop,
 } from '@/lib/eventsHelpers';
 import keypomInstance from '@/lib/keypom';
+import { dateAndTimeToText } from '@/features/drop-manager/utils/parseDates';
 
 export const getDropFromSecretKey = async (
   secretKey: string,
-): Promise<{ drop: EventDrop; usesRemaining: number } | null> => {
+): Promise<{ drop: EventDrop; usesRemaining: number; maxKeyUses: number } | null> => {
   try {
     const pubKey = getPubFromSecret(secretKey);
     const keyInfo: { drop_id: string; uses_remaining: number } = await keypomInstance.viewCall({
@@ -21,7 +22,7 @@ export const getDropFromSecretKey = async (
       methodName: 'get_drop_information',
       args: { drop_id: keyInfo.drop_id },
     });
-    return { usesRemaining: keyInfo.uses_remaining, drop };
+    return { usesRemaining: keyInfo.uses_remaining, drop, maxKeyUses: drop.max_key_uses };
   } catch (e) {
     return null;
   }
@@ -147,7 +148,12 @@ export const validateDrop = ({
     );
     const requiredDateAndTime: DateAndTimeInfo = ticketExtra.passValidThrough;
     if (!validateDateAndTime(requiredDateAndTime)) {
-      return { status: 'error', message: 'Ticket is not valid at this time.' };
+      return {
+        status: 'error',
+        message: `Ticket entry date invalid. Can only be used: ${dateAndTimeToText(
+          ticketExtra.passValidThrough,
+        )}`,
+      };
     }
 
     // Check if the drop ID is one of the event tickets

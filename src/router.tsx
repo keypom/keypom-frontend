@@ -24,7 +24,7 @@ const AllDropsPage = React.lazy(
 const AllEventsPage = React.lazy(
   async () => await import('./features/all-drops/routes/AllEventsPage'),
 );
-const TicketQRPage = React.lazy(async () => await import('@/features/ticket-qr/TicketQRPage'));
+const TicketPage = React.lazy(async () => await import('@/features/ticket-qr/TicketPage'));
 const ClaimPage = React.lazy(async () => await import('@/features/claim/routes/ClaimRouter'));
 const ClaimTokenPage = React.lazy(
   async () => await import('@/features/claim/routes/TokenClaimPage'),
@@ -128,7 +128,7 @@ export const router = createBrowserRouter([
             children: [
               {
                 path: 'ticket/:id', // Match /events/event/:id
-                element: <TicketQRPage />,
+                element: <TicketPage />,
               },
             ],
           },
@@ -213,3 +213,4 @@ export const router = createBrowserRouter([
     ],
   },
 ]);
+

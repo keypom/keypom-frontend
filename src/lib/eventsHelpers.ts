@@ -36,11 +36,64 @@ export interface FunderEventMetadata {
   encPrivKey?: string;
   iv?: string;
   salt?: string;
+
+  // EXTRA
+  qrPage?: {
+    showTitle?: boolean;
+    showLocation?: boolean;
+    showDate?: boolean;
+    dateUnderQR?: boolean;
+    title?: {
+      color?: string;
+      fontFamily?: string;
+      fontSize?: any;
+    };
+    content?: {
+      border?: string;
+      helperText?: {
+        fontFamily?: string;
+        fontWeight?: string;
+        text?: string;
+      };
+      sellButton?: {
+        bg?: string;
+        fontFamily?: string;
+        fontSize?: any;
+        fontWeight?: string;
+        color?: string;
+        helperText?: boolean;
+        h?: string;
+        sx?: any;
+        text?: string;
+      };
+      downloadButton: false;
+    };
+    background?: string;
+    boxIcon?: {
+      bg?: string;
+      border?: string;
+      image?: string;
+    };
+  };
+}
+
+export type AssetType = null;
+export interface AssetConfig {
+  permissions: 'claim' | 'create_account_and_claim';
+  root_account_id: string;
+}
+
+export interface ExtAssetData {
+  uses: number;
+  assets: AssetType[];
+  config: AssetConfig;
 }
 
 export interface EventDrop {
   drop_id: string;
   funder_id: string;
+  max_key_uses: number;
+  asset_data: ExtAssetData[];
   drop_config: {
     nft_keys_config: {
       token_metadata: TicketInfoMetadata;

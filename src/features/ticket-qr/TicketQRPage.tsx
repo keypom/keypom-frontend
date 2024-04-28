@@ -11,105 +11,111 @@ import {
   Text,
   VStack,
 } from '@chakra-ui/react';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { getPubFromSecret } from 'keypom-js';
 
 import { IconBox } from '@/components/IconBox';
 import { TicketIcon } from '@/components/Icons';
 import { BoxWithShape } from '@/components/BoxWithShape';
 import { QrDetails } from '@/features/claim/components/ticket/QrDetails';
-import { useTicketClaimParams } from '@/hooks/useTicketClaimParams';
-import { NotFound404 } from '@/components/NotFound404';
-import keypomInstance from '@/lib/keypom';
+import { CLOUDFLARE_IPFS } from '@/constants/common';
 import {
-  type FunderEventMetadata,
-  type EventDrop,
   type TicketInfoMetadata,
   type TicketMetadataExtra,
+  type FunderEventMetadata,
 } from '@/lib/eventsHelpers';
+import keypomInstance from '@/lib/keypom';
 
 import { dateAndTimeToText } from '../drop-manager/utils/parseDates';
 
-export default function TicketQRPage() {
-  const { secretKey } = useTicketClaimParams();
+interface TicketQRPageProps {
+  eventInfo?: FunderEventMetadata;
+  ticketInfo?: TicketInfoMetadata;
+  ticketInfoExtra?: TicketMetadataExtra;
+  maxKeyUses?: number;
+  isLoading: boolean;
+  eventId: string;
+  funderId: string;
+  secretKey: string;
+}
 
-  const [isValid, setIsValid] = useState(true);
-  const [isLoading, setIsLoading] = useState(true);
-
-  const [eventInfo, setEventInfo] = useState<FunderEventMetadata>();
-  const [ticketInfo, setTicketInfo] = useState<TicketInfoMetadata>();
-  const [ticketInfoExtra, setTicketInfoExtra] = useState<TicketMetadataExtra>();
-
-  const [eventId, setEventId] = useState('');
-  const [funderId, setFunderId] = useState('');
-
+export default function TicketQRPage({
+  eventInfo,
+  ticketInfoExtra,
+  ticketInfo,
+  isLoading,
+  eventId,
+  funderId,
+  maxKeyUses,
+  secretKey,
+}: TicketQRPageProps) {
+  // Inside your component
   useEffect(() => {
-    const getEventInfo = async () => {
-      try {
-        setIsLoading(true);
-        const pubKey = getPubFromSecret(secretKey);
-        const keyInfo: { drop_id: string } = await keypomInstance.viewCall({
-          methodName: 'get_key_information',
-          args: { key: pubKey },
-        });
-        const drop: EventDrop = await keypomInstance.viewCall({
-          methodName: 'get_drop_information',
-          args: { drop_id: keyInfo.drop_id },
-        });
-        const ticketMetadata: TicketInfoMetadata = drop.drop_config.nft_keys_config.token_metadata;
-        setTicketInfo(ticketMetadata);
+    if (!maxKeyUses) return;
 
-        const ticketExtra: TicketMetadataExtra = JSON.parse(ticketMetadata.extra);
-        setTicketInfoExtra(ticketExtra);
-
-        const eventInfo: FunderEventMetadata | null = await keypomInstance.getEventInfo({
-          accountId: drop.funder_id,
-          eventId: ticketExtra.eventId,
-        });
-        if (!eventInfo) {
-          setIsValid(false);
-          setIsLoading(false);
-          return;
-        }
-        setEventInfo(eventInfo);
-        setEventId(ticketExtra.eventId);
-        setFunderId(drop.funder_id);
-        setIsLoading(false);
-      } catch (e) {
-        // eslint-disable-next-line no-console
-        console.error('Error getting event info: ', e);
-        setIsValid(false);
-        setIsLoading(false);
+    const checkForQRScanned = async () => {
+      const pubKey = getPubFromSecret(secretKey);
+      const keyInfo: { drop_id: string; uses_remaining: number } = await keypomInstance.viewCall({
+        methodName: 'get_key_information',
+        args: { key: pubKey },
+      });
+      const curUse = maxKeyUses - keyInfo.uses_remaining + 1;
+      if (curUse !== 1) {
+        window.location.reload();
       }
     };
-    getEventInfo();
-  }, []);
 
-  if (!isValid) {
-    return (
-      <NotFound404 header="Ticket not found" subheader="Please check your email and try again" />
-    );
-  }
+    // Set up an interval to call recoverAccount every 3 seconds
+    const intervalId = setInterval(() => {
+      checkForQRScanned();
+    }, 3000);
+
+    // Clean up function to clear the interval when the component unmounts
+    // or when the dependencies change
+    return () => {
+      clearInterval(intervalId);
+    };
+  }, [maxKeyUses]); // Dependencies array. recoverAccount will re-run if dropInfo changes.
 
   const ticketDetails = () => {
     return (
       <VStack spacing="0">
-        <Heading fontSize={{ base: '2xl', md: '3xl' }} fontWeight="500" textAlign="center">
+        <Heading
+          color={eventInfo?.qrPage?.title?.color}
+          fontFamily={eventInfo?.qrPage?.title?.fontFamily}
+          fontSize={eventInfo?.qrPage?.title?.fontSize || { base: '2xl', md: '3xl' }}
+          fontWeight="500"
+          textAlign="center"
+        >
           {ticketInfo?.title}
         </Heading>
-        <Heading fontSize={{ base: 'xs', md: 'xs' }} fontWeight="500" textAlign="center">
-          {ticketInfoExtra && dateAndTimeToText(ticketInfoExtra?.passValidThrough)}
-        </Heading>
+        {!eventInfo?.qrPage?.dateUnderQR && (
+          <Heading fontSize={{ base: 'xs', md: 'xs' }} fontWeight="500" textAlign="center">
+            {ticketInfoExtra && dateAndTimeToText(ticketInfoExtra?.passValidThrough)}
+          </Heading>
+        )}
       </VStack>
     );
   };
 
   return (
-    <VStack py="10">
+    <VStack
+      backgroundImage={
+        eventInfo?.qrPage?.background && `${CLOUDFLARE_IPFS}/${eventInfo.qrPage.background}`
+      }
+      backgroundPosition="center"
+      backgroundRepeat="no-repeat"
+      backgroundSize="cover"
+      minH="100vh"
+      py="10"
+      width="100vw"
+    >
       <Box alignItems="center" display="flex" flexDirection="column" px={4} width="100%">
-        <Heading mb={8} textAlign="center">
-          You're attending {eventInfo?.name}!
-        </Heading>
+        {(eventInfo?.qrPage?.showTitle || false) && (
+          <Heading mb={8} textAlign="center">
+            You're attending {eventInfo?.name}!
+          </Heading>
+        )}
 
         <Grid
           alignItems="start"
@@ -118,35 +124,39 @@ export default function TicketQRPage() {
           templateColumns={{ base: 'repeat(1, 1fr)', md: 'repeat(2, 1fr)' }} // 1 column on small screens, 2 columns on medium and up
           width="55%"
         >
-          <GridItem>
-            <Heading fontFamily="body" fontSize={['md', 'xl']} fontWeight="600">
-              Location
-            </Heading>
-            <Text
-              color="gray.500"
-              fontFamily="body"
-              fontSize={['sm', 'md']} // smaller font on small screens, adjust as needed
-              fontWeight="500"
-              pb={8}
-            >
-              {eventInfo?.location || 'Online'}
-            </Text>
-          </GridItem>
+          {(eventInfo?.qrPage?.showLocation || false) && (
+            <GridItem>
+              <Heading fontFamily="body" fontSize={['md', 'xl']} fontWeight="600">
+                Location
+              </Heading>
+              <Text
+                color="gray.500"
+                fontFamily="body"
+                fontSize={['sm', 'md']} // smaller font on small screens, adjust as needed
+                fontWeight="500"
+                pb={8}
+              >
+                {eventInfo?.location || 'Online'}
+              </Text>
+            </GridItem>
+          )}
 
-          <GridItem justifySelf={{ md: 'end' }} textAlign={{ base: 'left', md: 'right' }}>
-            <Heading fontFamily="body" fontSize={['md', 'xl']} fontWeight="600">
-              Event Date
-            </Heading>
-            <Text
-              color="gray.500"
-              fontFamily="body"
-              fontSize={['sm', 'md']} // smaller font on small screens, adjust as needed
-              fontWeight="500"
-              pb={8}
-            >
-              {eventInfo?.date && dateAndTimeToText(eventInfo?.date)}
-            </Text>
-          </GridItem>
+          {(eventInfo?.qrPage?.showDate || false) && (
+            <GridItem justifySelf={{ md: 'end' }} textAlign={{ base: 'left', md: 'right' }}>
+              <Heading fontFamily="body" fontSize={['md', 'xl']} fontWeight="600">
+                Event Date
+              </Heading>
+              <Text
+                color="gray.500"
+                fontFamily="body"
+                fontSize={['sm', 'md']} // smaller font on small screens, adjust as needed
+                fontWeight="500"
+                pb={8}
+              >
+                {eventInfo?.date && dateAndTimeToText(eventInfo?.date)}
+              </Text>
+            </GridItem>
+          )}
         </Grid>
       </Box>
 
@@ -164,11 +174,22 @@ export default function TicketQRPage() {
           </Skeleton>
 
           <IconBox
+            bg={eventInfo?.qrPage?.content?.border || 'border.box'}
             icon={
               <Skeleton isLoaded={!isLoading}>
-                <TicketIcon height={{ base: '8', md: '10' }} width={{ base: '8', md: '10' }} />
+                {eventInfo?.qrPage?.boxIcon?.image ? (
+                  <Image
+                    height={{ base: '10', md: '12' }}
+                    src={`${CLOUDFLARE_IPFS}/${eventInfo.qrPage.boxIcon.image}`}
+                    width={{ base: '10', md: '12' }}
+                  />
+                ) : (
+                  <TicketIcon height={{ base: '8', md: '10' }} width={{ base: '8', md: '10' }} />
+                )}
               </Skeleton>
             }
+            iconBg={eventInfo?.qrPage?.boxIcon?.bg || 'blue.100'}
+            iconBorder={eventInfo?.qrPage?.boxIcon?.border || 'border.round'}
             maxW={{ base: '345px', md: '30rem' }}
             minW={{ base: 'inherit', md: '345px' }}
             p="0"
@@ -181,11 +202,11 @@ export default function TicketQRPage() {
                 ) : (
                   <QrDetails
                     eventId={eventId}
-                    eventName={eventInfo!.name}
+                    eventInfo={eventInfo!}
                     funderId={funderId}
                     qrValue={secretKey}
+                    ticketInfo={ticketInfo!}
                     ticketInfoExtra={ticketInfoExtra}
-                    ticketName={ticketInfo!.title}
                   />
                 )}
               </BoxWithShape>
@@ -201,8 +222,9 @@ export default function TicketQRPage() {
                   <Image
                     alt={`Event image for ${eventInfo?.name}`}
                     borderRadius="12px"
+                    height="300px"
                     objectFit="contain"
-                    src={eventInfo?.artwork}
+                    src={`${CLOUDFLARE_IPFS}/${ticketInfo?.media}`}
                   />
                 </Skeleton>
                 <Hide above="md">

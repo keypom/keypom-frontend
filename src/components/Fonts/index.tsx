@@ -26,6 +26,33 @@ export const Fonts = () => (
         src: url(./assets/fonts/archia/archia-semibold-webfont.woff2) format('woff2')
       }
 
+      /* Eth Denver */
+      @font-face {
+        font-family: 'Buffifont';
+        src: url(./assets/fonts/denver/Buffifont_headers-bold.otf) format('opentype')
+      }
+      @font-face {
+        font-family: 'Rocgrotesk';
+        font-style: normal;
+        font-weight: 400;
+        font-display: swap;
+        src: url(./assets/fonts/denver/rocgrotesk-regular.otf) format('opentype')
+      }
+      @font-face {
+        font-family: 'Rocgrotesk';
+        font-style: normal;
+        font-weight: 500;
+        font-display: swap;
+        src: url(./assets/fonts/denver/rocgroteskcond-extrabold.otf) format('opentype')
+      }
+      @font-face {
+        font-family: 'Rocgrotesk';
+        font-style: normal;
+        font-weight: 600;
+        font-display: swap;
+        src: url(./assets/fonts/denver/rocgrotesk-black.otf) format('opentype')
+      }
+
       /* Inter */
       @font-face {
         font-family: 'Inter';
