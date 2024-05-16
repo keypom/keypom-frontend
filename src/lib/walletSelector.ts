@@ -30,10 +30,10 @@ export class NearWalletSelector {
       network: NETWORK_ID as NetworkId,
       debug: true,
       modules: [
-        setupMintbaseWallet({
-          walletUrl: config.networkId === "mainnnet" ? 'https://wallet.mintbase.xyz': 'https://testnet.wallet.mintbase.xyz',
-          contractId: config.contractId,
-        }),
+        // setupMintbaseWallet({
+        //   walletUrl: config.networkId === "mainnnet" ? 'https://wallet.mintbase.xyz': 'https://testnet.wallet.mintbase.xyz',
+        //   contractId: config.contractId,
+        // }),
         setupMeteorWallet(),
         // setupNightly(),
         // setupNearSnap(),
