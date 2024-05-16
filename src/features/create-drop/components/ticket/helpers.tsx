@@ -1,5 +1,5 @@
 import { type Action } from '@near-wallet-selector/core';
-import { parseNearAmount } from '@keypom/core';
+import { parseNearAmount } from 'near-api-js/lib/utils/format';
 
 import keypomInstance from '@/lib/keypom';
 import {
