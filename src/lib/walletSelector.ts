@@ -4,7 +4,7 @@ import {
   setupWalletSelector,
   type WalletSelector,
 } from '@near-wallet-selector/core';
-import { setupModal, type WalletSelectorModal } from '@near-wallet-selector/modal-ui';
+import { setupModal, type WalletSelectorModal } from '@near-wallet-selector/modal-ui-js';
 import { setupMyNearWallet } from '@near-wallet-selector/my-near-wallet';
 import { setupMintbaseWallet } from '@near-wallet-selector/mintbase-wallet';
 import { setupMeteorWallet } from '@near-wallet-selector/meteor-wallet';
@@ -30,10 +30,10 @@ export class NearWalletSelector {
       network: NETWORK_ID as NetworkId,
       debug: true,
       modules: [
-        // setupMintbaseWallet({
-        //   walletUrl: config.networkId === "mainnnet" ? 'https://wallet.mintbase.xyz': 'https://testnet.wallet.mintbase.xyz',
-        //   contractId: config.contractId,
-        // }),
+        setupMintbaseWallet({
+          walletUrl: config.networkId === "mainnnet" ? 'https://wallet.mintbase.xyz': 'https://testnet.wallet.mintbase.xyz',
+          contractId: config.contractId,
+        }),
         setupMeteorWallet(),
         // setupNightly(),
         // setupNearSnap(),

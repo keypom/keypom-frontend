@@ -1,7 +1,8 @@
 import { Button, Flex, Input } from '@chakra-ui/react';
 import { useCallback, useState, useEffect } from 'react';
 import { Controller, useFormContext } from 'react-hook-form';
-import { formatNearAmount, createDrop } from '@keypom/core';
+import { createDrop } from '@keypom/core';
+import { formatNearAmount } from 'near-api-js/lib/utils/format';
 
 import { IconBox } from '@/components/IconBox';
 import { FormControl } from '@/components/FormControl';

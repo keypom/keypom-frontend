@@ -5,7 +5,7 @@ import useSWRMutation from 'swr/mutation';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { createDrop, generateKeys } from '@keypom/core';
-import { formatNearAmount } from 'near-api-js/lib/utils/format';
+import { formatNearAmount, parseNearAmount } from 'near-api-js/lib/utils/format';
 import { type NavigateFunction } from 'react-router-dom';
 
 import { get } from '@/utils/localStorage';
@@ -196,15 +196,43 @@ export const CreateTokenDropProvider = ({ children }: PropsWithChildren) => {
     });
 
     try {
-      await createDrop({
-        dropId,
-        wallet: await window.selector.wallet(),
-        depositPerUseNEAR: amountPerLink,
-        publicKeys: publicKeys || [],
-        numKeys: totalLinks,
-        metadata: JSON.stringify({ dropName }),
-        successUrl: `${window.location.origin}/drop/token/${dropId}`,
-      });
+      let wallet = await window.selector.wallet();
+      let config = getConfig();
+
+      await wallet.signAndSendTransaction({
+        receiverId: config.contractName,
+        actions: [
+          {
+            type: 'FunctionCall',
+            params: {
+              methodName: 'create_drop',
+              args: { 
+                drop_id: dropId,
+                deposit_per_use: parseNearAmount(amountPerLink.toString()), 
+                metadata: JSON.stringify({
+                  dropName,
+                }),
+                public_keys: publicKeys,
+              },
+              gas: '300000000000000',
+              deposit: '0',
+            },
+          },
+        ]
+      })
+
+      window.location.assign(`${window.location.origin}/drop/token/${dropId}`);
+
+      // wallet.signAndSendTransaction({})
+      // await createDrop({
+      //   dropId,
+      //   wallet,
+      //   depositPerUseNEAR: amountPerLink,
+      //   publicKeys: publicKeys || [],
+      //   numKeys: totalLinks,
+      //   metadata: JSON.stringify({ dropName }),
+      //   successUrl: `${window.location.origin}/drop/token/${dropId}`,
+      // });
     } catch (e) {
       console.warn(e);
       if (/user reject/gi.test(JSON.stringify(e))) {

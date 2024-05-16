@@ -468,6 +468,7 @@ class KeypomJS {
   // Main function to get drops, with caching logic for paginated values
   getAllDrops = async ({ accountId }: { accountId: string }) => {
     try {
+      console.log("1")
       // If totalDrops is not known, fetch it
       if (!this.totalDrops) {
         this.totalDrops = await getDropSupplyForOwner({ accountId });
@@ -478,9 +479,13 @@ class KeypomJS {
         this.dropStore[accountId] = [];
       }
 
+      console.log("2")
+
       if (this.dropStore[accountId].length >= this.totalDrops) {
         return this.dropStore[accountId];
       }
+
+      console.log("3")
 
       const totalQueries = Math.ceil(this.totalDrops / DROP_ITEMS_PER_QUERY);
       const pageIndices = Array.from({ length: totalQueries }, (_, index) => index);
@@ -496,10 +501,13 @@ class KeypomJS {
             }),
         ),
       );
+
+      console.log("4")
       this.dropStore[accountId] = allPagesDrops.flat();
 
       return this.dropStore[accountId];
     } catch (error) {
+      console.log(error)
       throw new Error('Failed to fetch drops.');
     }
   };
@@ -968,7 +976,6 @@ class KeypomJS {
     const claimedKeys = await this.getAvailableKeys(id);
     const claimedText = `${totalKeys - claimedKeys} / ${totalKeys}`;
 
-    console.log(typeof metadata, metadata)
     const { dropName } = this.getDropMetadata(metadata);
 
     let type: string | null = '';
@@ -1005,7 +1012,8 @@ class KeypomJS {
           description: nftData?.metadata?.description,
         };
       } catch (e) {
-        throw new Error('Failed to get NFT metadata.');
+        console.log(e)
+        throw new Error('Failed to get NFT metadata:', e);
       }
       nftHref = nftMetadata?.media || 'assets/image-not-found.png';
     }
@@ -1067,6 +1075,8 @@ class KeypomJS {
     if (!dropId && !secretKey) {
       throw new Error('dropId or secretKey must be provided.');
     }
+
+    console.log("args: ", dropId, secretKey)
 
     try {
       drop = await getDropInformation({ dropId, secretKey });
