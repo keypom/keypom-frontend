@@ -157,6 +157,7 @@ export const CreateNftDropProvider = ({ children }: PropsWithChildren) => {
     });
 
     console.log("getting cost")
+    // requiredDeposit is inital create_series drop cost, requiredDeposit2 is the actual drop with nft_mint
     const { requiredDeposit, requiredDeposit2 } = await getCostForNFTDrop(
       dropId,
       {
@@ -166,24 +167,18 @@ export const CreateNftDropProvider = ({ children }: PropsWithChildren) => {
       },
     );
 
-    const adjustedDeposit = new BN(requiredDeposit).mul(new BN(125)).div(new BN(100)).toString();
-    const adjustedDeposit2 = new BN(requiredDeposit2).mul(new BN(125)).div(new BN(100)).toString();
+    // adjust only the nft_mint drop by factor of 1.75, not the create_series drop
+    const adjustedDeposit2 = new BN(requiredDeposit2).mul(new BN(175)).div(new BN(100)).toString();
+    const totalRequired = new BN(requiredDeposit).add(new BN(adjustedDeposit2)).toString();
 
-    const totalRequired = new BN(requiredDeposit).add(new BN(requiredDeposit2)).toString();
-    const adjustedTotal = new BN(totalRequired).mul(new BN(125)).div(new BN(100)).toString();
-
-    console.log("required: ", totalRequired)
-    console.log("adjusted: ", adjustedTotal)
-
-
-    const totalLinkCost = parseFloat(formatNearAmount(adjustedDeposit, 4));
+    const totalLinkCost = parseFloat(formatNearAmount(requiredDeposit, 4));
     const totalStorageCost = parseFloat(formatNearAmount(adjustedDeposit2, 4));
     const totalCost = Number(totalLinkCost + totalStorageCost).toFixed(4);
     const costsData: PaymentItem[] = [
       {
         name: 'Link cost',
         total: totalLinkCost,
-        helperText: `${numKeys} x ${Number(totalLinkCost / numKeys).toFixed(4)}`,
+        helperText: `${numKeys} x ${Number(totalLinkCost / numKeys).toFixed(4)} =`,
       },
       {
         name: 'Storage fees',
@@ -197,7 +192,7 @@ export const CreateNftDropProvider = ({ children }: PropsWithChildren) => {
       },
       {
         name: 'Total Required',
-        total: adjustedTotal,
+        total: totalRequired,
         doNotRender: true,
       },
     ];

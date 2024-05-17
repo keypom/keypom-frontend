@@ -42,11 +42,12 @@ export const DropSummary = ({
     const { name, total, isDiscount, discountText, helperText, doNotRender } = payment;
     if (doNotRender) return null;
     return (
-      <HStack key={name} mb="6px" spacing="auto">
+      <HStack key={name} mb="6px" justifyContent="space-between">
         <Text fontSize={{ base: 'xs', md: 'sm' }}>{name}</Text>
-        <Text alignItems="center" display="flex" fontSize={{ base: 'xs', md: 'sm' }}>
+        <Text display="flex" alignItems="center" fontSize={{ base: 'xs', md: 'sm' }}>
           {isDiscount && (
-            <Text
+            <Box
+              as="span"
               background="linear-gradient(271.49deg, #73D6F3 0%, #30C9F3 100%)"
               backgroundClip="text"
               color="transparent"
@@ -54,9 +55,9 @@ export const DropSummary = ({
               mr="1.5"
             >
               {discountText}
-            </Text>
+            </Box>
           )}
-          {helperText && <> {helperText} </>}
+          {helperText && <>{helperText} </>}
           {total} NEAR
         </Text>
       </HStack>
@@ -88,7 +89,7 @@ export const DropSummary = ({
         <Divider bgColor="gray.100" />
         <Box my="8">
           {paymentSummary}
-          <HStack spacing="auto">
+          <HStack justifyContent="space-between">
             <Text color="gray.800" fontSize={{ base: 'md', md: 'lg' }} fontWeight="medium">
               Total cost
             </Text>
@@ -97,7 +98,7 @@ export const DropSummary = ({
             </Text>
           </HStack>
         </Box>
-        <HStack spacing="auto">
+        <HStack justifyContent="space-between">
           <Button variant="secondary" onClick={onPrevious}>
             Go back
           </Button>
@@ -111,4 +112,5 @@ export const DropSummary = ({
       />
     </>
   );
+  
 };

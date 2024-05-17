@@ -594,7 +594,9 @@ export default function Event() {
       }
     } else if (purchaseType === 'near') {
       // put the workerPayload in local storage
+      console.log("calling generate ticket keys with X keys: ", ticketAmount)
       const { secretKeys, publicKeys } = await keypomInstance.GenerateTicketKeys(ticketAmount);
+      console.log("secret keys", secretKeys)  
       workerPayload.ticketKeys = secretKeys;
       localStorage.setItem('workerPayload', JSON.stringify(workerPayload));
 
@@ -804,7 +806,7 @@ export default function Event() {
     const newWorkerPayload = workerPayload;
 
     // primary purchases are in batch, if one key has been added, then all of them should have been added.
-    if (workerPayload.ticketKeys === undefined || workerPayload.ticketKeys.length === 0) {
+    if (workerPayload.ticketKeys === undefined || workerPayload.ticketKeys.length === 0 || workerPayload.ticketKeys[0] === null) {
       return;
     }
     const ticketPubKey = getPubFromSecret(workerPayload.ticketKeys[0]);

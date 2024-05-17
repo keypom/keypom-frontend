@@ -199,6 +199,11 @@ export const CreateTokenDropProvider = ({ children }: PropsWithChildren) => {
       let wallet = await window.selector.wallet();
       let config = getConfig();
 
+      const paymentData = await getPaymentData();
+      console.log("modified with paymentData: ", paymentData)
+      console.log("home modified 2")
+
+
       await wallet.signAndSendTransaction({
         receiverId: config.contractName,
         actions: [
@@ -215,11 +220,12 @@ export const CreateTokenDropProvider = ({ children }: PropsWithChildren) => {
                 public_keys: publicKeys,
               },
               gas: '300000000000000',
-              deposit: '0',
+              deposit: parseNearAmount(`${paymentData.totalCost ?? '0'}`) as string,
             },
           },
-        ]
-      })
+        ],
+        callbackUrl: `${window.location.origin}/drop/token/${dropId}`,
+      });
 
       window.location.assign(`${window.location.origin}/drop/token/${dropId}`);
 

@@ -223,13 +223,15 @@ class KeypomJS {
   };
 
   GenerateTicketKeys = async (numKeys) => {
-    const { publicKeys, secretKeys } = await generateKeys({
+    const res = await generateKeys({
       numKeys,
       // rootEntropy: `${get(MASTER_KEY) as string}-${dropId}`,
       // autoMetaNonceStart: start,
     });
 
-    return { publicKeys, secretKeys };
+    console.log('publicKeys inside', res);
+
+    return { publicKeys: res.publicKeys, secretKeys: res.secretKeys };
   };
 
   GetMarketListings = async ({ start, limit }: { start: number; limit: number }) => {
@@ -468,7 +470,6 @@ class KeypomJS {
   // Main function to get drops, with caching logic for paginated values
   getAllDrops = async ({ accountId }: { accountId: string }) => {
     try {
-      console.log("1")
       // If totalDrops is not known, fetch it
       if (!this.totalDrops) {
         this.totalDrops = await getDropSupplyForOwner({ accountId });
@@ -479,13 +480,11 @@ class KeypomJS {
         this.dropStore[accountId] = [];
       }
 
-      console.log("2")
 
       if (this.dropStore[accountId].length >= this.totalDrops) {
         return this.dropStore[accountId];
       }
 
-      console.log("3")
 
       const totalQueries = Math.ceil(this.totalDrops / DROP_ITEMS_PER_QUERY);
       const pageIndices = Array.from({ length: totalQueries }, (_, index) => index);
@@ -502,7 +501,6 @@ class KeypomJS {
         ),
       );
 
-      console.log("4")
       this.dropStore[accountId] = allPagesDrops.flat();
 
       return this.dropStore[accountId];
@@ -1121,7 +1119,7 @@ class KeypomJS {
     const dropKeyItems: DropKeyItem[] = [];
     keyInfos.forEach((info, index) => {
       const keyIndex = start + index;
-      this.keyStore[dropId].dropKeyItems[keyIndex] = {
+      this.keyStore[`${dropId}`].dropKeyItems[keyIndex] = {
         id: keyIndex,
         link: `${window.location.origin}/claim/${getConfig().contractId}#${secretKeys[
           index
@@ -1142,12 +1140,12 @@ class KeypomJS {
       const dropName = this.getDropMetadata(dropInfo.metadata).dropName;
       const totalKeys = dropInfo.next_key_id;
       if (
-        this.keyStore[dropId] == null ||
-        this.keyStore[dropId] === undefined ||
-        (this.keyStore[dropId] != null && this.keyStore[dropId].totalKeys !== totalKeys)
+        this.keyStore[`${dropId}`] == null ||
+        this.keyStore[`${dropId}`] === undefined ||
+        (this.keyStore[`${dropId}`] != null && this.keyStore[`${dropId}`].totalKeys !== totalKeys)
       ) {
         // Initialize the cache for this drop
-        this.keyStore[dropId] = {
+        this.keyStore[`${dropId}`] = {
           dropName,
           dropKeyItems: new Array(totalKeys).fill(null),
           totalKeys,
@@ -1168,7 +1166,7 @@ class KeypomJS {
         await Promise.all(batchPromises);
       }
 
-      return this.keyStore[dropId];
+      return this.keyStore[`${dropId}`];
     } catch (error) {
       throw new Error('Failed to get keys info.');
     }
@@ -1186,30 +1184,30 @@ class KeypomJS {
   }) => {
     try {
       // Initialize the cache for this drop if it doesn't exist
-      console.log(dropId)
-      console.log(this.keyStore[dropId])
+      console.log(`updated code: ${dropId}`)
+      console.log(this.keyStore[`${dropId}`])
       console.log(this.keyStore)
-      if (this.keyStore[dropId] == null || this.keyStore[dropId] === undefined)
+      if (this.keyStore[`${dropId}`] == null || this.keyStore[`${dropId}`] === undefined)
         throw new Error('Drop is null or undefined');
 
       const dropInfo = await this.getDropInfo({ dropId });
       const dropName = this.getDropMetadata(dropInfo.metadata).dropName;
       const totalKeys = dropInfo.next_key_id;
 
-      this.keyStore[dropId] = {
+      this.keyStore[`${dropId}`] = {
         dropName,
         dropKeyItems: Array(totalKeys).fill(null), // Initialize with nulls
         totalKeys,
       };
 
       // Calculate the end index
-      const endIndex = Math.min(start + limit, this.keyStore[dropId].totalKeys);
+      const endIndex = Math.min(start + limit, this.keyStore[`${dropId}`].totalKeys);
 
       // Fetch and cache batches as needed
       for (let i = start; i < endIndex; i += KEY_ITEMS_PER_QUERY) {
         if (
-          this.keyStore[dropId].dropKeyItems[i] == null ||
-          this.keyStore[dropId].dropKeyItems[i] === undefined
+          this.keyStore[`${dropId}`].dropKeyItems[i] == null ||
+          this.keyStore[`${dropId}`].dropKeyItems[i] === undefined
         ) {
           // Fetch the keys for this batch
           const batchLimit = Math.min(KEY_ITEMS_PER_QUERY, endIndex - i);
@@ -1218,7 +1216,7 @@ class KeypomJS {
       }
 
       // Return the requested slice from the cache
-      return this.keyStore[dropId].dropKeyItems.slice(start, endIndex);
+      return this.keyStore[`${dropId}`].dropKeyItems.slice(start, endIndex);
     } catch (e) {
       console.log("Error getting key info: ", e)
       throw new Error('Failed to get keys info.', e);
