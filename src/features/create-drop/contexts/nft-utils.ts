@@ -6,7 +6,6 @@ import { MemoryBlockStore } from 'ipfs-car/dist/esm/blockstore/memory';
 
 import { MASTER_KEY, NFT_ATTEMPT_KEY, WORKER_BASE_URL } from '@/constants/common';
 import getConfig from '@/config/config';
-import { Account } from 'near-api-js';
 
 export const DEBUG_DEL_NFT_ATTEMPT = async () => {
   await del(NFT_ATTEMPT_KEY);
