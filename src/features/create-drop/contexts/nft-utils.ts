@@ -41,21 +41,7 @@ export const getCostForNFTDrop = async (dropId, data) => {
   console.log(env)
   const near = env.near;
   const connection = near?.connection;
-
-  // each browserKeyStore instance can have a different storage key for pk
-  // seems there are two instances, one with naj and one with meteor
-  // OR it only checks meteor one, and then passing in an account naj key means we are checking localstorage for naj one, which meteor does not write
-
-
-  /// NONE OF THIS SHOULD BE NECESSARY WITH NEW SDK CHANGES
-
-  // Account ID
-  // getKey being called here, wallet has connection object
-  const accounts = await wallet.getAccounts();
-  console.log("accounts passed in: ", accounts)
-  const accountId = accounts[0].accountId;
   if(connection == null) return {};
-  const account = new Account(connection, accountId);
 
   const firstDropArgs = {
     wallet,

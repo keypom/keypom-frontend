@@ -247,13 +247,13 @@ const AcceptPaymentForm = (props: EventStepFormProps) => {
           // isDisabled={formData.stripeAccountId !== undefined || !accountId}
           isDisabled={true}
           isLoading={isLoading}
-          onClick={!formData.stripeAccountId ? handleConnectStripe : undefined}
           size="lg"
           w="full"
+          onClick={!formData.stripeAccountId ? handleConnectStripe : undefined}
         >
           {!formData.stripeAccountId ? 'Connect Stripe Account' : 'Stripe Account Connected'}
         </Button>
-        <Text width="100%" color="gray.400" my={-4} textAlign="center">
+        <Text color="gray.400" my={-4} textAlign="center" width="100%">
           Coming soon to an event near you...
           </Text>
       </VStack>
