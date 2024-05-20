@@ -23,15 +23,17 @@ export const MASTER_KEY = 'MASTER_KEY';
 export const MAX_FILE_SIZE = 10000000;
 
 export const WORKER_BASE_URL = 'https://keypom-nft-storage.keypom.workers.dev/';
-export const EVENTS_WORKER_IPFS_PINNING = 'https://stripe-worker.keypom.workers.dev/ipfs-pin';
-export const EVENTS_WORKER_BASE = 'https://stripe-worker.keypom.workers.dev';
+export const EVENTS_WORKER_IPFS_PINNING = 'https://stripe-worker-production.keypom.workers.dev/ipfs-pin';
+export const EVENTS_WORKER_BASE = 'https://stripe-worker-production.keypom.workers.dev';
 export const EMAIL_WORKER_BASE = 'https://email-worker.keypom.workers.dev';
 
 export const PAGE_SIZE_LIMIT = 5;
 export const NFT_ATTEMPT_KEY = 'NFT_ATTEMPT';
 export const PAGE_QUERY_PARAM = 'page';
-export const KEYPOM_EVENTS_CONTRACT = '1714778045977-kp-ticketing.testnet';
-export const KEYPOM_MARKETPLACE_CONTRACT = '1714778045977-marketplace.testnet';
+// export const KEYPOM_EVENTS_CONTRACT = '1714778045977-kp-ticketing.testnet';
+// export const KEYPOM_MARKETPLACE_CONTRACT = '1714778045977-marketplace.testnet';
+export const KEYPOM_EVENTS_CONTRACT = 'ticketing-v1.keypom.near';
+export const KEYPOM_MARKETPLACE_CONTRACT = 'marketplace-v1.keypom.near';
 export const KEYPOM_GLOBAL_SIGNING_KEYS = [
   "ed25519:3SoKRJxQj29Kczj6TiMNNxq3c6S3WcA4MUb6oBEcHMEDyhLWxzJyWxXn69sKt3RKCs8akb5KHkNvjdq4mJLYCYGA",
   "ed25519:36s6Po4JAJVhQdZLmXx8gJh4HP6T4AtMYJb5UgWhiYLntxpTX5piAc2pGExdUYrFJujYi18ZevU1z52CRkL6kpLF",

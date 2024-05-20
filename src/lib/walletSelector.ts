@@ -13,7 +13,7 @@ import { setupMeteorWallet } from '@near-wallet-selector/meteor-wallet';
 // import { setupNightly } from '@near-wallet-selector/nightly';
 // import { setupNearSnap } from "@near-wallet-selector/near-snap";
 
-import { KEYPOM_EVENTS_CONTRACT } from '@/constants/common';
+// import { KEYPOM_EVENTS_CONTRACT } from '@/constants/common';
 import getConfig from '@/config/config';
 
 const NETWORK_ID = process.env.REACT_APP_NETWORK_ID ?? 'testnet';
@@ -33,6 +33,8 @@ export class NearWalletSelector {
         // setupMintbaseWallet({
         //   walletUrl: config.networkId === "mainnnet" ? 'https://wallet.mintbase.xyz': 'https://testnet.wallet.mintbase.xyz',
         //   contractId: config.contractId,
+        //   // does nothing-ish, verify
+        //   // successUrl: `${window.location.origin}`,
         // }),
         setupMeteorWallet(),
         // setupNightly(),

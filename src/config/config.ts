@@ -10,10 +10,10 @@ console.log(
 );
 
 const SUPPORTED_WALLET_OPTIONS: IWalletOption[] = [
-  {
-    name: 'mintbasewallet',
-    title: 'Mintbase Wallet',
-  },
+  // {
+  //   name: 'mintbasewallet',
+  //   title: 'Mintbase Wallet',
+  // },
   {
     name: 'meteorwallet',
     title: 'Meteor Wallet',
@@ -73,7 +73,8 @@ function getConfig(network = process.env.REACT_APP_NETWORK_ID ?? 'testnet'): Con
         ...defaultConfig,
         contractName,
         networkId: 'testnet',
-        nodeUrl: 'https://rpc.testnet.near.org',
+        // nodeUrl: 'https://rpc.testnet.near.org',
+        nodeUrl: 'https://g.w.lavanet.xyz:443/gateway/neart/rpc-http/f653c33afd2ea30614f69bc1c73d4940',
         walletUrl: 'https://testnet.mynearwallet.com',
         helperUrl: 'https://helper.testnet.near.org',
         explorerUrl: 'https://explorer.testnet.near.org',
@@ -84,7 +85,8 @@ function getConfig(network = process.env.REACT_APP_NETWORK_ID ?? 'testnet'): Con
         ...defaultConfig,
         contractName,
         networkId: 'mainnet',
-        nodeUrl: 'https://rpc.mainnet.near.org',
+        // nodeUrl: 'https://rpc.mainnet.near.org',
+        nodeUrl: 'https://g.w.lavanet.xyz:443/gateway/near/rpc-http/f653c33afd2ea30614f69bc1c73d4940',
         walletUrl: 'https://app.mynearwallet.com',
         helperUrl: 'https://helper.near.org',
         explorerUrl: 'https://explorer.near.org',
