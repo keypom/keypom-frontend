@@ -1115,7 +1115,7 @@ class KeypomJS {
     });
 
     const keyInfos = await getKeyInformationBatch({ publicKeys });
-    const dropIdString: string = `${dropId}`;
+    const dropIdString = `${dropId}`;
 
     const dropKeyItems: DropKeyItem[] = [];
     keyInfos.forEach((info, index) => {
@@ -1140,7 +1140,7 @@ class KeypomJS {
       const dropInfo = await this.getDropInfo({ dropId });
       const dropName = this.getDropMetadata(dropInfo.metadata).dropName;
       const totalKeys = dropInfo.next_key_id;
-      const dropIdString: string = `${dropId}`;
+      const dropIdString = `${dropId}`;
       if (
         this.keyStore[dropIdString] == null ||
         this.keyStore[dropIdString] === undefined ||
@@ -1186,7 +1186,7 @@ class KeypomJS {
   }) => {
     // add 50ms delay
     await new Promise((resolve) => setTimeout(resolve, 50));
-    const dropIdString: string = `${dropId}`;
+    const dropIdString = `${dropId}`;
     try {
       // Initialize the cache for this drop if it doesn't exist
       if (this.keyStore[dropIdString] == null || this.keyStore[dropIdString] === undefined)

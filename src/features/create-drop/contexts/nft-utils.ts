@@ -24,7 +24,7 @@ export const getCostForNFTDrop = async (dropId, data) => {
   const { networkId } = getEnv();
   const networkSuffix = networkId === 'testnet' ? networkId : 'near';
 
-  let { media = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' } = data;
+  const { media = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' } = data;
 
   const { numKeys, title, description } = data;
 
@@ -37,10 +37,10 @@ export const getCostForNFTDrop = async (dropId, data) => {
   console.log(selector);
 
   // Connection
-  let env = getEnv();
+  const env = getEnv();
   console.log(env)
-  let near = env.near;
-  let connection = near?.connection;
+  const near = env.near;
+  const connection = near?.connection;
 
   // each browserKeyStore instance can have a different storage key for pk
   // seems there are two instances, one with naj and one with meteor
@@ -51,13 +51,14 @@ export const getCostForNFTDrop = async (dropId, data) => {
 
   // Account ID
   // getKey being called here, wallet has connection object
-  let accounts = await wallet.getAccounts();
+  const accounts = await wallet.getAccounts();
   console.log("accounts passed in: ", accounts)
-  let accountId = accounts[0].accountId;
+  const accountId = accounts[0].accountId;
   if(connection == null) return {};
-  let account = new Account(connection, accountId);
+  const account = new Account(connection, accountId);
 
   const firstDropArgs = {
+    wallet,
     numKeys: 1,
     metadata: JSON.stringify({
       dropName: title,
@@ -88,38 +89,6 @@ export const getCostForNFTDrop = async (dropId, data) => {
     returnTransactions: true,
   }
 
-  const secondDropArgs = {
-    dropId,
-    numKeys,
-    metadata: JSON.stringify({
-      dropName: title,
-    }),
-    fcData: {
-      methods: [
-        [
-          {
-            receiverId: 'nft-v2.keypom.' + networkSuffix,
-            methodName: 'nft_mint',
-            args: '',
-            dropIdField: 'mint_id',
-            accountIdField: 'receiver_id',
-            attachedDeposit: parseNearAmount('0.1')!,
-          },
-        ],
-      ],
-    },
-    useBalance: false,
-    returnTransactions: true,
-  }
-
-  if(true){
-    firstDropArgs['wallet'] = wallet;
-    secondDropArgs['wallet'] = wallet;
-  }else{
-    firstDropArgs['account'] = account;
-    secondDropArgs['account'] = account;
-  }
-
   let requiredDeposit, requiredDeposit2;
   if (!data.seriesSecret) {
     try {
@@ -145,7 +114,31 @@ export const getCostForNFTDrop = async (dropId, data) => {
       autoMetaNonceStart: 0,
     });
 
-    secondDropArgs['publicKeys'] = publicKeys;
+    const secondDropArgs = {
+      wallet,
+      publicKeys,
+      dropId,
+      numKeys,
+      metadata: JSON.stringify({
+        dropName: title,
+      }),
+      fcData: {
+        methods: [
+          [
+            {
+              receiverId: 'nft-v2.keypom.' + networkSuffix,
+              methodName: 'nft_mint',
+              args: '',
+              dropIdField: 'mint_id',
+              accountIdField: 'receiver_id',
+              attachedDeposit: parseNearAmount('0.1')!,
+            },
+          ],
+        ],
+      },
+      useBalance: false,
+      returnTransactions: true,
+    }
 
     const res2 = await createDrop(secondDropArgs);
 
@@ -188,44 +181,11 @@ export const createDropsForNFT = async (dropId, returnTransactions, data, setApp
   // , requiredDeposit;
   if (!data.seriesSecret) {
     try {
-      // returned from createDrop: { keys, dropId, transactions, requiredDeposit }
-      // const res = await createDrop({
-      //   wallet,
-      //   numKeys: 1,
-      //   metadata: JSON.stringify({
-      //     dropName: title,
-      //   }),
-      //   depositPerUseNEAR: 0.1,
-      //   fcData: {
-      //     methods: [
-      //       [
-      //         {
-      //           receiverId: 'nft-v2.keypom.' + networkSuffix,
-      //           methodName: 'create_series',
-      //           args: JSON.stringify({
-      //             mint_id: parseInt(dropId),
-      //             metadata: {
-      //               title,
-      //               description,
-      //               copies: numKeys,
-      //               media,
-      //             },
-      //             // royalty?
-      //           }),
-      //           attachedDeposit: parseNearAmount('0.1')!,
-      //         },
-      //       ],
-      //     ],
-      //   },
-      //   useBalance: !returnTransactions,
-      //   returnTransactions: true,
-      // });
-
       keys = await generateKeys({ numKeys: 1 });
       console.log("keys after generate: ", keys)
 
-      let config = getConfig();
-      let res = await wallet.signAndSendTransaction({
+      const config = getConfig();
+      await wallet.signAndSendTransaction({
         receiverId: config.contractName,
         actions: [
           {
@@ -272,13 +232,7 @@ export const createDropsForNFT = async (dropId, returnTransactions, data, setApp
           },
         ]
       })
-      
-      // requiredDeposit = res.requiredDeposit;
-
-      // if (!returnTransactions && !keys) {
-      //   throw new Error('Error creating drop');
-      // }
-
+    
       // we're making the NFT now, so store the secret in case we have to re-attempt media upload
       if (file) {
         console.log("keys in file update: ", keys)
@@ -363,8 +317,8 @@ export const createDropsForNFT = async (dropId, returnTransactions, data, setApp
       autoMetaNonceStart: 0,
     });
 
-    let config = getConfig();
-    let res2 = await wallet.signAndSendTransaction({
+    const config = getConfig();
+    const res2 = await wallet.signAndSendTransaction({
       receiverId: config.contractName,
       actions: [
         {
@@ -401,42 +355,6 @@ export const createDropsForNFT = async (dropId, returnTransactions, data, setApp
     })
 
     return { responses: [res2] };
-    // .then((res => {
-    //   console.log("Transaction sent: ", res);
-    //   let responses = [res];
-    //   return { responses };
-    // })).catch((err) => {
-    //   console.log("Error sending transaction: ", err);
-    //   throw new Error('Error creating drop')
-    // })
-
-    // const { responses } = await createDrop({
-    //   wallet,
-    //   dropId,
-    //   numKeys,
-    //   publicKeys,
-    //   metadata: JSON.stringify({
-    //     dropName: title,
-    //   }),
-    //   fcData: {
-    //     methods: [
-    //       [
-    //         {
-    //           receiverId: 'nft-v2.keypom.' + networkSuffix,
-    //           methodName: 'nft_mint',
-    //           args: '',
-    //           dropIdField: 'mint_id',
-    //           accountIdField: 'receiver_id',
-    //           attachedDeposit: parseNearAmount('0.1')!,
-    //         },
-    //       ],
-    //     ],
-    //   },
-    //   useBalance: !returnTransactions,
-    //   returnTransactions,
-    // });
-
-    // return { responses };
   } catch (e) {
     // TODO better error here
     console.warn(e);

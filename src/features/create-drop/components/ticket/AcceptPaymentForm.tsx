@@ -247,9 +247,9 @@ const AcceptPaymentForm = (props: EventStepFormProps) => {
           // isDisabled={formData.stripeAccountId !== undefined || !accountId}
           isDisabled={true}
           isLoading={isLoading}
+          onClick={!formData.stripeAccountId ? handleConnectStripe : undefined}
           size="lg"
           w="full"
-          onClick={!formData.stripeAccountId ? handleConnectStripe : undefined}
         >
           {!formData.stripeAccountId ? 'Connect Stripe Account' : 'Stripe Account Connected'}
         </Button>

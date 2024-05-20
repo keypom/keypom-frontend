@@ -196,8 +196,8 @@ export const CreateTokenDropProvider = ({ children }: PropsWithChildren) => {
     });
 
     try {
-      let wallet = await window.selector.wallet();
-      let config = getConfig();
+      const wallet = await window.selector.wallet();
+      const config = getConfig();
 
       const paymentData = await getPaymentData();
       console.log("modified with paymentData: ", paymentData)

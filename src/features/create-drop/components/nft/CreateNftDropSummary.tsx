@@ -24,7 +24,7 @@ export const CreateNftDropSummary = () => {
       paymentData={paymentData!}
       summaryData={summaryData}
       onConfirmClick={async () => {
-        await handleDropConfirmation(paymentData!);
+         handleDropConfirmation(paymentData!);
       }}
     />
   );

@@ -42,9 +42,9 @@ export const DropSummary = ({
     const { name, total, isDiscount, discountText, helperText, doNotRender } = payment;
     if (doNotRender) return null;
     return (
-      <HStack key={name} mb="6px" justifyContent="space-between">
+      <HStack justifyContent="space-between" key={name} mb="6px">
         <Text fontSize={{ base: 'xs', md: 'sm' }}>{name}</Text>
-        <Text display="flex" alignItems="center" fontSize={{ base: 'xs', md: 'sm' }}>
+        <Text alignItems="center" display="flex" fontSize={{ base: 'xs', md: 'sm' }}>
           {isDiscount && (
             <Box
               as="span"
