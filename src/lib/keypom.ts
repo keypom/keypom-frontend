@@ -1135,7 +1135,7 @@ class KeypomJS {
     return dropKeyItems;
   };
 
-  async getAllKeysInfo({ dropId }) {
+  async getAllKeysInfo({ dropId }: {dropId: string}) {
     try {
       const dropInfo = await this.getDropInfo({ dropId });
       const dropName = this.getDropMetadata(dropInfo.metadata).dropName;
