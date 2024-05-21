@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-confusing-void-expression */
 import { createContext, type PropsWithChildren, useContext } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import useSWRMutation from 'swr/mutation';
@@ -202,7 +203,7 @@ export const CreateNftDropProvider = ({ children }: PropsWithChildren) => {
     return { costsData, totalCost: parseFloat(totalCost), confirmationText };
   };
 
-  const handleDropConfirmation = async (paymentData: PaymentData): Promise<void> => {
+  const handleDropConfirmation = async (paymentData: PaymentData) => {
     const totalRequired = paymentData.costsData[3].total;
 
     await update(NFT_ATTEMPT_KEY, (val) => ({ ...val, confirmed: true }));
