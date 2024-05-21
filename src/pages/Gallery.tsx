@@ -482,6 +482,25 @@ export default function Gallery() {
 
     const gridData = filteredDataItems;
 
+    // Get the current date and time
+    const nowNum = Date.now();
+    const now = new Date(nowNum);
+
+    // Sort the array
+    gridData.sort((a, b) => {
+      const dateA = new Date(a.dateForPastCheck);
+      const dateB = new Date(b.dateForPastCheck);
+    
+      // Compare dates
+      if (dateA < now && dateB >= now) {
+        return 1;  // Move expired items to the back
+      } else if (dateA >= now && dateB < now) {
+        return -1; // Move non-expired items to the front
+      } else {
+        return 0;  // Maintain relative order for items in the same category
+      }
+    });
+
     return gridData.slice(
       curPage * selectedFilters.pageSize,
       (curPage + 1) * selectedFilters.pageSize,
