@@ -78,15 +78,6 @@ const AcceptPaymentForm = (props: EventStepFormProps) => {
         setFormData({ ...formData, stripeAccountId, acceptStripePayments: true });
       }
     }
-    const temp_stripe_account_id = localStorage.getItem('TEMP_STRIPE_ACCOUNT_ID');
-    if (temp_stripe_account_id) {
-      setFormData({
-        ...formData,
-        stripeAccountId: temp_stripe_account_id,
-        acceptStripePayments: true,
-      });
-    }
-    localStorage.removeItem('TEMP_STRIPE_ACCOUNT_ID');
   }, []);
 
   useEffect(() => {
@@ -106,12 +97,6 @@ const AcceptPaymentForm = (props: EventStepFormProps) => {
     }
   }, [accountId, formData.stripeAccountId]);
 
-  // UseEffects to keep user stripe account ID connected
-  useEffect(() => {
-    if (formData.stripeAccountId) {
-      localStorage.setItem('TEMP_STRIPE_ACCOUNT_ID', formData.stripeAccountId);
-    }
-  }, [formData.stripeAccountId]);
 
   useEffect(() => {
     checkForPriorStripeConnected(accountId);
@@ -259,7 +244,8 @@ const AcceptPaymentForm = (props: EventStepFormProps) => {
 
         <Button
           colorScheme="blue"
-          isDisabled={formData.stripeAccountId !== undefined || !accountId}
+          // isDisabled={formData.stripeAccountId !== undefined || !accountId}
+          isDisabled={true}
           isLoading={isLoading}
           size="lg"
           w="full"
@@ -267,6 +253,9 @@ const AcceptPaymentForm = (props: EventStepFormProps) => {
         >
           {!formData.stripeAccountId ? 'Connect Stripe Account' : 'Stripe Account Connected'}
         </Button>
+        <Text color="gray.400" my={-4} textAlign="center" width="100%">
+          Coming soon to an event near you...
+          </Text>
       </VStack>
 
       <Hide below="lg">

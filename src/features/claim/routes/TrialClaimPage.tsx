@@ -1,7 +1,7 @@
 import { Box, Button, Center, Heading, VStack } from '@chakra-ui/react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { claimTrialAccountDrop, accountExists } from 'keypom-js';
+import { claimTrialAccountDrop, accountExists } from '@keypom/core';
 
 import { IconBox } from '@/components/IconBox';
 import { BoxWithShape } from '@/components/BoxWithShape';

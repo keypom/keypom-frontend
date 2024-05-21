@@ -14,7 +14,7 @@ import {
   Tooltip,
   useToast,
 } from '@chakra-ui/react';
-import { getPubFromSecret } from 'keypom-js';
+import { getPubFromSecret } from '@keypom/core';
 import { useEffect, useState } from 'react';
 import { QrReader } from 'react-qr-reader';
 

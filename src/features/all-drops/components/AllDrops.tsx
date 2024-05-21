@@ -19,7 +19,7 @@ import {
   Skeleton,
   VStack,
 } from '@chakra-ui/react';
-import { type ProtocolReturnedDrop } from 'keypom-js';
+import { type ProtocolReturnedDrop } from '@keypom/core';
 import { SearchIcon } from '@chakra-ui/icons';
 import { useNavigate } from 'react-router-dom';
 

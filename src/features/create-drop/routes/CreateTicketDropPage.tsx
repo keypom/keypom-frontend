@@ -329,13 +329,11 @@ export default function NewTicketDrop() {
         actions,
       })
       .then(() => {
-        // console.log("Transaction successful")
         setTxnSuccess(true);
       })
       .catch((err) => {
         const error: string = err.toString();
         const description_string = `Error: ` + error
-        // console.log(description_string)
         toast({
           title: 'Event Creation Failed',
           description: description_string,

@@ -12,7 +12,7 @@ import {
   VStack,
 } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
-import { getPubFromSecret } from 'keypom-js';
+import { getPubFromSecret } from '@keypom/core';
 
 import { IconBox } from '@/components/IconBox';
 import { TicketIcon } from '@/components/Icons';

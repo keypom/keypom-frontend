@@ -16,7 +16,8 @@ import {
 import { useParams, useNavigate } from 'react-router-dom';
 import { ExternalLinkIcon } from '@chakra-ui/icons';
 import { useCallback, useEffect, useState } from 'react';
-import { generateKeys, getPubFromSecret, formatNearAmount } from 'keypom-js';
+import { generateKeys, getPubFromSecret } from '@keypom/core';
+import { formatNearAmount } from 'near-api-js/lib/utils/format';
 import { type Wallet } from '@near-wallet-selector/core';
 
 import { SellModal } from '@/features/gallery/components/SellModal';
@@ -593,7 +594,9 @@ export default function Event() {
       }
     } else if (purchaseType === 'near') {
       // put the workerPayload in local storage
+      console.log("calling generate ticket keys with X keys: ", ticketAmount)
       const { secretKeys, publicKeys } = await keypomInstance.GenerateTicketKeys(ticketAmount);
+      console.log("secret keys", secretKeys)  
       workerPayload.ticketKeys = secretKeys;
       localStorage.setItem('workerPayload', JSON.stringify(workerPayload));
 
@@ -803,7 +806,7 @@ export default function Event() {
     const newWorkerPayload = workerPayload;
 
     // primary purchases are in batch, if one key has been added, then all of them should have been added.
-    if (workerPayload.ticketKeys === undefined || workerPayload.ticketKeys.length === 0) {
+    if (workerPayload.ticketKeys === undefined || workerPayload.ticketKeys.length === 0 || workerPayload.ticketKeys[0] === null) {
       return;
     }
     const ticketPubKey = getPubFromSecret(workerPayload.ticketKeys[0]);

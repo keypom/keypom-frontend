@@ -8,7 +8,6 @@ import {
   claim,
   getKeyInformation,
   getPubFromSecret,
-  formatNearAmount,
   formatLinkdropUrl,
   generateKeys,
   getKeyInformationBatch,
@@ -19,8 +18,9 @@ import {
   getDropSupplyForOwner,
   getDrops,
   type ProtocolReturnedKeyInfo,
-} from 'keypom-js';
+} from '@keypom/core';
 import * as nearAPI from 'near-api-js';
+import { formatNearAmount } from 'near-api-js/lib/utils/format';
 import { type Wallet } from '@near-wallet-selector/core';
 import * as bs58 from 'bs58';
 import * as nacl from 'tweetnacl';
@@ -161,7 +161,7 @@ class KeypomJS {
   nearToYocto = (near: string) => nearAPI.utils.format.parseNearAmount(near);
 
   viewCall = async ({ contractId = KEYPOM_EVENTS_CONTRACT, methodName, args }) => {
-    const res = await this.viewAccount.viewFunctionV2({
+    const res = await this.viewAccount.viewFunction({
       contractId,
       methodName,
       args,
@@ -170,7 +170,7 @@ class KeypomJS {
   };
 
   getResalesForEvent = async ({ eventId }) => {
-    return await this.viewAccount.viewFunctionV2({
+    return await this.viewAccount.viewFunction({
       contractId: KEYPOM_MARKETPLACE_CONTRACT,
       methodName: 'get_resales_per_event',
       args: { event_id: eventId },
@@ -197,14 +197,14 @@ class KeypomJS {
         account_id: KEYPOM_MARKETPLACE_CONTRACT,
         msg,
       },
-      gas: '300000000000000',
+      gas: BigInt(`300000000000000`),
     });
   };
 
   GenerateSignature = async (keypairAndSigningMsg: {publicKey: string, secretKey: string, message: string}) => {
     const sk_bytes = bs58.decode(keypairAndSigningMsg.secretKey);
 
-    const key_info = await this.viewAccount.viewFunctionV2({
+    const key_info = await this.viewAccount.viewFunction({
       contractId: KEYPOM_EVENTS_CONTRACT,
       methodName: 'get_key_information',
       args: {
@@ -223,13 +223,15 @@ class KeypomJS {
   };
 
   GenerateTicketKeys = async (numKeys) => {
-    const { publicKeys, secretKeys } = await generateKeys({
+    const res = await generateKeys({
       numKeys,
       // rootEntropy: `${get(MASTER_KEY) as string}-${dropId}`,
       // autoMetaNonceStart: start,
     });
 
-    return { publicKeys, secretKeys };
+    console.log('publicKeys inside', res);
+
+    return { publicKeys: res.publicKeys, secretKeys: res.secretKeys };
   };
 
   GetMarketListings = async ({ start, limit }: { start: number; limit: number }) => {
@@ -251,7 +253,7 @@ class KeypomJS {
         const batchEnd = Math.min(i + MARKETPLACE_ITEMS_PER_QUERY, endIndex);
         if (this.allEventsGallery.slice(batchStart, batchEnd).some((item) => item === null)) {
           // If any item in the range is null, fetch the batch
-          const answer: MarketListing[] = await this.viewAccount.viewFunctionV2({
+          const answer: MarketListing[] = await this.viewAccount.viewFunction({
             contractId: KEYPOM_MARKETPLACE_CONTRACT,
             methodName: 'get_events',
             args: { from_index: batchStart, limit: batchEnd - batchStart },
@@ -294,7 +296,7 @@ class KeypomJS {
   //     return cached;
   //   }
 
-  //   const answer: MarketListing[] = await this.viewAccount.viewFunctionV2({
+  //   const answer: MarketListing[] = await this.viewAccount.viewFunction({
   //     contractId,
   //     methodName: 'get_events',
   //     args: { limit, from_index },
@@ -350,7 +352,7 @@ class KeypomJS {
   };
 
   getCurrentKeyOwner = async (contractId: string, publicKey: string) => {
-    const keyInfo = await this.viewAccount.viewFunctionV2({
+    const keyInfo = await this.viewAccount.viewFunction({
       contractId: KEYPOM_EVENTS_CONTRACT,
       methodName: 'get_key_information',
       args: { key: publicKey },
@@ -385,7 +387,7 @@ class KeypomJS {
       KEYPOM_EVENTS_CONTRACT,
     );
 
-    const keyInfo = await this.viewAccount.viewFunctionV2({
+    const keyInfo = await this.viewAccount.viewFunction({
       contractId: KEYPOM_EVENTS_CONTRACT,
       methodName: 'get_key_information',
       args: {
@@ -478,9 +480,11 @@ class KeypomJS {
         this.dropStore[accountId] = [];
       }
 
+
       if (this.dropStore[accountId].length >= this.totalDrops) {
         return this.dropStore[accountId];
       }
+
 
       const totalQueries = Math.ceil(this.totalDrops / DROP_ITEMS_PER_QUERY);
       const pageIndices = Array.from({ length: totalQueries }, (_, index) => index);
@@ -496,10 +500,12 @@ class KeypomJS {
             }),
         ),
       );
+
       this.dropStore[accountId] = allPagesDrops.flat();
 
       return this.dropStore[accountId];
     } catch (error) {
+      console.log(error)
       throw new Error('Failed to fetch drops.');
     }
   };
@@ -513,7 +519,7 @@ class KeypomJS {
   };
 
   getEventSupply = async () => {
-    return await this.viewAccount.viewFunctionV2({
+    return await this.viewAccount.viewFunction({
       contractId: KEYPOM_MARKETPLACE_CONTRACT,
       methodName: 'get_event_supply',
       args: {},
@@ -790,7 +796,7 @@ class KeypomJS {
   };
 
   getTicketKeyInformation = async ({ publicKey }: { publicKey: string }) => {
-    const fetchedinfo = await this.viewAccount.viewFunctionV2({
+    const fetchedinfo = await this.viewAccount.viewFunction({
       contractId: KEYPOM_EVENTS_CONTRACT,
       methodName: 'get_key_information',
       args: {
@@ -933,15 +939,19 @@ class KeypomJS {
   getDropSupplyForOwner = async ({ accountId }) => await getDropSupplyForOwner({ accountId });
 
   getDropMetadata = (metadata: string | undefined) => {
-    const parsedObj = JSON.parse(metadata || '{}');
-    if (Object.hasOwn(parsedObj, 'drop_name')) {
-      parsedObj.dropName = parsedObj.drop_name;
+    try{
+      const parsedObj = JSON.parse(metadata || '{}');
+      if (Object.hasOwn(parsedObj, 'drop_name')) {
+        parsedObj.dropName = parsedObj.drop_name;
+      }
+  
+      if (!Object.hasOwn(parsedObj, 'dropName')) {
+        parsedObj.dropName = 'Untitled';
+      }
+      return parsedObj;
+    }catch(e){
+      return { };
     }
-
-    if (!Object.hasOwn(parsedObj, 'dropName')) {
-      parsedObj.dropName = 'Untitled';
-    }
-    return parsedObj;
   };
 
   getDropData = async ({
@@ -968,7 +978,7 @@ class KeypomJS {
 
     let type: string | null = '';
     try {
-      if (drop == null || drop === undefined) throw new Error('Drop is null or undefined');
+      if (drop === null || drop === undefined || dropName === undefined) throw new Error('Drop is null or undefined');
       type = this.getDropType(drop);
     } catch (_) {
       type = DROP_TYPE.OTHER;
@@ -1000,7 +1010,8 @@ class KeypomJS {
           description: nftData?.metadata?.description,
         };
       } catch (e) {
-        throw new Error('Failed to get NFT metadata.');
+        console.log(e)
+        throw new Error('Failed to get NFT metadata:', e);
       }
       nftHref = nftMetadata?.media || 'assets/image-not-found.png';
     }
@@ -1014,10 +1025,41 @@ class KeypomJS {
     };
   };
 
-  deleteDrops = async ({ wallet, dropIds }) => await deleteDrops({ wallet, dropIds });
+  getAccountFromWallet = async (wallet: Wallet) : Promise<nearAPI.Account | undefined> => {
+    // Connection
+    const env = getEnv();
+    const near = env.near;
+    const connection = near?.connection;
 
-  deleteKeys = async ({ wallet, dropId, publicKeys }) =>
-    await deleteKeys({ wallet, dropId, publicKeys });
+    // Account ID
+    const accounts = await wallet.getAccounts();
+    const accountId = accounts[0].accountId;
+    if(connection == null){
+      console.log("Connection is null")
+      return undefined;
+    } 
+    const account = new nearAPI.Account(connection, accountId);
+    return account
+  }
+
+
+  deleteDrops = async ({ wallet, dropIds }) => {
+    const account = await this.getAccountFromWallet(wallet);
+    if(account){
+      await deleteDrops({ account, dropIds });
+    }else{
+      throw new Error('Account could not be derived from wallet');
+    }
+  }
+
+  deleteKeys = async ({ wallet, dropId, publicKeys }) => {
+    const account = await this.getAccountFromWallet(wallet);
+    if(account){
+      await deleteKeys({ wallet, dropId, publicKeys });
+    }else{
+      throw new Error('Account could not be derived from wallet');
+    }
+  }
 
   getDropInfo = async ({
     dropId,
@@ -1031,6 +1073,8 @@ class KeypomJS {
     if (!dropId && !secretKey) {
       throw new Error('dropId or secretKey must be provided.');
     }
+
+    console.log("args: ", dropId, secretKey)
 
     try {
       drop = await getDropInformation({ dropId, secretKey });
@@ -1071,11 +1115,12 @@ class KeypomJS {
     });
 
     const keyInfos = await getKeyInformationBatch({ publicKeys });
+    const dropIdString = `${dropId}`;
 
     const dropKeyItems: DropKeyItem[] = [];
     keyInfos.forEach((info, index) => {
       const keyIndex = start + index;
-      this.keyStore[dropId].dropKeyItems[keyIndex] = {
+      this.keyStore[dropIdString].dropKeyItems[keyIndex] = {
         id: keyIndex,
         link: `${window.location.origin}/claim/${getConfig().contractId}#${secretKeys[
           index
@@ -1090,18 +1135,19 @@ class KeypomJS {
     return dropKeyItems;
   };
 
-  async getAllKeysInfo({ dropId }) {
+  async getAllKeysInfo({ dropId }: {dropId: string}) {
     try {
       const dropInfo = await this.getDropInfo({ dropId });
       const dropName = this.getDropMetadata(dropInfo.metadata).dropName;
       const totalKeys = dropInfo.next_key_id;
+      const dropIdString = `${dropId}`;
       if (
-        this.keyStore[dropId] == null ||
-        this.keyStore[dropId] === undefined ||
-        (this.keyStore[dropId] != null && this.keyStore[dropId].totalKeys !== totalKeys)
+        this.keyStore[dropIdString] == null ||
+        this.keyStore[dropIdString] === undefined ||
+        (this.keyStore[dropIdString] != null && this.keyStore[dropIdString].totalKeys !== totalKeys)
       ) {
         // Initialize the cache for this drop
-        this.keyStore[dropId] = {
+        this.keyStore[dropIdString] = {
           dropName,
           dropKeyItems: new Array(totalKeys).fill(null),
           totalKeys,
@@ -1122,7 +1168,7 @@ class KeypomJS {
         await Promise.all(batchPromises);
       }
 
-      return this.keyStore[dropId];
+      return this.keyStore[dropIdString];
     } catch (error) {
       throw new Error('Failed to get keys info.');
     }
@@ -1138,32 +1184,32 @@ class KeypomJS {
     start: number;
     limit: number;
   }) => {
+    // add 50ms delay
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    const dropIdString = `${dropId}`;
     try {
       // Initialize the cache for this drop if it doesn't exist
-      console.log(dropId)
-      console.log(this.keyStore[dropId])
-      console.log(this.keyStore)
-      if (this.keyStore[dropId] == null || this.keyStore[dropId] === undefined)
+      if (this.keyStore[dropIdString] == null || this.keyStore[dropIdString] === undefined)
         throw new Error('Drop is null or undefined');
 
       const dropInfo = await this.getDropInfo({ dropId });
       const dropName = this.getDropMetadata(dropInfo.metadata).dropName;
       const totalKeys = dropInfo.next_key_id;
 
-      this.keyStore[dropId] = {
+      this.keyStore[dropIdString] = {
         dropName,
         dropKeyItems: Array(totalKeys).fill(null), // Initialize with nulls
         totalKeys,
       };
 
       // Calculate the end index
-      const endIndex = Math.min(start + limit, this.keyStore[dropId].totalKeys);
+      const endIndex = Math.min(start + limit, this.keyStore[dropIdString].totalKeys);
 
       // Fetch and cache batches as needed
       for (let i = start; i < endIndex; i += KEY_ITEMS_PER_QUERY) {
         if (
-          this.keyStore[dropId].dropKeyItems[i] == null ||
-          this.keyStore[dropId].dropKeyItems[i] === undefined
+          this.keyStore[dropIdString].dropKeyItems[i] == null ||
+          this.keyStore[dropIdString].dropKeyItems[i] === undefined
         ) {
           // Fetch the keys for this batch
           const batchLimit = Math.min(KEY_ITEMS_PER_QUERY, endIndex - i);
@@ -1172,7 +1218,7 @@ class KeypomJS {
       }
 
       // Return the requested slice from the cache
-      return this.keyStore[dropId].dropKeyItems.slice(start, endIndex);
+      return this.keyStore[dropIdString].dropKeyItems.slice(start, endIndex);
     } catch (e) {
       console.log("Error getting key info: ", e)
       throw new Error('Failed to get keys info.', e);

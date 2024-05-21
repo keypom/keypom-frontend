@@ -44,6 +44,7 @@ const NewNftDrop = () => {
 
   const handleNFTCreate = async () => {
     const data = await getNFTAttempt();
+    console.log("data in handleNFTCreate", data)
     if (!data?.confirmed) {
       return;
     }
