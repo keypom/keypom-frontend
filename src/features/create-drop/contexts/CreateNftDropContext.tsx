@@ -202,7 +202,7 @@ export const CreateNftDropProvider = ({ children }: PropsWithChildren) => {
     return { costsData, totalCost: parseFloat(totalCost), confirmationText };
   };
 
-  const handleDropConfirmation = async (paymentData: PaymentData) => {
+  const handleDropConfirmation = async (paymentData: PaymentData): Promise<void> => {
     const totalRequired = paymentData.costsData[3].total;
 
     await update(NFT_ATTEMPT_KEY, (val) => ({ ...val, confirmed: true }));
