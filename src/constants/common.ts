@@ -23,8 +23,8 @@ export const MASTER_KEY = 'MASTER_KEY';
 export const MAX_FILE_SIZE = 10000000;
 
 export const WORKER_BASE_URL = 'https://keypom-nft-storage.keypom.workers.dev/';
-export const EVENTS_WORKER_IPFS_PINNING = process.env.REACT_APP_NETWORK_ID === "mainnet" ? 'https://stripe-worker-production.keypom.workers.dev/ipfs-pin':  'https://stripe-worker.keypom.workers.dev/ipfs-pin';
-export const EVENTS_WORKER_BASE = process.env.REACT_APP_NETWORK_ID === "mainnet" ? 'https://stripe-worker-production.keypom.workers.dev' : 'https://stripe-worker.keypom.workers.dev';
+export const EVENTS_WORKER_IPFS_PINNING = process.env.REACT_APP_NETWORK_ID === "mainnet" ? 'https://stripe-worker-production.keypom.workers.dev/ipfs-pin':  'https://stripe-worker.keypom.workers-dev.dev/ipfs-pin';
+export const EVENTS_WORKER_BASE = process.env.REACT_APP_NETWORK_ID === "mainnet" ? 'https://stripe-worker-production.keypom.workers.dev' : 'https://stripe-worker-dev.keypom.workers.dev';
 export const EMAIL_WORKER_BASE = 'https://email-worker.keypom.workers.dev';
 
 export const PAGE_SIZE_LIMIT = 5;
