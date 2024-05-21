@@ -152,7 +152,7 @@ export const calculateDepositCost = ({
   marketDeposit +=
     BigInt(numFreeKeys) *
     (BASE_MARKET_BYTES_PER_KEY + METADATA_MARKET_BYTES_PER_KEY) *
-    YOCTO_PER_BYTE;
+    YOCTO_PER_BYTE * BigInt(2);
 
   // Return the total deposit cost
   return {
