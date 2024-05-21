@@ -205,10 +205,7 @@ export const CreateNftDropProvider = ({ children }: PropsWithChildren) => {
   const handleDropConfirmation = async (paymentData: PaymentData) => {
     const totalRequired = paymentData.costsData[3].total;
 
-    await update(NFT_ATTEMPT_KEY, (val) => ({
-      ...val,
-      confirmed: true
-    }));
+    await update(NFT_ATTEMPT_KEY, (val) => ({ ...val, confirmed: true }));
     
     get(NFT_ATTEMPT_KEY).then((val) => console.log("Updated NFT_ATTEMPT_KEY", val));
     const wallet = await window.selector.wallet();
