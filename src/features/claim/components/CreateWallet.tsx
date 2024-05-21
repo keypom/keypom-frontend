@@ -15,6 +15,7 @@ interface CreateWalletProps {
 }
 
 const { supportedWallets, defaultWallet } = getConfig();
+console.log(supportedWallets)
 
 export const CreateWallet = ({
   contractId,
@@ -27,12 +28,20 @@ export const CreateWallet = ({
 
   const handleWalletClick = async (walletName: string, wRef: any) => {
     try {
-      const url = await keypomInstance.generateExternalWalletLink(
-        walletName,
-        contractId,
-        secretKey,
-      );
+      console.log(walletName)
+      let url: string;
+      if(walletName === 'meteorwallet'){
+        url = `https://wallet.meteorwallet.app/linkdrop/${contractId}/${secretKey}`
+      }else{
+        url = await keypomInstance.generateExternalWalletLink(
+          walletName,
+          contractId,
+          secretKey,
+        );
+      }
 
+      console.log(url)
+      
       window.setTimeout(async () => {
         // check if the drop still exists after X seconds, if its claimed, then we should show a message
         const isDropExist = await keypomInstance.checkIfDropExists(secretKey);
@@ -45,8 +54,10 @@ export const CreateWallet = ({
 
       wRef.location.href = redirectUrl ? `${url}?redirectUrl=${redirectUrl}` : `${url}`;
     } catch (err) {
+      console.log(err)
       // drop has been claimed
       // refresh to show error
+
       window.location.reload();
     }
   };
@@ -55,7 +66,7 @@ export const CreateWallet = ({
 
     // TODO replace with filter this is temporary
     // .filter((wallet) => wallets.includes(wallet.id))
-    .filter((wallet) => wallet.name === 'mynearwallet')
+    .filter((wallet) => wallet.name !== 'mintbasewallet')
 
     .map((options, index) => (
       <WalletOption

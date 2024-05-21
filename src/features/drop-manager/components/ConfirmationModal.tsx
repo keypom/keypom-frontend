@@ -2,7 +2,7 @@ export const setConfirmationModalHelper = (setAppModal, confirm, type = 'key') =
   setAppModal({
     isOpen: true,
     header: 'Are you sure?',
-    message: `You are going to delete the ${type === 'key' ? 'key' : 'drop'}.`,
+    message: `You are going to delete the ${type}.`,
     closeButtonVisible: true,
     options: [
       {

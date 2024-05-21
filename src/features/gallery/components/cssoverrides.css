@@ -1,0 +1,92 @@
+/* .DateRangePickerInput {
+  border-radius: 10px !important;
+  border: 1px solid grey !important;
+} */
+
+.DateInput {
+  border-radius: 10px !important;
+  padding: 0px !important;
+  margin: 0px !important;
+  /* green for testing */
+  /* border: 2px solid red !important;
+  color: green !important; */
+}
+
+.DateInput_input {
+  border-radius: 10px !important;
+  padding: 0px !important;
+  margin: 11px !important;
+  width: 90px !important;
+  /* green for testing */
+  /* border: 2px solid red !important; */
+  /* color: green !important; */
+  font-family: var(--chakra-fonts-body) !important;
+  font-weight: var(--chakra-fontWeights-medium);
+  font-size: var(--chakra-fontSizes-md);
+  color: var(--chakra-colors-gray-400);
+}
+
+.DateRangePickerInput_arrow_svg {
+  display: none !important;
+}
+
+.DateRangePickerInput {
+  border-radius: 10px !important;
+  border: 2px solid !important;
+  border-color: var(--chakra-colors-gray-200) !important;
+}
+
+.CalendarDay {
+  border-color: #ffffff00 !important;
+  color: var(--chakra-colors-gray-400) !important;
+}
+
+.CalendarDay__selected_start {
+  border-radius: 20px !important;
+  border: 2px solid !important;
+  border-color: #ffffff00 !important;
+  color: white !important;
+}
+
+.CalendarDay__selected_end {
+  border-radius: 20px !important;
+  border: 2px solid !important;
+  border-color: #ffffff00 !important;
+  color: white !important;
+}
+
+.CalendarDay__selected_span {
+  background: var(--chakra-colors-blue-200) !important;
+  color: var(--chakra-colors-gray-400) !important;
+  border-color: #ffffff00 !important;
+}
+
+/* .CalendarDay__selected {
+  background: var(--chakra-colors-blue-200) !important;
+  color: white !important;
+} */
+
+.CalendarDay__hovered_span:hover,
+.CalendarDay__hovered_span {
+  background: var(--chakra-colors-blue-200) !important;
+}
+.CalendarDay__selected_start {
+  background: var(--chakra-colors-blue-400) !important;
+}
+.CalendarDay__selected_end {
+  background: var(--chakra-colors-blue-400) !important;
+}
+
+.CalendarMonth_caption {
+  font-family: var(--chakra-fonts-body) !important;
+  font-weight: var(--chakra-fontWeights-medium);
+  font-size: var(--chakra-fontSizes-md);
+  color: var(--chakra-colors-gray-400);
+}
+
+.DateInput_input__focused {
+  border: 2px solid !important;
+  border-color: var(--chakra-colors-blue-400) !important;
+  color: var(--chakra-colors-gray-400) !important;
+  border-color: #ffffff00 !important;
+}

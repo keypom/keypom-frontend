@@ -1,7 +1,8 @@
 import { Button, Flex, Input } from '@chakra-ui/react';
 import { useCallback, useState, useEffect } from 'react';
 import { Controller, useFormContext } from 'react-hook-form';
-import { formatNearAmount, createDrop } from 'keypom-js';
+import { createDrop } from '@keypom/core';
+import { formatNearAmount } from 'near-api-js/lib/utils/format';
 
 import { IconBox } from '@/components/IconBox';
 import { FormControl } from '@/components/FormControl';
@@ -51,7 +52,6 @@ export const CreateTokenDropForm = () => {
   ]);
 
   const calcTotalCost = async () => {
-    console.log(totalLinks, amountPerLink, totalCost);
     if (totalLinks && amountPerLink) {
       const { requiredDeposit } = await createDrop({
         wallet: await window.selector.wallet(),
@@ -84,7 +84,6 @@ export const CreateTokenDropForm = () => {
     if (masterKey === undefined) {
       openMasterKeyModal(setAppModal, onNext?.(), () => {
         // eslint-disable-next-line no-console
-        console.log('user cancelled');
         window.location.reload();
       });
       return;

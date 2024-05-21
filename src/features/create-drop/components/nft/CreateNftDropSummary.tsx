@@ -13,7 +13,7 @@ export const CreateNftDropSummary = () => {
     console.warn(error);
     return <div>failed to load</div>;
   }
-  if (isLoading) return <div>loading...</div>;
+  if (isLoading) return <div>Calculating Costs...</div>;
 
   const { data, handleDropConfirmation } = createLinksSWR;
 
@@ -21,10 +21,10 @@ export const CreateNftDropSummary = () => {
     <DropSummary
       confirmButtonText="Pay and create links"
       data={data}
-      paymentData={paymentData}
+      paymentData={paymentData!}
       summaryData={summaryData}
-      onConfirmClick={() => {
-        handleDropConfirmation(paymentData);
+      onConfirmClick={async () => {
+         handleDropConfirmation(paymentData!);
       }}
     />
   );

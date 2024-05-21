@@ -13,6 +13,8 @@ export interface FormControlProps extends CFormControlProps {
   helperText?: string;
   errorText?: string;
   labelProps?: FormLabelProps;
+  helperTextProps?: Record<string, unknown>;
+  marginY?: string;
 }
 
 export const FormControlComponent = ({
@@ -21,14 +23,20 @@ export const FormControlComponent = ({
   errorText,
   children,
   labelProps,
+  helperTextProps,
+  marginY = '5',
   ...props
 }: PropsWithChildren<FormControlProps>) => {
   return (
-    <CFormControl my="5" textAlign="left" {...props}>
+    <CFormControl my={marginY} textAlign="left" {...props}>
       <FormLabel color="gray.800" fontSize={{ base: 'sm', md: 'base' }} m="0" {...labelProps}>
         {label}
       </FormLabel>
-      {helperText && <Text mt="0.5">{helperText}</Text>}
+      {helperText && (
+        <Text color="gray.400" mt="0.5" {...helperTextProps}>
+          {helperText}
+        </Text>
+      )}
       <Box mt="1.5">{children}</Box>
       {errorText && (
         <Text fontSize={{ base: 'xs', md: 'sm' }} mt="6px" variant="error">

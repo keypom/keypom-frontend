@@ -18,4 +18,5 @@ export * from './tokens/TokenEthIcon';
 export * from './TwitterLogoIcon';
 export * from './UncheckedIcon';
 export * from './wallets/HereWalletIcon';
+export * from './wallets/MintbaseWalletIcon'
 export * from './wallets/MyNearWalletIcon';

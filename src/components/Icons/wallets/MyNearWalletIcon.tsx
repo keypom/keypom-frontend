@@ -7,7 +7,7 @@ export const MyNearLogoIcon = ({ ...props }: IconProps) => {
       fill="none"
       height="7"
       viewBox="0 0 16 18"
-      width="5"
+      width="6"
       xmlns="http://www.w3.org/2000/svg"
       {...props}
     >

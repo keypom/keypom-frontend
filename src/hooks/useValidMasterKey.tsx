@@ -1,4 +1,4 @@
-import { generateKeys, getKeysForDrop } from 'keypom-js';
+import { generateKeys, getKeysForDrop } from '@keypom/core';
 import { useEffect, useState } from 'react';
 
 import { MASTER_KEY } from '@/constants/common';
@@ -24,7 +24,7 @@ export const useValidMasterKey = ({ dropId }: useValidMasterKeyProps) => {
         metaEntropy: keys[0].key_id.toString(),
       });
 
-      setValid(keys[0].pk === publicKeys[0]);
+      setValid((keys[0] as any).pk === publicKeys[0]);
     };
     validateMasterKey();
   }, []);

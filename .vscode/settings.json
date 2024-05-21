@@ -21,10 +21,14 @@
   "[typescriptreact]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
-  "editor.rulers": [80],
+  "editor.rulers": [
+    80
+  ],
   "editor.codeActionsOnSave": {
-    "source.fixAll.eslint": true
+    "source.fixAll.eslint": "explicit"
   },
-  "cSpell.words": ["bgcolor"],
+  "cSpell.words": [
+    "bgcolor"
+  ],
   "typescript.tsdk": "node_modules/typescript/lib"
 }

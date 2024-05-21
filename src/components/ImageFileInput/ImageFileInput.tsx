@@ -15,7 +15,9 @@ import {
 import { ImageIcon } from '../Icons';
 
 interface ImageFileInputProps extends InputProps {
-  label: string;
+  label?: string;
+  ctaText?: string;
+  buttonText?: string;
   selectedFile?: File;
   preview?: string;
   errorMessage?: string;
@@ -24,6 +26,8 @@ interface ImageFileInputProps extends InputProps {
 
 export const ImageFileInput = ({
   label,
+  ctaText = 'Browse or drag and drop your image here',
+  buttonText = 'Browse images',
   selectedFile,
   preview,
   errorMessage,
@@ -32,11 +36,13 @@ export const ImageFileInput = ({
 }: ImageFileInputProps) => {
   return (
     <FormControl>
-      <Flex alignItems="center" justifyContent="flex-start" w="full">
-        <FormLabel htmlFor={props?.id} mb="2">
-          {label}
-        </FormLabel>
-      </Flex>
+      {label && (
+        <Flex alignItems="center" justifyContent="flex-start" w="full">
+          <FormLabel htmlFor={props?.id} mb="2">
+            {label}
+          </FormLabel>
+        </Flex>
+      )}
       <InputGroup>
         <Flex
           border="2px dashed"
@@ -87,7 +93,7 @@ export const ImageFileInput = ({
                 w={{ base: '6', md: '1.875rem' }}
               />
               <Show above="md">
-                <Text color="gray.400">Browse or drag and drop your image here</Text>
+                <Text color="gray.400">{ctaText}</Text>
               </Show>
               <Center
                 border="1px solid"
@@ -97,7 +103,7 @@ export const ImageFileInput = ({
                 px={{ base: '3', md: '4' }}
                 py={{ base: '1', md: '2' }}
               >
-                Browse images
+                {buttonText}
               </Center>
             </Flex>
           )}

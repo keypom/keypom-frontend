@@ -5,7 +5,7 @@ import React from 'react';
 import { KeypomLogo } from '@/components/KeypomLogo';
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
 
-import '@near-wallet-selector/modal-ui/styles.css';
+import '@near-wallet-selector/modal-ui-js/styles.css';
 import '@/components/WalletSelectorModal/WalletSelectorModal.css';
 
 const MobileMenu = React.lazy(
@@ -25,21 +25,27 @@ type NavbarProps = BoxProps;
 
 export const Navbar = (props: NavbarProps) => {
   const { isLoggedIn } = useAuthWalletContext();
+  const isTicketSubdirectory =
+    location.pathname.startsWith('/tickets/') || location.pathname.startsWith('/claim/');
 
   const MENU_ITEMS = [
+    {
+      name: 'Gallery',
+      href: '/gallery',
+    },
     {
       name: 'Docs',
       href: 'https://docs.keypom.xyz',
       isExternal: true,
     },
     {
-      name: 'Get in touch',
-      href: 'https://twitter.com/keypomxyz',
-      isExternal: true,
-    },
-    {
       name: 'My Drops',
       href: '/drops',
+      isProtected: !isLoggedIn,
+    },
+    {
+      name: 'My Events',
+      href: '/events',
       isProtected: !isLoggedIn,
     },
   ];
@@ -72,7 +78,7 @@ export const Navbar = (props: NavbarProps) => {
         {/* Menu Items */}
         <HStack display={{ base: 'none', md: 'flex' }} spacing={{ sm: '4', md: '10' }}>
           {menuItems}
-          {isLoggedIn ? <SignedInButton /> : <ConnectWalletButton />}
+          {!isTicketSubdirectory && (isLoggedIn ? <SignedInButton /> : <ConnectWalletButton />)}
         </HStack>
         <Box display={{ base: 'block', md: 'none' }}>
           <MobileMenu menuItems={MENU_ITEMS} />

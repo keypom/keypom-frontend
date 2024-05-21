@@ -6,7 +6,7 @@ export interface SummaryItem {
 
 export interface PaymentItem {
   name: string;
-  total: number;
+  total: number | string;
   isDiscount?: boolean;
   discountText?: string;
   helperText?: string;
