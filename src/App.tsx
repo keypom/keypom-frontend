@@ -9,6 +9,9 @@ import { Loading } from '@/components/Loading';
 import { Fonts } from '@/components/Fonts';
 import { AuthWalletContextProvider } from '@/contexts/AuthWalletContext';
 import { AppContextProvider } from '@/contexts/AppContext';
+
+import 'react-datepicker/dist/react-datepicker.css';
+
 import './components/DateRangePicker/DatePickerStyle.css'; // Path to your custom CSS
 
 // const Fonts = React.lazy(

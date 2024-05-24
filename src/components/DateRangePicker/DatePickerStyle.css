@@ -1,4 +1,16 @@
 @charset "UTF-8";
+
+.react-datepicker {
+  font-size: 0.8rem;
+  background-color: #fdfdfd;
+  border-radius: 0.5rem 0.5rem 0 0;
+
+  display: inline-block;
+  position: relative;
+  line-height: initial;
+  max-width: 100%;
+}
+
 @media (max-width: 767px) {
   .react-datepicker__year-read-view--down-arrow,
   .react-datepicker__month-read-view--down-arrow,
@@ -32,17 +44,6 @@
     border: 0;
     position: relative;
     z-index: 10;
-  }
-
-  .react-datepicker {
-    font-size: 0.8rem;
-    background-color: #fefefe;
-    border-radius: 0.5rem 0.5rem 0 0;
-
-    display: inline-block;
-    position: relative;
-    line-height: initial;
-    max-width: 100%;
   }
 
   .react-datepicker--time-only .react-datepicker__time-container {
@@ -879,17 +880,6 @@
     border: 0;
     position: relative;
     z-index: 10;
-  }
-
-  .react-datepicker {
-    font-size: 0.8rem;
-    background-color: #fdfdfd;
-    border-radius: 0.5rem 0.5rem 0 0;
-
-    display: inline-block;
-    position: relative;
-    line-height: initial;
-    max-width: 100%;
   }
 
   .react-datepicker--time-only .react-datepicker__time-container {
