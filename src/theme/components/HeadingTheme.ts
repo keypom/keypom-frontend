@@ -3,6 +3,7 @@ import { defineStyleConfig } from '@chakra-ui/react';
 export const HeadingTheme = defineStyleConfig({
   baseStyle: {
     fontWeight: 'medium',
+    color: 'gray.800',
   },
   sizes: {
     md: {
