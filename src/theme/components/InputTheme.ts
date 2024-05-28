@@ -5,6 +5,11 @@ import { createMultiStyleConfigHelpers } from '@chakra-ui/react';
 const helpers = createMultiStyleConfigHelpers(parts.keys);
 
 export const InputTheme = helpers.defineMultiStyleConfig({
+  baseStyle: {
+    field: {
+      color: 'gray.800',
+    },
+  },
   sizes: {
     md: {
       field: {
@@ -16,6 +21,10 @@ export const InputTheme = helpers.defineMultiStyleConfig({
   variants: {
     outline: {
       field: {
+        borderColor: 'gray.300',
+        _focus: {
+          borderColor: 'blue.500',
+        },
         _invalid: {
           borderColor: 'red.300',
         },
