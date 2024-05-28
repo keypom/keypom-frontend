@@ -27,6 +27,7 @@ import {
   type TicketInfoMetadata,
   type TicketMetadataExtra,
 } from '@/lib/eventsHelpers';
+import { contractName } from '@/config/config';
 
 import { dateAndTimeToText } from '../drop-manager/utils/parseDates';
 
@@ -47,7 +48,25 @@ export default function TicketQRPage() {
     const getEventInfo = async () => {
       try {
         setIsLoading(true);
+        // Check if there's a linkdrop (i.e ticket sold)
         const pubKey = getPubFromSecret(secretKey);
+        try {
+          const keyInfo: { drop_id: string } = await keypomInstance.viewCall({
+            contractId: contractName,
+            methodName: 'get_key_information',
+            args: { key: pubKey },
+          });
+          const drop: EventDrop = await keypomInstance.viewCall({
+            contractId: contractName,
+            methodName: 'get_drop_information',
+            args: { drop_id: keyInfo.drop_id },
+          });
+          if (drop.deposit_per_use !== null && drop.deposit_per_use !== undefined) {
+            window.location.assign(`${window.location.origin}/claim/${contractName}#${secretKey}`);
+          }
+        } catch (e) {
+          console.log('No linkdrop found, continuing: ', e);
+        }
         const keyInfo: { drop_id: string } = await keypomInstance.viewCall({
           methodName: 'get_key_information',
           args: { key: pubKey },

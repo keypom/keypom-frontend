@@ -16,7 +16,7 @@ import {
 import { useParams, useNavigate } from 'react-router-dom';
 import { ExternalLinkIcon } from '@chakra-ui/icons';
 import { useCallback, useEffect, useState } from 'react';
-import { generateKeys, getPubFromSecret } from '@keypom/core';
+import { getPubFromSecret } from '@keypom/core';
 import { formatNearAmount } from 'near-api-js/lib/utils/format';
 import { type Wallet } from '@near-wallet-selector/core';
 
@@ -495,26 +495,23 @@ export default function Event() {
           });
         }
 
-        const response = await fetch(
-          `${EVENTS_WORKER_BASE}/purchase-free-tickets`,
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(workerPayload),
+        const response = await fetch(`${EVENTS_WORKER_BASE}/purchase-free-tickets`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
           },
-        );
+          body: JSON.stringify(workerPayload),
+        });
 
         const responseBody = await response.json();
         if (response.ok) {
           TicketPurchaseSuccessful(workerPayload, responseBody);
         } else {
-          console.log("error: ", responseBody.error)
+          console.log('error: ', responseBody.error);
           if (typeof responseBody.error === 'object') {
-            const near_error = JSON.parse(responseBody.error.message)
-            TicketPurchaseFailure(workerPayload,  near_error);
-          }else{
+            const near_error = JSON.parse(responseBody.error.message);
+            TicketPurchaseFailure(workerPayload, near_error);
+          } else {
             TicketPurchaseFailure(workerPayload, responseBody.error);
           }
         }
@@ -548,55 +545,55 @@ export default function Event() {
           ticketBeingPurchased.publicKey,
         );
 
-        const linkdrop_keys = await generateKeys({ numKeys: 1 });
         // Seller did not have wallet when they bought, include linkdrop info in email
         if (owner === KEYPOM_EVENTS_CONTRACT) {
           console.log('seller did not have wallet when they bought');
-          workerPayload.linkdrop_secret_key = linkdrop_keys.secretKeys[0];
+          workerPayload.linkdrop_secret_key = ticketBeingPurchased.publicKey;
           workerPayload.network = process.env.REACT_APP_NETWORK_ID;
         }
 
         console.log('workerPayload before signandsend', JSON.stringify(workerPayload));
         localStorage.setItem('workerPayload', JSON.stringify(workerPayload));
 
-        wallet.signAndSendTransaction({
-          signerId: accountId || undefined,
-          receiverId: KEYPOM_MARKETPLACE_CONTRACT,
-          actions: [
-            {
-              type: 'FunctionCall',
-              params: {
-                methodName: 'buy_resale',
-                args: {
-                  drop_id: ticketBeingPurchased.id,
-                  memo,
-                  new_owner: accountId,
-                  seller_new_linkdrop_pk: linkdrop_keys.publicKeys[0],
-                  seller_linkdrop_drop_id: Date.now().toString(),
+        wallet
+          .signAndSendTransaction({
+            signerId: accountId || undefined,
+            receiverId: KEYPOM_MARKETPLACE_CONTRACT,
+            actions: [
+              {
+                type: 'FunctionCall',
+                params: {
+                  methodName: 'buy_resale',
+                  args: {
+                    drop_id: ticketBeingPurchased.id,
+                    memo,
+                    new_owner: accountId,
+                    seller_new_linkdrop_pk: ticketBeingPurchased.publicKey,
+                    seller_linkdrop_drop_id: Date.now().toString(),
+                  },
+                  gas: '300000000000000',
+                  // 0.1NEAR if not defined
+                  deposit: nearSendPrice,
                 },
-                gas: '300000000000000',
-                // 0.1NEAR if not defined
-                deposit: nearSendPrice,
               },
-            },
-          ],
-        })
-        .then( () => {
-          if(wallet.type === "injected"){
-            setBuyPromiseResult(true)
-          }
-         })
-        .catch((err) => {
-          console.log("error", err)
-          TicketPurchaseFailure("", err);
-          setPurchaseLoading(false);
-        });;
+            ],
+          })
+          .then(() => {
+            if (wallet.type === 'injected') {
+              setBuyPromiseResult(true);
+            }
+          })
+          .catch((err) => {
+            console.log('error', err);
+            TicketPurchaseFailure('', err);
+            setPurchaseLoading(false);
+          });
       }
     } else if (purchaseType === 'near') {
       // put the workerPayload in local storage
-      console.log("calling generate ticket keys with X keys: ", ticketAmount)
+      console.log('calling generate ticket keys with X keys: ', ticketAmount);
       const { secretKeys, publicKeys } = await keypomInstance.GenerateTicketKeys(ticketAmount);
-      console.log("secret keys", secretKeys)  
+      console.log('secret keys', secretKeys);
       workerPayload.ticketKeys = secretKeys;
       localStorage.setItem('workerPayload', JSON.stringify(workerPayload));
 
@@ -639,35 +636,36 @@ export default function Event() {
         }
 
         localStorage.setItem('purchaseType', 'primary');
-        console.log("local storage worker payload", localStorage.getItem('workerPayload'));
-        wallet.signAndSendTransaction({
-          signerId: accountId || undefined,
-          receiverId: KEYPOM_MARKETPLACE_CONTRACT,
-          actions: [
-            {
-              type: 'FunctionCall',
-              params: {
-                methodName: 'buy_initial_sale',
-                args: {
-                  event_id: meta.eventId,
-                  drop_id: ticketBeingPurchased.id,
-                  new_keys: newKeys,
+        console.log('local storage worker payload', localStorage.getItem('workerPayload'));
+        wallet
+          .signAndSendTransaction({
+            signerId: accountId || undefined,
+            receiverId: KEYPOM_MARKETPLACE_CONTRACT,
+            actions: [
+              {
+                type: 'FunctionCall',
+                params: {
+                  methodName: 'buy_initial_sale',
+                  args: {
+                    event_id: meta.eventId,
+                    drop_id: ticketBeingPurchased.id,
+                    new_keys: newKeys,
+                  },
+                  gas: '300000000000000',
+                  deposit: nearSendPrice,
                 },
-                gas: '300000000000000',
-                deposit: nearSendPrice,
               },
-            },
-          ],
-        })
-        .then( () => {
-          if(wallet.type === "injected"){
-            setBuyPromiseResult(true)
-          }
-         })
-        .catch((err) => {
-          TicketPurchaseFailure("", err);
-          setPurchaseLoading(false);
-        });
+            ],
+          })
+          .then(() => {
+            if (wallet.type === 'injected') {
+              setBuyPromiseResult(true);
+            }
+          })
+          .catch((err) => {
+            TicketPurchaseFailure('', err);
+            setPurchaseLoading(false);
+          });
       } else {
         // secondary
         if (wallet == null) {
@@ -693,47 +691,47 @@ export default function Event() {
           ticketBeingPurchased.publicKey,
         );
 
-        const linkdrop_keys = await generateKeys({ numKeys: 1 });
         // Seller did not have wallet when they bought, include linkdrop info in email
         if (owner === KEYPOM_EVENTS_CONTRACT) {
           console.log('seller did not have wallet when they bought');
-          workerPayload.linkdrop_secret_key = linkdrop_keys.secretKeys[0];
+          workerPayload.linkdrop_secret_key = ticketBeingPurchased.publicKey;
           workerPayload.network = process.env.REACT_APP_NETWORK_ID;
         }
 
         console.log('workerPayload before signandsend', JSON.stringify(workerPayload));
         localStorage.setItem('workerPayload', JSON.stringify(workerPayload));
 
-        wallet.signAndSendTransaction({
-          signerId: accountId || undefined,
-          receiverId: KEYPOM_MARKETPLACE_CONTRACT,
-          actions: [
-            {
-              type: 'FunctionCall',
-              params: {
-                methodName: 'buy_resale',
-                args: {
-                  drop_id: ticketBeingPurchased.id,
-                  memo,
-                  new_owner: accountId,
-                  seller_new_linkdrop_pk: linkdrop_keys.publicKeys[0],
-                  seller_linkdrop_drop_id: Date.now().toString(),
+        wallet
+          .signAndSendTransaction({
+            signerId: accountId || undefined,
+            receiverId: KEYPOM_MARKETPLACE_CONTRACT,
+            actions: [
+              {
+                type: 'FunctionCall',
+                params: {
+                  methodName: 'buy_resale',
+                  args: {
+                    drop_id: ticketBeingPurchased.id,
+                    memo,
+                    new_owner: accountId,
+                    seller_new_linkdrop_pk: ticketBeingPurchased.publicKey,
+                    seller_linkdrop_drop_id: Date.now().toString(),
+                  },
+                  gas: '300000000000000',
+                  deposit: nearSendPrice,
                 },
-                gas: '300000000000000',
-                deposit: nearSendPrice,
               },
-            },
-          ],
-        })
-        .then( () => {
-          if(wallet.type === "injected"){
-            setBuyPromiseResult(true)
-          }
-         })
-        .catch((err) => {
-          TicketPurchaseFailure("", err);
-          setPurchaseLoading(false);
-        });
+            ],
+          })
+          .then(() => {
+            if (wallet.type === 'injected') {
+              setBuyPromiseResult(true);
+            }
+          })
+          .catch((err) => {
+            TicketPurchaseFailure('', err);
+            setPurchaseLoading(false);
+          });
       }
     } else if (purchaseType === 'stripe') {
       const response = await fetch(EVENTS_WORKER_BASE + '/stripe/create-checkout-session', {
@@ -753,7 +751,7 @@ export default function Event() {
       } else {
         // Error creating checkout
         const responseBody = await response.json();
-        console.log("error: ", responseBody.error)
+        console.log('error: ', responseBody.error);
         TicketPurchaseFailure(workerPayload, responseBody.error);
       }
     }
@@ -781,12 +779,12 @@ export default function Event() {
     if (nearRedirect == null && !buyPromiseResult) {
       return;
     }
-    console.log("first bit")
+    console.log('first bit');
     // get workerpayload from local storage
     const workerPayloadStringified = localStorage.getItem('workerPayload');
     const purchaseType = localStorage.getItem('purchaseType');
-    console.log("workerPayloadStringified: ", workerPayloadStringified)
-    console.log("purchaseType: ", purchaseType)
+    console.log('workerPayloadStringified: ', workerPayloadStringified);
+    console.log('purchaseType: ', purchaseType);
     if (workerPayloadStringified == null || purchaseType == null) {
       return;
     }
@@ -806,12 +804,16 @@ export default function Event() {
     const newWorkerPayload = workerPayload;
 
     // primary purchases are in batch, if one key has been added, then all of them should have been added.
-    if (workerPayload.ticketKeys === undefined || workerPayload.ticketKeys.length === 0 || workerPayload.ticketKeys[0] === null) {
+    if (
+      workerPayload.ticketKeys === undefined ||
+      workerPayload.ticketKeys.length === 0 ||
+      workerPayload.ticketKeys[0] === null
+    ) {
       return;
     }
     const ticketPubKey = getPubFromSecret(workerPayload.ticketKeys[0]);
     const keyInfo = await keypomInstance.getTicketKeyInformation({ publicKey: ticketPubKey });
-    console.log("keyInfo: ", keyInfo)
+    console.log('keyInfo: ', keyInfo);
     if (keyInfo === null) {
       return;
     }
@@ -937,7 +939,8 @@ export default function Event() {
   };
 
   const TicketPurchaseFailure = (workerPayload, responseBody) => {
-    const responseLog: string = typeof responseBody === 'string' ? responseBody : JSON.stringify(responseBody);
+    const responseLog: string =
+      typeof responseBody === 'string' ? responseBody : JSON.stringify(responseBody);
     toast({
       title: 'Purchase failed',
       description: 'No purchase was made due to the error: ' + responseLog,
@@ -993,14 +996,14 @@ export default function Event() {
         linkdrop_pk: sellInfo.publicKey,
         msg: JSON.stringify(marketplaceMemo),
       }),
-    })
+    });
 
-    console.log("signing: ", memo_no_sig)
+    console.log('signing: ', memo_no_sig);
 
     const signature = await keypomInstance.GenerateSignature({
       secretKey: sellInfo.secretKey,
       publicKey: sellInfo.publicKey,
-      message: memo_no_sig
+      message: memo_no_sig,
     });
 
     const base64Signature = signature[0];
@@ -1158,6 +1161,7 @@ export default function Event() {
     const getEventData = async () => {
       try {
         const eventInfo = await keypomInstance.getEventInfo({ accountId: funderId, eventId });
+        console.log('EVENT INFO: ', eventInfo);
 
         if (eventInfo === null || eventInfo === undefined) {
           setNoDrop(true);

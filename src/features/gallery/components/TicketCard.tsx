@@ -19,12 +19,14 @@ import { IconBox } from '@/components/IconBox';
 import { type EventInterface } from '@/pages/Event';
 import { type DataItem } from '@/components/Table/types';
 import { PURCHASED_LOCAL_STORAGE_PREFIX } from '@/constants/common';
-
+import { type DateAndTimeInfo } from '@/lib/eventsHelpers';
+import {
+  validateEndDateAndTime,
+  validateStartDateAndTime,
+} from '@/features/scanner/components/helpers';
+import { dateAndTimeToText } from '@/features/drop-manager/utils/parseDates';
 
 import { TicketIncrementer } from './TicketIncrementer';
-import { type DateAndTimeInfo } from '@/lib/eventsHelpers';
-import { validateEndDateAndTime, validateStartDateAndTime } from '@/features/scanner/components/helpers';
-import { dateAndTimeToText } from '@/features/drop-manager/utils/parseDates';
 
 interface TicketCardProps {
   onSubmit?: (ticket: any, ticketAmount: any) => Promise<void>;
@@ -184,31 +186,30 @@ export const TicketCard = ({ event, loading, surroundingNavLink, onSubmit }: Tic
     multPrice = parseFloat(event.price) * amount;
   }
 
-  let saleTimeString = "";
+  let saleTimeString = '';
   let saleTimeValid = true;
   if (event?.salesValidThrough != null && event?.salesValidThrough !== undefined) {
     const salesValidInfo = event.salesValidThrough.valueOf();
-    if(typeof salesValidInfo === "object"){
+    if (typeof salesValidInfo === 'object') {
       const salesValidInfoObj = salesValidInfo as DateAndTimeInfo;
-      const noEndDate = salesValidInfoObj.endDate === undefined || salesValidInfoObj.endDate === null;
+      const noEndDate =
+        salesValidInfoObj.endDate === undefined || salesValidInfoObj.endDate === null;
 
       if (noEndDate) {
-        saleTimeString = `Ticket sales open: ${dateAndTimeToText(
-          salesValidInfoObj,
-        )}.`
-      }else{
-        saleTimeString = `Sales: ${dateAndTimeToText(
-          salesValidInfoObj,
-        )}.`
+        saleTimeString = `Ticket sales open: ${dateAndTimeToText(salesValidInfoObj)}.`;
+      } else {
+        saleTimeString = `Sales: ${dateAndTimeToText(salesValidInfoObj)}.`;
       }
 
       const ticketSellStartDateValid = validateStartDateAndTime(salesValidInfoObj);
-      const ticketSellEndDateValid = validateEndDateAndTime(salesValidInfoObj);
+      const ticketSellEndDateValid = validateEndDateAndTime(
+        salesValidInfoObj,
+        event?.name.toString().includes('Student Pass'),
+      );
 
       saleTimeValid = ticketSellStartDateValid && ticketSellEndDateValid;
     }
   }
-
 
   return (
     <IconBox
@@ -353,10 +354,10 @@ export const TicketCard = ({ event, loading, surroundingNavLink, onSubmit }: Tic
             </>
           ) : (
             <>
-            {!saleTimeValid && (
-              <Text align="left" color="red" fontSize="xs" fontWeight="400" >
-                {`${saleTimeString}`}
-              </Text>
+              {!saleTimeValid && (
+                <Text align="left" color="red" fontSize="xs" fontWeight="400">
+                  {`${saleTimeString}`}
+                </Text>
               )}
               {saleTimeValid ? <Box h="14"></Box> : <Box h="8"></Box>}
               <Button

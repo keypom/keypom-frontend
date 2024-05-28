@@ -9,7 +9,9 @@ import { Loading } from '@/components/Loading';
 import { Fonts } from '@/components/Fonts';
 import { AuthWalletContextProvider } from '@/contexts/AuthWalletContext';
 import { AppContextProvider } from '@/contexts/AppContext';
+
 import './components/DateRangePicker/DatePickerStyle.css'; // Path to your custom CSS
+import RpcList from './components/RPC';
 
 // const Fonts = React.lazy(
 //   async () =>
@@ -45,6 +47,7 @@ export const App = () => {
           <AuthWalletContextProvider>
             <AppContextProvider>
               <RouterProvider router={router} />
+              <RpcList />
             </AppContextProvider>
           </AuthWalletContextProvider>
         )}

@@ -37,7 +37,7 @@ import { FormControlComponent } from '@/components/FormControl';
 import CustomDateRangePickerMobile from '@/components/DateRangePicker/MobileDateRangePicker';
 import CustomDateRangePicker from '@/components/DateRangePicker/DateRangePicker';
 import { dateAndTimeToText } from '@/features/drop-manager/utils/parseDates';
-import { type FunderEventMetadata, type DateAndTimeInfo } from '@/lib/eventsHelpers';
+import { type DateAndTimeInfo } from '@/lib/eventsHelpers';
 
 // import myData from '../data/db.json';
 
@@ -284,18 +284,23 @@ export default function Gallery() {
     }
   }, [filteredDataItems]);
 
+  const delay = async (ms) => await new Promise((resolve) => setTimeout(resolve, ms));
+
   const handleGetAllMarketListings = async () => {
     setIsAllDropsLoading(true);
-    // First get the total supply of drops so we know when to stop fetching
 
-    const allEventListings: MarketListing[] = await keypomInstance.GetMarketListings({
+    // First get the total supply of drops so we know when to stop fetching
+    const allEventListings = await keypomInstance.GetMarketListings({
       limit: 0, // no limit
       start: 0,
     });
 
-    const dropDataPromises = allEventListings.map(async (event: MarketListing) => {
+    const dropDataPromises = allEventListings.map(async (event, index) => {
+      // Introduce a delay between each API call
+      await delay(200); // Adjust the delay duration as needed
+
       // get metadata from drop.event_id and drop.funder_id
-      const eventInfo: FunderEventMetadata | null = await keypomInstance.getEventInfo({
+      const eventInfo = await keypomInstance.getEventInfo({
         accountId: event.funder_id,
         eventId: event.event_id,
       });
@@ -308,7 +313,7 @@ export default function Gallery() {
       // for each ticket in the event, get the supply
       let supply = 0;
       let maxTickets = 0;
-      const prices: number[] = [];
+      const prices = [];
 
       for (const [name, ticketdata] of Object.entries(event.ticket_info)) {
         const thissupply = await keypomInstance.getKeySupplyForTicket(name);
@@ -350,7 +355,7 @@ export default function Gallery() {
         description: truncateAddress(eventInfo.description, 'end', 128),
         eventId: event.event_id,
         dateForPastCheck: endDate,
-        navurl: String(event.funder_id) + ':' + String(event.event_id),
+        navurl: `${event.funder_id}:${event.event_id}`,
       };
     });
 
@@ -358,10 +363,8 @@ export default function Gallery() {
 
     dropData = await handleFiltering(dropData);
 
-    // Use Promise.all to wait for all promises to resolve
     // filter out all null entries
-
-    setFilteredDataItems(dropData);
+    setFilteredDataItems(dropData.filter((item) => item !== null));
 
     const totalPages = Math.ceil(dropData.length / selectedFilters.pageSize);
     setNumPages(totalPages);
@@ -490,14 +493,14 @@ export default function Gallery() {
     gridData.sort((a, b) => {
       const dateA = new Date(a.dateForPastCheck);
       const dateB = new Date(b.dateForPastCheck);
-    
+
       // Compare dates
       if (dateA < now && dateB >= now) {
-        return 1;  // Move expired items to the back
+        return 1; // Move expired items to the back
       } else if (dateA >= now && dateB < now) {
         return -1; // Move non-expired items to the front
       } else {
-        return 0;  // Maintain relative order for items in the same category
+        return 0; // Maintain relative order for items in the same category
       }
     });
 

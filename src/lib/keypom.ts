@@ -177,13 +177,13 @@ class KeypomJS {
     });
   };
 
-  GetSigningKey(){
+  GetSigningKey() {
     const randomIndex = Math.floor(Math.random() * (KEYPOM_GLOBAL_SIGNING_KEYS.length + 1));
-    return KEYPOM_GLOBAL_SIGNING_KEYS[randomIndex]
-  };
+    return KEYPOM_GLOBAL_SIGNING_KEYS[randomIndex];
+  }
 
   ListTicketForSecondarySale = async ({ msg }) => {
-    const signingSecretKey = this.GetSigningKey()
+    const signingSecretKey = this.GetSigningKey();
     const signingKeypair = nearAPI.KeyPair.fromString(signingSecretKey);
     myKeyStore.setKey(networkId, KEYPOM_EVENTS_CONTRACT, signingKeypair);
     const keypomAccount = new nearAPI.Account(
@@ -201,7 +201,11 @@ class KeypomJS {
     });
   };
 
-  GenerateSignature = async (keypairAndSigningMsg: {publicKey: string, secretKey: string, message: string}) => {
+  GenerateSignature = async (keypairAndSigningMsg: {
+    publicKey: string;
+    secretKey: string;
+    message: string;
+  }) => {
     const sk_bytes = bs58.decode(keypairAndSigningMsg.secretKey);
 
     const key_info = await this.viewAccount.viewFunction({
@@ -379,7 +383,7 @@ class KeypomJS {
     const pubKey = getPubFromSecret(secretKey);
 
     const signingKey = this.GetSigningKey();
-    console.log(signingKey)
+    console.log(signingKey);
     const signingKeypair = nearAPI.KeyPair.fromString(signingKey);
     await myKeyStore.setKey(networkId, KEYPOM_EVENTS_CONTRACT, signingKeypair);
     const keypomAccount = new nearAPI.Account(
@@ -401,9 +405,13 @@ class KeypomJS {
       linkdrop_pk: pubKey,
     };
 
-    const signature = await this.GenerateSignature({publicKey: pubKey, secretKey, message: JSON.stringify(args_to_sign)})
+    const signature = await this.GenerateSignature({
+      publicKey: pubKey,
+      secretKey,
+      message: JSON.stringify(args_to_sign),
+    });
 
-    console.log(signature)
+    console.log(signature);
 
     await keypomAccount.functionCall({
       contractId: KEYPOM_EVENTS_CONTRACT,
@@ -480,11 +488,9 @@ class KeypomJS {
         this.dropStore[accountId] = [];
       }
 
-
       if (this.dropStore[accountId].length >= this.totalDrops) {
         return this.dropStore[accountId];
       }
-
 
       const totalQueries = Math.ceil(this.totalDrops / DROP_ITEMS_PER_QUERY);
       const pageIndices = Array.from({ length: totalQueries }, (_, index) => index);
@@ -505,7 +511,7 @@ class KeypomJS {
 
       return this.dropStore[accountId];
     } catch (error) {
-      console.log(error)
+      console.log(error);
       throw new Error('Failed to fetch drops.');
     }
   };
@@ -610,6 +616,7 @@ class KeypomJS {
         methodName: 'get_funder_info',
         args: { account_id: accountId },
       });
+      console.log('Calling get funder info: ', accountId);
 
       const funderMeta: Record<string, FunderEventMetadata> = JSON.parse(funderInfo.metadata);
       const eventInfo: FunderEventMetadata = funderMeta[eventId];
@@ -707,6 +714,7 @@ class KeypomJS {
       this.ticketDropsByEventId[eventId] != null &&
       this.ticketDropsByEventId[eventId] !== undefined
     ) {
+      console.log('TICKETS: ', this.ticketDropsByEventId[eventId]);
       return this.ticketDropsByEventId[eventId];
     }
 
@@ -719,6 +727,7 @@ class KeypomJS {
         methodName: 'get_funder_info',
         args: { account_id: accountId },
       });
+      console.log('Calling get funder info: ', accountId);
       const funderMeta: FunderMetadata = JSON.parse(funderInfo.metadata);
 
       const events: FunderEventMetadata[] = [];
@@ -939,18 +948,18 @@ class KeypomJS {
   getDropSupplyForOwner = async ({ accountId }) => await getDropSupplyForOwner({ accountId });
 
   getDropMetadata = (metadata: string | undefined) => {
-    try{
+    try {
       const parsedObj = JSON.parse(metadata || '{}');
       if (Object.hasOwn(parsedObj, 'drop_name')) {
         parsedObj.dropName = parsedObj.drop_name;
       }
-  
+
       if (!Object.hasOwn(parsedObj, 'dropName')) {
         parsedObj.dropName = 'Untitled';
       }
       return parsedObj;
-    }catch(e){
-      return { };
+    } catch (e) {
+      return {};
     }
   };
 
@@ -978,7 +987,8 @@ class KeypomJS {
 
     let type: string | null = '';
     try {
-      if (drop === null || drop === undefined || dropName === undefined) throw new Error('Drop is null or undefined');
+      if (drop === null || drop === undefined || dropName === undefined)
+        throw new Error('Drop is null or undefined');
       type = this.getDropType(drop);
     } catch (_) {
       type = DROP_TYPE.OTHER;
@@ -1010,7 +1020,7 @@ class KeypomJS {
           description: nftData?.metadata?.description,
         };
       } catch (e) {
-        console.log(e)
+        console.log(e);
         throw new Error('Failed to get NFT metadata:', e);
       }
       nftHref = nftMetadata?.media || 'assets/image-not-found.png';
@@ -1025,7 +1035,7 @@ class KeypomJS {
     };
   };
 
-  getAccountFromWallet = async (wallet: Wallet) : Promise<nearAPI.Account | undefined> => {
+  getAccountFromWallet = async (wallet: Wallet): Promise<nearAPI.Account | undefined> => {
     // Connection
     const env = getEnv();
     const near = env.near;
@@ -1034,32 +1044,31 @@ class KeypomJS {
     // Account ID
     const accounts = await wallet.getAccounts();
     const accountId = accounts[0].accountId;
-    if(connection == null){
-      console.log("Connection is null")
+    if (connection == null) {
+      console.log('Connection is null');
       return undefined;
-    } 
+    }
     const account = new nearAPI.Account(connection, accountId);
-    return account
-  }
-
+    return account;
+  };
 
   deleteDrops = async ({ wallet, dropIds }) => {
     const account = await this.getAccountFromWallet(wallet);
-    if(account){
+    if (account) {
       await deleteDrops({ account, dropIds });
-    }else{
+    } else {
       throw new Error('Account could not be derived from wallet');
     }
-  }
+  };
 
   deleteKeys = async ({ wallet, dropId, publicKeys }) => {
     const account = await this.getAccountFromWallet(wallet);
-    if(account){
+    if (account) {
       await deleteKeys({ wallet, dropId, publicKeys });
-    }else{
+    } else {
       throw new Error('Account could not be derived from wallet');
     }
-  }
+  };
 
   getDropInfo = async ({
     dropId,
@@ -1074,7 +1083,7 @@ class KeypomJS {
       throw new Error('dropId or secretKey must be provided.');
     }
 
-    console.log("args: ", dropId, secretKey)
+    console.log('args: ', dropId, secretKey);
 
     try {
       drop = await getDropInformation({ dropId, secretKey });
@@ -1135,7 +1144,7 @@ class KeypomJS {
     return dropKeyItems;
   };
 
-  async getAllKeysInfo({ dropId }: {dropId: string}) {
+  async getAllKeysInfo({ dropId }: { dropId: string }) {
     try {
       const dropInfo = await this.getDropInfo({ dropId });
       const dropName = this.getDropMetadata(dropInfo.metadata).dropName;
@@ -1220,7 +1229,7 @@ class KeypomJS {
       // Return the requested slice from the cache
       return this.keyStore[dropIdString].dropKeyItems.slice(start, endIndex);
     } catch (e) {
-      console.log("Error getting key info: ", e)
+      console.log('Error getting key info: ', e);
       throw new Error('Failed to get keys info.', e);
     }
   };

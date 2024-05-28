@@ -99,7 +99,10 @@ export const validateStartDateAndTime = (requiredDateAndTime: DateAndTimeInfo): 
   return true; // The current time is within event bounds
 };
 
-export const validateEndDateAndTime = (requiredDateAndTime: DateAndTimeInfo): boolean => {
+export const validateEndDateAndTime = (
+  requiredDateAndTime: DateAndTimeInfo,
+  print = false,
+): boolean => {
   // Get the current DateTime
   const now = DateTime.now();
   const nowDateOnly = now.startOf('day');
@@ -108,6 +111,12 @@ export const validateEndDateAndTime = (requiredDateAndTime: DateAndTimeInfo): bo
   const requiredEndDate = requiredDateAndTime.endDate
     ? DateTime.fromMillis(requiredDateAndTime.endDate).endOf('day') // Use end of the day for end date
     : null;
+
+  if (print) {
+    console.log('required start date: ', requiredDateAndTime);
+    console.log('now: ', now.toString());
+    console.log('required end date: ', requiredEndDate?.toString());
+  }
 
   // Check the date range first
   if (requiredEndDate && nowDateOnly > requiredEndDate) {
