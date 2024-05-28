@@ -26,7 +26,18 @@ export default function TicketPriceSelector({
   const presetPrices = [0, 5, 10, 50];
 
   const handleCustomPriceSubmit = () => {
-    setCurrentTicket({ ...currentTicket, priceNear: customPrice });
+    let price = customPrice;
+    try {
+      if (parseFloat(price) < 0.1 || isNaN(parseFloat(price))) {
+        price = '0.1';
+        setCustomPrice('0.1');
+      }
+    } catch (e) {
+      price = '';
+      setCustomPrice('');
+      console.log('Error parsing float: ', e);
+    }
+    setCurrentTicket({ ...currentTicket, priceNear: price });
   };
 
   const handlePresetPriceClick = (price: number) => {

@@ -1,7 +1,8 @@
 import { type IToken, type IWalletOption } from '@/types/common';
 
-const contractName = process.env.REACT_APP_CONTRACT_ID ?? 'v2.keypom.testnet';
-const cloudflareIfps = process.env.REACT_APP_CLOUDFLARE_IFPS ?? 'https://cloudflare-ipfs.com/ipfs';
+export const contractName = process.env.REACT_APP_CONTRACT_ID ?? 'v2.keypom.testnet';
+export const cloudflareIfps =
+  process.env.REACT_APP_CLOUDFLARE_IFPS ?? 'https://cloudflare-ipfs.com/ipfs';
 // eslint-disable-next-line no-console
 console.log(
   'Network and Contract IDs: ',
@@ -52,6 +53,47 @@ export interface Config {
   defaultToken: IToken;
 }
 
+export function getExtendConfig(network = process.env.REACT_APP_NETWORK_ID ?? 'testnet') {
+  switch (network) {
+    case 'mainnet':
+      return {
+        RPC_LIST: {
+          defaultRpc: {
+            url: 'https://rpc.mainnet.near.org',
+            simpleName: 'official rpc',
+          },
+          lavaRpc: {
+            url: 'https://g.w.lavanet.xyz:443/gateway/near/rpc-http/f653c33afd2ea30614f69bc1c73d4940',
+            simpleName: 'lava rpc',
+          },
+          betaRpc: {
+            url: 'https://beta.rpc.mainnet.near.org',
+            simpleName: 'official beta rpc',
+          },
+          fastnearRpc: {
+            url: 'https://free.rpc.fastnear.com',
+            simpleName: 'fastnear rpc',
+          },
+        },
+      };
+    case 'testnet':
+      return {
+        RPC_LIST: {
+          defaultRpc: {
+            url: 'https://rpc.testnet.near.org',
+            simpleName: 'official rpc',
+          },
+          lavaRpc: {
+            url: 'https://g.w.lavanet.xyz:443/gateway/neart/rpc-http/f653c33afd2ea30614f69bc1c73d4940',
+            simpleName: 'lava rpc',
+          },
+        },
+      };
+    default:
+      throw Error(`Unconfigured environment '${network}'. Can be configured in src/config.ts.`);
+  }
+}
+
 function getConfig(network = process.env.REACT_APP_NETWORK_ID ?? 'testnet'): Config {
   const defaultConfig = {
     GAS: '200000000000000',
@@ -67,6 +109,9 @@ function getConfig(network = process.env.REACT_APP_NETWORK_ID ?? 'testnet'): Con
     defaultToken: DEFAULT_TOKEN,
   };
 
+  const chosenEndpoint = localStorage.getItem('endPoint') || 'defaultRpc';
+  const nodeUrl = getExtendConfig(network).RPC_LIST[chosenEndpoint].url;
+
   switch (network) {
     case 'testnet':
       return {
@@ -74,7 +119,7 @@ function getConfig(network = process.env.REACT_APP_NETWORK_ID ?? 'testnet'): Con
         contractName,
         networkId: 'testnet',
         // nodeUrl: 'https://rpc.testnet.near.org',
-        nodeUrl: 'https://g.w.lavanet.xyz:443/gateway/neart/rpc-http/f653c33afd2ea30614f69bc1c73d4940',
+        nodeUrl,
         walletUrl: 'https://testnet.mynearwallet.com',
         helperUrl: 'https://helper.testnet.near.org',
         explorerUrl: 'https://explorer.testnet.near.org',
@@ -86,7 +131,7 @@ function getConfig(network = process.env.REACT_APP_NETWORK_ID ?? 'testnet'): Con
         contractName,
         networkId: 'mainnet',
         // nodeUrl: 'https://rpc.mainnet.near.org',
-        nodeUrl: 'https://g.w.lavanet.xyz:443/gateway/near/rpc-http/f653c33afd2ea30614f69bc1c73d4940',
+        nodeUrl,
         walletUrl: 'https://app.mynearwallet.com',
         helperUrl: 'https://helper.near.org',
         explorerUrl: 'https://explorer.near.org',
