@@ -202,10 +202,7 @@ export const TicketCard = ({ event, loading, surroundingNavLink, onSubmit }: Tic
       }
 
       const ticketSellStartDateValid = validateStartDateAndTime(salesValidInfoObj);
-      const ticketSellEndDateValid = validateEndDateAndTime(
-        salesValidInfoObj,
-        event?.name.toString().includes('Student Pass'),
-      );
+      const ticketSellEndDateValid = validateEndDateAndTime(salesValidInfoObj);
 
       saleTimeValid = ticketSellStartDateValid && ticketSellEndDateValid;
     }

@@ -313,7 +313,7 @@ export default function Gallery() {
       // for each ticket in the event, get the supply
       let supply = 0;
       let maxTickets = 0;
-      const prices = [];
+      const prices: number[] = [];
 
       for (const [name, ticketdata] of Object.entries(event.ticket_info)) {
         const thissupply = await keypomInstance.getKeySupplyForTicket(name);
