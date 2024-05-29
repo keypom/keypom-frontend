@@ -20,6 +20,7 @@ import { type EventInterface } from '@/pages/Event';
 import { type DataItem } from '@/components/Table/types';
 import { PURCHASED_LOCAL_STORAGE_PREFIX } from '@/constants/common';
 import { validateDateAndTime } from '@/features/scanner/components/helpers';
+import { type DateAndTimeInfo } from '@/lib/eventsHelpers';
 
 import { TicketIncrementer } from './TicketIncrementer';
 
@@ -45,9 +46,9 @@ export const TicketCard = ({ event, loading, surroundingNavLink, onSubmit }: Tic
   let availableTickets = 0;
   let limitPerUser = 100000; // default to a high number
 
-  const eventHasPassed = false;
+  let eventHasPassed = false;
   if (event?.dateForPastCheck != null && event?.dateForPastCheck !== undefined) {
-    const isEventValid = validateDateAndTime(event.dateForPastCheck, true);
+    const isEventValid = validateDateAndTime(event.dateForPastCheck as DateAndTimeInfo, true);
     eventHasPassed = !isEventValid.valid;
   }
 
@@ -177,10 +178,10 @@ export const TicketCard = ({ event, loading, surroundingNavLink, onSubmit }: Tic
     multPrice = parseFloat(event.price) * amount;
   }
 
-  const saleTimeString = '';
-  const saleTimeValid = true;
+  let saleTimeString = '';
+  let saleTimeValid = true;
   if (event?.salesValidThrough != null && event?.salesValidThrough !== undefined) {
-    const isSalesValid = validateDateAndTime(event.salesValidThrough);
+    const isSalesValid = validateDateAndTime(event.salesValidThrough as DateAndTimeInfo);
     saleTimeValid = isSalesValid.valid;
     saleTimeString = isSalesValid.message;
   }
