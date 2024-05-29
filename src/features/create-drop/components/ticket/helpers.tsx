@@ -107,6 +107,7 @@ export const estimateCosts = async ({
     name: formData.eventName.value,
     dateCreated: Date.now().toString(),
     description: formData.eventDescription.value,
+    sellable: formData.sellable,
     location: formData.eventLocation.value,
     date: formData.date.value,
     artwork: 'bafybeiehk3mzsj2ih4u4fkvmkfrome3kars7xyy3bxh6xfjquws4flglqa',
@@ -211,6 +212,7 @@ export const createPayload = async ({
     dateCreated: Date.now().toString(),
     description: formData.eventDescription.value,
     location: formData.eventLocation.value,
+    sellable: formData.sellable,
     date: formData.date.value,
     artwork: eventArtworkCid,
     questions: formData.questions.map((question) => ({
@@ -280,7 +282,7 @@ export const createPayload = async ({
         token_metadata: ticketNftInfo,
       },
       add_key_allowlist: [KEYPOM_MARKETPLACE_CONTRACT],
-      transfer_key_allowlist: [KEYPOM_MARKETPLACE_CONTRACT],
+      transfer_key_allowlist: formData.sellable ? [KEYPOM_MARKETPLACE_CONTRACT] : [],
     };
     const assetData = [
       {

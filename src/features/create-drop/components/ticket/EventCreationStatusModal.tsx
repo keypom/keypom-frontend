@@ -51,7 +51,7 @@ export const EventCreationStatusModal = ({
             priceByDropId: prevEventData.priceByDropId,
             stripeAccountId: prevEventData.stripeAccountId,
             eventId: prevEventData.eventId,
-            eventName: prevEventData.eventName
+            eventName: prevEventData.eventName,
           };
           response = await fetch(url, {
             method: 'POST',

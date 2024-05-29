@@ -97,6 +97,7 @@ export interface TicketInterface {
 }
 
 export interface EventInterface {
+  sellable?: boolean;
   title: string;
   name: string;
   stripeCheckout: boolean;
@@ -118,7 +119,7 @@ export interface EventInterface {
   supply: number | undefined;
   dateString: string | undefined;
   price: number | undefined;
-  dateForPastCheck: Date | undefined;
+  dateForPastCheck: DateAndTimeInfo | undefined;
   salesValidThrough: DateAndTimeInfo | undefined;
 }
 
@@ -293,7 +294,10 @@ export default function Event() {
         secretKey,
       });
 
-      setDoKeyModal(true);
+      const isSellable = event?.sellable ?? true;
+      if (isSellable) {
+        setDoKeyModal(true);
+      }
     } catch (error) {
       const errorLog: string = error.toString();
       toast({
@@ -1182,6 +1186,7 @@ export default function Event() {
         setStripeEnabledEvent(stripeEnabled);
 
         setEvent({
+          sellable: eventInfo.sellable,
           name: eventInfo.name || 'Untitled',
           artwork: eventInfo.artwork || 'loading',
           questions: eventInfo.questions || [],
@@ -1203,7 +1208,7 @@ export default function Event() {
           supply: 0,
           dateString: '',
           price: 0,
-          dateForPastCheck: new Date(),
+          dateForPastCheck: eventInfo.date,
           salesValidThrough: undefined,
         });
         setIsLoading(false);

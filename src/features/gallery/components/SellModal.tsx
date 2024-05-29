@@ -21,11 +21,7 @@ import { useState } from 'react';
 import { MIN_NEAR_SELL } from '@/constants/common';
 import { type ResaleTicketInfo, type EventInterface } from '@/pages/Event';
 import { useAppContext } from '@/contexts/AppContext';
-import {
-  validateDateAndTime,
-  validateEndDateAndTime,
-  validateStartDateAndTime,
-} from '@/features/scanner/components/helpers';
+import { validateDateAndTime } from '@/features/scanner/components/helpers';
 import { dateAndTimeToText } from '@/features/drop-manager/utils/parseDates';
 import { FormControl } from '@/components/FormControl';
 
@@ -77,11 +73,11 @@ export const SellModal = ({
   console.log('event', event);
 
   // Check if the ticket is valid to sell.
-  const ticketSellStartDateValid = validateStartDateAndTime(saleInfo.salesValidThrough);
-  const ticketSellEndDateValid = validateEndDateAndTime(saleInfo.salesValidThrough);
-  const ticketSellDateValid = validateDateAndTime(saleInfo.salesValidThrough);
+  const ticketSellDateValid: { valid: boolean; message: string } = validateDateAndTime(
+    saleInfo.salesValidThrough,
+  );
 
-  const isSellError = input === '' || !ticketSellDateValid;
+  const isSellError = input === '' || !ticketSellDateValid.valid;
   const nearInput = parseFloat(input);
 
   const [isTicketValidToastOpen, setIsTicketValidToastOpen] = useState(false);
@@ -91,9 +87,7 @@ export const SellModal = ({
     if (!isTicketValidToastOpen) {
       setIsTicketValidToastOpen(true);
       ticketSellNotValidToast({
-        title: ticketSellStartDateValid
-          ? 'Ticket sell date has not started.'
-          : 'Ticket sell date has passed.',
+        title: ticketSellDateValid.message,
         description: `Tickets be can sold during: ${dateAndTimeToText(
           saleInfo.salesValidThrough,
         )}.`,
@@ -108,7 +102,7 @@ export const SellModal = ({
   };
 
   // Display not valid
-  if (!ticketSellDateValid) {
+  if (!ticketSellDateValid.valid) {
     showToast();
   }
 
@@ -219,7 +213,7 @@ export const SellModal = ({
                   </Button>
                 </>
               )}
-              {!ticketSellStartDateValid && (
+              {!ticketSellDateValid.valid && (
                 <Text
                   as="h2"
                   color="red.400"
@@ -228,19 +222,7 @@ export const SellModal = ({
                   my="4px"
                   textAlign="left"
                 >
-                  Ticket sell date has not started.
-                </Text>
-              )}
-              {!ticketSellEndDateValid && (
-                <Text
-                  as="h2"
-                  color="red.400"
-                  fontSize="l"
-                  fontWeight="bold"
-                  my="4px"
-                  textAlign="left"
-                >
-                  Ticket sell date has passed.
+                  {ticketSellDateValid.message}
                 </Text>
               )}
             </VStack>
