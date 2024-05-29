@@ -19,12 +19,8 @@ import { IconBox } from '@/components/IconBox';
 import { type EventInterface } from '@/pages/Event';
 import { type DataItem } from '@/components/Table/types';
 import { PURCHASED_LOCAL_STORAGE_PREFIX } from '@/constants/common';
+import { validateDateAndTime } from '@/features/scanner/components/helpers';
 import { type DateAndTimeInfo } from '@/lib/eventsHelpers';
-import {
-  validateEndDateAndTime,
-  validateStartDateAndTime,
-} from '@/features/scanner/components/helpers';
-import { dateAndTimeToText } from '@/features/drop-manager/utils/parseDates';
 
 import { TicketIncrementer } from './TicketIncrementer';
 
@@ -51,13 +47,9 @@ export const TicketCard = ({ event, loading, surroundingNavLink, onSubmit }: Tic
   let limitPerUser = 100000; // default to a high number
 
   let eventHasPassed = false;
-
-  if (
-    event?.dateForPastCheck !== undefined &&
-    event?.dateForPastCheck != null &&
-    event?.dateForPastCheck < new Date()
-  ) {
-    eventHasPassed = true;
+  if (event?.dateForPastCheck != null && event?.dateForPastCheck !== undefined) {
+    const isEventValid = validateDateAndTime(event.dateForPastCheck as DateAndTimeInfo, true);
+    eventHasPassed = !isEventValid.valid;
   }
 
   if (eventHasPassed) {
@@ -189,23 +181,9 @@ export const TicketCard = ({ event, loading, surroundingNavLink, onSubmit }: Tic
   let saleTimeString = '';
   let saleTimeValid = true;
   if (event?.salesValidThrough != null && event?.salesValidThrough !== undefined) {
-    const salesValidInfo = event.salesValidThrough.valueOf();
-    if (typeof salesValidInfo === 'object') {
-      const salesValidInfoObj = salesValidInfo as DateAndTimeInfo;
-      const noEndDate =
-        salesValidInfoObj.endDate === undefined || salesValidInfoObj.endDate === null;
-
-      if (noEndDate) {
-        saleTimeString = `Ticket sales open: ${dateAndTimeToText(salesValidInfoObj)}.`;
-      } else {
-        saleTimeString = `Sales: ${dateAndTimeToText(salesValidInfoObj)}.`;
-      }
-
-      const ticketSellStartDateValid = validateStartDateAndTime(salesValidInfoObj);
-      const ticketSellEndDateValid = validateEndDateAndTime(salesValidInfoObj);
-
-      saleTimeValid = ticketSellStartDateValid && ticketSellEndDateValid;
-    }
+    const isSalesValid = validateDateAndTime(event.salesValidThrough as DateAndTimeInfo);
+    saleTimeValid = isSalesValid.valid;
+    saleTimeString = isSalesValid.message;
   }
 
   return (
@@ -359,7 +337,9 @@ export const TicketCard = ({ event, loading, surroundingNavLink, onSubmit }: Tic
               {saleTimeValid ? <Box h="14"></Box> : <Box h="8"></Box>}
               <Button
                 bottom="35"
-                isDisabled={event.numTickets === '0' || !saleTimeValid}
+                isDisabled={
+                  event.numTickets === '0' || !saleTimeValid || numPurchased >= limitPerUser
+                }
                 left="0"
                 mt="2"
                 position="absolute"

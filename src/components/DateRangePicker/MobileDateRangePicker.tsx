@@ -163,11 +163,19 @@ function CustomDateRangePickerMobile({
   };
 
   const onBlurStartTime = (e) => {
-    checkAndSetTime(e.target.value, setStartTimeText, setStartTimeError);
+    if (e.target.value !== '') {
+      checkAndSetTime(e.target.value, setStartTimeText, setStartTimeError);
+    } else {
+      setStartTimeError(false);
+    }
   };
 
   const onBlurEndTime = (e) => {
-    checkAndSetTime(e.target.value, setEndTimeText, setEndTimeError);
+    if (e.target.value !== '') {
+      checkAndSetTime(e.target.value, setEndTimeText, setEndTimeError);
+    } else {
+      setEndTimeError(false);
+    }
   };
 
   return (

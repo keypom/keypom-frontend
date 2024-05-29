@@ -20,6 +20,10 @@ export const dateAndTimeToText = (date: DateAndTimeInfo, placeholder = '') => {
     formattedDate += ` at ${date.startTime}`;
   }
 
+  if (!date.endDate && date.endTime) {
+    formattedDate += ` ends ${date.endTime}`;
+  }
+
   // Only add end date information if it exists
   if (date.endDate) {
     const end = new Date(date.endDate);

@@ -332,13 +332,6 @@ export default function Gallery() {
         return null;
       }
 
-      let endDate = new Date();
-      if (eventInfo.date.endDate != null) {
-        endDate = new Date(eventInfo.date.endDate);
-      } else {
-        endDate = new Date(eventInfo.date.startDate);
-      }
-
       const numTickets = Object.keys(event.ticket_info).length;
       return {
         prices,
@@ -354,7 +347,7 @@ export default function Gallery() {
         numTickets,
         description: truncateAddress(eventInfo.description, 'end', 128),
         eventId: event.event_id,
-        dateForPastCheck: endDate,
+        dateForPastCheck: eventInfo.date,
         navurl: `${event.funder_id}:${event.event_id}`,
       };
     });

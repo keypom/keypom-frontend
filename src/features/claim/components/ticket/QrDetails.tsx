@@ -12,12 +12,14 @@ interface QrDetailsProps {
   eventId: string;
   funderId: string;
   ticketInfoExtra?: TicketMetadataExtra;
+  sellable?: boolean;
 }
 
 export const QrDetails = ({
   qrValue,
   ticketName,
   eventName,
+  sellable,
   eventId,
   funderId,
   ticketInfoExtra,
@@ -55,6 +57,7 @@ export const QrDetails = ({
     img.src = `data:image/svg+xml;base64,${btoa(svgData)}`;
   };
 
+  const isSellable = sellable ?? true;
   return (
     <Flex align="center" flexDir="column" p={{ base: '6', md: '8' }} pt={{ base: '12', md: '16' }}>
       <Box
@@ -77,28 +80,30 @@ export const QrDetails = ({
         <Button variant="outline" w="full" onClick={handleDownloadQrCode}>
           Download QR code
         </Button>
-        <VStack spacing="1" w="full">
-          <Button
-            variant="outline"
-            w="full"
-            onClick={() => {
-              navigate(`/gallery/${funderId}:${eventId}#secretKey=${qrValue}`);
-            }}
-          >
-            Sell Ticket
-          </Button>
-          <Heading
-            fontFamily="body"
-            fontSize={{ base: 'xs', md: 'xs' }}
-            fontWeight="500"
-            textAlign="center"
-          >
-            Can be sold through:
-          </Heading>
-          <Heading fontSize={{ base: 'xs', md: 'xs' }} fontWeight="500" textAlign="center">
-            {ticketInfoExtra && dateAndTimeToText(ticketInfoExtra?.salesValidThrough)}
-          </Heading>
-        </VStack>
+        {isSellable && (
+          <VStack spacing="1" w="full">
+            <Button
+              variant="outline"
+              w="full"
+              onClick={() => {
+                navigate(`/gallery/${funderId}:${eventId}#secretKey=${qrValue}`);
+              }}
+            >
+              Sell Ticket
+            </Button>
+            <Heading
+              fontFamily="body"
+              fontSize={{ base: 'xs', md: 'xs' }}
+              fontWeight="500"
+              textAlign="center"
+            >
+              Can be sold through:
+            </Heading>
+            <Heading fontSize={{ base: 'xs', md: 'xs' }} fontWeight="500" textAlign="center">
+              {ticketInfoExtra && dateAndTimeToText(ticketInfoExtra?.salesValidThrough)}
+            </Heading>
+          </VStack>
+        )}
       </VStack>
     </Flex>
   );

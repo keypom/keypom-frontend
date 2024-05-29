@@ -203,6 +203,7 @@ export default function TicketQRPage() {
                     eventName={eventInfo!.name}
                     funderId={funderId}
                     qrValue={secretKey}
+                    sellable={eventInfo!.sellable}
                     ticketInfoExtra={ticketInfoExtra}
                     ticketName={ticketInfo!.title}
                   />

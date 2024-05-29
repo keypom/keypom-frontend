@@ -66,6 +66,7 @@ export interface TicketDropFormData {
   eventLocation: { value: string; error?: string };
   date: { value: DateAndTimeInfo; error?: string };
   eventArtwork: { value: File | undefined; error?: string };
+  sellable: boolean;
 
   // Step 2
   questions: Array<{ question: string; isRequired: boolean }>;
@@ -146,6 +147,7 @@ const placeholderData: TicketDropFormData = {
   eventArtwork: { value: undefined },
   eventDescription: { value: '' },
   eventLocation: { value: '' },
+  sellable: true,
   date: {
     value: {
       startDate: 0,
@@ -176,7 +178,12 @@ export default function NewTicketDrop() {
   const [eventCreationSuccess, setEventCreationSuccess] = useState<boolean | undefined>();
   const [txnSuccess, setTxnSuccess] = useState(false);
   const [prevEventData, setPrevEventData] = useState<
-    | { priceByDropId?: Record<string, number>; eventId: string; eventName: string; stripeAccountId?: string }
+    | {
+        priceByDropId?: Record<string, number>;
+        eventId: string;
+        eventName: string;
+        stripeAccountId?: string;
+      }
     | undefined
   >();
 
@@ -323,25 +330,26 @@ export default function NewTicketDrop() {
         localStorage.setItem('EVENT_INFO_SUCCESS_DATA', JSON.stringify({ eventId }));
       }
 
-      wallet.signAndSendTransaction({
-        signerId: accountId!,
-        receiverId: KEYPOM_EVENTS_CONTRACT,
-        actions,
-      })
-      .then(() => {
-        setTxnSuccess(true);
-      })
-      .catch((err) => {
-        const error: string = err.toString();
-        const description_string = `Error: ` + error
-        toast({
-          title: 'Event Creation Failed',
-          description: description_string,
-          status: 'error',
-          duration: 5000,
-          isClosable: true,
+      wallet
+        .signAndSendTransaction({
+          signerId: accountId!,
+          receiverId: KEYPOM_EVENTS_CONTRACT,
+          actions,
         })
-      });
+        .then(() => {
+          setTxnSuccess(true);
+        })
+        .catch((err) => {
+          const error: string = err.toString();
+          const description_string = `Error: ` + error;
+          toast({
+            title: 'Event Creation Failed',
+            description: description_string,
+            status: 'error',
+            duration: 5000,
+            isClosable: true,
+          });
+        });
     } else {
       toast({
         title: 'Unable to upload event images',

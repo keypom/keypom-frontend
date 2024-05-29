@@ -26,6 +26,7 @@ export interface FunderEventMetadata {
   location: string;
   date: DateAndTimeInfo;
   artwork: string;
+  sellable?: boolean;
   dateCreated: string;
 
   // Stage 2

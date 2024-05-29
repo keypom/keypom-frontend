@@ -7,6 +7,7 @@ import {
   type EventDrop,
 } from '@/lib/eventsHelpers';
 import keypomInstance from '@/lib/keypom';
+import { dateAndTimeToText } from '@/features/drop-manager/utils/parseDates';
 
 export const getDropFromSecretKey = async (
   secretKey: string,
@@ -33,48 +34,48 @@ export const getTimeAsMinutes = (timeString) => {
   return time.hour * 60 + (time.minute as number);
 };
 
-export const validateDateAndTime = (requiredDateAndTime: DateAndTimeInfo): boolean => {
-  // Get the current DateTime
-  const now = DateTime.now();
-  const nowDateOnly = now.startOf('day');
+export const validateDateAndTime = (
+  requiredDateAndTime: DateAndTimeInfo,
+  checkEventOver = false,
+): { valid: boolean; message: string } => {
+  let message = '';
+  let valid = true;
 
-  // Normalize the start and end dates to midnight for date comparisons
-  const requiredStartDate = DateTime.fromMillis(requiredDateAndTime.startDate).startOf('day');
-  const requiredEndDate = requiredDateAndTime.endDate
-    ? DateTime.fromMillis(requiredDateAndTime.endDate).endOf('day') // Use end of the day for end date
-    : null;
+  const requiredInfo = requiredDateAndTime.valueOf();
+  if (typeof requiredInfo === 'object') {
+    const requiredInfoObj = requiredInfo as DateAndTimeInfo;
 
-  // Check the date range first
-  if (nowDateOnly < requiredStartDate || (requiredEndDate && nowDateOnly > requiredEndDate)) {
-    return false;
-  }
+    const { valid: startValid, message: startMessage } = validateStartDateAndTime(requiredInfoObj);
+    console.log('START DATE: ', requiredInfoObj);
+    console.log('START VALID: ', startValid);
+    console.log('START MESSAGE: ', startMessage);
 
-  // If it's the start date, check the start time
-  if (nowDateOnly.equals(requiredStartDate) && requiredDateAndTime.startTime) {
-    const startTimeMinutes = getTimeAsMinutes(requiredDateAndTime.startTime);
-    const currentMinutes = now.hour * 60 + (now.minute as number);
-    if (currentMinutes < startTimeMinutes) {
-      return false; // It's earlier than the start time
+    if (!startValid) {
+      /// If we're checking for event over, we only need to verify that the single day events haven't closed
+      if (checkEventOver) {
+        if (startMessage === `Ticket sales have closed`) {
+          valid = false;
+          message = startMessage;
+        }
+      } /// Otherwise, we should just set the valid normally since it wasn't valid
+      else {
+        valid = false;
+        message = startMessage;
+      }
+    }
+
+    const { valid: endValid, message: endMessage } = validateEndDateAndTime(requiredInfoObj);
+    if (!endValid) {
+      message = endMessage;
+      valid = false;
     }
   }
-
-  // If it's the end date, check the end time
-  if (
-    requiredEndDate &&
-    nowDateOnly.equals(requiredEndDate.startOf('day')) &&
-    requiredDateAndTime.endTime
-  ) {
-    const endTimeMinutes = getTimeAsMinutes(requiredDateAndTime.endTime);
-    const currentMinutes = now.hour * 60 + (now.minute as number);
-    if (currentMinutes > endTimeMinutes) {
-      return false; // It's later than the end time
-    }
-  }
-
-  return true; // The current time is within event bounds
+  return { valid, message };
 };
 
-export const validateStartDateAndTime = (requiredDateAndTime: DateAndTimeInfo): boolean => {
+const validateStartDateAndTime = (
+  requiredDateAndTime: DateAndTimeInfo,
+): { valid: boolean; message: string } => {
   // Get the current DateTime
   const now = DateTime.now();
   const nowDateOnly = now.startOf('day');
@@ -84,7 +85,7 @@ export const validateStartDateAndTime = (requiredDateAndTime: DateAndTimeInfo): 
 
   // Check the date range first
   if (nowDateOnly < requiredStartDate) {
-    return false;
+    return { valid: false, message: `Ticket sales open ${dateAndTimeToText(requiredDateAndTime)}` };
   }
 
   // If it's the start date, check the start time
@@ -92,14 +93,38 @@ export const validateStartDateAndTime = (requiredDateAndTime: DateAndTimeInfo): 
     const startTimeMinutes = getTimeAsMinutes(requiredDateAndTime.startTime);
     const currentMinutes = now.hour * 60 + (now.minute as number);
     if (currentMinutes < startTimeMinutes) {
-      return false; // It's earlier than the start time
+      return {
+        valid: false,
+        message: `Ticket sales open ${dateAndTimeToText(requiredDateAndTime)}`,
+      };
     }
   }
 
-  return true; // The current time is within event bounds
+  // If it's the start date, check the end time (only if it's a 1 day ticket)
+  if (
+    nowDateOnly.equals(requiredStartDate) &&
+    requiredDateAndTime.endTime &&
+    requiredDateAndTime.endDate === undefined
+  ) {
+    const endTimeMinutes = getTimeAsMinutes(requiredDateAndTime.endTime);
+    const currentMinutes = now.hour * 60 + (now.minute as number);
+    if (currentMinutes > endTimeMinutes) {
+      return {
+        valid: false,
+        message: `Ticket sales have closed`,
+      };
+    }
+  }
+
+  return {
+    valid: true,
+    message: ``,
+  };
 };
 
-export const validateEndDateAndTime = (requiredDateAndTime: DateAndTimeInfo): boolean => {
+const validateEndDateAndTime = (
+  requiredDateAndTime: DateAndTimeInfo,
+): { valid: boolean; message: string } => {
   // Get the current DateTime
   const now = DateTime.now();
   const nowDateOnly = now.startOf('day');
@@ -111,7 +136,7 @@ export const validateEndDateAndTime = (requiredDateAndTime: DateAndTimeInfo): bo
 
   // Check the date range first
   if (requiredEndDate && nowDateOnly > requiredEndDate) {
-    return false;
+    return { valid: false, message: `Ticket sales have closed` };
   }
 
   // If it's the end date, check the end time
@@ -122,12 +147,13 @@ export const validateEndDateAndTime = (requiredDateAndTime: DateAndTimeInfo): bo
   ) {
     const endTimeMinutes = getTimeAsMinutes(requiredDateAndTime.endTime);
     const currentMinutes = now.hour * 60 + (now.minute as number);
+    console.log('END TIME MINUTES: ', endTimeMinutes);
     if (currentMinutes > endTimeMinutes) {
-      return false; // It's later than the end time
+      return { valid: false, message: `Ticket sales have closed` };
     }
   }
 
-  return true; // The current time is within event bounds
+  return { valid: true, message: `` };
 };
 
 interface ValidateDropProps {
@@ -146,8 +172,9 @@ export const validateDrop = ({
       drop.drop_config.nft_keys_config.token_metadata.extra,
     );
     const requiredDateAndTime: DateAndTimeInfo = ticketExtra.passValidThrough;
-    if (!validateDateAndTime(requiredDateAndTime)) {
-      return { status: 'error', message: 'Ticket is not valid at this time.' };
+    const isDropValid = validateDateAndTime(requiredDateAndTime);
+    if (!isDropValid.valid) {
+      return { status: 'error', message: isDropValid.message };
     }
 
     // Check if the drop ID is one of the event tickets

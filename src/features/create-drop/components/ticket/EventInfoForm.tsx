@@ -1,4 +1,4 @@
-import { Input, HStack, VStack, Show, Hide, Box } from '@chakra-ui/react';
+import { Input, HStack, VStack, Show, Hide, Box, Heading } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
 
 import CustomDateRangePicker from '@/components/DateRangePicker/DateRangePicker';
@@ -6,6 +6,7 @@ import { ImageFileInput } from '@/components/ImageFileInput';
 import CustomDateRangePickerMobile from '@/components/DateRangePicker/MobileDateRangePicker';
 import { FormControlComponent } from '@/components/FormControl';
 import { dateAndTimeToText } from '@/features/drop-manager/utils/parseDates';
+import ToggleSwitch from '@/components/ToggleSwitch/ToggleSwitch';
 
 import {
   type TicketDropFormData,
@@ -256,6 +257,18 @@ const EventInfoForm = (props: EventStepFormProps) => {
             }}
           />
         </FormControlComponent>
+        <HStack justifyContent="space-between" mt="4" w="full">
+          <Heading color="gray.800" fontFamily="body" fontSize={{ base: 'sm', md: 'base' }} m="0">
+            Allow ticket resales
+          </Heading>
+          <ToggleSwitch
+            handleToggle={() => {
+              console.log('FORM DATA: ', !formData.sellable);
+              setFormData({ ...formData, sellable: !formData.sellable });
+            }}
+            toggle={formData.sellable}
+          />
+        </HStack>
       </VStack>
       <Hide below="md">
         <VStack align="start" paddingTop={5} w="100%">

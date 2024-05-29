@@ -150,7 +150,7 @@ export const PurchaseModal = ({
         Get Free Ticket
       </Button>
     );
-  } else if (stripeRegistered && signedIn && !currentTicket?.isSecondary ) {
+  } else if (stripeRegistered && signedIn && !currentTicket?.isSecondary) {
     // purchaseType = 2;
     PurchaseButton = (
       <>
