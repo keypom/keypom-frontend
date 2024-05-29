@@ -159,7 +159,6 @@ function CustomDateRangePicker({
   };
 
   const onChangeEndTime = (e: React.ChangeEvent<HTMLInputElement>) => {
-    console.log('DATE: ', e.target.value);
     setEndTimeText(e.target.value.toUpperCase());
   };
 
