@@ -22,16 +22,12 @@ import {
 import * as nearAPI from 'near-api-js';
 import { formatNearAmount } from 'near-api-js/lib/utils/format';
 import { type Wallet } from '@near-wallet-selector/core';
-import * as bs58 from 'bs58';
-import * as nacl from 'tweetnacl';
-import * as naclUtil from 'tweetnacl-util';
 
 import { truncateAddress } from '@/utils/truncateAddress';
 import {
   CLOUDFLARE_IPFS,
   DROP_TYPE,
   KEYPOM_EVENTS_CONTRACT,
-  KEYPOM_GLOBAL_SIGNING_KEYS,
   KEYPOM_MARKETPLACE_CONTRACT,
   MASTER_KEY,
 } from '@/constants/common';
@@ -177,14 +173,8 @@ class KeypomJS {
     });
   };
 
-  GetSigningKey() {
-    const randomIndex = Math.floor(Math.random() * (KEYPOM_GLOBAL_SIGNING_KEYS.length + 1));
-    return KEYPOM_GLOBAL_SIGNING_KEYS[randomIndex];
-  }
-
-  ListTicketForSecondarySale = async ({ msg }) => {
-    const signingSecretKey = this.GetSigningKey();
-    const signingKeypair = nearAPI.KeyPair.fromString(signingSecretKey);
+  listTicketOnSecondaryMarket = async ({ secretKey, msg }) => {
+    const signingKeypair = nearAPI.KeyPair.fromString(secretKey);
     myKeyStore.setKey(networkId, KEYPOM_EVENTS_CONTRACT, signingKeypair);
     const keypomAccount = new nearAPI.Account(
       this.nearConnection.connection,
@@ -199,31 +189,6 @@ class KeypomJS {
       },
       gas: BigInt(`300000000000000`),
     });
-  };
-
-  GenerateSignature = async (keypairAndSigningMsg: {
-    publicKey: string;
-    secretKey: string;
-    message: string;
-  }) => {
-    const sk_bytes = bs58.decode(keypairAndSigningMsg.secretKey);
-
-    const key_info = await this.viewAccount.viewFunction({
-      contractId: KEYPOM_EVENTS_CONTRACT,
-      methodName: 'get_key_information',
-      args: {
-        key: keypairAndSigningMsg.publicKey.toString(),
-      },
-    });
-    const message_nonce = key_info.message_nonce;
-
-    const message = `${String(keypairAndSigningMsg.message)}${String(message_nonce.toString())}`;
-    const message_bytes = new TextEncoder().encode(`${message}`);
-
-    const signature = nacl.sign.detached(message_bytes, sk_bytes);
-    const base64_signature = naclUtil.encodeBase64(signature);
-
-    return [base64_signature, signature];
   };
 
   GenerateTicketKeys = async (numKeys) => {
@@ -382,9 +347,7 @@ class KeypomJS {
   onEventTicketScanned = async (secretKey: string) => {
     const pubKey = getPubFromSecret(secretKey);
 
-    const signingKey = this.GetSigningKey();
-    console.log(signingKey);
-    const signingKeypair = nearAPI.KeyPair.fromString(signingKey);
+    const signingKeypair = nearAPI.KeyPair.fromString(secretKey);
     await myKeyStore.setKey(networkId, KEYPOM_EVENTS_CONTRACT, signingKeypair);
     const keypomAccount = new nearAPI.Account(
       this.nearConnection.connection,
@@ -400,27 +363,11 @@ class KeypomJS {
     });
     const gasToAttach = keyInfo.required_gas;
 
-    const args_to_sign = {
-      account_id: KEYPOM_EVENTS_CONTRACT,
-      linkdrop_pk: pubKey,
-    };
-
-    const signature = await this.GenerateSignature({
-      publicKey: pubKey,
-      secretKey,
-      message: JSON.stringify(args_to_sign),
-    });
-
-    console.log(signature);
-
     await keypomAccount.functionCall({
       contractId: KEYPOM_EVENTS_CONTRACT,
       methodName: 'claim',
       args: {
         account_id: KEYPOM_EVENTS_CONTRACT,
-        // base 64 encoded signature
-        signature: signature[0],
-        linkdrop_pk: pubKey,
       },
       gas: gasToAttach,
     });

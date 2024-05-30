@@ -993,35 +993,13 @@ export default function Event() {
       price: yoctoPrice,
     };
 
-    // Memo for generating resell signature
-    const memo_no_sig = JSON.stringify({
-      account_id: KEYPOM_MARKETPLACE_CONTRACT,
-      msg: JSON.stringify({
-        linkdrop_pk: sellInfo.publicKey,
-        msg: JSON.stringify(marketplaceMemo),
-      }),
-    });
-
-    console.log('signing: ', memo_no_sig);
-
-    const signature = await keypomInstance.GenerateSignature({
-      secretKey: sellInfo.secretKey,
-      publicKey: sellInfo.publicKey,
-      message: memo_no_sig,
-    });
-
-    const base64Signature = signature[0];
-
-    const memo = JSON.stringify({
-      linkdrop_pk: sellInfo.publicKey,
-      signature: base64Signature,
-      msg: JSON.stringify(marketplaceMemo),
-    });
-
-    let sellsuccessful = false;
+    let sellSuccessful = false;
     try {
-      await keypomInstance.ListTicketForSecondarySale({ msg: memo });
-      sellsuccessful = true;
+      await keypomInstance.listTicketOnSecondaryMarket({
+        secretKey: sellInfo.secretKey,
+        msg: marketplaceMemo,
+      });
+      sellSuccessful = true;
     } catch (error) {
       toast({
         title: 'Item not put for sale',
@@ -1037,9 +1015,7 @@ export default function Event() {
 
     navigate('./');
 
-    if (sellsuccessful) {
-      // add a sellsuccessful to local storage
-      localStorage.setItem('sellsuccessful', nearPrice);
+    if (sellSuccessful) {
       window.location.reload();
     }
   };
