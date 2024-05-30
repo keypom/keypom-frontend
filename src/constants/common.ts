@@ -30,7 +30,7 @@ export const EVENTS_WORKER_IPFS_PINNING =
 export const EVENTS_WORKER_BASE =
   process.env.REACT_APP_NETWORK_ID === 'mainnet'
     ? 'https://stripe-worker-production.keypom.workers.dev'
-    : 'https://stripe-worker-tempalte.keypom.workers.dev';
+    : 'https://stripe-worker-template.keypom.workers.dev';
 export const EMAIL_WORKER_BASE = 'https://email-worker.keypom.workers.dev';
 
 export const PAGE_SIZE_LIMIT = 5;

@@ -173,7 +173,7 @@ class KeypomJS {
     });
   };
 
-  listTicketOnSecondaryMarket = async ({ secretKey, msg }) => {
+  listTicketOnSecondaryMarket = async ({ secretKey, msg }: { secretKey: string; msg: string }) => {
     const signingKeypair = nearAPI.KeyPair.fromString(secretKey);
     myKeyStore.setKey(networkId, KEYPOM_EVENTS_CONTRACT, signingKeypair);
     const keypomAccount = new nearAPI.Account(
@@ -187,7 +187,7 @@ class KeypomJS {
         account_id: KEYPOM_MARKETPLACE_CONTRACT,
         msg,
       },
-      gas: BigInt(`300000000000000`),
+      gas: BigInt(`50000000000000`),
     });
   };
 

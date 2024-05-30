@@ -988,10 +988,10 @@ export default function Event() {
 
     const yoctoPrice = keypomInstance.nearToYocto(nearPrice);
 
-    const marketplaceMemo = {
+    const marketplaceMemo = JSON.stringify({
       public_key: sellInfo.publicKey,
       price: yoctoPrice,
-    };
+    });
 
     let sellSuccessful = false;
     try {

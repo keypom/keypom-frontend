@@ -283,6 +283,7 @@ export const createPayload = async ({
       },
       add_key_allowlist: [KEYPOM_MARKETPLACE_CONTRACT],
       transfer_key_allowlist: formData.sellable ? [KEYPOM_MARKETPLACE_CONTRACT] : [],
+      extra_allowance_per_key: formData.sellable ? parseNearAmount('0.1') : undefined,
     };
     const assetData = [
       {
@@ -320,6 +321,7 @@ export const createPayload = async ({
             args: JSON.stringify({
               event_id: eventId,
               funder_id: accountId,
+              max_markup: 200,
               ticket_information,
               stripe_status: formData.acceptStripePayments,
               stripe_account_id: formData.stripeAccountId,
