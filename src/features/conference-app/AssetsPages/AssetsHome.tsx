@@ -37,7 +37,7 @@ export const formatTokensAvailable = (tokens: string) => {
 };
 
 const AssetsHome = () => {
-  const { tokensAvailable, eventInfo, isLoading, onSelectTab, ticker } = useConferenceContext();
+  const { tokensAvailable, isLoading, onSelectTab, ticker } = useConferenceContext();
 
   const sendDisclosure = useDisclosure();
   const receiveDisclosure = useDisclosure();
@@ -137,10 +137,10 @@ const AssetsHome = () => {
             <Text
               bottom="2"
               color={color}
-              fontFamily={eventInfo.styles.h1.fontFamily}
+              fontFamily="heading"
               fontSize={fontSize}
-              fontWeight={eventInfo.styles.h1.fontWeight}
-            >
+              fontWeight="400"
+              >
               {title}
             </Text>
           </Box>
@@ -149,9 +149,9 @@ const AssetsHome = () => {
               <Text
                 bottom="2"
                 color="white"
-                fontFamily={eventInfo.styles.h1.fontFamily}
+                fontFamily="heading"
                 fontSize={isLargerThan900 ? 'xl' : isLargerThan700 ? 'lg' : 'md'}
-                fontWeight={eventInfo.styles.h1.fontWeight}
+                fontWeight="600"
               >
                 Coming Soon
               </Text>
@@ -186,20 +186,20 @@ const AssetsHome = () => {
         w={{ base: '90vw', md: '90%', lg: '80%' }}
       >
         <IconBox
-          bg={eventInfo.styles.border.border || 'border.box'}
+          bg={'border.consensus'}
           h="full"
           icon={
             <Skeleton isLoaded={!isLoading}>
               <Image
                 borderRadius="full"
                 height={{ base: '14', md: '12' }}
-                src={`/assets/demos/consensus/${eventInfo.styles.icon.image}`}
+                src={`/assets/demos/consensus/consensus_logo.png`}
                 width={{ base: '20', md: '12' }}
               />
             </Skeleton>
           }
-          iconBg={eventInfo.styles.icon.bg || 'blue.100'}
-          iconBorder={eventInfo.styles.icon.border || 'border.round'}
+          iconBg={'event.iconBg'}
+          iconBorder={'event.iconBorder'}
           minW={{ base: '90vw', md: '345px' }}
           p="0"
           pb="0"
@@ -219,10 +219,10 @@ const AssetsHome = () => {
                   px={{ base: '10', md: '8' }}
                 >
                   <Text
-                    color={eventInfo.styles.h1.color}
-                    fontFamily={eventInfo.styles.h1.fontFamily}
+                    color="event.h1"
+                    fontFamily="heading"
                     fontSize={{ base: '2xl', md: '2xl' }}
-                    fontWeight={eventInfo.styles.h1.fontWeight}
+                    fontWeight="600"
                     textAlign="center"
                   >
                     {formatTokensAvailable(tokensAvailable)} ${ticker}
@@ -230,7 +230,7 @@ const AssetsHome = () => {
                   <HStack justify="space-evenly" mt={4} spacing={4} w="100%">
                     <VStack spacing="0">
                       <Box
-                        bg={eventInfo.styles.buttons.secondary.color}
+                        bg="event.button.secondary.color"
                         borderRadius="0.75em"
                         p="2"
                         onClick={sendDisclosure.onOpen}
@@ -238,10 +238,10 @@ const AssetsHome = () => {
                         <SendIcon color="white" h={{ base: '20px', md: '24px' }} strokeWidth="1" />
                       </Box>
                       <Text
-                        color={eventInfo.styles.h3.color}
-                        fontFamily={eventInfo.styles.h3.fontFamily}
+                        color="event.h3"
+                        fontFamily="heading"
                         fontSize={{ base: 'xs', md: 'sm' }}
-                        fontWeight={eventInfo.styles.h3.fontWeight}
+                        fontWeight="400"
                         textAlign="center"
                       >
                         Send
@@ -249,7 +249,7 @@ const AssetsHome = () => {
                     </VStack>
                     <VStack spacing="0">
                       <Box
-                        bg={eventInfo.styles.buttons.secondary.color}
+                        bg="event.button.secondary.color"
                         borderRadius="0.75em"
                         p="2"
                         onClick={receiveDisclosure.onOpen}
@@ -261,10 +261,10 @@ const AssetsHome = () => {
                         />
                       </Box>
                       <Text
-                        color={eventInfo.styles.h3.color}
-                        fontFamily={eventInfo.styles.h3.fontFamily}
+                        color="event.h3"
+                        fontFamily="heading"
                         fontSize={{ base: 'xs', md: 'sm' }}
-                        fontWeight={eventInfo.styles.h3.fontWeight}
+                        fontWeight="400"
                         textAlign="center"
                       >
                         Receive
@@ -272,7 +272,7 @@ const AssetsHome = () => {
                     </VStack>
                     <VStack spacing="0">
                       <Box
-                        bg={eventInfo.styles.buttons.secondary.color}
+                        bg="event.button.secondary.color"
                         borderRadius="0.75em"
                         p="2"
                         onClick={() => {
@@ -286,10 +286,10 @@ const AssetsHome = () => {
                         />
                       </Box>
                       <Text
-                        color={eventInfo.styles.h3.color}
-                        fontFamily={eventInfo.styles.h3.fontFamily}
+                        color="event.h3"
+                        fontFamily="heading"
                         fontSize={{ base: 'xs', md: 'sm' }}
-                        fontWeight={eventInfo.styles.h3.fontWeight}
+                        fontWeight="400"
                         textAlign="center"
                       >
                         Scan
@@ -336,7 +336,7 @@ const AssetsHome = () => {
                   />
                 </HStack>
                 <PageCard
-                  color={eventInfo.styles.h2.color || 'black'}
+                  color="event.h2"
                   fontSize={isLargerThan900 ? '3xl' : isLargerThan700 ? '3xl' : 'xl'}
                   imageUrl="scavengers_2.png"
                   locked={false}

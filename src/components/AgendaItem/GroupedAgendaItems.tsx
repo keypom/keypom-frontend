@@ -21,10 +21,10 @@ const GroupedAgendaItems = ({ groupedAgenda }: GroupedAgendaItemsProps) => {
         return (
           <VStack key={index} align="left" spacing={2} textAlign="left" w="full">
             <Text
-              color={eventInfo.styles.h1.color}
-              fontFamily={eventInfo.styles.h1.fontFamily}
+              color='event.h1'
+              fontFamily="heading"
               fontSize="xl"
-              fontWeight={eventInfo.styles.h1.fontWeight}
+              fontWeight="600"
             >
               {time}
             </Text>
@@ -46,10 +46,10 @@ const GroupedAgendaItems = ({ groupedAgenda }: GroupedAgendaItemsProps) => {
                     <HStack alignItems="center">
                       <RepeatClockIcon h="20px" w="20px" />
                       <Text
-                        color={eventInfo.styles.h3.color}
-                        fontFamily={eventInfo.styles.h3.fontFamily}
+                        color="event.h3"
+                        fontFamily="heading"
                         fontSize="md"
-                        fontWeight={eventInfo.styles.h3.fontWeight}
+                        fontWeight="400"
                         mt="1"
                       >
                         {item.duration}
@@ -57,9 +57,9 @@ const GroupedAgendaItems = ({ groupedAgenda }: GroupedAgendaItemsProps) => {
                     </HStack>
                     <Text
                       color="gray.600"
-                      fontFamily={eventInfo.styles.h1.fontFamily}
+                      fontFamily="heading"
                       fontSize="lg"
-                      fontWeight={eventInfo.styles.h1.fontWeight}
+                      fontWeight="600"
                       mb={0}
                       textAlign="left"
                     >
@@ -68,10 +68,10 @@ const GroupedAgendaItems = ({ groupedAgenda }: GroupedAgendaItemsProps) => {
                     <HStack alignItems="center">
                       <LocationPinIcon h="15px" w="15px" />
                       <Text
-                        color={eventInfo.styles.h3.color}
-                        fontFamily={eventInfo.styles.h3.fontFamily}
+                        color="event.h3"
+                        fontFamily="heading"
                         fontSize="sm"
-                        fontWeight={eventInfo.styles.h3.fontWeight}
+                        fontWeight="400"
                       >
                         {item.location}
                       </Text>
@@ -93,7 +93,7 @@ const GroupedAgendaItems = ({ groupedAgenda }: GroupedAgendaItemsProps) => {
                     {item.track && (
                       <Box
                         alignSelf="left"
-                        bg={eventInfo.styles.buttons.primary.bg}
+                        bg="event.button.primary.bg"
                         borderRadius="md"
                         mt={1}
                         px="2"
@@ -101,10 +101,10 @@ const GroupedAgendaItems = ({ groupedAgenda }: GroupedAgendaItemsProps) => {
                         w="max-content"
                       >
                         <Text
-                          color="white"
-                          fontFamily={eventInfo.styles.h1.fontFamily}
+                          color='event.h1'
+                          fontFamily="heading"
                           fontSize="sm"
-                          fontWeight={eventInfo.styles.h1.fontWeight}
+                          fontWeight="600"
                           h="20px"
                           mb={0}
                           textAlign="left"

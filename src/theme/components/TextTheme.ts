@@ -4,6 +4,7 @@ export const TextTheme = defineStyleConfig({
   baseStyle: {
     fontWeight: 'normal',
     color: 'gray.600',
+    fontFamily: 'ConsensusHeading',
   },
   sizes: {
     xs: {

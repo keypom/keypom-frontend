@@ -2,12 +2,12 @@ import { type RecursiveObject } from '@chakra-ui/react';
 
 export const colors: RecursiveObject<string> = {
   border: {
-    box: 'linear-gradient(white, white) padding-box, linear-gradient(0deg, rgba(255,207,234,1) 0%, rgba(182,232,247,1) 100%) border-box',
+    consensus: "linear-gradient(white, white) padding-box, linear-gradient(0deg, rgba(45, 208, 205,1) 0%, rgba(201, 54, 246,1) 100%) border-box",
+    box: 'linear-gradient(white, white) padding-box, linear-gradient(0deg, rgba(45, 208, 205,1) 0%, rgba(201, 54, 246,1) 100%) border-box',
     round:
       'linear-gradient(0deg, #B6E8F7, #B6E8F7), linear-gradient(344.12deg, #EFFAFD 10.78%, #DDF4FA 88.63%)',
     landing: {
       800: 'linear-gradient(#1e293b, #1e293b) padding-box, linear-gradient(0deg, #FFA9DC 0%, #73D6F3 100%) border-box',
-
       900: 'linear-gradient(#0f172a, #0f172a) padding-box, linear-gradient(0deg, #FFA9DC 0%, #73D6F3 100%) border-box',
     },
   },
@@ -17,6 +17,26 @@ export const colors: RecursiveObject<string> = {
   },
   white: '#ffffff',
   bg: '#ffffff',
+  event: {
+    title: "white",
+    h1: "#2DD0CD",
+    h2: "#020A0A",
+    h3: "#020A0A",
+    iconBg: "#020A0A",
+    iconBorder: "#C936F6",
+    button: {
+      primary: {
+        "bg": "#C936F6",
+        "color": "white",
+        "hover": "#C936F6"
+      },
+      secondary: {
+        "bg": "#e2e8f0",
+        "color": "black",
+        "hover": "#cbd5e1"
+      }
+    }
+  },
   gray: {
     '50': '#f8fafc',
     '100': '#f1f5f9',

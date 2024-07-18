@@ -65,20 +65,20 @@ const ChatPage: React.FC = () => {
         w={{ base: '90vw', md: '90%', lg: '80%' }}
       >
         <IconBox
-          bg={eventInfo.styles.border.border || 'border.box'}
+          bg={'border.consensus'}
           h="full"
           icon={
             <Skeleton isLoaded={!isLoading}>
               <Image
                 borderRadius="full"
                 height={{ base: '14', md: '12' }}
-                src={`/assets/demos/consensus/${eventInfo.styles.icon.image}`}
+                src={`/assets/demos/consensus/consensus_logo.png`}
                 width={{ base: '20', md: '12' }}
               />
             </Skeleton>
           }
-          iconBg={eventInfo.styles.icon.bg || 'blue.100'}
-          iconBorder={eventInfo.styles.icon.border || 'border.round'}
+          iconBg={'event.iconBg'}
+          iconBorder={'event.iconBorder'}
           minW={{ base: '90vw', md: '345px' }}
           p="0"
           pb="0"

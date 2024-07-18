@@ -21,6 +21,7 @@ const AllEventsPage = React.lazy(
   async () => await import('./features/all-events/routes/AllEventsPage'),
 );
 const TicketPage = React.lazy(async () => await import('@/features/ticket-qr/TicketPage'));
+const SpecialTicketPage = React.lazy(async () => await import('@/features/ticket-qr/SpecialTicketPage'));
 const ConferencePage = React.lazy(
   async () => await import('@/features/conference-app/ConferencePageManager'),
 );
@@ -74,6 +75,10 @@ export const router = createBrowserRouter([
               {
                 path: 'ticket/:id', // Match /events/event/:id
                 element: <TicketPage />,
+              },
+              {
+                path: 'special/:id',
+                element: <SpecialTicketPage />,
               },
             ],
           },

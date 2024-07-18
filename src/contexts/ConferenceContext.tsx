@@ -25,16 +25,8 @@ import AgendaPage from '@/features/conference-app/AgendaPage';
 import ScanningPage from '@/features/conference-app/ScanningPage';
 import AssetsPageManager from '@/features/conference-app/AssetsPages/AssetsPageManager';
 import { CameraIcon } from '@/components/Icons/CameraIcon';
-import ChatPage from '@/features/conference-app/ChatPage';
 
 export const conferenceFooterMenuItems = [
-  {
-    label: 'Chat',
-    icon: MessageIcon,
-    path: '/conference/app/chat',
-    locked: true,
-    component: ChatPage,
-  },
   {
     label: 'Agenda',
     icon: FooterCalendarIcon,
@@ -66,11 +58,10 @@ export const conferenceFooterMenuItems = [
 ];
 
 export const conferenceFooterMenuIndexes = {
-  profile: 4,
-  assets: 3,
-  agenda: 1,
-  scan: 2,
-  chat: 0,
+  profile: 3,
+  assets: 2,
+  agenda: 0,
+  scan: 1,
 };
 
 interface ConferenceContextProps {

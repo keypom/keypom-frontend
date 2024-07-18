@@ -111,10 +111,10 @@ const CollectiblesPage: React.FC = () => {
           {!isOwned && <LockIcon {...lockIconStyle} />}
         </Flex>
         <Text
-          color={eventInfo.styles.h3.color}
-          fontFamily={eventInfo.styles.h3.fontFamily}
+          color="event.h3"
+          fontFamily="heading"
           fontSize="sm"
-          fontWeight={eventInfo.styles.h3.fontWeight}
+          fontWeight="400"
           textAlign="center"
         >
           {nft.name}
@@ -151,33 +151,29 @@ const CollectiblesPage: React.FC = () => {
         w={{ base: '90vw', md: '90%', lg: '80%' }}
       >
         <IconBox
-          bg={eventInfo.styles.border.border || 'border.box'}
+          bg={'border.consensus'}
           icon={
             <Skeleton isLoaded={!isLoading}>
-              {eventInfo.styles.icon.image ? (
                 <CircularProgress
-                  color={eventInfo.styles.h1.color}
+                  color="event.h1"
                   size="60px"
                   thickness="12px"
                   trackColor="gray.200"
                   value={progressValue}
                 >
                   <CircularProgressLabel
-                    color={eventInfo.styles.h1.color}
-                    fontFamily={eventInfo.styles.h2.fontFamily}
+                    color="event.h1"
+                    fontFamily="heading"
                     fontSize="lg"
-                    fontWeight={eventInfo.styles.h2.fontWeight}
+                    fontWeight="500"
                   >
                     {Math.round(progressValue)}%
                   </CircularProgressLabel>
                 </CircularProgress>
-              ) : (
-                <TicketIcon height={{ base: '8', md: '10' }} width={{ base: '8', md: '10' }} />
-              )}
             </Skeleton>
           }
-          iconBg={eventInfo.styles.icon.bg || 'blue.100'}
-          iconBorder={eventInfo.styles.icon.border || 'border.round'}
+          iconBg={'event.iconBg'}
+          iconBorder={'event.iconBorder'}
           minW={{ base: '90vw', md: '345px' }}
           p="0"
           pb="0"
@@ -199,10 +195,10 @@ const CollectiblesPage: React.FC = () => {
                 >
                   <Tooltip label={`You have ${ownedNFTs.length} of ${nfts.length} collectibles`}>
                     <Text
-                      color={eventInfo.styles.h3.color}
-                      fontFamily={eventInfo.styles.h3.fontFamily}
+                      color="event.h3"
+                      fontFamily="heading"
                       fontSize="sm"
-                      fontWeight={eventInfo.styles.h3.fontWeight}
+                      fontWeight="400"
                       textAlign="center"
                     >
                       {ownedNFTs.length} of {nfts.length} Found
@@ -211,10 +207,10 @@ const CollectiblesPage: React.FC = () => {
                   <Divider my="2" />
                   <Box flex="1" textAlign="left" width="100%">
                     <Heading
-                      color={eventInfo.styles.h1.color}
-                      fontFamily={eventInfo.styles.h1.fontFamily}
+                      color="event.h1"
+                      fontFamily="heading"
                       fontSize="2xl"
-                      fontWeight={eventInfo.styles.h1.fontWeight}
+                      fontWeight="600"
                       textAlign="center"
                     >
                       Found ({ownedNFTs.length})
@@ -236,10 +232,10 @@ const CollectiblesPage: React.FC = () => {
                   ) : (
                     <Center>
                       <Text
-                        color={eventInfo.styles.h3.color}
-                        fontFamily={eventInfo.styles.h3.fontFamily}
+                        color="event.h3"
+                        fontFamily="heading"
                         fontSize="sm"
-                        fontWeight={eventInfo.styles.h3.fontWeight}
+                        fontWeight="400"
                         textAlign="center"
                       >
                         You haven't found any collectibles yet.
@@ -253,10 +249,10 @@ const CollectiblesPage: React.FC = () => {
             <Flex flexDir="column" justifyContent="space-between" px="6" py="4" w="full">
               <Box flex="1" textAlign="left">
                 <Heading
-                  color={eventInfo.styles.h1.color}
-                  fontFamily={eventInfo.styles.h1.fontFamily}
+                  color="event.h1"
+                  fontFamily="heading"
                   fontSize="2xl"
-                  fontWeight={eventInfo.styles.h1.fontWeight}
+                  fontWeight="600"
                   textAlign="center"
                 >
                   Not Found ({unownedNFTs.length})

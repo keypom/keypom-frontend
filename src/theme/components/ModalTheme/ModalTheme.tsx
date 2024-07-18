@@ -5,14 +5,15 @@ const { definePartsStyle, defineMultiStyleConfig } = createMultiStyleConfigHelpe
 
 export const baseStyle = definePartsStyle({
   header: {
-    color: 'gray.900',
+    color: '#020A0A',
     fontWeight: '500',
     letterSpacing: '-0.02em',
-    fontSize: '2.25rem',
+    fontSize: '2xl',
+    fontFamily: 'ConsensusHeading',
     p: 0,
   },
   dialog: {
-    bg: 'border.box',
+    bg: '#C936F6',
     border: '2px solid transparent',
     borderRadius: '8xl',
     boxShadow:

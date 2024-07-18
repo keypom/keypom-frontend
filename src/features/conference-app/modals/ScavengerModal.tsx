@@ -76,20 +76,20 @@ const ScavengerModal = ({
         <ModalHeader pb={2} pt={6}>
           <VStack pb="2" spacing="0">
             <Text
-              color={eventInfo.styles.h1.color}
-              fontFamily={eventInfo.styles.h1.fontFamily}
+              color="event.h1"
+              fontFamily="heading"
               fontSize="2xl"
-              fontWeight={eventInfo.styles.h1.fontWeight}
+              fontWeight="600"
               textAlign="center"
             >
               {title}
             </Text>
 
             <Text
-              color={eventInfo.styles.h3.color}
-              fontFamily={eventInfo.styles.h3.fontFamily}
+              color="event.h3"
+              fontFamily="heading"
               fontSize="md"
-              fontWeight={eventInfo.styles.h3.fontWeight}
+              fontWeight="400"
               textAlign="center"
             >
               {subtitle}
@@ -112,10 +112,10 @@ const ScavengerModal = ({
                 </Box>
 
                 <Text
-                  color={eventInfo.styles.h3.color}
-                  fontFamily={eventInfo.styles.h3.fontFamily}
+                  color="event.h3"
+                    fontFamily="heading"
                   fontSize="md"
-                  fontWeight={eventInfo.styles.h3.fontWeight}
+                  fontWeight="400"
                   textAlign="center"
                 >
                   {body}
@@ -127,13 +127,17 @@ const ScavengerModal = ({
         <ModalFooter flexDirection="column" pb={6} pt={0}>
           <VStack spacing="3" w="full">
             <Button
-              backgroundColor={eventInfo.styles.buttons.primary.bg}
-              color={eventInfo.styles.buttons.primary.color}
-              fontFamily={eventInfo.styles.buttons.primary.fontFamily}
-              fontSize={eventInfo.styles.buttons.primary.fontSize}
-              fontWeight={eventInfo.styles.buttons.primary.fontWeight}
-              h={eventInfo.styles.buttons.primary.h}
-              sx={eventInfo.styles.buttons.primary.sx}
+              backgroundColor="event.button.primary.bg"
+              color="event.button.primary.color"
+              fontFamily="heading"
+              fontSize="2xl"
+              fontWeight="500"
+              h="48px"
+              sx={{
+                "_hover": {
+                    "backgroundColor": "event.button.primary.hover"
+                }
+            }}
               variant="outline"
               w="full"
               onClick={() => {
@@ -144,12 +148,16 @@ const ScavengerModal = ({
             </Button>
             <Button
               backgroundColor="gray.800"
-              color={eventInfo.styles.buttons.primary.color}
-              fontFamily={eventInfo.styles.buttons.primary.fontFamily}
-              fontSize={eventInfo.styles.buttons.primary.fontSize}
-              fontWeight={eventInfo.styles.buttons.primary.fontWeight}
-              h={eventInfo.styles.buttons.primary.h}
-              sx={eventInfo.styles.buttons.primary.sx}
+              color="event.button.primary.color"
+              fontFamily="heading"
+              fontSize="2xl"
+              fontWeight="500"
+              h="48px"
+              sx={{
+                "_hover": {
+                    "backgroundColor": "event.button.primary.hover"
+                }
+            }}
               variant="outline"
               w="full"
               onClick={onClose}

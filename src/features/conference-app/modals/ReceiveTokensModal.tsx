@@ -36,10 +36,10 @@ const ReceiveTokensModal = ({ isOpen, onClose }: ReceiveTokensModalProps) => {
           <Box>
             <VStack p={modalPadding} pb="4" spacing="1">
               <Text
-                color={eventInfo.styles.h1.color}
-                fontFamily={eventInfo.styles.h1.fontFamily}
+                color="event.h1"
+                fontFamily="heading"
                 fontSize="3xl"
-                fontWeight={eventInfo.styles.h1.fontWeight}
+                fontWeight="600"
                 textAlign="center"
               >
                 Receive Tokens
@@ -53,18 +53,18 @@ const ReceiveTokensModal = ({ isOpen, onClose }: ReceiveTokensModalProps) => {
               <Box textAlign="left" w="full">
                 <VStack align="left" spacing="0" textAlign="left" w="full">
                   <Text
-                    color={eventInfo.styles.h2.color}
-                    fontFamily={eventInfo.styles.h2.fontFamily}
+                    color="event.h2"
+                    fontFamily="heading"
                     fontSize="xl"
-                    fontWeight={eventInfo.styles.h2.fontWeight}
+                    fontWeight="500"
                   >
                     A. By QR Code
                   </Text>
                   <Text
-                    color={eventInfo.styles.h3.color}
-                    fontFamily={eventInfo.styles.h3.fontFamily}
+                    color="event.h3"
+                    fontFamily="heading"
                     fontSize="sm"
-                    fontWeight={eventInfo.styles.h3.fontWeight}
+                    fontWeight="400"
                   >
                     Get scanned by someone:
                   </Text>
@@ -81,18 +81,18 @@ const ReceiveTokensModal = ({ isOpen, onClose }: ReceiveTokensModalProps) => {
               <Box textAlign="left" w="full">
                 <VStack align="left" spacing="0" textAlign="left" w="full">
                   <Text
-                    color={eventInfo.styles.h2.color}
-                    fontFamily={eventInfo.styles.h2.fontFamily}
+                    color="event.h2"
+              fontFamily="heading"
                     fontSize="xl"
-                    fontWeight={eventInfo.styles.h2.fontWeight}
+                    fontWeight="500"
                   >
                     B. By Username
                   </Text>
                   <Text
-                    color={eventInfo.styles.h3.color}
-                    fontFamily={eventInfo.styles.h3.fontFamily}
+                    color="event.h3"
+                    fontFamily="heading"
                     fontSize="sm"
-                    fontWeight={eventInfo.styles.h3.fontWeight}
+                    fontWeight="400"
                   >
                     Have others enter your username:
                   </Text>
@@ -108,10 +108,10 @@ const ReceiveTokensModal = ({ isOpen, onClose }: ReceiveTokensModalProps) => {
                 >
                   <Avatar bg="blue.800" color="white" mr="3" name={curAccountId} size="sm" />
                   <Text
-                    color={eventInfo?.styles.h2.color}
-                    fontFamily={eventInfo?.styles.h2.fontFamily}
+                    color="event.h2"
+                    fontFamily="heading"
                     fontSize="2xl"
-                    fontWeight={eventInfo?.styles.h2.fontWeight}
+                    fontWeight="500"
                   >
                     {curAccountId.split('.')[0]}
                   </Text>
@@ -121,13 +121,17 @@ const ReceiveTokensModal = ({ isOpen, onClose }: ReceiveTokensModalProps) => {
 
             <Button
               backgroundColor="gray.800"
-              color={eventInfo.styles.buttons.primary.color}
-              fontFamily={eventInfo.styles.buttons.primary.fontFamily}
-              fontSize={eventInfo.styles.buttons.primary.fontSize}
-              fontWeight={eventInfo.styles.buttons.primary.fontWeight}
-              h={eventInfo.styles.buttons.primary.h}
+              color="event.button.primary.color"
+              fontFamily="heading"
+              fontSize="2xl"
+              fontWeight="500"
+              h="48px"
+              sx={{
+                "_hover": {
+                    "backgroundColor": "event.button.primary.hover"
+                }
+            }}
               mt="6"
-              sx={eventInfo.styles.buttons.primary.sx}
               variant="outline"
               w="full"
               onClick={onClose}

@@ -245,18 +245,18 @@ const ProfileTransferModal = ({
           <ModalHeader pb={2} pt={6}>
             <VStack pb="2" spacing="1">
               <Text
-                color={eventInfo.styles.h1.color}
-                fontFamily={eventInfo.styles.h1.fontFamily}
+                color="event.h1"
+                fontFamily="heading"
                 fontSize="3xl"
-                fontWeight={eventInfo.styles.h1.fontWeight}
+                fontWeight="600"
                 textAlign="center"
               >
                 {title}
               </Text>
               <Text
-                fontFamily={eventInfo.styles.h3.fontFamily}
+                fontFamily="heading"
                 fontSize="sm"
-                fontWeight={eventInfo.styles.h3.fontWeight}
+                fontWeight="400"
                 textAlign="center"
                 w="full"
               >
@@ -267,10 +267,10 @@ const ProfileTransferModal = ({
           <ModalBody>
             <VStack pb="4" spacing="1" w="full">
               <Text
-                color={eventInfo?.styles.h2.color}
-                fontFamily={eventInfo?.styles.h2.fontFamily}
+                color="event.h2"
+                fontFamily="heading"
                 fontSize="md"
-                fontWeight={eventInfo?.styles.h2.fontWeight}
+                fontWeight="500"
                 textAlign="center"
               >
                 {sendTo ? `Sending to:` : 'Enter username or scan profile QR code'}
@@ -282,12 +282,12 @@ const ProfileTransferModal = ({
                     autoComplete="off"
                     backgroundColor="white"
                     border="1px solid"
-                    borderColor={!isValidAccount ? 'red.500' : eventInfo?.styles.h1.color}
+                    borderColor={!isValidAccount ? 'red.500' : 'event.h3'}
                     borderRadius="12px"
                     color="black"
-                    fontFamily={eventInfo?.styles.h3.fontFamily}
+                    fontFamily="heading"
                     fontSize={{ base: '16px', md: 'md' }} // Ensure a base font size of 16px to prevent zooming
-                    fontWeight={eventInfo?.styles.h3.fontWeight}
+                    fontWeight="400"
                     height={{ base: '38px', md: '48px' }}
                     id="username"
                     placeholder="Username"
@@ -328,10 +328,10 @@ const ProfileTransferModal = ({
             <VStack spacing={8}>
               <VStack spacing="1">
                 <Text
-                  color={eventInfo.styles.h2.color}
-                  fontFamily={eventInfo.styles.h2.fontFamily}
+                  color="event.h2"
+                  fontFamily="heading"
                   fontSize="5xl"
-                  fontWeight={eventInfo.styles.h2.fontWeight}
+                  fontWeight="500"
                 >
                   {formatAmount(amount)}
                 </Text>
@@ -368,10 +368,10 @@ const ProfileTransferModal = ({
                           border="2px solid transparent"
                           borderColor={num === '.' ? 'white' : 'gray.100'}
                           borderRadius="0.75em"
-                          color={eventInfo.styles.h2.color}
-                          fontFamily={eventInfo.styles.h2.fontFamily}
+                          color="event.h2"
+                          fontFamily="heading"
                           fontSize="xl"
-                          fontWeight={eventInfo.styles.h2.fontWeight}
+                          fontWeight="500"
                           h="12"
                           size="lg"
                           transition="background-color 0.1s ease"
@@ -392,14 +392,18 @@ const ProfileTransferModal = ({
           <ModalFooter flexDirection="column" pb={6} pt={0}>
             <VStack spacing="3" w="full">
               <Button
-                backgroundColor={eventInfo.styles.buttons.primary.bg}
-                color={eventInfo.styles.buttons.primary.color}
-                fontFamily={eventInfo.styles.buttons.primary.fontFamily}
-                fontSize={eventInfo.styles.buttons.primary.fontSize}
-                fontWeight={eventInfo.styles.buttons.primary.fontWeight}
-                h={eventInfo.styles.buttons.primary.h}
+                backgroundColor="event.button.primary.bg"
+                color="event.button.primary.color"
+                fontFamily="heading"
+                fontSize="2xl"
+                fontWeight="500"
+                h="48px"
+                sx={{
+                  "_hover": {
+                      "backgroundColor": "event.button.primary.hover"
+                  }
+              }}
                 isDisabled={isSending || sendTo.length === 0}
-                sx={eventInfo.styles.buttons.primary.sx}
                 variant="outline"
                 w="full"
                 onClick={handleConfirm}
@@ -408,13 +412,17 @@ const ProfileTransferModal = ({
               </Button>
               <Button
                 backgroundColor="gray.800"
-                color={eventInfo.styles.buttons.primary.color}
-                fontFamily={eventInfo.styles.buttons.primary.fontFamily}
-                fontSize={eventInfo.styles.buttons.primary.fontSize}
-                fontWeight={eventInfo.styles.buttons.primary.fontWeight}
-                h={eventInfo.styles.buttons.primary.h}
+                color="event.button.primary.color"
+              fontFamily="heading"
+              fontSize="2xl"
+              fontWeight="500"
+              h="48px"
+              sx={{
+                "_hover": {
+                    "backgroundColor": "event.button.primary.hover"
+                }
+            }}
                 isDisabled={isSending}
-                sx={eventInfo.styles.buttons.primary.sx}
                 variant="outline"
                 w="full"
                 onClick={closeModal}

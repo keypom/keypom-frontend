@@ -32,7 +32,7 @@ export const MobileMenu = ({ menuItems }: MobileMenuProps) => {
   const { isLoggedIn } = useAuthWalletContext();
   const { isOpen, onOpen, onClose } = useDisclosure();
   const isTicketSubdirectory =
-    location.pathname.startsWith('/tickets/') || location.pathname.startsWith('/claim/');
+    location.pathname.startsWith('/tickets/ticket') || location.pathname.startsWith('/claim/');
 
   const btnRef = useRef(null);
   return (

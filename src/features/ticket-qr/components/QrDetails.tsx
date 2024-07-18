@@ -58,9 +58,7 @@ export const QrDetails = ({
     };
     img.src = `data:image/svg+xml;base64,${btoa(svgData)}`;
   };
-  const shouldShowDownloadButton = eventInfo?.qrPage.showDownloadButton;
 
-  const shouldShowSellButtonHelper = eventInfo?.qrPage.sellableThroughText;
   return (
     <Flex align="center" flexDir="column" p={{ base: '6', md: '8' }} pt={{ base: '12', md: '16' }}>
       <Box
@@ -72,68 +70,26 @@ export const QrDetails = ({
       >
         <QRCode id="QRCode" size={240} value={qrValue} />
       </Box>
-      {eventInfo.qrPage?.dateUnderQR && (
-        <Text
-          color={eventInfo.styles.h1.color}
-          fontFamily={eventInfo.styles.h1.fontFamily}
-          fontWeight={eventInfo.styles.h1.fontWeight}
-          mb="1"
-          size={{ base: 'lg', md: '2xl' }}
-          textAlign="center"
-        >
-          {dateAndTimeToText(eventInfo.date, '', false, true)}
-        </Text>
-      )}
       <Text
-        color="gray.600"
-        fontFamily={eventInfo.styles.h3.fontFamily}
-        fontWeight={eventInfo.styles.h3.fontWeight}
+        color='event.h1'
+        fontFamily="heading"
+        fontWeight="600"
+        mb="1"
+        size={{ base: 'lg', md: '2xl' }}
+        textAlign="center"
+      >
+        {dateAndTimeToText(eventInfo.date, '', false, true)}
+      </Text>
+      <Text
+        color="event.h3"
+        fontFamily="heading"
+        fontSize="sm"
         mb="6"
         size={{ base: 'sm', md: 'sm' }}
         textAlign="center"
       >
         Once inside, visit this page to start your journey
       </Text>
-      <VStack w="full">
-        <VStack spacing="1" w="full">
-          {shouldShowDownloadButton && (
-            <Button variant="outline" w="full" onClick={handleDownloadQrCode}>
-              Download QR code
-            </Button>
-          )}
-          <Button
-            backgroundColor={eventInfo?.styles?.buttons.primary.bg}
-            color={eventInfo?.styles?.buttons.primary.color}
-            fontFamily={eventInfo?.styles?.buttons.primary.fontFamily}
-            fontSize={eventInfo?.styles?.buttons.primary.fontSize}
-            fontWeight={eventInfo?.styles?.buttons.primary.fontWeight}
-            h={eventInfo?.styles?.buttons.primary.h}
-            sx={eventInfo?.styles?.buttons.primary.sx}
-            variant="outline"
-            w="full"
-            onClick={() => {
-              navigate(`/gallery/${funderId}:${eventId}#secretKey=${qrValue}`);
-            }}
-          >
-            SELL TICKET
-          </Button>
-          {shouldShowSellButtonHelper && (
-            <>
-              <Heading
-                fontFamily="body"
-                fontSize={{ base: 'xs', md: 'xs' }}
-                fontWeight="500"
-                textAlign="center"
-              >
-                Can be sold through:
-              </Heading>
-              <Heading fontSize={{ base: 'xs', md: 'xs' }} fontWeight="500" textAlign="center">
-                {ticketInfoExtra && dateAndTimeToText(ticketInfoExtra?.salesValidThrough)}
-              </Heading>
-            </>
-          )}
-        </VStack>
-      </VStack>
     </Flex>
   );
 };

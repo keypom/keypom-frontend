@@ -25,8 +25,6 @@ import { useConferenceContext } from '@/contexts/ConferenceContext';
 
 import ScavengerModal from './modals/ScavengerModal';
 import MerchModal from './modals/MerchModal';
-import RaffleModal from './modals/RaffleModal';
-import SponsorModal from './modals/SponsorModal';
 import ProfileTransferModal from './modals/ProfileTransferModal';
 import { claimEventDrop } from './helpers';
 import NFTModal from './modals/NFTModal';
@@ -274,26 +272,6 @@ export default function ScanningPage() {
           {...modalProps}
         />
       )}
-      {modalOpen && modalType === 'raffle' && (
-        <RaffleModal
-          eventInfo={eventInfo}
-          isOpen={modalOpen}
-          onClose={() => {
-            setModalOpen(false);
-          }}
-          {...modalProps}
-        />
-      )}
-      {modalOpen && modalType === 'sponsor' && (
-        <SponsorModal
-          eventInfo={eventInfo}
-          isOpen={modalOpen}
-          onClose={() => {
-            setModalOpen(false);
-          }}
-          {...modalProps}
-        />
-      )}
       {modalOpen && modalType === 'profileTransfer' && (
         <ProfileTransferModal
           isOpen={modalOpen}
@@ -312,21 +290,21 @@ export default function ScanningPage() {
           spacing="4"
           w={{ base: '90vw', md: '90%', lg: '80%' }}
         >
-          <IconBox
-            bg={eventInfo.styles.border.border || 'border.box'}
+        <IconBox
+            bg={'border.consensus'}
             h="full"
             icon={
               <Skeleton isLoaded={!isLoading}>
                 <Image
                   borderRadius="full"
                   height={{ base: '14', md: '12' }}
-                  src={`/assets/demos/consensus/${eventInfo.styles.icon.image}`}
+                  src={`/assets/demos/consensus/consensus_logo.png`}
                   width={{ base: '20', md: '12' }}
                 />
               </Skeleton>
             }
-            iconBg={eventInfo.styles.icon.bg || 'blue.100'}
-            iconBorder={eventInfo.styles.icon.border || 'border.round'}
+            iconBg={'event.iconBg'}
+            iconBorder={'event.iconBorder'}
             minW={{ base: '90vw', md: '345px' }}
             p="0"
             pb="0"
@@ -336,7 +314,7 @@ export default function ScanningPage() {
               <BoxWithShape bg="white" borderTopRadius="8xl" h="full" showNotch={false} w="full">
                 {isLoading || !accountId ? (
                   <Flex align="center" h="200px" justify="center" w="full">
-                    <ClipLoader color={eventInfo.styles.title.color} size={50} />
+                    <ClipLoader color="event.title" size={50} />
                   </Flex>
                 ) : (
                   <Flex
@@ -414,10 +392,10 @@ export default function ScanningPage() {
                   w="full"
                 >
                   <Text
-                    color={eventInfo.styles.h1.color}
-                    fontFamily={eventInfo.styles.h1.fontFamily}
+                    color='event.h1'
+                    fontFamily="heading"
                     fontSize={fontSize}
-                    fontWeight={eventInfo.styles.h1.fontWeight}
+                    fontWeight="600"
                     textAlign="center"
                   >
                     Scan to participate
@@ -431,11 +409,11 @@ export default function ScanningPage() {
                   >
                     {/* Left column for earning methods */}
                     <Box>
-                      <Text
-                        color={eventInfo?.styles.h2.color}
-                        fontFamily={eventInfo?.styles.h2.fontFamily}
-                        fontSize={eventInfo?.styles.h2.fontSize}
-                        fontWeight={eventInfo?.styles.h2.fontWeight}
+                    <Text
+                        color="event.h2"
+                        fontFamily="heading"
+                        fontSize={isHeightGreaterThan800 ? 'lg' : 'md'} // Padding on the top and bottom
+                        fontWeight="500"
                         mb={0}
                         textAlign="left"
                       >
@@ -443,34 +421,38 @@ export default function ScanningPage() {
                       </Text>
                       <VStack align="stretch" spacing={1} textAlign="left">
                         <Text
-                          color={eventInfo?.styles.h3.color}
-                          fontFamily={eventInfo?.styles.h3.fontFamily}
+                          color="event.h3"
+                          fontFamily="heading"
                           fontSize="sm"
-                          fontWeight={eventInfo?.styles.h3.fontWeight}
+                          fontWeight="400"
+                          textAlign="left"
                         >
                           Attending Talks
                         </Text>
                         <Text
-                          color={eventInfo?.styles.h3.color}
-                          fontFamily={eventInfo?.styles.h3.fontFamily}
+                          color="event.h3"
+                          fontFamily="heading"
                           fontSize="sm"
-                          fontWeight={eventInfo?.styles.h3.fontWeight}
+                          fontWeight="400"
+                          textAlign="left"
                         >
                           Visiting Booths
                         </Text>
                         <Text
-                          color={eventInfo?.styles.h3.color}
-                          fontFamily={eventInfo?.styles.h3.fontFamily}
+                          color="event.h3"
+                          fontFamily="heading"
                           fontSize="sm"
-                          fontWeight={eventInfo?.styles.h3.fontWeight}
+                          fontWeight="400"
+                          textAlign="left"
                         >
                           Scavenger Hunts
                         </Text>
                         <Text
-                          color={eventInfo?.styles.h3.color}
-                          fontFamily={eventInfo?.styles.h3.fontFamily}
+                          color="event.h3"
+                          fontFamily="heading"
                           fontSize="sm"
-                          fontWeight={eventInfo?.styles.h3.fontWeight}
+                          fontWeight="400"
+                          textAlign="left"
                         >
                           Sponsor Quizzes
                         </Text>
@@ -480,45 +462,49 @@ export default function ScanningPage() {
                     {/* Right column for spending methods */}
                     <Box>
                       <Text
-                        color={eventInfo?.styles.h2.color}
-                        fontFamily={eventInfo?.styles.h2.fontFamily}
-                        fontSize={eventInfo?.styles.h2.fontSize}
-                        fontWeight={eventInfo?.styles.h2.fontWeight}
+                        color="event.h2"
+                        fontFamily="heading"
+                        fontSize={isHeightGreaterThan800 ? 'lg' : 'md'} // Padding on the top and bottom
+                        fontWeight="500"
                         mb={0}
-                        textAlign="right"
+                        textAlign="left"
                       >
                         Spend On:
                       </Text>
                       <VStack align="stretch" spacing={1} textAlign="right">
                         <Text
-                          color={eventInfo?.styles.h3.color}
-                          fontFamily={eventInfo?.styles.h3.fontFamily}
+                          color="event.h3"
+                          fontFamily="heading"
                           fontSize="sm"
-                          fontWeight={eventInfo?.styles.h3.fontWeight}
+                          fontWeight="400"
+                          textAlign="left"
                         >
                           Food
                         </Text>
                         <Text
-                          color={eventInfo?.styles.h3.color}
-                          fontFamily={eventInfo?.styles.h3.fontFamily}
+                          color="event.h3"
+                          fontFamily="heading"
                           fontSize="sm"
-                          fontWeight={eventInfo?.styles.h3.fontWeight}
+                          fontWeight="400"
+                          textAlign="left"
                         >
                           Merch
                         </Text>
                         <Text
-                          color={eventInfo?.styles.h3.color}
-                          fontFamily={eventInfo?.styles.h3.fontFamily}
+                          color="event.h3"
+                          fontFamily="heading"
                           fontSize="sm"
-                          fontWeight={eventInfo?.styles.h3.fontWeight}
+                          fontWeight="400"
+                          textAlign="left"
                         >
                           Raffles
                         </Text>
                         <Text
-                          color={eventInfo?.styles.h3.color}
-                          fontFamily={eventInfo?.styles.h3.fontFamily}
+                          color="event.h3"
+                          fontFamily="heading"
                           fontSize="sm"
-                          fontWeight={eventInfo?.styles.h3.fontWeight}
+                          fontWeight="400"
+                          textAlign="left"
                         >
                           NFTs
                         </Text>

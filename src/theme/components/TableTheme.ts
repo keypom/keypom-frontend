@@ -75,3 +75,4 @@ export const TableTheme = helpers.defineMultiStyleConfig({
     variant: 'primary',
   },
 });
+

@@ -3,6 +3,7 @@ import { defineStyleConfig } from '@chakra-ui/react';
 export const HeadingTheme = defineStyleConfig({
   baseStyle: {
     fontWeight: 'medium',
+    fontFamily: 'ConsensusHeading',
   },
   sizes: {
     md: {
@@ -13,3 +14,4 @@ export const HeadingTheme = defineStyleConfig({
     size: 'md',
   },
 });
+

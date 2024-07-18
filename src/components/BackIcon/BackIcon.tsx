@@ -49,10 +49,10 @@ export const BackIcon = ({
       >
         <CustomArrowIcon color="black" size={16} />
         <Text
-          color={eventInfo.styles.h3.color}
-          fontFamily={eventInfo.styles.h1.fontFamily}
+          color="event.h3"
+          fontFamily="heading"
           fontSize="md"
-          fontWeight={eventInfo.styles.h1.fontWeight}
+          fontWeight="600"
           ml="0"
           mt="0.5"
         >

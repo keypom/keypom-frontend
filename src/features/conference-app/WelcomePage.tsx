@@ -177,9 +177,7 @@ export default function WelcomePage({
 
   return (
     <Flex
-      backgroundImage={
-        eventInfo?.styles?.background && `assets/demos/consensus/${eventInfo.styles.background}`
-      }
+      backgroundImage={`assets/demos/consensus/background.png`}
       backgroundPosition="center"
       backgroundRepeat="no-repeat"
       backgroundSize="cover"
@@ -198,20 +196,20 @@ export default function WelcomePage({
             w={{ base: '90vw', md: '90%', lg: '80%' }}
           >
             <IconBox
-              bg={eventInfo.styles.border.border || 'border.box'}
+              bg={'border.consensus'}
               h="full"
               icon={
                 <Skeleton isLoaded={!isLoading}>
                   <Image
                     borderRadius="full"
                     height={{ base: '14', md: '12' }}
-                    src={`/assets/demos/consensus/${eventInfo.styles.icon.image}`}
+                    src={`/assets/demos/consensus/consensus_logo.png`}
                     width={{ base: '20', md: '12' }}
                   />
                 </Skeleton>
               }
-              iconBg={eventInfo.styles.icon.bg || 'blue.100'}
-              iconBorder={eventInfo.styles.icon.border || 'border.round'}
+              iconBg={'event.iconBg'}
+              iconBorder={'event.iconBorder'}
               minW={{ base: '90vw', md: '345px' }}
               p="0"
               pb="0"
@@ -230,19 +228,19 @@ export default function WelcomePage({
                       px="6"
                     >
                       <Text
-                        color={eventInfo?.styles.h1.color}
-                        fontFamily={eventInfo?.styles.h1.fontFamily}
-                        fontSize={fontSize.h1}
-                        fontWeight={eventInfo?.styles.h1.fontWeight}
+                        color='event.h1'
+                        fontFamily="heading"
+                        fontSize="2xl"
+                        fontWeight="600"
                         textAlign="center"
                       >
-                        {eventInfo?.welcomePage.title.text}
+                        Welcome
                       </Text>
                       <Text
-                        color={eventInfo?.styles.h3.color}
-                        fontFamily={eventInfo?.styles.h3.fontFamily}
-                        fontSize={fontSize.h3}
-                        fontWeight={eventInfo?.styles.h3.fontWeight}
+                        color="event.h3"
+                        fontFamily="heading"
+                        fontSize="sm"
+                        fontWeight="400"
                         mb="5"
                         textAlign="center"
                       >
@@ -252,12 +250,12 @@ export default function WelcomePage({
                         <Input
                           backgroundColor="white"
                           border="1px solid"
-                          borderColor={!isValidUsername ? 'red.500' : eventInfo?.styles.h1.color}
+                          borderColor={!isValidUsername ? 'red.500' : 'event.h1'}
                           borderRadius="12px"
                           color="black"
-                          fontFamily={eventInfo?.styles.h3.fontFamily}
+                          fontFamily="heading"
                           fontSize={fontSize.h3}
-                          fontWeight={eventInfo?.styles.h3.fontWeight}
+                          fontWeight="400"
                           height={{ base: '38px', md: '48px' }}
                           id="username"
                           placeholder="Username"
@@ -274,10 +272,10 @@ export default function WelcomePage({
                         <FormErrorMessage>Username is invalid or already taken.</FormErrorMessage>
                       </FormControl>
                       <Text
-                        color={eventInfo?.styles.h3.color}
-                        fontFamily={eventInfo?.styles.h3.fontFamily}
-                        fontSize={fontSize.h3}
-                        fontWeight={eventInfo?.styles.h3.fontWeight}
+                        color="event.h3"
+                        fontFamily="heading"
+                        fontSize="sm"
+                        fontWeight="400"
                         mb="3"
                         textAlign="center"
                       >
@@ -285,7 +283,7 @@ export default function WelcomePage({
                         <Text
                           as="span"
                           color="black"
-                          fontWeight={eventInfo?.styles.h3.fontWeight}
+                          fontWeight="400"
                           size={{ base: 'lg', md: 'xl' }}
                         >
                           {tokensToClaim} ${ticker}
@@ -303,9 +301,8 @@ export default function WelcomePage({
                       </Skeleton>
                       <Heading
                         color="black"
-                        fontFamily={eventInfo?.styles.title.fontFamily}
+                        fontFamily="title"
                         fontSize={fontSize.h1}
-                        fontWeight={eventInfo?.styles.title.fontWeight}
                         textAlign="center"
                       >
                         {ticketInfo?.title}
@@ -323,10 +320,10 @@ export default function WelcomePage({
                   px="6"
                 >
                   <Text
-                    color={eventInfo?.styles.h1.color}
-                    fontFamily={eventInfo?.styles.h1.fontFamily}
+                    color='event.h1'
+                    fontFamily="heading"
                     fontSize={fontSize.h1}
-                    fontWeight={eventInfo?.styles.h1.fontWeight}
+                    fontWeight="600"
                     textAlign="center"
                   >
                     ${ticker} Details
@@ -341,10 +338,10 @@ export default function WelcomePage({
                     {/* Left column for earning methods */}
                     <Box>
                       <Text
-                        color={eventInfo?.styles.h2.color}
-                        fontFamily={eventInfo?.styles.h2.fontFamily}
+                        color="event.h2"
+                        fontFamily="heading"
                         fontSize={fontSize.h2}
-                        fontWeight={eventInfo?.styles.h2.fontWeight}
+                        fontWeight="500"
                         mb={0}
                         textAlign="left"
                       >
@@ -352,34 +349,34 @@ export default function WelcomePage({
                       </Text>
                       <VStack align="stretch" spacing={1} textAlign="left">
                         <Text
-                          color={eventInfo?.styles.h3.color}
-                          fontFamily={eventInfo?.styles.h3.fontFamily}
+                          color="event.h3"
+                          fontFamily="heading"
                           fontSize={fontSize.h3}
-                          fontWeight={eventInfo?.styles.h3.fontWeight}
+                          fontWeight="400"
                         >
                           Attending Talks
                         </Text>
                         <Text
-                          color={eventInfo?.styles.h3.color}
-                          fontFamily={eventInfo?.styles.h3.fontFamily}
+                          color="event.h3"
+                          fontFamily="heading"
                           fontSize={fontSize.h3}
-                          fontWeight={eventInfo?.styles.h3.fontWeight}
+                          fontWeight="400"
                         >
                           Visiting Booths
                         </Text>
                         <Text
-                          color={eventInfo?.styles.h3.color}
-                          fontFamily={eventInfo?.styles.h3.fontFamily}
+                          color="event.h3"
+                          fontFamily="heading"
                           fontSize={fontSize.h3}
-                          fontWeight={eventInfo?.styles.h3.fontWeight}
+                          fontWeight="400"
                         >
                           Scavenger Hunts
                         </Text>
                         <Text
-                          color={eventInfo?.styles.h3.color}
-                          fontFamily={eventInfo?.styles.h3.fontFamily}
+                          color="event.h3"
+                          fontFamily="heading"
                           fontSize={fontSize.h3}
-                          fontWeight={eventInfo?.styles.h3.fontWeight}
+                          fontWeight="400"
                         >
                           Quizzes
                         </Text>
@@ -389,10 +386,10 @@ export default function WelcomePage({
                     {/* Right column for spending methods */}
                     <Box>
                       <Text
-                        color={eventInfo?.styles.h2.color}
-                        fontFamily={eventInfo?.styles.h2.fontFamily}
+                        color="event.h2"
+                        fontFamily="heading"
                         fontSize={fontSize.h2}
-                        fontWeight={eventInfo?.styles.h2.fontWeight}
+                        fontWeight="400"
                         mb={0}
                         textAlign="right"
                       >
@@ -400,34 +397,34 @@ export default function WelcomePage({
                       </Text>
                       <VStack align="stretch" spacing={1} textAlign="right">
                         <Text
-                          color={eventInfo?.styles.h3.color}
-                          fontFamily={eventInfo?.styles.h3.fontFamily}
+                          color="event.h3"
+                          fontFamily="heading"
                           fontSize={fontSize.h3}
-                          fontWeight={eventInfo?.styles.h3.fontWeight}
+                          fontWeight="400"
                         >
                           Food
                         </Text>
                         <Text
-                          color={eventInfo?.styles.h3.color}
-                          fontFamily={eventInfo?.styles.h3.fontFamily}
+                          color="event.h3"
+                          fontFamily="heading"
                           fontSize={fontSize.h3}
-                          fontWeight={eventInfo?.styles.h3.fontWeight}
+                          fontWeight="400"
                         >
                           Merch
                         </Text>
                         <Text
-                          color={eventInfo?.styles.h3.color}
-                          fontFamily={eventInfo?.styles.h3.fontFamily}
+                          color="event.h3"
+                          fontFamily="heading"
                           fontSize={fontSize.h3}
-                          fontWeight={eventInfo?.styles.h3.fontWeight}
+                          fontWeight="400"
                         >
                           Raffles
                         </Text>
                         <Text
-                          color={eventInfo?.styles.h3.color}
-                          fontFamily={eventInfo?.styles.h3.fontFamily}
+                          color="event.h3"
+                          fontFamily="heading"
                           fontSize={fontSize.h3}
-                          fontWeight={eventInfo?.styles.h3.fontWeight}
+                          fontWeight="400"
                         >
                           NFTs
                         </Text>
@@ -435,15 +432,19 @@ export default function WelcomePage({
                     </Box>
                   </Grid>
                   <Button
-                    backgroundColor={eventInfo?.styles.buttons.primary.bg}
-                    color={eventInfo?.styles.buttons.primary.color}
-                    fontFamily={eventInfo?.styles.buttons.primary.fontFamily}
+                    backgroundColor="event.button.primary.bg"
+                    color="event.button.primary.color"
+                    fontFamily="heading"
                     fontSize={fontSize.button}
-                    fontWeight={eventInfo?.styles.buttons.primary.fontWeight}
-                    h={eventInfo?.styles.buttons.primary.h}
+                    fontWeight="500"
+                    h="48px"
                     isDisabled={!isValidUsername}
                     isLoading={isClaiming}
-                    sx={eventInfo?.styles.buttons.primary.sx}
+                    sx={{
+                      "_hover": {
+                          "backgroundColor": "event.button.primary.hover"
+                      }
+                  }}
                     variant="outline"
                     w="full"
                     onClick={handleBeginJourney}

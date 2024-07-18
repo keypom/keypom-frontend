@@ -77,33 +77,29 @@ const ScavengerHuntsPage: React.FC = () => {
         w={{ base: '90vw', md: '90%', lg: '80%' }}
       >
         <IconBox
-          bg={eventInfo.styles.border.border || 'border.box'}
+          bg={'border.consensus'}
           icon={
             <Skeleton isLoaded={!isLoading}>
-              {eventInfo.styles.icon.image ? (
                 <CircularProgress
-                  color={eventInfo.styles.h1.color}
+                  color="event.h1"
                   size="60px"
                   thickness="12px"
                   trackColor="gray.200"
                   value={progressValue}
                 >
                   <CircularProgressLabel
-                    color={eventInfo.styles.h1.color}
-                    fontFamily={eventInfo.styles.h2.fontFamily}
+                    color="event.h1"
+                    fontFamily="heading"
                     fontSize="lg"
-                    fontWeight={eventInfo.styles.h2.fontWeight}
+                    fontWeight="500"
                   >
                     {Math.round(progressValue)}%
                   </CircularProgressLabel>
                 </CircularProgress>
-              ) : (
-                <TicketIcon height={{ base: '8', md: '10' }} width={{ base: '8', md: '10' }} />
-              )}
             </Skeleton>
           }
-          iconBg={eventInfo.styles.icon.bg || 'blue.100'}
-          iconBorder={eventInfo.styles.icon.border || 'border.round'}
+          iconBg={'event.iconBg'}
+          iconBorder={'event.iconBorder'}
           minW={{ base: '90vw', md: '345px' }}
           p="0"
           pb="0"
@@ -126,10 +122,10 @@ const ScavengerHuntsPage: React.FC = () => {
                     label={`You have completed ${completedScavengers.length} of ${scavengerHunts.length} scavenger hunts`}
                   >
                     <Text
-                      color={eventInfo.styles.h3.color}
-                      fontFamily={eventInfo.styles.h3.fontFamily}
+                      color="event.h3"
+                      fontFamily="heading"
                       fontSize="sm"
-                      fontWeight={eventInfo.styles.h3.fontWeight}
+                      fontWeight="400"
                       textAlign="center"
                     >
                       {completedScavengers.length} of {scavengerHunts.length} Completed
@@ -138,10 +134,10 @@ const ScavengerHuntsPage: React.FC = () => {
                   <Divider my="2" />
                   <Box flex="1" textAlign="left" width="100%">
                     <Heading
-                      color={eventInfo.styles.h1.color}
-                      fontFamily={eventInfo.styles.h1.fontFamily}
+                      color="event.h1"
+                      fontFamily="heading"
                       fontSize="2xl"
-                      fontWeight={eventInfo.styles.h1.fontWeight}
+                      fontWeight="600"
                       textAlign="center"
                     >
                       Active ({liveScavengers.length})
@@ -163,10 +159,10 @@ const ScavengerHuntsPage: React.FC = () => {
                   ) : (
                     <Center pt="0">
                       <Text
-                        color={eventInfo.styles.h3.color}
-                        fontFamily={eventInfo.styles.h3.fontFamily}
+                        color="event.h3"
+                        fontFamily="heading"
                         fontSize="sm"
-                        fontWeight={eventInfo.styles.h3.fontWeight}
+                        fontWeight="400"
                         textAlign="center"
                       >
                         No active scavenger hunts found.
@@ -179,10 +175,10 @@ const ScavengerHuntsPage: React.FC = () => {
             <Flex flexDir="column" px="6" py="4" w="full">
               <Box flex="1" textAlign="left">
                 <Heading
-                  color={eventInfo.styles.h1.color}
-                  fontFamily={eventInfo.styles.h1.fontFamily}
+                  color="event.h1"
+                  fontFamily="heading"
                   fontSize="2xl"
-                  fontWeight={eventInfo.styles.h1.fontWeight}
+                  fontWeight="600"
                   textAlign="center"
                 >
                   Not Started ({notFoundScavengers.length})

@@ -24,9 +24,7 @@ const InConferenceApp = () => {
 
   return (
     <Flex
-      backgroundImage={
-        eventInfo?.styles?.background && `assets/demos/consensus/${eventInfo.styles.background}`
-      }
+      backgroundImage={`assets/demos/consensus/background.png`}
       backgroundPosition="center"
       backgroundRepeat="no-repeat"
       backgroundSize="cover"
@@ -39,7 +37,7 @@ const InConferenceApp = () => {
       </Box>
       <HStack
         as="footer"
-        backgroundColor={eventInfo?.styles?.h1.color}
+        backgroundColor="event.h1"
         bottom="0"
         boxShadow="0 -2px 10px rgba(0,0,0,0.05)"
         h="8vh"

@@ -30,9 +30,9 @@ export const EMAIL_WORKER_BASE = 'https://email-worker.kp-capstone.workers.dev';
 export const PAGE_SIZE_LIMIT = 5;
 export const NFT_ATTEMPT_KEY = 'NFT_ATTEMPT';
 export const PAGE_QUERY_PARAM = 'page';
-export const KEYPOM_EVENTS_CONTRACT = '1716763221435-kp-ticketing.testnet';
-export const KEYPOM_MARKETPLACE_CONTRACT = '1716763221435-marketplace.testnet';
-export const TOKEN_FACTORY_CONTRACT = '1716763221435-factory.testnet';
+export const KEYPOM_EVENTS_CONTRACT = '1719242278545-kp-ticketing.testnet';
+export const KEYPOM_MARKETPLACE_CONTRACT = '1719242278545-marketplace.testnet';
+export const TOKEN_FACTORY_CONTRACT = '1719242278545-factory.testnet';
 // export const KEYPOM_EVENTS_CONTRACT = '1711377493739-kp-ticketing.testnet';
 // export const KEYPOM_MARKETPLACE_CONTRACT = '1711377493739-marketplace.testnet';
 

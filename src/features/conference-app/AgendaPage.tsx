@@ -221,7 +221,7 @@ const AgendaPage: React.FC = () => {
   };
 
   return (
-    <Center h="78vh">
+    <Center h="90vh">
       <VStack
         gap={{ base: '16px', md: '24px', lg: '32px' }}
         overflowY="auto"
@@ -230,20 +230,20 @@ const AgendaPage: React.FC = () => {
         w={{ base: '90vw', md: '90%', lg: '80%' }}
       >
         <IconBox
-          bg={eventInfo.styles.border.border || 'border.box'}
+          bg={'border.consensus'}
           h="full"
           icon={
             <Skeleton isLoaded={!isLoading}>
               <Image
                 borderRadius="full"
                 height={{ base: '14', md: '12' }}
-                src={`/assets/demos/consensus/${eventInfo.styles.icon.image}`}
+                src={`/assets/demos/consensus/consensus_logo.png`}
                 width={{ base: '20', md: '12' }}
               />
             </Skeleton>
           }
-          iconBg={eventInfo.styles.icon.bg || 'blue.100'}
-          iconBorder={eventInfo.styles.icon.border || 'border.round'}
+          iconBg={'event.iconBg'}
+          iconBorder={'event.iconBorder'}
           minW={{ base: '90vw', md: '345px' }}
           p="0"
           pb="0"
@@ -265,15 +265,15 @@ const AgendaPage: React.FC = () => {
                     <SearchIcon color="gray.500" />
                     <Input
                       _placeholder={{
-                        color: eventInfo.styles.h3.color,
-                        fontFamily: eventInfo.styles.h3.fontFamily,
+                        color: 'event.h3',
+                        fontFamily: 'heading',
                         fontSize: 'md',
-                        fontWeight: eventInfo.styles.h3.fontWeight,
+                        fontWeight: '400',
                       }}
-                      color={eventInfo.styles.h3.color}
-                      fontFamily={eventInfo.styles.h3.fontFamily}
+                      color='event.h3'
+                      fontFamily='heading'
                       fontSize="md"
-                      fontWeight={eventInfo.styles.h3.fontWeight}
+                      fontWeight='400'
                       h="30px"
                       placeholder="Search Agenda"
                       value={searchQuery}
@@ -289,7 +289,7 @@ const AgendaPage: React.FC = () => {
 
             <Flex
               flexDir="column"
-              h="calc(78vh - 170px)"
+              h="calc(90vh - 170px)"
               justifyContent="space-between"
               px="6"
               py="4"
@@ -300,11 +300,11 @@ const AgendaPage: React.FC = () => {
                   <HStack alignItems="center" justifyContent="flex-end" mb={0} w="full">
                     <ButtonGroup isAttached spacing={0} variant="outline">
                       <IconButton
-                        _active={{ bg: eventInfo.styles.buttons.secondary.bg }}
-                        _focus={{ bg: eventInfo.styles.buttons.secondary.bg }}
-                        _hover={{ bg: eventInfo.styles.buttons.secondary.bg }}
+                        _active={{ bg: 'event.button.secondary.bg' }}
+                        _focus={{ bg: 'event.button.secondary.bg' }}
+                        _hover={{ bg: 'event.button.secondary.bg' }}
                         aria-label="List view"
-                        bg={eventInfo.styles.buttons.secondary.bg}
+                        bg='event.button.secondary.bg'
                         borderRadius="8px"
                         color={viewOption === 'list' ? 'black' : 'gray.400'}
                         icon={<FaThList />}
@@ -313,11 +313,11 @@ const AgendaPage: React.FC = () => {
                         }}
                       />
                       <IconButton
-                        _active={{ bg: eventInfo.styles.buttons.secondary.bg }}
-                        _focus={{ bg: eventInfo.styles.buttons.secondary.bg }}
-                        _hover={{ bg: eventInfo.styles.buttons.secondary.bg }}
+                        _active={{ bg: 'event.button.secondary.bg' }}
+                        _focus={{ bg: 'event.button.secondary.bg' }}
+                        _hover={{ bg: 'event.button.secondary.bg' }}
                         aria-label="Grid view"
-                        bg={eventInfo.styles.buttons.secondary.bg}
+                        bg='event.button.secondary.bg'
                         borderRadius="8px"
                         color={viewOption === 'grid' ? 'black' : 'gray.400'}
                         icon={<FaTh />}

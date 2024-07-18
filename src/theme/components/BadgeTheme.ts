@@ -5,6 +5,8 @@ export const BadgeTheme = defineStyleConfig({
     textTransform: 'initial',
     py: '1.5',
     px: '3',
+    fontFamily: 'ConsensusHeading',
+    fontWeight: '500',
   },
   sizes: {
     sm: {

@@ -34,10 +34,10 @@ const AgendaItemCard: React.FC<AgendaItemCardProps> = ({ item, key }: AgendaItem
           <CalendarIcon h="15px" w="15px" />
           <Text
             isTruncated
-            color={eventInfo.styles.h3.color}
-            fontFamily={eventInfo.styles.h3.fontFamily}
+            color="event.h3"
+                        fontFamily="heading"
             fontSize="sm"
-            fontWeight={eventInfo.styles.h3.fontWeight}
+            fontWeight="400"
             h="20px"
             mb={0}
             textAlign="left"
@@ -49,10 +49,10 @@ const AgendaItemCard: React.FC<AgendaItemCardProps> = ({ item, key }: AgendaItem
           <TimeIcon h="15px" w="15px" />
           <Text
             isTruncated
-            color={eventInfo.styles.h3.color}
-            fontFamily={eventInfo.styles.h3.fontFamily}
+            color="event.h3"
+            fontFamily="heading"
             fontSize="sm"
-            fontWeight={eventInfo.styles.h3.fontWeight}
+            fontWeight="400"
             h="20px"
             mb={0}
             textAlign="left"
@@ -64,10 +64,10 @@ const AgendaItemCard: React.FC<AgendaItemCardProps> = ({ item, key }: AgendaItem
           <RepeatClockIcon h="15px" w="15px" />
           <Text
             isTruncated
-            color={eventInfo.styles.h3.color}
-            fontFamily={eventInfo.styles.h3.fontFamily}
+            color="event.h3"
+            fontFamily="heading"
             fontSize="sm"
-            fontWeight={eventInfo.styles.h3.fontWeight}
+            fontWeight="400"
             h="20px"
             mb={0}
             textAlign="left"
@@ -79,9 +79,9 @@ const AgendaItemCard: React.FC<AgendaItemCardProps> = ({ item, key }: AgendaItem
       <VStack align="left" mt={0} spacing={2}>
         <Text
           color="gray.600"
-          fontFamily={eventInfo.styles.h1.fontFamily}
+          fontFamily="heading"
           fontSize="lg"
-          fontWeight={eventInfo.styles.h1.fontWeight}
+          fontWeight="400"
           mb={0}
           textAlign="left"
         >
@@ -91,10 +91,10 @@ const AgendaItemCard: React.FC<AgendaItemCardProps> = ({ item, key }: AgendaItem
           <LocationPinIcon h="15px" w="15px" />
           <Text
             isTruncated
-            color={eventInfo.styles.h3.color}
-            fontFamily={eventInfo.styles.h3.fontFamily}
+            color="event.h3"
+                        fontFamily="heading"
             fontSize="sm"
-            fontWeight={eventInfo.styles.h3.fontWeight}
+            fontWeight="400"
             h="20px"
             mb={0}
             textAlign="left"
@@ -120,19 +120,19 @@ const AgendaItemCard: React.FC<AgendaItemCardProps> = ({ item, key }: AgendaItem
                     <Text
                       isTruncated
                       color="gray.600"
-                      fontFamily={eventInfo.styles.h1.fontFamily}
+                      fontFamily="heading"
                       fontSize="sm"
-                      fontWeight={eventInfo.styles.h1.fontWeight}
+                      fontWeight="600"
                       h="20px"
                     >
                       {speaker.name}
                     </Text>
                     <Text
                       isTruncated
-                      color={eventInfo.styles.h3.color}
-                      fontFamily={eventInfo.styles.h3.fontFamily}
+                      color="event.h3"
+                      fontFamily="heading"
                       fontSize="xs"
-                      fontWeight={eventInfo.styles.h3.fontWeight}
+                      fontWeight="400"
                       h="20px"
                     >
                       {speaker.title && `${speaker.title}`}
@@ -140,9 +140,9 @@ const AgendaItemCard: React.FC<AgendaItemCardProps> = ({ item, key }: AgendaItem
                     <Text
                       isTruncated
                       color="gray.600"
-                      fontFamily={eventInfo.styles.h1.fontFamily}
+                      fontFamily="heading"
                       fontSize="sm"
-                      fontWeight={eventInfo.styles.h1.fontWeight}
+                      fontWeight="600"
                       h="20px"
                     >
                       {speaker.company && `${speaker.company}`}
@@ -158,7 +158,7 @@ const AgendaItemCard: React.FC<AgendaItemCardProps> = ({ item, key }: AgendaItem
       {item.track && (
         <Box
           alignSelf="left"
-          bg={eventInfo.styles.buttons.primary.bg}
+          bg="event.button.primary.bg"
           borderRadius="md"
           mt={1}
           px="2"
@@ -167,9 +167,9 @@ const AgendaItemCard: React.FC<AgendaItemCardProps> = ({ item, key }: AgendaItem
         >
           <Text
             color="white"
-            fontFamily={eventInfo.styles.h1.fontFamily}
+            fontFamily="heading"
             fontSize="sm"
-            fontWeight={eventInfo.styles.h1.fontWeight}
+            fontWeight="600"
             h="20px"
             mb={0}
             textAlign="left"
