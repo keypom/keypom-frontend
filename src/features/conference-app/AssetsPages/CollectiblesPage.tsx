@@ -151,7 +151,7 @@ const CollectiblesPage: React.FC = () => {
         w={{ base: '90vw', md: '90%', lg: '80%' }}
       >
         <IconBox
-          bg={'border.consensus'}
+          bg='border.box'
           icon={
             <Skeleton isLoaded={!isLoading}>
                 <CircularProgress

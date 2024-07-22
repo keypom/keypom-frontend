@@ -26,6 +26,8 @@ export default function TicketPage() {
 
   const [eventInfo, setEventInfo] = useState<FunderEventMetadata>(defaultEventInfo);
   const [ticketInfo, setTicketInfo] = useState<TicketInfoMetadata>(defaultTicketInfo);
+  const [ticketType, setTicketType] = useState<"Basic" | "Sponsor" | "Admin">();
+
   const [ticketInfoExtra, setTicketInfoExtra] =
     useState<TicketMetadataExtra>(defaultTicketInfoExtra);
 
@@ -49,6 +51,13 @@ export default function TicketPage() {
           methodName: 'get_drop_information',
           args: { drop_id: keyInfo.drop_id },
         });
+        const factoryAccount = drop.asset_data[1].config.root_account_id
+        const ticketData = await keypomInstance.viewCall({
+          contractId: factoryAccount,
+          methodName: 'get_ticket_data',
+          args: { drop_id: keyInfo.drop_id },
+        });
+        setTicketType(ticketData.account_type)
 
         const maxUses = drop.max_key_uses;
         const curStep = drop.max_key_uses - keyInfo.uses_remaining + 1;
@@ -57,24 +66,34 @@ export default function TicketPage() {
         setTicketInfo(ticketMetadata);
         const ticketExtra = JSON.parse(ticketMetadata.extra);
         setTicketInfoExtra(ticketExtra);
+        const eventId: string = ticketExtra.eventId;
 
         const eventInfo = await keypomInstance.getEventInfo({
           accountId: drop.funder_id,
-          eventId: ticketExtra.eventId,
+          eventId
         });
+
+        console.log('maxUses', maxUses);
+        console.log('curStep', curStep);
+        console.log('eventInfo', eventInfo);
 
         if ((maxUses !== 3 && maxUses !== 2) || !eventInfo) {
           console.error('Invalid ticket');
-          console.log('maxUses', maxUses);
-          console.log('curStep', curStep);
-          console.log('eventInfo', eventInfo);
           setIsValid(false);
           setIsLoading(false);
           return;
         }
 
-        const eventId: string = ticketExtra.eventId;
-        if (curStep !== 1 || maxUses === 2) {
+        // First check if ticket is either GA or sponsor / admin
+        // Sponsor / Admin case
+        if (maxUses === 2) {
+          console.log('Ticket already checked in');
+          navigate(`/conference/app/${eventId}#${secretKey}`);
+        }
+
+        // General Admissions case
+        if (curStep !== 1) {
+          console.log('Ticket already checked in');
           navigate(`/conference/app/${eventId}#${secretKey}`);
         }
 
@@ -106,16 +125,48 @@ export default function TicketPage() {
     );
   }
 
+  const renderPage = () => {
+    switch (ticketType) {
+      case 'Basic':
+        console.log("Rendering basic ticket")
+        return (
+          <TicketQRPage
+            eventId={eventId}
+            eventInfo={eventInfo}
+            funderId={funderId}
+            isLoading={isLoading}
+            secretKey={secretKey}
+            ticketInfo={ticketInfo}
+            ticketInfoExtra={ticketInfoExtra}
+            onScanned={onScanned}
+          />
+        );
+      case 'Sponsor':
+        console.log("Rendering Sponsor ticket")
+        return (
+          <div>
+            Sponsor
+          </div>
+        );
+      case 'Admin':
+        console.log("Rendering Admin ticket")
+        return (
+          <div>
+            Admin
+          </div>
+        );
+      default:
+        return <div>Unknown ticket type</div>;
+    }
+  };
+
+  if (isLoading) {
+    return <div>Loading...</div>; // Placeholder for loading state
+  }
+
   return (
-    <TicketQRPage
-      eventId={eventId}
-      eventInfo={eventInfo}
-      funderId={funderId}
-      isLoading={isLoading}
-      secretKey={secretKey}
-      ticketInfo={ticketInfo}
-      ticketInfoExtra={ticketInfoExtra}
-      onScanned={onScanned}
-    />
+    <div>
+      {renderPage()}
+    </div>
   );
 }

@@ -72,26 +72,9 @@ export default function TicketQRPage({
     };
   }, [secretKey]);
 
-  const ticketDetails = () => (
-    <VStack spacing="0">
-      <Heading
-        color="event.title"
-        fontFamily="title"
-        fontSize="2xl"
-        fontWeight="500"
-        textAlign="center"
-      >
-        {ticketInfo?.title}
-      </Heading>
-      <Heading fontSize={{ base: 'xs', md: 'xs' }} fontWeight="500" textAlign="center">
-          {ticketInfoExtra && dateAndTimeToText(ticketInfoExtra?.passValidThrough)}
-        </Heading>
-    </VStack>
-  );
-
   return (
     <VStack
-      backgroundImage={`assets/demos/consensus/background.png`}
+      //backgroundImage={`assets/demos/consensus/background.png`}
       backgroundPosition="center"
       backgroundRepeat="no-repeat"
       backgroundSize="cover"
@@ -103,66 +86,13 @@ export default function TicketQRPage({
         <Heading mb={8} textAlign="center">
           You're attending {eventInfo?.name}!
         </Heading>
-
-        <Grid
-          alignItems="start"
-          gap={[4, null, 12]} // smaller gap on smaller screens, adjust as needed
-          justifyContent={{ base: 'start', md: 'space-between' }} // stack on base, space-between on md and up
-          templateColumns={{ base: 'repeat(1, 1fr)', md: 'repeat(2, 1fr)' }} // 1 column on small screens, 2 columns on medium and up
-          width="55%"
-        >
-          <GridItem>
-              <Heading fontFamily="body" fontSize={['md', 'xl']} fontWeight="600">
-                Location
-              </Heading>
-              <Text
-                color="event.h1"
-                fontFamily="heading"
-                fontSize={['sm', 'md']} // smaller font on small screens, adjust as needed
-                fontWeight="500"
-                pb={8}
-              >
-                {eventInfo?.location || 'Online'}
-              </Text>
-            </GridItem>
-
-            <GridItem justifySelf={{ md: 'end' }} textAlign={{ base: 'left', md: 'right' }}>
-              <Heading
-                color='event.h1'
-                fontFamily="heading"
-                fontSize={['md', 'xl']}
-                fontWeight="600"
-              >
-                Event Date
-              </Heading>
-              <Text
-                color="event.h2"
-                fontFamily="heading"
-                fontSize={['sm', 'md']} // smaller font on small screens, adjust as needed
-                fontWeight="500"
-                pb={8}
-              >
-                {eventInfo?.date && dateAndTimeToText(eventInfo?.date)}
-              </Text>
-            </GridItem>
-        </Grid>
       </Box>
 
       <Center>
         <VStack gap={{ base: 'calc(24px + 8px)', md: 'calc(32px + 10px)' }} paddingBottom="20">
-          <Skeleton fadeDuration={1} isLoaded={!isLoading}>
-            <Heading
-              fontSize={{ base: '2xl', md: '3xl' }}
-              fontWeight="500"
-              paddingBottom="4"
-              textAlign="center"
-            >
-              {isLoading ? 'Loading ticket...' : ticketDetails()}
-            </Heading>
-          </Skeleton>
 
           <IconBox
-            bg={'border.consensus'}
+            bg='border.box'
             h="full"
             icon={
               <Skeleton isLoaded={!isLoading}>

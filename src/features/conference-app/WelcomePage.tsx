@@ -196,7 +196,7 @@ export default function WelcomePage({
             w={{ base: '90vw', md: '90%', lg: '80%' }}
           >
             <IconBox
-              bg={'border.consensus'}
+              bg='border.box'
               h="full"
               icon={
                 <Skeleton isLoaded={!isLoading}>

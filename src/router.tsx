@@ -12,16 +12,10 @@ const CoreLayout = React.lazy(
   async () => await import('@/components/CoreLayout').then((mod) => ({ default: mod.CoreLayout })),
 );
 
-const ProtectedRoute = React.lazy(
-  async () =>
-    await import('./components/ProtectedRoutes').then((mod) => ({ default: mod.ProtectedRoute })),
-);
-
-const AllEventsPage = React.lazy(
-  async () => await import('./features/all-events/routes/AllEventsPage'),
+const SponsorDashboardPage = React.lazy(
+  async () => await import('./features/conference-dashboard/routes/SponsorDashboardPage'),
 );
 const TicketPage = React.lazy(async () => await import('@/features/ticket-qr/TicketPage'));
-const SpecialTicketPage = React.lazy(async () => await import('@/features/ticket-qr/SpecialTicketPage'));
 const ConferencePage = React.lazy(
   async () => await import('@/features/conference-app/ConferencePageManager'),
 );
@@ -51,23 +45,12 @@ export const router = createBrowserRouter([
         },
         children: [
           {
-            path: 'events',
-            element: <ProtectedRoute />, // Wrap the AllEventsPage and its dynamic children with ProtectedRoute
-            children: [
-              {
-                index: true,
-                element: <AllEventsPage />, // Display AllEventsPage at /events
-              },
-              {
-                path: 'event/:id', // Match /events/event/:id
-                element: <EventManagerPage />,
-              },
-              {
-                path: 'ticket/:id', // Match /events/ticket/:id
-                element: <TicketDropManagerPage />,
-              },
-              // Add other paths as needed...
-            ],
+            path: 'dashboard/:id', // Match /events/event/:id
+            element: <SponsorDashboardPage />,
+          },
+          {
+            path: 'drop/:id', // Match /events/ticket/:id
+            element: <TicketDropManagerPage />,
           },
           {
             path: 'tickets',
@@ -75,11 +58,7 @@ export const router = createBrowserRouter([
               {
                 path: 'ticket/:id', // Match /events/event/:id
                 element: <TicketPage />,
-              },
-              {
-                path: 'special/:id',
-                element: <SpecialTicketPage />,
-              },
+              }
             ],
           },
           {

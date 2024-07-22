@@ -13,8 +13,6 @@ const AppModal = React.lazy(
 );
 
 export const CoreLayout = () => {
-  const layoutBg =
-    'none, linear-gradient(180deg, rgba(239, 250, 253, 0.4) 0%, rgba(239, 250, 253, 0.6) 27.41%), #FFFFFF;';
   const isTicketSubdirectory =
     location.pathname.startsWith('/tickets/ticket') ||
     location.pathname.startsWith('/claim/') ||
@@ -23,7 +21,7 @@ export const CoreLayout = () => {
   return (
     <Flex
       alignItems="flex-start"
-      bg={layoutBg}
+      bg='appBackground'  
       bgBlendMode="overlay, normal, normal"
       flexDir="column"
       overflow="hidden"

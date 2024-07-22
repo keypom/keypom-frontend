@@ -1,9 +1,10 @@
 import { type RecursiveObject } from '@chakra-ui/react';
 
 export const colors: RecursiveObject<string> = {
+  //appBackground: 'none, linear-gradient(180deg, rgba(239, 250, 253, 0.4) 0%, rgba(239, 250, 253, 0.6) 27.41%), #FFFFFF;',
+  appBackground: '#00ec97',
   border: {
-    consensus: "linear-gradient(white, white) padding-box, linear-gradient(0deg, rgba(45, 208, 205,1) 0%, rgba(201, 54, 246,1) 100%) border-box",
-    box: 'linear-gradient(white, white) padding-box, linear-gradient(0deg, rgba(45, 208, 205,1) 0%, rgba(201, 54, 246,1) 100%) border-box',
+    box: 'linear-gradient(white, white) padding-box, linear-gradient(0deg, rgba(0, 200, 150, 1) 0%, rgba(0, 236, 151, 1) 100%) border-box',
     round:
       'linear-gradient(0deg, #B6E8F7, #B6E8F7), linear-gradient(344.12deg, #EFFAFD 10.78%, #DDF4FA 88.63%)',
     landing: {
