@@ -16,21 +16,23 @@ import {
   VStack,
   ModalContent,
   useToast,
+  Menu,
+  MenuItem,
+  MenuList,
 } from '@chakra-ui/react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { type Wallet } from '@near-wallet-selector/core';
 
 import { share } from '@/utils/share';
 import { get } from '@/utils/localStorage';
-import { CopyIcon, DeleteIcon } from '@/components/Icons';
+import { CopyIcon, DeleteIcon, LinkIcon, NFTIcon } from '@/components/Icons';
 import { type ColumnItem, type DataItem } from '@/components/Table/types';
 import { DataTable } from '@/components/Table';
 import { Breadcrumbs } from '@/components/Breadcrumbs';
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
 import { useAppContext } from '@/contexts/AppContext';
-import keypomInstance from '@/lib/keypom';
-import { MASTER_KEY, TOKEN_FACTORY_CONTRACT } from '@/constants/common';
+import { CLOUDFLARE_IPFS, MASTER_KEY, TOKEN_FACTORY_CONTRACT } from '@/constants/common';
 import {
   type QuestionInfo,
   type DateAndTimeInfo,
@@ -47,55 +49,54 @@ import { handleExportCSVClick } from '../components/ExportToCsv';
 import { dateAndTimeToText } from '@/features/drop-manager/utils/parseDates';
 import { useSponsorDashboardParams } from '../utils/utils';
 import { formatTokensAvailable } from '@/features/conference-app/AssetsPages/AssetsHome';
+import { CreatedDropForm, CreateDropModal } from '../components/CreateDropModal';
+import eventHelperInstance from '@/lib/event';
+import { DropDownButton } from '@/features/all-events/components/DropDownButton';
 
-export interface EventData {
+export interface ConferenceDropBase {
+  scavenger_ids?: string[];
   name: string;
-  artwork: string;
-  questions: QuestionInfo[];
+  image: string;
+  num_claimed: number;
+  id: string;
 }
 
-export interface TicketItem {
-  id: string;
-  artwork: string;
-  name: string;
-  description: string;
-  salesValidThrough: DateAndTimeInfo;
-  passValidThrough: DateAndTimeInfo;
-  maxTickets?: number;
-  soldTickets: number;
-  priceNear: string;
+export interface CreatedNFTConferenceDrop {
+  base: ConferenceDropBase;
+  series_id: number;
+}
+
+export interface CreatedTokenConferenceDrop {
+  base: ConferenceDropBase;
+  amount: string;
 }
 
 export type GetTicketDataFn = (
-  data: TicketItem[],
+  data: CreatedConferenceDrop[],
   handleDelete: (pubKey: string) => Promise<void>,
 ) => DataItem[];
 
+export type CreatedConferenceDrop = CreatedNFTConferenceDrop | CreatedTokenConferenceDrop;
+
 const eventTableColumns: ColumnItem[] = [
   {
-    id: 'ticketName',
-    title: 'Ticket name',
+    id: 'dropName',
+    title: 'Drop Name',
     selector: (row) => row.name,
     loadingElement: <Skeleton height="30px" />,
   },
   {
-    id: 'numTickets',
-    title: 'Tickets sold',
+    id: 'dropType',
+    title: 'Drop Type',
     selector: (row) => {
-      // Ensure that soldTickets is a number or can be coerced to a string safely
-      const soldTickets = String(row.soldTickets);
-
-      // Check if maxTickets is a number, otherwise use the infinity symbol
-      const maxTickets = typeof row.maxTickets === 'number' ? row.maxTickets : '\u221E';
-
-      return `${soldTickets}/${maxTickets}`;
+      return `type`;
     },
     loadingElement: <Skeleton height="30px" />,
   },
   {
-    id: 'price',
-    title: 'Price (NEAR)',
-    selector: (row) => row.priceNear,
+    id: 'numClaimed',
+    title: 'Num Claimed',
+    selector: (row) => row.numClaimed,
     loadingElement: <Skeleton height="30px" />,
   },
   {
@@ -108,47 +109,52 @@ const eventTableColumns: ColumnItem[] = [
 
 export default function SponsorDashboardPage() {
   const { sponsorAccountId, secretKey } = useSponsorDashboardParams();
-  console.log("sponsorAccountId ", sponsorAccountId)
-  console.log("Secret Key: ", secretKey)
-
-  const toast = useToast();
+  console.log('sponsorAccountId ', sponsorAccountId);
+  console.log('Secret Key: ', secretKey);
 
   const navigate = useNavigate();
   const { setAppModal } = useAppContext();
   const [isLoading, setIsLoading] = useState(true);
   const [isErr, setIsErr] = useState(false);
+  const [isCreateDropModalOpen, setIsCreateDropModalOpen] = useState(false);
   const [exporting, setExporting] = useState<boolean>(false);
 
-  const [tokensAvailable, setTokensAvailable] = useState<string>()
-
-  const [ticketData, setTicketData] = useState<TicketItem[]>([]);
-  const [eventData, setEventData] = useState<EventData>();
+  const [tokensAvailable, setTokensAvailable] = useState<string>();
+  const [dropsCreated, setDropsCreated] = useState<CreatedConferenceDrop[]>([]);
+  const [dropType, setDropType] = useState<'nft' | 'token'>('token');
+  const toast = useToast();
+  const popoverClicked = useRef(0);
 
   useEffect(() => {
-    if (sponsorAccountId === '') return
+    if (sponsorAccountId === '') return;
     if (!sponsorAccountId) return;
     if (!secretKey) return;
 
-    const getAvailableBalance = async () => {
-      const tokens = await keypomInstance.viewCall({contractId: TOKEN_FACTORY_CONTRACT, methodName: "ft_balance_of", args: {"account_id": sponsorAccountId}})
-      setTokensAvailable(keypomInstance.yoctoToNearWith4Decimals(tokens));
-      setIsLoading(false)
+    const getAccountInformation = async () => {
+      const tokens = await eventHelperInstance.viewCall({
+        contractId: TOKEN_FACTORY_CONTRACT,
+        methodName: 'ft_balance_of',
+        args: { account_id: sponsorAccountId },
+      });
+      setTokensAvailable(eventHelperInstance.yoctoToNearWith4Decimals(tokens));
+      const drops = await eventHelperInstance.viewCall({
+        contractId: TOKEN_FACTORY_CONTRACT,
+        methodName: 'get_drops_created_by_account',
+        args: { account_id: sponsorAccountId },
+      });
+      setDropsCreated(drops);
+      setIsLoading(false);
     };
     try {
-      getAvailableBalance();
+      getAccountInformation();
     } catch (e) {
       console.error(e);
       setIsErr(true);
     }
   }, [sponsorAccountId, secretKey]);
 
-
-  const getSoldKeys = () => {
-    return ticketData.reduce((acc, ticket) => acc + ticket.soldTickets, 0);
-  };
-
   const handleDeleteClick = async (dropId) => {
-    const ticketData = await keypomInstance.viewCall({
+    const ticketData = await eventHelperInstance.viewCall({
       methodName: 'get_drop_information',
       args: { drop_id: dropId },
     });
@@ -168,11 +174,12 @@ export default function SponsorDashboardPage() {
     );
   };
 
+  const handleCreateDropClick = async () => {};
+
   const handleDeleteAllClick = async () => {
     const deletionArgs = {
       navigate,
       deleteAll: true,
-      ticketData,
       setAppModal,
     };
 
@@ -192,47 +199,23 @@ export default function SponsorDashboardPage() {
     if (data === undefined) return [];
 
     return data.map((item) => ({
-      id: item.id, // Assuming `item` has a `drop_id` property that can serve as `id`
+      id: item.base.id, // Assuming `item` has a `drop_id` property that can serve as `id`
       name: (
         <HStack spacing={4}>
           <Image
-            alt={`Event image for ${item.id}`}
+            alt={`Event image for ${item.base.id}`}
             borderRadius="12px"
             boxSize="48px"
             objectFit="contain"
-            src={item.artwork}
+            src={`${CLOUDFLARE_IPFS}/${item.base.image}`}
           />
           <VStack align="left">
             <Heading fontFamily="body" fontSize={{ md: 'lg' }} fontWeight="bold">
-              {truncateAddress(`${item.name}`, 'end', 16)}
+              {truncateAddress(`${item.base.name}`, 'end', 16)}
             </Heading>
-            <Heading fontFamily="body" fontSize={{ md: 'md' }} fontWeight="light">
-              {truncateAddress(`${item.description}`, 'end', 64)}
-            </Heading>
-            <VStack align="left" spacing={0}>
-              <Heading
-                color="gray.400"
-                fontFamily="body"
-                fontSize={{ md: 'md' }}
-                fontWeight="light"
-              >
-                Purchase through: {dateAndTimeToText(item.salesValidThrough)}
-              </Heading>
-              <Heading
-                color="gray.400"
-                fontFamily="body"
-                fontSize={{ md: 'md' }}
-                fontWeight="light"
-              >
-                Valid through: {dateAndTimeToText(item.passValidThrough)}
-              </Heading>
-            </VStack>
           </VStack>
         </HStack>
       ),
-      soldTickets: item.soldTickets,
-      maxTickets: item.maxTickets,
-      priceNear: item.priceNear,
       action: (
         <HStack>
           <Button
@@ -241,27 +224,60 @@ export default function SponsorDashboardPage() {
             variant="icon"
             onClick={async (e) => {
               e.stopPropagation();
-              handleDeleteClick(item.id); // Pass the correct id here
+              handleDeleteClick(item.base.id); // Pass the correct id here
             }}
           >
             <DeleteIcon color="red.400" />
           </Button>
         </HStack>
       ),
-      href: `/events/ticket/${(item.id || '').toString()}`,
     }));
   };
 
   const data = useMemo(
-    () => getTableRows(ticketData, handleDeleteClick),
-    [getTableRows, ticketData, ticketData.length, handleDeleteClick],
+    () => getTableRows(dropsCreated, handleDeleteClick),
+    [getTableRows, dropsCreated, dropsCreated.length, handleDeleteClick],
   );
 
   const allowAction = data.length > 0;
 
   const capitalizeFirstLetter = (string) => {
     if (!string) return string;
-    return string.charAt(0).toUpperCase() + string.slice(1);
+    return `${string.charAt(0).toUpperCase() as string}${string.slice(1).toString() as string}`;
+  };
+
+  const handleCreateDropClose = async (
+    dropCreated: CreatedDropForm | undefined,
+    setIsLoading: (value: boolean) => void,
+  ) => {
+    if (dropCreated !== undefined) {
+      setIsLoading(true);
+      try {
+        await eventHelperInstance.createConferenceDrop({
+          secretKey,
+          createdDrop: dropCreated,
+          accountId: sponsorAccountId!,
+        });
+        toast({
+          title: 'Drop created successfully.',
+          status: 'success',
+          duration: 5000,
+          isClosable: true,
+        });
+      } catch (e) {
+        console.error('Error creating drop:', e);
+        toast({
+          title: 'Drop creation unsuccessful. Please try again.',
+          status: 'error',
+          duration: 5000,
+          isClosable: true,
+        });
+      }
+      setIsLoading(false);
+    }
+
+    setIsCreateDropModalOpen(false);
+    console.log('dropCreated', dropCreated);
   };
 
   if (isErr) {
@@ -275,11 +291,16 @@ export default function SponsorDashboardPage() {
   }
 
   if (isLoading) {
-    return
+    return;
   }
 
   return (
     <Box px="1" py={{ base: '3.25rem', md: '5rem' }}>
+      <CreateDropModal
+        modalType={dropType}
+        isOpen={isCreateDropModalOpen}
+        onClose={handleCreateDropClose}
+      />
       <Heading>
         Welcome {capitalizeFirstLetter(sponsorAccountId?.split(`.${TOKEN_FACTORY_CONTRACT}`)[0])}!
       </Heading>
@@ -309,13 +330,47 @@ export default function SponsorDashboardPage() {
       <Show above="md">
         <HStack justify="space-between">
           <Heading paddingBottom="0" paddingTop="4">
-            All tickets
+            All Drops
           </Heading>
           {/* Right Section */}
           <HStack alignItems="end" justify="end" mt="1rem !important">
+            <Menu>
+              {({ isOpen }) => (
+                <Box>
+                  <DropDownButton
+                    isOpen={isOpen}
+                    placeholder="Create Drop"
+                    variant="primary"
+                    onClick={() => (popoverClicked.current += 1)}
+                  />
+                  <MenuList minWidth="auto">
+                    <MenuItem
+                      key="token"
+                      icon={<LinkIcon h="4" w="4" />}
+                      onClick={() => {
+                        setDropType('token');
+                        setIsCreateDropModalOpen(true);
+                      }}
+                    >
+                      Token Drop
+                    </MenuItem>
+                    <MenuItem
+                      key="nft"
+                      icon={<NFTIcon h="4" w="4" />}
+                      onClick={() => {
+                        setDropType('nft');
+                        setIsCreateDropModalOpen(true);
+                      }}
+                    >
+                      NFT Drop
+                    </MenuItem>
+                  </MenuList>
+                </Box>
+              )}
+            </Menu>
             <Button
               height="auto"
-              isDisabled={!allowAction || !eventData}
+              isDisabled={!allowAction}
               lineHeight=""
               px="6"
               py="3"
@@ -326,26 +381,6 @@ export default function SponsorDashboardPage() {
             >
               Delete All
             </Button>
-            <Button
-              height="auto"
-              isDisabled={!allowAction || !eventData}
-              isLoading={exporting}
-              lineHeight=""
-              px="6"
-              py="3"
-              variant="secondary"
-              w={{ base: '100%', sm: 'initial' }}
-              onClick={async () => {
-                await handleExportCSVClick({
-                  dropIds: ticketData.map((ticket) => ticket.id),
-                  setExporting,
-                  keypomInstance,
-                  eventData,
-                });
-              }}
-            >
-              Export .CSV
-            </Button>
           </HStack>
         </HStack>
       </Show>
@@ -353,13 +388,13 @@ export default function SponsorDashboardPage() {
       <Hide above="md">
         <VStack>
           <Heading paddingTop="20px" size="2xl" textAlign="left" w="full">
-            All tickets
+            All Drops
           </Heading>
 
           <HStack align="stretch" justify="space-between" w="full">
             <Button
               height="auto"
-              isDisabled={!allowAction || !eventData}
+              isDisabled={!allowAction}
               lineHeight=""
               px="6"
               py="3"
@@ -370,25 +405,6 @@ export default function SponsorDashboardPage() {
             >
               Cancel all
             </Button>
-            <Button
-              height="auto"
-              isDisabled={!allowAction || !eventData}
-              isLoading={exporting}
-              lineHeight=""
-              px="6"
-              variant="secondary"
-              w={{ sm: 'initial' }}
-              onClick={async () => {
-                await handleExportCSVClick({
-                  dropIds: ticketData.map((ticket) => ticket.id),
-                  setExporting,
-                  keypomInstance,
-                  eventData,
-                });
-              }}
-            >
-              Export .CSV
-            </Button>
           </HStack>
         </VStack>
       </Hide>
@@ -397,11 +413,11 @@ export default function SponsorDashboardPage() {
           columns={eventTableColumns}
           data={data}
           excludeMobileColumns={[]}
-          loading={isLoading || !eventData}
+          loading={isLoading}
           mt={{ base: '6', md: '4' }}
           showColumns={true}
           showMobileTitles={['price', 'numTickets']}
-          type="event-manager"
+          type="conference-drops"
         />
       </Box>
     </Box>

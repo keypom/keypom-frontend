@@ -1,4 +1,8 @@
 export const EMPTY_TABLE_TEXT_MAP = {
+  'conference-drops': {
+    heading: `You haven't created any drops`,
+    text: `Create a new drop!`,
+  },
   'all-events': {
     heading: `You haven't created any events`,
     text: `Create a new event!`,
