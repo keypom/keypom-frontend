@@ -169,7 +169,7 @@ class EventJS {
     }
 
     if (createdDrop.nftData) {
-      return await userAccount.functionCall({
+      let res = await userAccount.functionCall({
         contractId: TOKEN_FACTORY_CONTRACT,
         methodName: 'create_nft_drop',
         args: {
@@ -184,9 +184,12 @@ class EventJS {
           },
         },
       });
+      // Parse the resulting base64 into a string
+      let dropId = atob(res.status.SuccessValue);
+      return dropId;
     }
 
-    return await userAccount.functionCall({
+    let res = await userAccount.functionCall({
       contractId: TOKEN_FACTORY_CONTRACT,
       methodName: 'create_token_drop',
       args: {
@@ -198,6 +201,10 @@ class EventJS {
         token_amount: this.nearToYocto(pinnedDrop.amount),
       },
     });
+
+    // Parse the resulting base64 into a string
+    let dropId = atob(res.status.SuccessValue);
+    return dropId;
   };
 }
 

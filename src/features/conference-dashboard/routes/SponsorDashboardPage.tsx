@@ -38,8 +38,13 @@ import { useSponsorDashboardParams } from '../utils/utils';
 import QRViewerModal from '../components/QRViewerModal';
 import { CreatedDropForm } from '../components/CreateDropModal';
 
+export interface ScavengerHunt {
+  piece: string;
+  description: string;
+}
+
 export interface ConferenceDropBase {
-  scavenger_ids?: string[];
+  scavenger_hunt?: ScavengerHunt[];
   name: string;
   image: string;
   num_claimed: number;
@@ -89,6 +94,12 @@ const eventTableColumns: ColumnItem[] = [
     loadingElement: <Skeleton height="30px" />,
   },
   {
+    id: 'scavengers',
+    title: 'Scavenger Pieces',
+    selector: (row) => row.numPieces,
+    loadingElement: <Skeleton height="30px" />,
+  },
+  {
     id: 'action',
     title: '',
     selector: (row) => row.action,
@@ -114,7 +125,7 @@ const SponsorDashboardPage = () => {
   const toast = useToast();
   const popoverClicked = useRef(0);
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const [qrCodeUrl, setQrCodeUrl] = useState<string>('');
+  const [qrCodeUrls, setQrCodeUrls] = useState<string[]>([]);
 
   const getAccountInformation = async () => {
     try {
@@ -186,6 +197,7 @@ const SponsorDashboardPage = () => {
       ),
       type: item.amount !== undefined ? 'Token' : 'NFT',
       numClaimed: item.base.num_claimed,
+      numPieces: item.base.scavenger_hunt ? item.base.scavenger_hunt.length : 'None',
       reward:
         item.amount !== undefined ? (
           eventHelperInstance.yoctoToNearWith4Decimals(item.amount)
@@ -206,7 +218,7 @@ const SponsorDashboardPage = () => {
             variant="icon"
             onClick={(e) => {
               e.stopPropagation();
-              generateQRCode(item.base.id);
+              generateQRCode(item.base.id, item.base.scavenger_hunt);
               onOpen();
             }}
           >
@@ -228,22 +240,46 @@ const SponsorDashboardPage = () => {
     }));
   };
 
-  const generateQRCode = async (text: string) => {
+  const generateQRCode = async (dropId: string, scavengerHunt?: ScavengerHunt[]) => {
+    console.log('Calling generateQRCode', dropId, scavengerHunt);
     try {
-      const url = await QRCode.toDataURL(text);
-      setQrCodeUrl(url);
+      if (scavengerHunt && scavengerHunt.length > 0) {
+        // Generate QR codes for scavenger hunt
+        const qrCodes = await Promise.all(
+          scavengerHunt.map(({ piece }) => QRCode.toDataURL(`${dropId}:${piece}`)),
+        );
+        setQrCodeUrls(qrCodes);
+      } else {
+        // Generate single QR code
+        const url = await QRCode.toDataURL(dropId);
+        setQrCodeUrls([url]);
+      }
+      console.log('qrCodeUrls', qrCodeUrls);
+
+      onOpen();
     } catch (err) {
       console.error(err);
     }
   };
 
-  const handleDownloadQrCode = () => {
+  const handleDownloadQrCode = (url: string) => {
     const link = document.createElement('a');
-    link.href = qrCodeUrl;
+    link.href = url;
     link.download = 'qr-code.png';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  };
+
+  const handleDownloadAllQrCodes = (urls: string[]) => {
+    urls.forEach((url, index) => {
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `qr-code-${index + 1}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    });
   };
 
   const data = useMemo(() => getTableRows(dropsCreated, handleDeleteClick), [dropsCreated]);
@@ -257,13 +293,14 @@ const SponsorDashboardPage = () => {
     if (dropCreated) {
       setIsModalLoading(true);
       try {
-        await eventHelperInstance.createConferenceDrop({
+        const dropId = await eventHelperInstance.createConferenceDrop({
           secretKey,
           createdDrop: dropCreated,
           isScavengerHunt,
           scavengerHunt,
           accountId: sponsorAccountId!,
         });
+        console.log('dropId', dropId);
         toast({
           title: 'Drop created successfully.',
           status: 'success',
@@ -271,6 +308,11 @@ const SponsorDashboardPage = () => {
           isClosable: true,
         });
         await getAccountInformation(); // Refresh the drop list
+        if (isScavengerHunt) {
+          generateQRCode(dropId, scavengerHunt); // Pass scavenger hunt data
+        } else {
+          generateQRCode(dropId); // Single QR code
+        }
       } catch (e) {
         console.error('Error creating drop:', e);
         toast({
@@ -330,9 +372,10 @@ const SponsorDashboardPage = () => {
       />
       <QRViewerModal
         isOpen={isOpen}
-        qrCodeUrl={qrCodeUrl}
         onClose={onClose}
-        onDownload={handleDownloadQrCode}
+        qrCodeUrls={qrCodeUrls}
+        onDownload={(url) => handleDownloadQrCode(url)}
+        onDownloadAll={(urls) => handleDownloadAllQrCodes(urls)}
       />
     </Box>
   );

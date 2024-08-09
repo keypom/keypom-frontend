@@ -8,37 +8,47 @@ import { ModalWrapper } from './ModalWrapper';
 import { validateForm } from './dropUtils';
 import DropTokenAmountSelector from './TokenAmountSelector';
 
+const defaultDrop = {
+  name: '',
+  artwork: undefined,
+  amount: '1',
+  nftData: undefined,
+};
+const defaultScavengerHunt = [
+  {
+    piece: `Piece 1`,
+    description: '',
+  },
+  {
+    piece: `Piece 2`,
+    description: '',
+  },
+];
+
 export const CreateDropModal = ({ modalType, isOpen, onClose }) => {
-  const [createdDrop, setCreatedDrop] = useState({
-    name: '',
-    artwork: undefined,
-    amount: '1',
-    nftData: modalType === 'nft' ? { title: '', description: '' } : undefined,
-  });
-  const [scavengerPieces, setScavengerPieces] = useState<
-    Array<{ piece: string; description: string }>
-  >([
-    { piece: `Piece 1`, description: '' },
-    { piece: `Piece 2`, description: '' },
-  ]);
+  const [createdDrop, setCreatedDrop] = useState(defaultDrop);
+  const [scavengerPieces, setScavengerPieces] =
+    useState<Array<{ piece: string; description: string }>>(defaultScavengerHunt);
 
   const [isLoading, setIsLoading] = useState(false);
   const [isScavengerHunt, setIsScavengerHunt] = useState(false);
   const [errors, setErrors] = useState({});
 
+  const resetValues = () => {
+    setErrors({});
+    setCreatedDrop(defaultDrop);
+    setIsScavengerHunt(false);
+    setScavengerPieces(defaultScavengerHunt);
+  };
+
   const handleCreateDrop = () => {
     if (validateForm(createdDrop, setErrors)) {
-      setErrors({});
       onClose(createdDrop, isScavengerHunt, scavengerPieces, setIsLoading);
+      resetValues();
     }
   };
   const handleCancelDrop = () => {
-    setErrors({});
-    setScavengerPieces([
-      { piece: `Piece 1`, description: '' },
-      { piece: `Piece 2`, description: '' },
-    ]);
-    setIsScavengerHunt(false);
+    resetValues();
     onClose(undefined, isScavengerHunt, scavengerPieces, setIsLoading);
   };
 
