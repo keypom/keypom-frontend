@@ -66,51 +66,51 @@ export const AppContextProvider = ({ children }: PropsWithChildren) => {
   useEffect(() => {
     const setPriceWithFallback = async () => {
       // if (fetchAttempts < 10) {
-        const binancePrice = await fetchPrice(
-          'https://api.binance.com/api/v3/ticker/price?symbol=NEARUSDT',
-          (data) => data.price,
-        );
+      const binancePrice = await fetchPrice(
+        'https://api.binance.com/api/v3/ticker/price?symbol=NEARUSDT',
+        (data) => data.price,
+      );
 
-        if (binancePrice !== null) {
-          setNearPrice(parseFloat(binancePrice));
-        }
+      if (binancePrice !== null) {
+        setNearPrice(parseFloat(binancePrice));
+      }
 
-        const coinbasePrice = await fetchPrice(
-          'https://api.coinbase.com/v2/prices/NEAR-USD/buy',
-          (data) => data.data.amount,
-        );
+      const coinbasePrice = await fetchPrice(
+        'https://api.coinbase.com/v2/prices/NEAR-USD/buy',
+        (data) => data.data.amount,
+      );
 
-        if (coinbasePrice !== null) {
-          setNearPrice(parseFloat(coinbasePrice));
-        }
+      if (coinbasePrice !== null) {
+        setNearPrice(parseFloat(coinbasePrice));
+      }
 
-        const coinapiPrice = await fetchPrice(
-          'https://rest.coinapi.io/v1/exchangerate/NEAR/USDC?apiKey=30634AC5-CF0B-4045-BE02-BAF8A3C1B4EC',
-          (data) => data.rate,
-        );
+      const coinapiPrice = await fetchPrice(
+        'https://rest.coinapi.io/v1/exchangerate/NEAR/USDC?apiKey=30634AC5-CF0B-4045-BE02-BAF8A3C1B4EC',
+        (data) => data.rate,
+      );
 
-        if (coinapiPrice !== null) {
-          setNearPrice(parseFloat(coinapiPrice));
-        }
+      if (coinapiPrice !== null) {
+        setNearPrice(parseFloat(coinapiPrice));
+      }
 
-        const coinlorePrice = await fetchPrice(
-          'https://api.coinlore.net/api/ticker/?id=48563',
-          (data) => data[0].price_usd,
-        );
+      const coinlorePrice = await fetchPrice(
+        'https://api.coinlore.net/api/ticker/?id=48563',
+        (data) => data[0].price_usd,
+      );
 
-        if (coinlorePrice !== null) {
-          setNearPrice(parseFloat(coinlorePrice));
-        }
+      if (coinlorePrice !== null) {
+        setNearPrice(parseFloat(coinlorePrice));
+      }
 
-        // const coingeckoPrice = await fetchPrice(
-        //   'https://api.coingecko.com/api/v3/simple/price?ids=near&vs_currencies=usd',
-        //   (data) => data.near.usd,
-        // );
+      // const coingeckoPrice = await fetchPrice(
+      //   'https://api.coingecko.com/api/v3/simple/price?ids=near&vs_currencies=usd',
+      //   (data) => data.near.usd,
+      // );
 
-        // if (coingeckoPrice !== null) {
-        //   setNearPrice(coingeckoPrice);
-        //   return;
-        // }
+      // if (coingeckoPrice !== null) {
+      //   setNearPrice(coingeckoPrice);
+      //   return;
+      // }
       // }
     };
 

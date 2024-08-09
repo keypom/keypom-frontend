@@ -101,19 +101,18 @@ export const AuthWalletContextProvider = ({ children }: PropsWithChildren) => {
   }, [accountId, getAccount]);
 
   selector?.on('signedIn', () => {
-    const newAccountState: AccountState[] = selector.store.getState().accounts
-    setAccounts(newAccountState)
-    getAccount()
-      .then((nextAccount) => {
-        console.log(nextAccount)
-        sessionStorage.setItem('account', JSON.stringify(nextAccount));
-        setAccount(nextAccount);
-      })
-  })
+    const newAccountState: AccountState[] = selector.store.getState().accounts;
+    setAccounts(newAccountState);
+    getAccount().then((nextAccount) => {
+      console.log(nextAccount);
+      sessionStorage.setItem('account', JSON.stringify(nextAccount));
+      setAccount(nextAccount);
+    });
+  });
 
   selector?.on('signedOut', () => {
     sessionStorage.removeItem('account');
-  })
+  });
 
   const value = {
     modal: modal as WalletSelectorModal,

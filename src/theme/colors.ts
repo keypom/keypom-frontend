@@ -19,24 +19,24 @@ export const colors: RecursiveObject<string> = {
   white: '#ffffff',
   bg: '#ffffff',
   event: {
-    title: "white",
-    h1: "#2DD0CD",
-    h2: "#020A0A",
-    h3: "#020A0A",
-    iconBg: "#020A0A",
-    iconBorder: "#C936F6",
+    title: 'white',
+    h1: '#2DD0CD',
+    h2: '#020A0A',
+    h3: '#020A0A',
+    iconBg: '#020A0A',
+    iconBorder: '#C936F6',
     button: {
       primary: {
-        "bg": "#C936F6",
-        "color": "white",
-        "hover": "#C936F6"
+        bg: '#C936F6',
+        color: 'white',
+        hover: '#C936F6',
       },
       secondary: {
-        "bg": "#e2e8f0",
-        "color": "black",
-        "hover": "#cbd5e1"
-      }
-    }
+        bg: '#e2e8f0',
+        color: 'black',
+        hover: '#cbd5e1',
+      },
+    },
   },
   gray: {
     '50': '#f8fafc',
