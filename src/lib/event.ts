@@ -9,6 +9,12 @@ const networkId = process.env.REACT_APP_NETWORK_ID ?? 'testnet';
 const myKeyStore = new nearAPI.keyStores.BrowserLocalStorageKeyStore();
 const config = getConfig();
 
+function uuidv4() {
+  return '10000000-1000-4000-8000-100000000000'.replace(/[018]/g, (c) =>
+    (+c ^ (crypto.getRandomValues(new Uint8Array(1))[0] & (15 >> (+c / 4)))).toString(16),
+  );
+}
+
 const connectionConfig = {
   networkId,
   keyStore: myKeyStore,
@@ -130,11 +136,15 @@ class EventJS {
 
   createConferenceDrop = async ({
     secretKey,
+    scavengerHunt,
+    isScavengerHunt,
     accountId,
     createdDrop,
   }: {
     secretKey: string;
     accountId: string;
+    isScavengerHunt: boolean;
+    scavengerHunt: Array<{ piece: string; description: string }>;
     createdDrop: CreatedDropForm;
   }) => {
     const keyPair = nearAPI.KeyPair.fromString(secretKey);
@@ -147,6 +157,17 @@ class EventJS {
       artwork: 'bafybeibadywqnworqo5azj4rume54j5wuqgphljds7haxdf2kc45ytewpy',
     };
 
+    let scavenger_hunt: Array<{ piece: string; description: string }> | undefined;
+    if (isScavengerHunt) {
+      scavenger_hunt = [];
+      for (const { description } of scavengerHunt) {
+        scavenger_hunt.push({
+          description,
+          piece: uuidv4(),
+        });
+      }
+    }
+
     if (createdDrop.nftData) {
       return await userAccount.functionCall({
         contractId: TOKEN_FACTORY_CONTRACT,
@@ -155,6 +176,7 @@ class EventJS {
           drop_data: {
             image: pinnedDrop.artwork,
             name: pinnedDrop.name,
+            scavenger_hunt,
           },
           nft_metadata: {
             ...pinnedDrop.nftData,
@@ -163,6 +185,7 @@ class EventJS {
         },
       });
     }
+
     return await userAccount.functionCall({
       contractId: TOKEN_FACTORY_CONTRACT,
       methodName: 'create_token_drop',
@@ -170,6 +193,7 @@ class EventJS {
         drop_data: {
           image: pinnedDrop.artwork,
           name: pinnedDrop.name,
+          scavenger_hunt,
         },
         token_amount: this.nearToYocto(pinnedDrop.amount),
       },

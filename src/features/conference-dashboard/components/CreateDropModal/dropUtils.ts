@@ -4,6 +4,7 @@ export const validateForm = (
   createdDrop: any,
   setErrors: React.Dispatch<React.SetStateAction<any>>,
 ) => {
+  console.log('Validating form', createdDrop);
   const errors: any = {};
   if (!createdDrop.name) errors.name = 'Name is required';
   if (!createdDrop.artwork) errors.artwork = 'Artwork is required';
@@ -12,8 +13,6 @@ export const validateForm = (
     if (!createdDrop.nftData.title) errors.nft = { ...errors.nft, title: 'NFT title is required' };
     if (!createdDrop.nftData.description)
       errors.nft = { ...errors.nft, description: 'NFT description is required' };
-    if (!createdDrop.nftData.media)
-      errors.nft = { ...errors.nft, media: 'NFT artwork is required' };
   }
 
   setErrors(errors);
@@ -21,14 +20,14 @@ export const validateForm = (
 };
 
 export const updateScavengerPieceDescription = (
-  index: number,
-  value: string,
-  createdDrop: any,
-  setCreatedDrop: React.Dispatch<React.SetStateAction<any>>,
+  index,
+  value,
+  scavengerPieces,
+  setScavengerPieces,
 ) => {
-  const newPieces = [...createdDrop.scavengerPieces];
+  const newPieces = [...scavengerPieces];
   newPieces[index].description = value;
-  setCreatedDrop({ ...createdDrop, scavengerPieces: newPieces });
+  setScavengerPieces(newPieces);
 };
 
 export const addScavengerPiece = (scavengerPieces, setScavengerPieces, setTempNumPieces) => {

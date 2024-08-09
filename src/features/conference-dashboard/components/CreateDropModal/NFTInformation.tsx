@@ -13,6 +13,7 @@ export const NFTInformation: React.FC<NFTInformationProps> = ({
   createdDrop,
   setCreatedDrop,
   errors,
+  setErrors,
 }) => {
   const onNFTDataChange = (key: string, value: string) => {
     setCreatedDrop({
@@ -23,19 +24,14 @@ export const NFTInformation: React.FC<NFTInformationProps> = ({
 
   return (
     <>
-      <Divider my={4} />
-
-      <Heading as="h4" marginBottom={0} size="lg">
-        NFT Information
-      </Heading>
       <VStack spacing={0} w="100%">
         <HStack spacing={6} w="100%">
-          <FormControlComponent label="NFT Title*" errorText={errors.nft?.title}>
+          <FormControlComponent label="NFT Title*" errorText={errors.nft?.title} my="1">
             <Textarea
               value={createdDrop.nftData?.title || ''}
               onChange={(e) => onNFTDataChange('title', e.target.value)}
               isInvalid={!!errors.nft?.title}
-              placeholder="NFT Title"
+              placeholder="Coolest NFT ever"
             />
           </FormControlComponent>
           <FormControlComponent label="NFT Description*" errorText={errors.nft?.description}>
@@ -43,11 +39,16 @@ export const NFTInformation: React.FC<NFTInformationProps> = ({
               value={createdDrop.nftData?.description || ''}
               onChange={(e) => onNFTDataChange('description', e.target.value)}
               isInvalid={!!errors.nft?.description}
-              placeholder="NFT Description"
+              placeholder="One of a kind proof of touch"
             />
           </FormControlComponent>
         </HStack>
-        <ImageInput createdDrop={createdDrop} setCreatedDrop={setCreatedDrop} errors={errors} />
+        <ImageInput
+          createdDrop={createdDrop}
+          setCreatedDrop={setCreatedDrop}
+          errors={errors}
+          setErrors={setErrors}
+        />
       </VStack>
     </>
   );

@@ -130,6 +130,7 @@ const SponsorDashboardPage = () => {
         methodName: 'get_drops_created_by_account',
         args: { account_id: sponsorAccountId },
       });
+      console.log(drops);
       setDropsCreated(drops);
     } catch (e) {
       console.error(e);
@@ -259,6 +260,8 @@ const SponsorDashboardPage = () => {
         await eventHelperInstance.createConferenceDrop({
           secretKey,
           createdDrop: dropCreated,
+          isScavengerHunt,
+          scavengerHunt,
           accountId: sponsorAccountId!,
         });
         toast({

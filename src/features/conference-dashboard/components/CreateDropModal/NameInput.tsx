@@ -1,7 +1,7 @@
 import { FormControlComponent } from '@/components/FormControl';
 import { Input } from '@chakra-ui/react';
 
-export const NameInput = ({ createdDrop, setCreatedDrop, errors }) => (
+export const NameInput = ({ createdDrop, setCreatedDrop, errors, setErrors }) => (
   <FormControlComponent
     errorText={errors.name}
     label="Name*"
@@ -13,7 +13,7 @@ export const NameInput = ({ createdDrop, setCreatedDrop, errors }) => (
       height="35px"
       isInvalid={!!errors.name}
       maxLength={500}
-      placeholder="Nuffle's Waffles"
+      placeholder="My Awesome Drop"
       size="sm"
       sx={{
         '::placeholder': {

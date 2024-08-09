@@ -13,6 +13,7 @@ export const CreateDropModal = ({ modalType, isOpen, onClose }) => {
     name: '',
     artwork: undefined,
     amount: '1',
+    nftData: modalType === 'nft' ? { title: '', description: '' } : undefined,
   });
   const [scavengerPieces, setScavengerPieces] = useState<
     Array<{ piece: string; description: string }>
@@ -33,6 +34,11 @@ export const CreateDropModal = ({ modalType, isOpen, onClose }) => {
   };
   const handleCancelDrop = () => {
     setErrors({});
+    setScavengerPieces([
+      { piece: `Piece 1`, description: '' },
+      { piece: `Piece 2`, description: '' },
+    ]);
+    setIsScavengerHunt(false);
     onClose(undefined, isScavengerHunt, scavengerPieces, setIsLoading);
   };
 
@@ -42,21 +48,29 @@ export const CreateDropModal = ({ modalType, isOpen, onClose }) => {
         Create Drop
       </Heading>
       <VStack align="stretch" spacing={0}>
-        <NameInput createdDrop={createdDrop} setCreatedDrop={setCreatedDrop} errors={errors} />
-        <ImageInput createdDrop={createdDrop} setCreatedDrop={setCreatedDrop} errors={errors} />
+        <NameInput
+          createdDrop={createdDrop}
+          setCreatedDrop={setCreatedDrop}
+          errors={errors}
+          setErrors={setErrors}
+        />
         {modalType === 'nft' && (
           <NFTInformation
             createdDrop={createdDrop}
             setCreatedDrop={setCreatedDrop}
             errors={errors}
+            setErrors={setErrors}
           />
         )}
         {modalType === 'token' && (
-          <DropTokenAmountSelector
-            currentDrop={createdDrop}
-            setCurrentDrop={setCreatedDrop}
-            errors={errors}
-          />
+          <>
+            <ImageInput createdDrop={createdDrop} setCreatedDrop={setCreatedDrop} errors={errors} />
+            <DropTokenAmountSelector
+              currentDrop={createdDrop}
+              setCurrentDrop={setCreatedDrop}
+              errors={errors}
+            />
+          </>
         )}
         <ScavengerHunt
           isScavengerHunt={isScavengerHunt}

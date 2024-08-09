@@ -35,7 +35,7 @@ export const ImageInput: React.FC<ImageInputProps> = ({ createdDrop, setCreatedD
   };
 
   return (
-    <FormControlComponent label="Image*" labelProps={{ fontSize: { base: 'xs', md: 'md' } }}>
+    <FormControlComponent label="Image*" labelProps={{ fontSize: { base: 'xs', md: 'md' } }} my="1">
       <ImageFileInputSmall
         accept="image/jpeg, image/png, image/gif"
         ctaText="Upload drop artwork"

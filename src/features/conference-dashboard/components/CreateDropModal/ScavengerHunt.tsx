@@ -86,7 +86,14 @@ export const ScavengerHunt = ({
                   <Input
                     placeholder="Description"
                     value={piece.description}
-                    onChange={(e) => updateScavengerPieceDescription(index, e.target.value)}
+                    onChange={(e) =>
+                      updateScavengerPieceDescription(
+                        index,
+                        e.target.value,
+                        scavengerPieces,
+                        setScavengerPieces,
+                      )
+                    }
                   />
                   <Button
                     size="sm"
