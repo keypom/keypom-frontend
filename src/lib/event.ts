@@ -106,6 +106,28 @@ class EventJS {
     });
   };
 
+  deleteConferenceDrop = async ({
+    secretKey,
+    accountId,
+    dropId,
+  }: {
+    secretKey: string;
+    accountId: string;
+    dropId: string;
+  }) => {
+    const keyPair = nearAPI.KeyPair.fromString(secretKey);
+    await myKeyStore.setKey(networkId, accountId, keyPair);
+    const userAccount = new nearAPI.Account(this.nearConnection.connection, accountId);
+
+    return await userAccount.functionCall({
+      contractId: TOKEN_FACTORY_CONTRACT,
+      methodName: 'delete_drop',
+      args: {
+        drop_id: dropId,
+      },
+    });
+  };
+
   createConferenceDrop = async ({
     secretKey,
     accountId,

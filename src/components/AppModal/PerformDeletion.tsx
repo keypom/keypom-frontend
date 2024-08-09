@@ -7,157 +7,42 @@ import { type EventDrop, type TicketInfoMetadata } from '@/lib/eventsHelpers';
 
 import ProgressModalContent from './ProgessModalContent';
 import CompletionModalContent from './CompletionModal';
+import eventHelperInstance from '@/lib/event';
 
 export const performDeletionLogic = async ({
-  wallet,
   accountId,
-  deleteAll,
-  eventId,
-  ticketData,
+  secretKey,
+  dropId,
   setAppModal,
+  getAccountInformation,
 }: {
-  wallet: Wallet;
-  deleteAll: boolean;
   accountId: string;
-  eventId: string;
-  ticketData: any;
+  secretKey: string;
+  dropId: string;
   setAppModal: any;
+  getAccountInformation: () => Promise<void>;
 }) => {
-  if (!wallet) return;
-
   try {
+    // Completion Modal
+    setAppModal({
+      isOpen: true,
+      size: 'xl',
+      modalContent: (
+        <ProgressModalContent
+          title="Deleting Drop"
+          progress={0}
+          message="Please wait while we delete the drop..."
+        />
+      ),
+    });
 
-    await wallet.signAndSendTransaction({
-      signerId: accountId,
-      receiverId: KEYPOM_MARKETPLACE_CONTRACT,
-      actions: [
-        {
-          type: 'FunctionCall',
-          params: {
-            methodName: 'delete_event',
-            args: { event_id: eventId },
-            gas: '300000000000000',
-            deposit: '0',
-          },
-        },
-      ],
-    })
+    await eventHelperInstance.deleteConferenceDrop({
+      accountId,
+      secretKey,
+      dropId,
+    });
 
-    let totalSupplyTickets = 0;
-    const ticketSupplies: number[] = [];
-    for (let i = 0; i < ticketData.length; i++) {
-      const dropId = ticketData[i].drop_id;
-      const supplyForTicket: number = await keypomInstance.getKeySupplyForTicket(dropId);
-
-      ticketSupplies.push(supplyForTicket);
-      totalSupplyTickets += supplyForTicket;
-    }
-
-    let totalDeleted = 0;
-    for (let i = 0; i < ticketData.length; i++) {
-      const curTicketData: EventDrop = ticketData[i];
-      const dropId = curTicketData.drop_id;
-      const supplyForTicket = ticketSupplies[i];
-      const meta: TicketInfoMetadata = curTicketData.drop_config.nft_keys_config.token_metadata;
-
-      let deletedForTicket = 0;
-      const deleteLimit = 50;
-
-      if (supplyForTicket === 0) {
-        // Update Progress Modal
-        setAppModal({
-          isOpen: true,
-          size: 'xl',
-          canClose: false,
-          modalContent: (
-            <ProgressModalContent
-              message={`Deleting Ticket`}
-              progress={(totalDeleted / totalSupplyTickets) * 100}
-              title={`Deleting: ${meta.title || 'Ticket'} (${
-                ticketData.length - (i + 1)
-              } Tickets Types Left)`}
-            />
-          ),
-        });
-        await wallet.signAndSendTransaction({
-          signerId: accountId,
-          receiverId: KEYPOM_EVENTS_CONTRACT,
-          actions: [
-            {
-              type: 'FunctionCall',
-              params: {
-                methodName: 'delete_keys',
-                args: { drop_id: dropId },
-                gas: '300000000000000',
-                deposit: '0',
-              },
-            },
-          ],
-        });
-      }
-
-      for (let j = 0; j < supplyForTicket; j += deleteLimit) {
-        const toDelete = Math.min(deleteLimit, supplyForTicket - deletedForTicket);
-
-        // Update Progress Modal
-        setAppModal({
-          isOpen: true,
-          size: 'xl',
-          canClose: false,
-          modalContent: (
-            <ProgressModalContent
-              message={`Deleting ${supplyForTicket.toString()} Purchased ${meta.title} Tickets`}
-              progress={(totalDeleted / totalSupplyTickets) * 100}
-              title={`Deleting: ${meta.title || 'Ticket'} (${
-                ticketData.length - (i + 1)
-              } Tickets Types Left)`}
-            />
-          ),
-        });
-
-        await wallet.signAndSendTransaction({
-          signerId: accountId,
-          receiverId: KEYPOM_EVENTS_CONTRACT,
-          actions: [
-            {
-              type: 'FunctionCall',
-              params: {
-                methodName: 'delete_keys',
-                args: { drop_id: dropId, limit: toDelete },
-                gas: '300000000000000',
-                deposit: '0',
-              },
-            },
-          ],
-        });
-
-        totalDeleted += toDelete;
-        deletedForTicket += toDelete;
-      }
-
-      keypomInstance.deleteTicketFromCache({ dropId });
-    }
-
-    if (deleteAll) {
-      setAppModal({
-        isOpen: true,
-        size: 'xl',
-        canClose: false,
-        modalContent: (
-          <ProgressModalContent
-            message={`All Tickets Deleted. Clearing Event Data.`}
-            progress={0}
-            title={`Deleting Event Data`}
-          />
-        ),
-      });
-      await keypomInstance.deleteEventFromFunderMetadata({
-        accountId,
-        eventId,
-        wallet,
-      });
-      keypomInstance.deleteEventFromCache({ eventId });
-    }
+    await getAccountInformation();
 
     // Completion Modal
     setAppModal({
@@ -165,11 +50,7 @@ export const performDeletionLogic = async ({
       size: 'xl',
       modalContent: (
         <CompletionModalContent
-          completionMessage={
-            ticketData.length === 0
-              ? `Event successfully deleted!`
-              : `${String(ticketData.length)} Ticket(s) deleted successfully!`
-          }
+          completionMessage="Drop deleted successfully"
           onClose={() => {
             setAppModal({ isOpen: false });
           }}
@@ -189,7 +70,7 @@ export const performDeletionLogic = async ({
             <Text color="red.500" fontSize="lg" fontWeight="semibold">
               Error
             </Text>
-            <Text>There was an error deleting the Tickets. Please try again.</Text>
+            <Text>There was an error deleting the drop. Please try again.</Text>
             <Button
               autoFocus={false}
               variant="secondary"
