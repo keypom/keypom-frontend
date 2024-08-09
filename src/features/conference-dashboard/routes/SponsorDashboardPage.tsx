@@ -33,9 +33,10 @@ import { truncateAddress } from '@/utils/truncateAddress';
 import { formatTokensAvailable } from '@/features/conference-app/AssetsPages/AssetsHome';
 import eventHelperInstance from '@/lib/event';
 
-import { type CreatedDropForm, CreateDropModal } from '../components/CreateDropModal';
+import { CreateDropModal } from '../components/CreateDropModal/CreateDropModal';
 import { useSponsorDashboardParams } from '../utils/utils';
 import QRViewerModal from '../components/QRViewerModal';
+import { CreatedDropForm } from '../components/CreateDropModal';
 
 export interface ConferenceDropBase {
   scavenger_ids?: string[];
@@ -252,11 +253,6 @@ const SponsorDashboardPage = () => {
     scavengerHunt: Array<{ piece: string; description: string }>,
     setIsModalLoading: (loading: boolean) => void,
   ) => {
-    console.log('Drop created: ', dropCreated);
-    console.log('isScavengerHunt: ', isScavengerHunt);
-    console.log('scavengerHunt: ', scavengerHunt);
-
-    return;
     if (dropCreated) {
       setIsModalLoading(true);
       try {
