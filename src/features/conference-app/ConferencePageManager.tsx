@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Center, Spinner, VStack, Text } from '@chakra-ui/react';
-import { getPubFromSecret } from 'keypom-js';
+import { getPubFromSecret } from '@keypom/core';
 
 import InConferenceApp from '@/features/conference-app/InConferenceApp';
 import { NotFound404 } from '@/components/NotFound404';

@@ -21,7 +21,7 @@ import {
   InputRightElement,
 } from '@chakra-ui/react';
 import { useState, useEffect, useRef } from 'react';
-import { accountExists } from 'keypom-js';
+import { accountExists } from '@keypom/core';
 
 import keypomInstance from '@/lib/keypom';
 import { DeleteTextIcon } from '@/components/Icons/DeleteTextIcon';
@@ -253,13 +253,7 @@ const ProfileTransferModal = ({
               >
                 {title}
               </Text>
-              <Text
-                fontFamily="heading"
-                fontSize="sm"
-                fontWeight="400"
-                textAlign="center"
-                w="full"
-              >
+              <Text fontFamily="heading" fontSize="sm" fontWeight="400" textAlign="center" w="full">
                 Available Balance: {formatTokensAvailable(tokensAvailable)} ${ticker}
               </Text>
             </VStack>
@@ -327,12 +321,7 @@ const ProfileTransferModal = ({
             </VStack>
             <VStack spacing={8}>
               <VStack spacing="1">
-                <Text
-                  color="event.h2"
-                  fontFamily="heading"
-                  fontSize="5xl"
-                  fontWeight="500"
-                >
+                <Text color="event.h2" fontFamily="heading" fontSize="5xl" fontWeight="500">
                   {formatAmount(amount)}
                 </Text>
                 {isOversend && <Text color="red.500">Insufficient balance.</Text>}
@@ -399,10 +388,10 @@ const ProfileTransferModal = ({
                 fontWeight="500"
                 h="48px"
                 sx={{
-                  "_hover": {
-                      "backgroundColor": "event.button.primary.hover"
-                  }
-              }}
+                  _hover: {
+                    backgroundColor: 'event.button.primary.hover',
+                  },
+                }}
                 isDisabled={isSending || sendTo.length === 0}
                 variant="outline"
                 w="full"
@@ -413,15 +402,15 @@ const ProfileTransferModal = ({
               <Button
                 backgroundColor="gray.800"
                 color="event.button.primary.color"
-              fontFamily="heading"
-              fontSize="2xl"
-              fontWeight="500"
-              h="48px"
-              sx={{
-                "_hover": {
-                    "backgroundColor": "event.button.primary.hover"
-                }
-            }}
+                fontFamily="heading"
+                fontSize="2xl"
+                fontWeight="500"
+                h="48px"
+                sx={{
+                  _hover: {
+                    backgroundColor: 'event.button.primary.hover',
+                  },
+                }}
                 isDisabled={isSending}
                 variant="outline"
                 w="full"

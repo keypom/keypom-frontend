@@ -5,7 +5,7 @@ import React from 'react';
 import { KeypomLogo } from '@/components/KeypomLogo';
 import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
 
-import '@near-wallet-selector/modal-ui/styles.css';
+import '@near-wallet-selector/modal-ui-js/styles.css';
 import '@/components/WalletSelectorModal/WalletSelectorModal.css';
 
 const MobileMenu = React.lazy(

@@ -7,7 +7,7 @@ import {
   type Dispatch,
   type SetStateAction,
 } from 'react';
-import { getPubFromSecret } from 'keypom-js';
+import { getPubFromSecret } from '@keypom/core';
 
 import keypomInstance from '@/lib/keypom';
 import {

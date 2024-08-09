@@ -1,5 +1,5 @@
 import { DateTime } from 'luxon';
-import { getPubFromSecret } from 'keypom-js';
+import { getPubFromSecret } from '@keypom/core';
 
 import {
   type TicketMetadataExtra,

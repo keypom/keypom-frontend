@@ -8,7 +8,6 @@ import {
   claim,
   getKeyInformation,
   getPubFromSecret,
-  formatNearAmount,
   formatLinkdropUrl,
   generateKeys,
   getKeyInformationBatch,
@@ -19,7 +18,7 @@ import {
   getDropSupplyForOwner,
   getDrops,
   type ProtocolReturnedKeyInfo,
-} from 'keypom-js';
+} from '@keypom/core';
 import * as nearAPI from 'near-api-js';
 import { type Wallet } from '@near-wallet-selector/core';
 import * as bs58 from 'bs58';

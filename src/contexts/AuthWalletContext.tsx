@@ -1,7 +1,7 @@
 import { type AccountState, type WalletSelector } from '@near-wallet-selector/core';
 import { providers } from 'near-api-js';
 import { type AccountView } from 'near-api-js/lib/providers/provider';
-import { type WalletSelectorModal } from '@near-wallet-selector/modal-ui';
+import { type WalletSelectorModal } from '@near-wallet-selector/modal-ui-js';
 import {
   createContext,
   type PropsWithChildren,

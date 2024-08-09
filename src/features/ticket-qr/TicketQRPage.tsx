@@ -11,7 +11,7 @@ import {
   VStack,
 } from '@chakra-ui/react';
 import { useEffect } from 'react';
-import { getPubFromSecret } from 'keypom-js';
+import { getPubFromSecret } from '@keypom/core';
 
 import { IconBox } from '@/components/IconBox';
 import { TicketIcon } from '@/components/Icons';
@@ -90,9 +90,8 @@ export default function TicketQRPage({
 
       <Center>
         <VStack gap={{ base: 'calc(24px + 8px)', md: 'calc(32px + 10px)' }} paddingBottom="20">
-
           <IconBox
-            bg='border.box'
+            bg="border.box"
             h="full"
             icon={
               <Skeleton isLoaded={!isLoading}>

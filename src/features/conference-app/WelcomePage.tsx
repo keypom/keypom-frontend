@@ -16,7 +16,7 @@ import {
   useMediaQuery,
 } from '@chakra-ui/react';
 import { useState } from 'react';
-import { accountExists, getPubFromSecret } from 'keypom-js';
+import { accountExists, getPubFromSecret } from '@keypom/core';
 
 import { IconBox } from '@/components/IconBox';
 import { BoxWithShape } from '@/components/BoxWithShape';
@@ -196,7 +196,7 @@ export default function WelcomePage({
             w={{ base: '90vw', md: '90%', lg: '80%' }}
           >
             <IconBox
-              bg='border.box'
+              bg="border.box"
               h="full"
               icon={
                 <Skeleton isLoaded={!isLoading}>
@@ -228,7 +228,7 @@ export default function WelcomePage({
                       px="6"
                     >
                       <Text
-                        color='event.h1'
+                        color="event.h1"
                         fontFamily="heading"
                         fontSize="2xl"
                         fontWeight="600"
@@ -320,7 +320,7 @@ export default function WelcomePage({
                   px="6"
                 >
                   <Text
-                    color='event.h1'
+                    color="event.h1"
                     fontFamily="heading"
                     fontSize={fontSize.h1}
                     fontWeight="600"
@@ -441,10 +441,10 @@ export default function WelcomePage({
                     isDisabled={!isValidUsername}
                     isLoading={isClaiming}
                     sx={{
-                      "_hover": {
-                          "backgroundColor": "event.button.primary.hover"
-                      }
-                  }}
+                      _hover: {
+                        backgroundColor: 'event.button.primary.hover',
+                      },
+                    }}
                     variant="outline"
                     w="full"
                     onClick={handleBeginJourney}

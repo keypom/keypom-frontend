@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { getPubFromSecret } from 'keypom-js';
+import { getPubFromSecret } from '@keypom/core';
 import { useNavigate } from 'react-router-dom';
 
 import { useTicketClaimParams } from '@/hooks/useTicketClaimParams';
@@ -26,7 +26,7 @@ export default function TicketPage() {
 
   const [eventInfo, setEventInfo] = useState<FunderEventMetadata>(defaultEventInfo);
   const [ticketInfo, setTicketInfo] = useState<TicketInfoMetadata>(defaultTicketInfo);
-  const [ticketType, setTicketType] = useState<"Basic" | "Sponsor" | "Admin">();
+  const [ticketType, setTicketType] = useState<'Basic' | 'Sponsor' | 'Admin'>();
 
   const [ticketInfoExtra, setTicketInfoExtra] =
     useState<TicketMetadataExtra>(defaultTicketInfoExtra);
@@ -51,13 +51,13 @@ export default function TicketPage() {
           methodName: 'get_drop_information',
           args: { drop_id: keyInfo.drop_id },
         });
-        const factoryAccount = drop.asset_data[1].config.root_account_id
+        const factoryAccount = drop.asset_data[1].config.root_account_id;
         const ticketData = await keypomInstance.viewCall({
           contractId: factoryAccount,
           methodName: 'get_ticket_data',
           args: { drop_id: keyInfo.drop_id },
         });
-        setTicketType(ticketData.account_type)
+        setTicketType(ticketData.account_type);
 
         const maxUses = drop.max_key_uses;
         const curStep = drop.max_key_uses - keyInfo.uses_remaining + 1;
@@ -70,7 +70,7 @@ export default function TicketPage() {
 
         const eventInfo = await keypomInstance.getEventInfo({
           accountId: drop.funder_id,
-          eventId
+          eventId,
         });
 
         console.log('maxUses', maxUses);
@@ -128,7 +128,7 @@ export default function TicketPage() {
   const renderPage = () => {
     switch (ticketType) {
       case 'Basic':
-        console.log("Rendering basic ticket")
+        console.log('Rendering basic ticket');
         return (
           <TicketQRPage
             eventId={eventId}
@@ -142,19 +142,11 @@ export default function TicketPage() {
           />
         );
       case 'Sponsor':
-        console.log("Rendering Sponsor ticket")
-        return (
-          <div>
-            Sponsor
-          </div>
-        );
+        console.log('Rendering Sponsor ticket');
+        return <div>Sponsor</div>;
       case 'Admin':
-        console.log("Rendering Admin ticket")
-        return (
-          <div>
-            Admin
-          </div>
-        );
+        console.log('Rendering Admin ticket');
+        return <div>Admin</div>;
       default:
         return <div>Unknown ticket type</div>;
     }
@@ -164,9 +156,5 @@ export default function TicketPage() {
     return <div>Loading...</div>; // Placeholder for loading state
   }
 
-  return (
-    <div>
-      {renderPage()}
-    </div>
-  );
+  return <div>{renderPage()}</div>;
 }
