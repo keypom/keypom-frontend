@@ -4,7 +4,7 @@ import { getPubFromSecret } from '@keypom/core';
 
 import InConferenceApp from '@/features/conference-app/InConferenceApp';
 import { NotFound404 } from '@/components/NotFound404';
-import keypomInstance from '@/lib/keypom';
+import eventHelperInstance from '@/lib/event';
 import {
   type FunderEventMetadata,
   type EventDrop,
@@ -18,6 +18,7 @@ import {
 import { useConferenceClaimParams } from '@/hooks/useConferenceClaimParams';
 import WelcomePage from '@/features/conference-app/WelcomePage';
 import { ConferenceProvider } from '@/contexts/ConferenceContext';
+import { TOKEN_FACTORY_CONTRACT } from '@/constants/common';
 
 export default function ConferencePageManager() {
   const { secretKey } = useConferenceClaimParams();
@@ -35,7 +36,6 @@ export default function ConferencePageManager() {
   const [curKeyStep, setCurKeyStep] = useState<number>(1);
   const [eventId, setEventId] = useState('');
   const [funderId, setFunderId] = useState('');
-  const [factoryAccount, setFactoryAcccount] = useState('');
   const [ticker, setTicker] = useState<string>('');
   const [tokensToClaim, setTokensToClaim] = useState<string>('');
 
@@ -44,44 +44,39 @@ export default function ConferencePageManager() {
       try {
         setIsLoading(true);
         const pubKey = getPubFromSecret(secretKey);
-        const keyInfo = await keypomInstance.viewCall({
+        const keyInfo = await eventHelperInstance.viewCall({
           methodName: 'get_key_information',
           args: { key: pubKey },
         });
         console.log('Key Info: ', keyInfo);
-        const drop = await keypomInstance.viewCall({
+        const drop = await eventHelperInstance.viewCall({
           methodName: 'get_drop_information',
           args: { drop_id: keyInfo.drop_id },
         });
         console.log('Drop Info: ', drop);
         setDropInfo(drop);
-        let curKeyStep;
-        let factory;
-        if (drop.max_key_uses === 2) {
-          curKeyStep = drop.max_key_uses - keyInfo.uses_remaining + 2;
-          factory = drop?.asset_data[0].config.root_account_id;
-        } else {
-          curKeyStep = drop.max_key_uses - keyInfo.uses_remaining + 1;
-          factory = drop?.asset_data[1].config.root_account_id;
-        }
+        const curKeyStep = drop.max_key_uses - keyInfo.uses_remaining + 1;
         setCurKeyStep(curKeyStep);
 
-        setFactoryAcccount(factory);
-        const tokenInfo = await keypomInstance.viewCall({
-          contractId: factory,
+        const tokenInfo = await eventHelperInstance.viewCall({
+          contractId: TOKEN_FACTORY_CONTRACT,
           methodName: 'ft_metadata',
           args: { drop_id: drop.drop_id },
         });
-        console.log('Token info:', tokenInfo);
+        const ticketInfo = await eventHelperInstance.viewCall({
+          contractId: TOKEN_FACTORY_CONTRACT,
+          methodName: 'get_ticket_data',
+          args: { drop_id: drop.drop_id },
+        });
         setTicker(tokenInfo.symbol);
-        setTokensToClaim(keypomInstance.yoctoToNear(tokenInfo.minted_per_claim));
+        setTokensToClaim(eventHelperInstance.yoctoToNear(ticketInfo.starting_token_balance));
 
         const ticketMetadata = drop.drop_config.nft_keys_config.token_metadata;
         setTicketInfo(ticketMetadata);
         const ticketExtra = JSON.parse(ticketMetadata.extra);
         setTicketInfoExtra(ticketExtra);
 
-        const eventInfo = await keypomInstance.getEventInfo({
+        const eventInfo = await eventHelperInstance.getEventInfo({
           accountId: drop.funder_id,
           eventId: ticketExtra.eventId,
         });
@@ -131,7 +126,6 @@ export default function ConferencePageManager() {
     dropInfo,
     eventId,
     eventInfo,
-    factoryAccount,
     funderId,
     isLoading,
     secretKey,
@@ -144,16 +138,11 @@ export default function ConferencePageManager() {
     case 2:
       return (
         <WelcomePage
-          dropInfo={dropInfo}
-          eventId={eventId}
           eventInfo={eventInfo}
-          factoryAccount={factoryAccount}
-          funderId={funderId}
           isLoading={isLoading}
           secretKey={secretKey}
           ticker={ticker}
           ticketInfo={ticketInfo}
-          ticketInfoExtra={ticketInfoExtra}
           tokensToClaim={tokensToClaim}
         />
       );

@@ -20,7 +20,7 @@ import { IconBox } from '@/components/IconBox';
 import { BoxWithShape } from '@/components/BoxWithShape';
 import { ViewFinder } from '@/components/ViewFinder';
 import { LoadingOverlay } from '@/features/scanner/components/LoadingOverlay';
-import keypomInstance from '@/lib/keypom';
+import eventHelperInstance from '@/lib/event';
 import { useConferenceContext } from '@/contexts/ConferenceContext';
 
 import ScavengerModal from './modals/ScavengerModal';
@@ -37,8 +37,7 @@ interface StateRefObject {
 }
 
 export default function ScanningPage() {
-  const { eventInfo, factoryAccount, isLoading, setTriggerRefetch, accountId, secretKey } =
-    useConferenceContext();
+  const { eventInfo, isLoading, setTriggerRefetch, accountId, secretKey } = useConferenceContext();
 
   const toast = useToast();
 
@@ -113,7 +112,6 @@ export default function ScanningPage() {
 
             const { alreadyClaimed, isScavenger, numFound, numRequired, name, image, amount } =
               await claimEventDrop({
-                factoryAccount,
                 qrDataSplit,
                 accountId,
                 setScanStatus,
@@ -125,7 +123,7 @@ export default function ScanningPage() {
               return;
             }
 
-            const tokenAmount = amount ? keypomInstance.yoctoToNear(amount) : undefined;
+            const tokenAmount = amount ? eventHelperInstance.yoctoToNear(amount) : undefined;
 
             if (isScavenger) {
               setModalType('scavenger');
@@ -290,8 +288,8 @@ export default function ScanningPage() {
           spacing="4"
           w={{ base: '90vw', md: '90%', lg: '80%' }}
         >
-        <IconBox
-            bg='border.box'
+          <IconBox
+            bg="border.box"
             h="full"
             icon={
               <Skeleton isLoaded={!isLoading}>
@@ -392,7 +390,7 @@ export default function ScanningPage() {
                   w="full"
                 >
                   <Text
-                    color='event.h1'
+                    color="event.h1"
                     fontFamily="heading"
                     fontSize={fontSize}
                     fontWeight="600"
@@ -409,7 +407,7 @@ export default function ScanningPage() {
                   >
                     {/* Left column for earning methods */}
                     <Box>
-                    <Text
+                      <Text
                         color="event.h2"
                         fontFamily="heading"
                         fontSize={isHeightGreaterThan800 ? 'lg' : 'md'} // Padding on the top and bottom

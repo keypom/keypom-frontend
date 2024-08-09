@@ -1,5 +1,6 @@
 import React from 'react';
 import { createBrowserRouter } from 'react-router-dom';
+import { ProtectedRoute } from './components/ProtectedRoutes';
 
 const LandingPage = React.lazy(async () => await import('@/features/landing/routes/LandingPage'));
 
@@ -10,6 +11,10 @@ const NotFound404 = React.lazy(
 
 const CoreLayout = React.lazy(
   async () => await import('@/components/CoreLayout').then((mod) => ({ default: mod.CoreLayout })),
+);
+
+const AllEventsPage = React.lazy(
+  async () => await import('./features/all-drops/routes/AllEventsPage'),
 );
 
 const SponsorDashboardPage = React.lazy(
@@ -58,7 +63,7 @@ export const router = createBrowserRouter([
               {
                 path: 'ticket/:id', // Match /events/event/:id
                 element: <TicketPage />,
-              }
+              },
             ],
           },
           {
@@ -68,6 +73,25 @@ export const router = createBrowserRouter([
                 path: 'app/:id', // Match /events/event/:id
                 element: <ConferencePage />,
               },
+            ],
+          },
+          {
+            path: 'events',
+            element: <ProtectedRoute />, // Wrap the AllEventsPage and its dynamic children with ProtectedRoute
+            children: [
+              {
+                index: true,
+                element: <AllEventsPage />, // Display AllEventsPage at /events
+              },
+              {
+                path: 'event/:id', // Match /events/event/:id
+                element: <EventManagerPage />,
+              },
+              {
+                path: 'ticket/:id', // Match /events/ticket/:id
+                element: <TicketDropManagerPage />,
+              },
+              // Add other paths as needed...
             ],
           },
           //  claim structure should be claim/:contractId#secretKey

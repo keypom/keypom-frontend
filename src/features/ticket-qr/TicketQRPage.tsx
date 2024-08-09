@@ -17,13 +17,13 @@ import { IconBox } from '@/components/IconBox';
 import { TicketIcon } from '@/components/Icons';
 import { BoxWithShape } from '@/components/BoxWithShape';
 import { QrDetails } from '@/features/ticket-qr/components/QrDetails';
-import { CLOUDFLARE_IPFS } from '@/constants/common';
+import { CLOUDFLARE_IPFS, EVENT_IMG_DIR_FOLDER_NAME } from '@/constants/common';
 import {
   type TicketInfoMetadata,
   type TicketMetadataExtra,
   type FunderEventMetadata,
 } from '@/lib/eventsHelpers';
-import keypomInstance from '@/lib/keypom';
+import eventHelperInstance from '@/lib/event';
 
 import { dateAndTimeToText } from '../drop-manager/utils/parseDates';
 
@@ -52,10 +52,11 @@ export default function TicketQRPage({
   useEffect(() => {
     const checkForQRScanned = async () => {
       const pubKey = getPubFromSecret(secretKey);
-      const keyInfo: { drop_id: string; uses_remaining: number } = await keypomInstance.viewCall({
-        methodName: 'get_key_information',
-        args: { key: pubKey },
-      });
+      const keyInfo: { drop_id: string; uses_remaining: number } =
+        await eventHelperInstance.viewCall({
+          methodName: 'get_key_information',
+          args: { key: pubKey },
+        });
       console.log('keyInfo', keyInfo);
 
       if (keyInfo.uses_remaining !== 3) {
@@ -74,7 +75,6 @@ export default function TicketQRPage({
 
   return (
     <VStack
-      //backgroundImage={`assets/demos/consensus/background.png`}
       backgroundPosition="center"
       backgroundRepeat="no-repeat"
       backgroundSize="cover"
@@ -96,10 +96,8 @@ export default function TicketQRPage({
             icon={
               <Skeleton isLoaded={!isLoading}>
                 <Image
-                  borderRadius="full"
                   height={{ base: '14', md: '12' }}
-                  src={`/assets/demos/consensus/consensus_logo.png`}
-                  width={{ base: '20', md: '12' }}
+                  src={`/assets/demos/${EVENT_IMG_DIR_FOLDER_NAME}/logo.png`}
                 />
               </Skeleton>
             }
@@ -115,14 +113,7 @@ export default function TicketQRPage({
                 {isLoading ? (
                   <Skeleton height="200px" width="full" />
                 ) : (
-                  <QrDetails
-                    eventId={eventId}
-                    eventInfo={eventInfo!}
-                    funderId={funderId}
-                    qrValue={secretKey}
-                    ticketInfo={ticketInfo!}
-                    ticketInfoExtra={ticketInfoExtra}
-                  />
+                  <QrDetails eventInfo={eventInfo!} qrValue={secretKey} ticketInfo={ticketInfo!} />
                 )}
               </BoxWithShape>
               <Flex
@@ -137,9 +128,9 @@ export default function TicketQRPage({
                   <Image
                     alt={`Event image for ${eventInfo?.name}`}
                     borderRadius="12px"
-                    height="300px"
+                    height="200px"
                     objectFit="contain"
-                    src={`${CLOUDFLARE_IPFS}/${ticketInfo?.media}`}
+                    src={`/assets/demos/${EVENT_IMG_DIR_FOLDER_NAME}/ticket_image.png`}
                   />
                 </Skeleton>
               </Flex>

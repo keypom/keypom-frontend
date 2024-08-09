@@ -1,4 +1,5 @@
-import keypomInstance from '@/lib/keypom';
+import { TOKEN_FACTORY_CONTRACT } from '@/constants/common';
+import eventHelperInstance from '@/lib/event';
 
 export const getDynamicHeightPercentage = (vh: number, thresholds: number[], values: number[]) => {
   if (vh > thresholds[0]) return values[0];
@@ -18,7 +19,6 @@ export const getDynamicHeightPercentage = (vh: number, thresholds: number[], val
 };
 
 export const claimEventDrop = async ({
-  factoryAccount,
   qrDataSplit,
   accountId,
   setScanStatus,
@@ -31,21 +31,17 @@ export const claimEventDrop = async ({
     scavId = qrDataSplit[2];
   }
 
-  console.log('Factory', factoryAccount);
-  console.log('Account: ', accountId);
-
-  const claimedDropInfo = await keypomInstance.viewCall({
-    contractId: factoryAccount,
+  const claimedDropInfo = await eventHelperInstance.viewCall({
+    contractId: TOKEN_FACTORY_CONTRACT,
     methodName: 'get_drop_information',
     args: { drop_id: dropId },
   });
-  console.log('claimed drop info: ', claimedDropInfo);
-  const claimsForAccount: string[] = await keypomInstance.viewCall({
-    contractId: factoryAccount,
+
+  const claimsForAccount: string[] = await eventHelperInstance.viewCall({
+    contractId: TOKEN_FACTORY_CONTRACT,
     methodName: 'claims_for_account',
     args: { account_id: accountId, drop_id: dropId },
   });
-  console.log('claims for account: ', claimsForAccount);
 
   // If it's a scavenger hunt, the scavID will be in the claims for account when claimed
   // If it's a regular drop, when claiming, the drop ID will be in the list as well
@@ -58,12 +54,11 @@ export const claimEventDrop = async ({
     };
   }
 
-  await keypomInstance.claimEventTokenDrop({
+  await eventHelperInstance.claimEventTokenDrop({
     secretKey,
     accountId,
     dropId,
     scavId,
-    factoryAccount,
   });
 
   return {

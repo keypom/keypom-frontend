@@ -22,6 +22,8 @@ export const MASTER_KEY = 'MASTER_KEY';
 
 export const MAX_FILE_SIZE = 10000000;
 
+export const EVENT_IMG_DIR_FOLDER_NAME = 'redacted';
+
 export const WORKER_BASE_URL = 'https://keypom-nft-storage.keypom.workers.dev/';
 export const EVENTS_WORKER_IPFS_PINNING = 'https://stripe-worker.kp-capstone.workers.dev/ipfs-pin';
 export const EVENTS_WORKER_BASE = 'https://stripe-worker.kp-capstone.workers.dev';
@@ -30,9 +32,9 @@ export const EMAIL_WORKER_BASE = 'https://email-worker.kp-capstone.workers.dev';
 export const PAGE_SIZE_LIMIT = 5;
 export const NFT_ATTEMPT_KEY = 'NFT_ATTEMPT';
 export const PAGE_QUERY_PARAM = 'page';
-export const KEYPOM_EVENTS_CONTRACT = '1723225151459-kp-ticketing.testnet';
-export const KEYPOM_MARKETPLACE_CONTRACT = '1723225151459-marketplace.testnet';
-export const TOKEN_FACTORY_CONTRACT = '1723225151459-factory.testnet';
+export const KEYPOM_EVENTS_CONTRACT = '1723235567154-kp-ticketing.testnet';
+export const KEYPOM_MARKETPLACE_CONTRACT = '1723235567154-marketplace.testnet';
+export const TOKEN_FACTORY_CONTRACT = '1723235567154-factory.testnet';
 // export const KEYPOM_EVENTS_CONTRACT = '1711377493739-kp-ticketing.testnet';
 // export const KEYPOM_MARKETPLACE_CONTRACT = '1711377493739-marketplace.testnet';
 

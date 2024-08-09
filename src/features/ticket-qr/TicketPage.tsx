@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom';
 
 import { useTicketClaimParams } from '@/hooks/useTicketClaimParams';
 import { NotFound404 } from '@/components/NotFound404';
-import keypomInstance from '@/lib/keypom';
 import {
   type FunderEventMetadata,
   type TicketInfoMetadata,
@@ -15,6 +14,7 @@ import {
 } from '@/lib/eventsHelpers';
 
 import TicketQRPage from './TicketQRPage';
+import eventHelperInstance from '@/lib/event';
 
 export default function TicketPage() {
   const { secretKey } = useTicketClaimParams();
@@ -43,16 +43,16 @@ export default function TicketPage() {
       try {
         setIsLoading(true);
         const pubKey = getPubFromSecret(secretKey);
-        const keyInfo = await keypomInstance.viewCall({
+        const keyInfo = await eventHelperInstance.viewCall({
           methodName: 'get_key_information',
           args: { key: pubKey },
         });
-        const drop = await keypomInstance.viewCall({
+        const drop = await eventHelperInstance.viewCall({
           methodName: 'get_drop_information',
           args: { drop_id: keyInfo.drop_id },
         });
         const factoryAccount = drop.asset_data[1].config.root_account_id;
-        const ticketData = await keypomInstance.viewCall({
+        const ticketData = await eventHelperInstance.viewCall({
           contractId: factoryAccount,
           methodName: 'get_ticket_data',
           args: { drop_id: keyInfo.drop_id },
@@ -68,7 +68,7 @@ export default function TicketPage() {
         setTicketInfoExtra(ticketExtra);
         const eventId: string = ticketExtra.eventId;
 
-        const eventInfo = await keypomInstance.getEventInfo({
+        const eventInfo = await eventHelperInstance.getEventInfo({
           accountId: drop.funder_id,
           eventId,
         });

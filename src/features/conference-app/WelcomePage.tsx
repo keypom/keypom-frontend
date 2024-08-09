@@ -27,6 +27,7 @@ import {
   type EventDrop,
 } from '@/lib/eventsHelpers';
 import keypomInstance from '@/lib/keypom';
+import { EVENT_IMG_DIR_FOLDER_NAME, TOKEN_FACTORY_CONTRACT } from '@/constants/common';
 
 const sizeConfig = {
   img: {
@@ -71,14 +72,9 @@ const getImgSize = (isLargerThan768, isLargerThan1024) => {
 interface WelcomePageProps {
   eventInfo: FunderEventMetadata;
   ticketInfo?: TicketInfoMetadata;
-  ticketInfoExtra?: TicketMetadataExtra;
-  dropInfo?: EventDrop;
   ticker: string;
   tokensToClaim: string;
   isLoading: boolean;
-  eventId: string;
-  funderId: string;
-  factoryAccount: string;
   secretKey: string;
 }
 
@@ -86,13 +82,8 @@ const accountAddressPatternNoSubaccount = /^([a-z\d]+[-_])*[a-z\d]+$/;
 
 export default function WelcomePage({
   eventInfo,
-  ticketInfoExtra,
-  dropInfo,
   ticketInfo,
   isLoading,
-  factoryAccount,
-  eventId,
-  funderId,
   ticker,
   tokensToClaim,
   secretKey,
@@ -128,7 +119,7 @@ export default function WelcomePage({
       return;
     }
 
-    const accountId = `${username}.${factoryAccount}`;
+    const accountId = `${username}.${TOKEN_FACTORY_CONTRACT}`;
     try {
       setIsClaiming(true);
       await keypomInstance.claimEventTicket(
@@ -159,7 +150,7 @@ export default function WelcomePage({
       return false;
     }
     try {
-      const accountId = `${username}.${factoryAccount}`;
+      const accountId = `${username}.${TOKEN_FACTORY_CONTRACT}`;
       console.log('Checking username', accountId);
       const doesExist = await accountExists(accountId);
       console.log('Does exist', doesExist);
@@ -177,7 +168,6 @@ export default function WelcomePage({
 
   return (
     <Flex
-      backgroundImage={`assets/demos/consensus/background.png`}
       backgroundPosition="center"
       backgroundRepeat="no-repeat"
       backgroundSize="cover"
@@ -203,7 +193,7 @@ export default function WelcomePage({
                   <Image
                     borderRadius="full"
                     height={{ base: '14', md: '12' }}
-                    src={`/assets/demos/consensus/consensus_logo.png`}
+                    src={`/assets/demos/${EVENT_IMG_DIR_FOLDER_NAME}/logo.png`}
                     width={{ base: '20', md: '12' }}
                   />
                 </Skeleton>
@@ -296,7 +286,7 @@ export default function WelcomePage({
                           height={imgSize.h}
                           mb="2"
                           objectFit="contain"
-                          src={`/assets/demos/consensus/${ticketInfo?.media}`}
+                          src={`/assets/demos/${EVENT_IMG_DIR_FOLDER_NAME}/${ticketInfo?.media}`}
                         />
                       </Skeleton>
                       <Heading
@@ -438,7 +428,7 @@ export default function WelcomePage({
                     fontSize={fontSize.button}
                     fontWeight="500"
                     h="48px"
-                    isDisabled={!isValidUsername}
+                    isDisabled={!isValidUsername || !username}
                     isLoading={isClaiming}
                     sx={{
                       _hover: {

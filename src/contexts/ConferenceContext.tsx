@@ -25,6 +25,7 @@ import AgendaPage from '@/features/conference-app/AgendaPage';
 import ScanningPage from '@/features/conference-app/ScanningPage';
 import AssetsPageManager from '@/features/conference-app/AssetsPages/AssetsPageManager';
 import { CameraIcon } from '@/components/Icons/CameraIcon';
+import { TOKEN_FACTORY_CONTRACT } from '@/constants/common';
 
 export const conferenceFooterMenuItems = [
   {
@@ -74,7 +75,6 @@ interface ConferenceContextProps {
   funderId: string;
   ticker: string;
   secretKey: string;
-  factoryAccount: string;
   accountId: string;
   tokensAvailable: string;
   setTriggerRefetch: Dispatch<SetStateAction<number>>;
@@ -114,7 +114,7 @@ export const ConferenceProvider = ({
   const [selectedTab, setSelectedTab] = useState<number>(
     initialTab !== -1 ? initialTab : conferenceFooterMenuIndexes.profile,
   ); // Initialized to profile
-  const { dropInfo, factoryAccount, isLoading, secretKey } = initialData;
+  const { dropInfo, isLoading, secretKey } = initialData;
 
   const onSelectTab = (tab: number, subtab?: string) => {
     if (subtab) {
@@ -129,16 +129,15 @@ export const ConferenceProvider = ({
 
   useEffect(() => {
     const recoverAccount = async () => {
-      if (!isLoading && dropInfo.drop_id !== 'loading' && factoryAccount.length !== 0) {
+      if (!isLoading && dropInfo.drop_id !== 'loading') {
         console.log('Secret Key: ', secretKey);
-        console.log('Factory Account: ', factoryAccount);
         const recoveredAccountId = await keypomInstance.viewCall({
-          contractId: factoryAccount,
+          contractId: TOKEN_FACTORY_CONTRACT,
           methodName: 'recover_account',
           args: { key: getPubFromSecret(secretKey) },
         });
         const balance = await keypomInstance.viewCall({
-          contractId: factoryAccount,
+          contractId: TOKEN_FACTORY_CONTRACT,
           methodName: 'ft_balance_of',
           args: { account_id: recoveredAccountId },
         });
@@ -149,7 +148,7 @@ export const ConferenceProvider = ({
       }
     };
     recoverAccount();
-  }, [dropInfo, factoryAccount, isLoading, secretKey, triggerRefetch, selectedTab]);
+  }, [dropInfo, isLoading, secretKey, triggerRefetch, selectedTab]);
 
   return (
     <ConferenceContext.Provider

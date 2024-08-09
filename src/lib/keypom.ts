@@ -177,7 +177,7 @@ class KeypomJS {
   nearToYocto = (near: string) => nearAPI.utils.format.parseNearAmount(near);
 
   viewCall = async ({ contractId = KEYPOM_EVENTS_CONTRACT, methodName, args }) => {
-    const res = await this.viewAccount.viewFunctionV2({
+    const res = await this.viewAccount.viewFunction({
       contractId,
       methodName,
       args,
@@ -186,7 +186,7 @@ class KeypomJS {
   };
 
   getResalesForEvent = async ({ eventId }) => {
-    return await this.viewAccount.viewFunctionV2({
+    return await this.viewAccount.viewFunction({
       contractId: KEYPOM_MARKETPLACE_CONTRACT,
       methodName: 'get_resales_per_event',
       args: { event_id: eventId },
@@ -194,7 +194,7 @@ class KeypomJS {
   };
 
   GetGlobalKey = async () => {
-    return await this.viewAccount.viewFunctionV2({
+    return await this.viewAccount.viewFunction({
       contractId: KEYPOM_EVENTS_CONTRACT,
       methodName: 'get_global_secret_key',
       args: {},
@@ -224,12 +224,12 @@ class KeypomJS {
   GenerateResellSignature = async (keypair) => {
     const sk_bytes = bs58.decode(keypair.secretKey);
 
-    const signing_message = await this.viewAccount.viewFunctionV2({
+    const signing_message = await this.viewAccount.viewFunction({
       contractId: KEYPOM_EVENTS_CONTRACT,
       methodName: 'get_signing_message',
       args: {},
     });
-    const key_info = await this.viewAccount.viewFunctionV2({
+    const key_info = await this.viewAccount.viewFunction({
       contractId: KEYPOM_EVENTS_CONTRACT,
       methodName: 'get_key_information',
       args: {
@@ -276,7 +276,7 @@ class KeypomJS {
         const batchEnd = Math.min(i + MARKETPLACE_ITEMS_PER_QUERY, endIndex);
         if (this.allEventsGallery.slice(batchStart, batchEnd).some((item) => item === null)) {
           // If any item in the range is null, fetch the batch
-          const answer: MarketListing[] = await this.viewAccount.viewFunctionV2({
+          const answer: MarketListing[] = await this.viewAccount.viewFunction({
             contractId: KEYPOM_MARKETPLACE_CONTRACT,
             methodName: 'get_events',
             args: { from_index: batchStart, limit: batchEnd - batchStart },
@@ -319,7 +319,7 @@ class KeypomJS {
   //     return cached;
   //   }
 
-  //   const answer: MarketListing[] = await this.viewAccount.viewFunctionV2({
+  //   const answer: MarketListing[] = await this.viewAccount.viewFunction({
   //     contractId,
   //     methodName: 'get_events',
   //     args: { limit, from_index },
@@ -375,7 +375,7 @@ class KeypomJS {
   };
 
   getCurrentKeyOwner = async (contractId: string, publicKey: string) => {
-    const keyInfo = await this.viewAccount.viewFunctionV2({
+    const keyInfo = await this.viewAccount.viewFunction({
       contractId: KEYPOM_EVENTS_CONTRACT,
       methodName: 'get_key_information',
       args: { key: publicKey },
@@ -462,12 +462,12 @@ class KeypomJS {
     );
 
     const sk_bytes = bs58.decode(secretKey);
-    const signingMessage = await this.viewAccount.viewFunctionV2({
+    const signingMessage = await this.viewAccount.viewFunction({
       contractId: KEYPOM_EVENTS_CONTRACT,
       methodName: 'get_signing_message',
       args: {},
     });
-    const keyInfo = await this.viewAccount.viewFunctionV2({
+    const keyInfo = await this.viewAccount.viewFunction({
       contractId: KEYPOM_EVENTS_CONTRACT,
       methodName: 'get_key_information',
       args: {
@@ -590,7 +590,7 @@ class KeypomJS {
   };
 
   getEventSupply = async () => {
-    return await this.viewAccount.viewFunctionV2({
+    return await this.viewAccount.viewFunction({
       contractId: KEYPOM_MARKETPLACE_CONTRACT,
       methodName: 'get_event_supply',
       args: {},
@@ -803,7 +803,7 @@ class KeypomJS {
 
       return events;
     } catch (error) {
-      throw new Error('Failed to fetch drops.');
+      throw new Error('Failed to fetch drops: ', error);
     }
   };
 
@@ -867,7 +867,7 @@ class KeypomJS {
   };
 
   getTicketKeyInformation = async ({ publicKey }: { publicKey: string }) => {
-    const fetchedinfo = await this.viewAccount.viewFunctionV2({
+    const fetchedinfo = await this.viewAccount.viewFunction({
       contractId: KEYPOM_EVENTS_CONTRACT,
       methodName: 'get_key_information',
       args: {

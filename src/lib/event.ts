@@ -1,9 +1,15 @@
 import * as nearAPI from 'near-api-js';
-import { KEYPOM_EVENTS_CONTRACT, TOKEN_FACTORY_CONTRACT } from '@/constants/common';
+import {
+  CLOUDFLARE_IPFS,
+  KEYPOM_EVENTS_CONTRACT,
+  TOKEN_FACTORY_CONTRACT,
+} from '@/constants/common';
 import getConfig from '@/config/config';
 import { CreatedDropForm } from '@/features/conference-dashboard/components/CreateDropModal';
+import { FunderEventMetadata } from './eventsHelpers';
+import { decryptPrivateKey, decryptWithPrivateKey, deriveKeyFromPassword } from './cryptoHelpers';
 
-let instance: KeypomJS;
+let instance: EventJS;
 const networkId = process.env.REACT_APP_NETWORK_ID ?? 'testnet';
 
 const myKeyStore = new nearAPI.keyStores.BrowserLocalStorageKeyStore();
@@ -78,7 +84,7 @@ class EventJS {
   nearToYocto = (near: string) => nearAPI.utils.format.parseNearAmount(near);
 
   viewCall = async ({ contractId = KEYPOM_EVENTS_CONTRACT, methodName, args }) => {
-    const res = await this.viewAccount.viewFunctionV2({
+    const res = await this.viewAccount.viewFunction({
       contractId,
       methodName,
       args,
@@ -110,6 +116,50 @@ class EventJS {
         amount,
       },
     });
+  };
+
+  getDerivedPrivKey = async ({ encryptedPk, pw, saltBase64, ivBase64 }) => {
+    // Step 3: Derive a symmetric key from the password
+    const symmetricKey = await deriveKeyFromPassword(pw, saltBase64);
+    // Step 5: Decrypt the private key using the symmetric key
+    const decryptedPrivateKey = await decryptPrivateKey(encryptedPk, ivBase64, symmetricKey);
+    return decryptedPrivateKey;
+  };
+
+  decryptMetadata = async ({ privKey, data }) => {
+    // Step 6: Decrypt the encrypted data using the decrypted private key
+    const decryptedData = await decryptWithPrivateKey(data, privKey);
+    return decryptedData;
+  };
+
+  getEventInfo = async ({
+    accountId,
+    eventId,
+  }: {
+    accountId: string;
+    eventId: string;
+  }): Promise<FunderEventMetadata | null> => {
+    try {
+      const funderInfo = await this.viewCall({
+        methodName: 'get_funder_info',
+        args: { account_id: accountId },
+      });
+
+      const funderMeta: Record<string, FunderEventMetadata> = JSON.parse(funderInfo.metadata);
+      let eventInfo: FunderEventMetadata = funderMeta[eventId];
+
+      if (eventInfo === undefined || eventInfo === null) {
+        throw new Error(`Event ${String(eventId)} not exist`);
+      }
+
+      eventInfo.artwork = `${CLOUDFLARE_IPFS}/${eventInfo.artwork}`;
+
+      return eventInfo;
+    } catch (error) {
+      /* eslint-disable no-console */
+      console.warn('Error getting event info', error);
+      return null;
+    }
   };
 
   deleteConferenceDrop = async ({
