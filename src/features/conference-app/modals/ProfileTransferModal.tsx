@@ -23,12 +23,13 @@ import {
 import { useState, useEffect, useRef } from 'react';
 import { accountExists } from '@keypom/core';
 
-import keypomInstance from '@/lib/keypom';
+import eventHelperInstance from '@/lib/event';
 import { DeleteTextIcon } from '@/components/Icons/DeleteTextIcon';
 import { conferenceFooterMenuIndexes, useConferenceContext } from '@/contexts/ConferenceContext';
 import { CameraIcon } from '@/components/Icons/CameraIcon';
 
 import { formatTokensAvailable } from '../AssetsPages/AssetsHome';
+import { TOKEN_FACTORY_CONTRACT } from '@/constants/common';
 
 interface ProfileTransferModalProps {
   isOpen: boolean;
@@ -44,11 +45,9 @@ const ProfileTransferModal = ({
   initialSendTo = '',
 }: ProfileTransferModalProps) => {
   const {
-    eventInfo,
     accountId: curAccountId,
     secretKey,
     onSelectTab,
-    factoryAccount,
     ticker,
     setTriggerRefetch,
   } = useConferenceContext();
@@ -65,12 +64,12 @@ const ProfileTransferModal = ({
   const inputRef = useRef<HTMLInputElement>(null);
 
   const fetchBalance = async () => {
-    const balance = await keypomInstance.viewCall({
-      contractId: factoryAccount,
+    const balance = await eventHelperInstance.viewCall({
+      contractId: TOKEN_FACTORY_CONTRACT,
       methodName: 'ft_balance_of',
       args: { account_id: curAccountId },
     });
-    setTokensAvailable(keypomInstance.yoctoToNearWith4Decimals(balance));
+    setTokensAvailable(eventHelperInstance.yoctoToNearWith4Decimals(balance));
   };
 
   useEffect(() => {
@@ -109,7 +108,7 @@ const ProfileTransferModal = ({
   };
 
   const handleConfirm = async () => {
-    const accountId = `${sendTo}.${factoryAccount}`;
+    const accountId = `${sendTo}.${TOKEN_FACTORY_CONTRACT}`;
     const validAccount = await checkAccountValidity(accountId);
     if (!validAccount) {
       setIsValidAccount(false);
@@ -130,12 +129,10 @@ const ProfileTransferModal = ({
 
     try {
       setIsSending(true);
-      await keypomInstance.sendConferenceTokens({
+      await eventHelperInstance.sendConferenceTokens({
         secretKey,
-        accountId: curAccountId,
         sendTo: accountId,
-        amount: keypomInstance.nearToYocto(amount)!,
-        factoryAccount,
+        amount: eventHelperInstance.nearToYocto(amount)!,
       });
       toast({
         title: 'Transfer successful',
@@ -213,7 +210,7 @@ const ProfileTransferModal = ({
     if (!sendTo) {
       return false;
     }
-    const accountId = `${sendTo}.${factoryAccount}`;
+    const accountId = `${sendTo}.${TOKEN_FACTORY_CONTRACT}`;
     console.log('Checking username', accountId);
     const doesExist = await accountExists(accountId);
     console.log('Does exist', doesExist);

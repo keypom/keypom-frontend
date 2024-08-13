@@ -1,10 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import {
   Box,
   Center,
   Flex,
   Heading,
-  Image,
   Skeleton,
   Text,
   VStack,
@@ -14,60 +13,48 @@ import {
   CircularProgressLabel,
   Tooltip,
   Divider,
+  Image,
 } from '@chakra-ui/react';
 import { CheckIcon, LockIcon } from '@chakra-ui/icons';
 
 import { IconBox } from '@/components/IconBox';
-import { TicketIcon } from '@/components/Icons';
 import { BoxWithShape } from '@/components/BoxWithShape';
-import keypomInstance from '@/lib/keypom';
 import { useConferenceContext } from '@/contexts/ConferenceContext';
 import { BackIcon } from '@/components/BackIcon';
-
-interface NFTData {
-  nft: NFTMetadata;
-  owned: boolean;
-}
-
-interface NFTMetadata {
-  image: string;
-  name: string;
-}
-
-interface NFTCardProps {
-  nft: NFTMetadata;
-  isOwned: boolean;
-}
+import eventHelperInstance, { ExtDropData, ExtClaimedDrop } from '@/lib/event';
+import { TOKEN_FACTORY_CONTRACT } from '@/constants/common';
 
 const CollectiblesPage: React.FC = () => {
-  const { accountId, factoryAccount, eventInfo, dropInfo, isLoading, onSelectTab } =
-    useConferenceContext();
-  const [nfts, setNFTs] = useState<NFTData[]>([]);
+  const { accountId, eventInfo, isLoading, onSelectTab } = useConferenceContext();
+  const [ownedNFTs, setOwnedNFTs] = useState<ExtClaimedDrop[]>([]);
+  const [unownedNFTs, setUnownedNFTs] = useState<ExtDropData[]>([]);
+  const [isLoadingUnowned, setIsLoadingUnowned] = useState(false);
+
+  const fetchNFTs = useCallback(async () => {
+    try {
+      const owned: ExtClaimedDrop[] = await eventHelperInstance.viewCall({
+        contractId: TOKEN_FACTORY_CONTRACT,
+        methodName: 'get_claimed_nfts_for_account',
+        args: { account_id: accountId },
+      });
+      setOwnedNFTs(owned);
+
+      const unowned = await eventHelperInstance.getCachedNFTDrops();
+      setUnownedNFTs(unowned);
+    } catch (error) {
+      console.error('Error fetching NFTs:', error);
+    } finally {
+      setIsLoadingUnowned(false);
+    }
+  }, [accountId]);
 
   useEffect(() => {
     if (!accountId) return;
 
-    const getNFTs = async () => {
-      const nftDrops = await keypomInstance.viewCall({
-        contractId: factoryAccount,
-        methodName: 'get_nfts_for_account',
-        args: { account_id: accountId },
-      });
+    fetchNFTs();
+  }, [accountId, fetchNFTs]);
 
-      const sortedNFTDrops = nftDrops.sort((a, b) => b.is_owned - a.is_owned);
-
-      const parsedNFTs = sortedNFTDrops.map((nftData) => ({
-        nft: nftData.nft,
-        owned: nftData.is_owned,
-      }));
-
-      setNFTs(parsedNFTs);
-    };
-
-    getNFTs();
-  }, [accountId, dropInfo]);
-
-  const NFTCard: React.FC<NFTCardProps> = ({ nft, isOwned }: NFTCardProps) => {
+  const NFTCard: React.FC<{ drop_data: ExtDropData; isOwned: boolean }> = ({ drop_data, isOwned }) => {
     const cardStyle = {
       position: 'relative' as const,
       w: '100%',
@@ -101,12 +88,12 @@ const CollectiblesPage: React.FC = () => {
       <Box {...cardStyle}>
         <Flex {...imageContainerStyle}>
           <Image
-            alt={nft.name}
+            alt={drop_data?.name}
             borderRadius="md"
             boxSize="full"
             filter={isOwned ? 'none' : 'blur(4px)'}
             objectFit="cover"
-            src={`/assets/demos/consensus/${nft.image}`}
+            src={drop_data?.image}
           />
           {!isOwned && <LockIcon {...lockIconStyle} />}
         </Flex>
@@ -117,7 +104,7 @@ const CollectiblesPage: React.FC = () => {
           fontWeight="400"
           textAlign="center"
         >
-          {nft.name}
+          {drop_data?.name}
         </Text>
         {isOwned && <CheckIcon color="green.500" position="absolute" right="2" top="2" />}
         {isOwned && (
@@ -137,9 +124,8 @@ const CollectiblesPage: React.FC = () => {
     );
   }
 
-  const ownedNFTs = nfts.filter((nft) => nft.owned);
-  const unownedNFTs = nfts.filter((nft) => !nft.owned);
-  const progressValue = nfts.length > 0 ? (ownedNFTs.length / nfts.length) * 100 : 0;
+  const progressValue =
+    ownedNFTs.length > 0 ? (ownedNFTs.length / (ownedNFTs.length + unownedNFTs.length)) * 100 : 0;
 
   return (
     <Center h="78vh">
@@ -151,25 +137,25 @@ const CollectiblesPage: React.FC = () => {
         w={{ base: '90vw', md: '90%', lg: '80%' }}
       >
         <IconBox
-          bg='border.box'
+          bg="border.box"
           icon={
             <Skeleton isLoaded={!isLoading}>
-                <CircularProgress
+              <CircularProgress
+                color="event.h1"
+                size="60px"
+                thickness="12px"
+                trackColor="gray.200"
+                value={progressValue}
+              >
+                <CircularProgressLabel
                   color="event.h1"
-                  size="60px"
-                  thickness="12px"
-                  trackColor="gray.200"
-                  value={progressValue}
+                  fontFamily="heading"
+                  fontSize="lg"
+                  fontWeight="500"
                 >
-                  <CircularProgressLabel
-                    color="event.h1"
-                    fontFamily="heading"
-                    fontSize="lg"
-                    fontWeight="500"
-                  >
-                    {Math.round(progressValue)}%
-                  </CircularProgressLabel>
-                </CircularProgress>
+                  {Math.round(progressValue)}%
+                </CircularProgressLabel>
+              </CircularProgress>
             </Skeleton>
           }
           iconBg={'event.iconBg'}
@@ -182,41 +168,86 @@ const CollectiblesPage: React.FC = () => {
           <Box h="calc(78vh - 10vh)" overflowY="auto">
             <BackIcon eventInfo={eventInfo} onSelectTab={onSelectTab} />
             <BoxWithShape bg="white" borderTopRadius="8xl" showNotch={false} w="full">
-              {isLoading ? (
-                <Skeleton height="200px" width="full" />
+              {isLoadingUnowned ? (
+                <Center py={8}>
+                  <CircularProgress isIndeterminate color="event.h1" />
+                </Center>
               ) : (
-                <Flex
-                  align="center"
-                  flexDir="column"
-                  h="full"
-                  pb={{ base: '2', md: '5' }}
-                  pt={{ base: '10', md: '16' }}
-                  px={{ base: '10', md: '8' }}
-                >
-                  <Tooltip label={`You have ${ownedNFTs.length} of ${nfts.length} collectibles`}>
-                    <Text
-                      color="event.h3"
-                      fontFamily="heading"
-                      fontSize="sm"
-                      fontWeight="400"
-                      textAlign="center"
+                <>
+                  <Flex
+                    align="center"
+                    flexDir="column"
+                    h="full"
+                    pb={{ base: '2', md: '5' }}
+                    pt={{ base: '10', md: '16' }}
+                    px={{ base: '10', md: '8' }}
+                  >
+                    <Tooltip
+                      label={`You have ${ownedNFTs.length} of ${
+                        ownedNFTs.length + unownedNFTs.length
+                      } collectibles`}
                     >
-                      {ownedNFTs.length} of {nfts.length} Found
-                    </Text>
-                  </Tooltip>
-                  <Divider my="2" />
-                  <Box flex="1" textAlign="left" width="100%">
-                    <Heading
-                      color="event.h1"
-                      fontFamily="heading"
-                      fontSize="2xl"
-                      fontWeight="600"
-                      textAlign="center"
-                    >
-                      Found ({ownedNFTs.length})
-                    </Heading>
-                  </Box>
-                  {ownedNFTs.length > 0 ? (
+                      <Text
+                        color="event.h3"
+                        fontFamily="heading"
+                        fontSize="sm"
+                        fontWeight="400"
+                        textAlign="center"
+                      >
+                        {ownedNFTs.length} of {ownedNFTs.length + unownedNFTs.length} Found
+                      </Text>
+                    </Tooltip>
+                    <Divider my="2" />
+                    <Box flex="1" textAlign="left" width="100%">
+                      <Heading
+                        color="event.h1"
+                        fontFamily="heading"
+                        fontSize="2xl"
+                        fontWeight="600"
+                        textAlign="center"
+                      >
+                        Found ({ownedNFTs.length})
+                      </Heading>
+                    </Box>
+                    {ownedNFTs.length > 0 ? (
+                      <SimpleGrid
+                        columns={{ base: 2, md: 3, lg: 4 }}
+                        justifyContent="center"
+                        justifyItems="center"
+                        px={{ base: 2, md: 4, lg: 6 }}
+                        spacing={4}
+                        width="100%"
+                      >
+                        {ownedNFTs.map((nft) => (
+                          <NFTCard key={nft?.drop_id} isOwned={true} drop_data={nft} />
+                        ))}
+                      </SimpleGrid>
+                    ) : (
+                      <Center>
+                        <Text
+                          color="event.h3"
+                          fontFamily="heading"
+                          fontSize="sm"
+                          fontWeight="400"
+                          textAlign="center"
+                        >
+                          You haven't found any collectibles yet.
+                        </Text>
+                      </Center>
+                    )}
+                  </Flex>
+                  <Flex flexDir="column" justifyContent="space-between" px="6" py="4" w="full">
+                    <Box flex="1" textAlign="left">
+                      <Heading
+                        color="event.h1"
+                        fontFamily="heading"
+                        fontSize="2xl"
+                        fontWeight="600"
+                        textAlign="center"
+                      >
+                        Not Found ({unownedNFTs.length})
+                      </Heading>
+                    </Box>
                     <SimpleGrid
                       columns={{ base: 2, md: 3, lg: 4 }}
                       justifyContent="center"
@@ -225,52 +256,14 @@ const CollectiblesPage: React.FC = () => {
                       spacing={4}
                       width="100%"
                     >
-                      {ownedNFTs.map((nft) => (
-                        <NFTCard key={nft.nft.name} isOwned={nft.owned} nft={nft.nft} />
+                      {unownedNFTs.map((nft) => (
+                        <NFTCard key={nft.drop_id} isOwned={false} drop_data={nft} />
                       ))}
                     </SimpleGrid>
-                  ) : (
-                    <Center>
-                      <Text
-                        color="event.h3"
-                        fontFamily="heading"
-                        fontSize="sm"
-                        fontWeight="400"
-                        textAlign="center"
-                      >
-                        You haven't found any collectibles yet.
-                      </Text>
-                    </Center>
-                  )}
-                </Flex>
+                  </Flex>
+                </>
               )}
             </BoxWithShape>
-
-            <Flex flexDir="column" justifyContent="space-between" px="6" py="4" w="full">
-              <Box flex="1" textAlign="left">
-                <Heading
-                  color="event.h1"
-                  fontFamily="heading"
-                  fontSize="2xl"
-                  fontWeight="600"
-                  textAlign="center"
-                >
-                  Not Found ({unownedNFTs.length})
-                </Heading>
-              </Box>
-              <SimpleGrid
-                columns={{ base: 2, md: 3, lg: 4 }}
-                justifyContent="center"
-                justifyItems="center"
-                px={{ base: 2, md: 4, lg: 6 }}
-                spacing={4}
-                width="100%"
-              >
-                {unownedNFTs.map((nft) => (
-                  <NFTCard key={nft.nft.name} isOwned={nft.owned} nft={nft.nft} />
-                ))}
-              </SimpleGrid>
-            </Flex>
           </Box>
         </IconBox>
       </VStack>

@@ -17,8 +17,7 @@ import {
   MenuList,
   useDisclosure,
 } from '@chakra-ui/react';
-import { useEffect, useState, useMemo, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useState, useMemo } from 'react';
 import QRCode from 'qrcode';
 
 import { DeleteIcon, LinkIcon, NFTIcon } from '@/components/Icons';
@@ -34,9 +33,9 @@ import { formatTokensAvailable } from '@/features/conference-app/AssetsPages/Ass
 import eventHelperInstance from '@/lib/event';
 
 import { CreateDropModal } from '../components/CreateDropModal/CreateDropModal';
-import { useSponsorDashboardParams } from '../utils/utils';
 import QRViewerModal from '../components/QRViewerModal';
-import { CreatedDropForm } from '../components/CreateDropModal';
+import { Wallet } from '@near-wallet-selector/core';
+import { useAuthWalletContext } from '@/contexts/AuthWalletContext';
 
 export interface ScavengerHunt {
   piece: string;
@@ -59,6 +58,10 @@ export interface CreatedNFTConferenceDrop {
 export interface CreatedTokenConferenceDrop {
   base: ConferenceDropBase;
   amount: string;
+}
+
+function isTokenDrop(item: CreatedConferenceDrop): item is CreatedTokenConferenceDrop {
+  return (item as CreatedTokenConferenceDrop).amount !== undefined;
 }
 
 export type GetTicketDataFn = (
@@ -113,35 +116,56 @@ const capitalizeFirstLetter = (string) => {
 };
 
 const SponsorDashboardPage = () => {
-  const { sponsorAccountId, secretKey } = useSponsorDashboardParams();
-  const navigate = useNavigate();
   const { setAppModal } = useAppContext();
+  const { selector, account } = useAuthWalletContext();
+
   const [isLoading, setIsLoading] = useState(true);
   const [isErr, setIsErr] = useState(false);
   const [isCreateDropModalOpen, setIsCreateDropModalOpen] = useState(false);
   const [tokensAvailable, setTokensAvailable] = useState<string>();
+  const [accountId, setAccountId] = useState<string>();
   const [dropsCreated, setDropsCreated] = useState<CreatedConferenceDrop[]>([]);
   const [dropType, setDropType] = useState<'nft' | 'token'>('token');
   const toast = useToast();
-  const popoverClicked = useRef(0);
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [qrCodeUrls, setQrCodeUrls] = useState<string[]>([]);
+  const [wallet, setWallet] = useState<Wallet>();
+
+  useEffect(() => {
+    async function fetchWallet() {
+      if (!selector) return;
+      try {
+        const wallet = await selector.wallet();
+        setWallet(wallet);
+      } catch (error) {
+        console.error('Error fetching wallet:', error);
+      }
+    }
+
+    fetchWallet();
+  }, [selector]);
 
   const getAccountInformation = async () => {
     try {
+      const recoveredAccount = await eventHelperInstance.viewCall({
+        contractId: TOKEN_FACTORY_CONTRACT,
+        methodName: 'recover_account',
+        args: { key: account?.public_key },
+      });
+      setAccountId(recoveredAccount);
+
       const tokens = await eventHelperInstance.viewCall({
         contractId: TOKEN_FACTORY_CONTRACT,
         methodName: 'ft_balance_of',
-        args: { account_id: sponsorAccountId },
+        args: { account_id: recoveredAccount },
       });
       setTokensAvailable(eventHelperInstance.yoctoToNearWith4Decimals(tokens));
 
       const drops = await eventHelperInstance.viewCall({
         contractId: TOKEN_FACTORY_CONTRACT,
         methodName: 'get_drops_created_by_account',
-        args: { account_id: sponsorAccountId },
+        args: { account_id: recoveredAccount },
       });
-      console.log(drops);
       setDropsCreated(drops);
     } catch (e) {
       console.error(e);
@@ -152,14 +176,13 @@ const SponsorDashboardPage = () => {
   };
 
   useEffect(() => {
-    if (!sponsorAccountId || !secretKey) return;
+    if (!account) return;
     getAccountInformation();
-  }, [sponsorAccountId, secretKey]);
+  }, [account]);
 
   const handleDeleteClick = async (dropId) => {
     const deletionArgs = {
-      accountId: sponsorAccountId,
-      secretKey,
+      wallet,
       dropId,
       setAppModal,
       getAccountInformation,
@@ -195,11 +218,11 @@ const SponsorDashboardPage = () => {
           </VStack>
         </HStack>
       ),
-      type: item.amount !== undefined ? 'Token' : 'NFT',
+      type: isTokenDrop(item) ? 'Token' : 'NFT',
       numClaimed: item.base.num_claimed,
       numPieces: item.base.scavenger_hunt ? item.base.scavenger_hunt.length : 'None',
       reward:
-        item.amount !== undefined ? (
+        isTokenDrop(item) ? (
           eventHelperInstance.yoctoToNearWith4Decimals(item.amount)
         ) : (
           <Image
@@ -218,7 +241,7 @@ const SponsorDashboardPage = () => {
             variant="icon"
             onClick={(e) => {
               e.stopPropagation();
-              generateQRCode(item.base.id, item.base.scavenger_hunt);
+              generateQRCode(item.base.id, isTokenDrop(item) ? 'token' : 'nft', item.base.scavenger_hunt);
               onOpen();
             }}
           >
@@ -240,22 +263,17 @@ const SponsorDashboardPage = () => {
     }));
   };
 
-  const generateQRCode = async (dropId: string, scavengerHunt?: ScavengerHunt[]) => {
-    console.log('Calling generateQRCode', dropId, scavengerHunt);
+  const generateQRCode = async (dropId: string, type: 'nft' | 'token', scavengerHunt?: ScavengerHunt[]) => {
     try {
       if (scavengerHunt && scavengerHunt.length > 0) {
-        // Generate QR codes for scavenger hunt
         const qrCodes = await Promise.all(
-          scavengerHunt.map(({ piece }) => QRCode.toDataURL(`${dropId}:${piece}`)),
+          scavengerHunt.map(({ piece }) => QRCode.toDataURL(`${type}:${dropId}:${piece}`)),
         );
         setQrCodeUrls(qrCodes);
       } else {
-        // Generate single QR code
-        const url = await QRCode.toDataURL(dropId);
+        const url = await QRCode.toDataURL(`${type}:${dropId}`);
         setQrCodeUrls([url]);
       }
-      console.log('qrCodeUrls', qrCodeUrls);
-
       onOpen();
     } catch (err) {
       console.error(err);
@@ -285,7 +303,7 @@ const SponsorDashboardPage = () => {
   const data = useMemo(() => getTableRows(dropsCreated, handleDeleteClick), [dropsCreated]);
 
   const handleCreateDropClose = async (
-    dropCreated: CreatedDropForm | undefined,
+    dropCreated: any,
     isScavengerHunt: boolean,
     scavengerHunt: Array<{ piece: string; description: string }>,
     setIsModalLoading: (loading: boolean) => void,
@@ -293,14 +311,12 @@ const SponsorDashboardPage = () => {
     if (dropCreated) {
       setIsModalLoading(true);
       try {
-        const dropId = await eventHelperInstance.createConferenceDrop({
-          secretKey,
+        const {dropId, completeScavengerHunt} = await eventHelperInstance.createConferenceDrop({
+          wallet: wallet!,
           createdDrop: dropCreated,
           isScavengerHunt,
           scavengerHunt,
-          accountId: sponsorAccountId!,
         });
-        console.log('dropId', dropId);
         toast({
           title: 'Drop created successfully.',
           status: 'success',
@@ -308,10 +324,11 @@ const SponsorDashboardPage = () => {
           isClosable: true,
         });
         await getAccountInformation(); // Refresh the drop list
+        const type = isTokenDrop(dropCreated) ? 'token' : 'nft';
         if (isScavengerHunt) {
-          generateQRCode(dropId, scavengerHunt); // Pass scavenger hunt data
+          generateQRCode(dropId, type, completeScavengerHunt);
         } else {
-          generateQRCode(dropId); // Single QR code
+          generateQRCode(dropId, type);
         }
       } catch (e) {
         console.error('Error creating drop:', e);
@@ -332,14 +349,10 @@ const SponsorDashboardPage = () => {
     return (
       <NotFound404
         cta="Return to homepage"
-        header="Event Not Found"
-        subheader="Please check the URL and try again."
+        header="Account Unauthorized"
+        subheader="Check the signed in account and try again later."
       />
     );
-  }
-
-  if (isLoading) {
-    return <Spinner />;
   }
 
   return (
@@ -349,10 +362,18 @@ const SponsorDashboardPage = () => {
         modalType={dropType}
         onClose={handleCreateDropClose}
       />
-      <Heading>
-        Welcome {capitalizeFirstLetter(sponsorAccountId?.split(`.${TOKEN_FACTORY_CONTRACT}`)[0])}!
-      </Heading>
-      <TokensAvailableSection tokensAvailable={tokensAvailable} />
+      {isLoading ? (
+        <Skeleton height="40px" mb="4" width="200px" />
+      ) : (
+        <Heading>
+          Welcome {account?.display_name ? capitalizeFirstLetter(account.display_name) : ''}
+        </Heading>
+      )}
+      {isLoading ? (
+        <Skeleton height="80px" mb="4" width="100%" />
+      ) : (
+        <TokensAvailableSection tokensAvailable={tokensAvailable} />
+      )}
       <DropActionsSection
         allowAction={data.length > 0}
         setDropType={setDropType}

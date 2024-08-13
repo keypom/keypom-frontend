@@ -50,7 +50,7 @@ export const router = createBrowserRouter([
         },
         children: [
           {
-            path: 'dashboard/:id', // Match /events/event/:id
+            path: 'dashboard', // Match /events/event/:id
             element: <SponsorDashboardPage />,
           },
           {

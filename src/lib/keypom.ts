@@ -424,32 +424,6 @@ class KeypomJS {
     });
   };
 
-  sendConferenceTokens = async ({
-    secretKey,
-    accountId,
-    sendTo,
-    amount,
-    factoryAccount,
-  }: {
-    secretKey: string;
-    accountId: string;
-    sendTo: string;
-    amount: string;
-    factoryAccount: string;
-  }) => {
-    const keyPair = nearAPI.KeyPair.fromString(secretKey);
-    await myKeyStore.setKey(networkId, accountId, keyPair);
-    const userAccount = new nearAPI.Account(this.nearConnection.connection, accountId);
-    await userAccount.functionCall({
-      contractId: factoryAccount,
-      methodName: 'ft_transfer',
-      args: {
-        receiver_id: sendTo,
-        amount,
-      },
-    });
-  };
-
   claimEventTicket = async (secretKey: string, args: any, createAccount = false) => {
     const pubKey = getPubFromSecret(secretKey);
 

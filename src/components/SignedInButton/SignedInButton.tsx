@@ -47,6 +47,10 @@ export const SignedInButton = () => {
       });
   };
 
+  const getDisplayName = () => {
+    return account.display_name || account.account_id
+  }
+ 
   const handleMasterKey = async () => {
     openMasterKeyModal(setAppModal, null, null);
   };
@@ -98,7 +102,7 @@ export const SignedInButton = () => {
               {account === null || account === undefined ? (
                 <Spinner />
               ) : (
-                <Text>{showAll ? account.account_id : truncateAddress(account.account_id)}</Text>
+                <Text>{showAll ? getDisplayName() : truncateAddress(getDisplayName())}</Text>
               )}
             </Center>
           </MenuButton>

@@ -10,14 +10,12 @@ import CompletionModalContent from './CompletionModal';
 import eventHelperInstance from '@/lib/event';
 
 export const performDeletionLogic = async ({
-  accountId,
-  secretKey,
+  wallet,
   dropId,
   setAppModal,
   getAccountInformation,
 }: {
-  accountId: string;
-  secretKey: string;
+  wallet: Wallet;
   dropId: string;
   setAppModal: any;
   getAccountInformation: () => Promise<void>;
@@ -37,8 +35,7 @@ export const performDeletionLogic = async ({
     });
 
     await eventHelperInstance.deleteConferenceDrop({
-      accountId,
-      secretKey,
+      wallet,
       dropId,
     });
 

@@ -22,12 +22,14 @@ declare global {
 
 type Account = AccountView & {
   account_id: string;
+  public_key?: string;
+  display_name?: string;
 };
 
 interface AuthWalletContextValues {
   modal: WalletSelectorModal;
   selector: WalletSelector;
-  accounts: AccountState[];
+  accounts: KeypomAccountState[];
   accountId: string | null;
   isLoggedIn: boolean;
   account: Account;
@@ -35,18 +37,23 @@ interface AuthWalletContextValues {
 
 const AuthWalletContext = createContext<AuthWalletContextValues | null>(null);
 
+interface KeypomAccountState extends AccountState {
+  displayName?: string
+}
+
 export const AuthWalletContextProvider = ({ children }: PropsWithChildren) => {
   const [selector, setSelector] = useState<WalletSelector | null>(null);
   const [modal, setModal] = useState<WalletSelectorModal | null>(null);
-  const [accounts, setAccounts] = useState<AccountState[]>([]);
+  const [accounts, setAccounts] = useState<KeypomAccountState[]>([]);
   const [account, setAccount] = useState<Account | null>(null);
 
-  const accountId = accounts.find((account) => account.active)?.accountId ?? null;
+  const activeAccount = accounts.find((account) => account.active) ?? null;
 
   const getAccount = useCallback(async (): Promise<Account | null> => {
-    if (!accountId) {
+    if (!activeAccount) {
       return null;
     }
+    console.log("Active account: ", activeAccount)
 
     const provider = new providers.JsonRpcProvider({
       url: selector?.options?.network.nodeUrl ?? '',
@@ -56,13 +63,15 @@ export const AuthWalletContextProvider = ({ children }: PropsWithChildren) => {
       .query<AccountView>({
         request_type: 'view_account',
         finality: 'final',
-        account_id: accountId,
+        account_id: activeAccount.accountId,
       })
       .then((data) => ({
         ...data,
-        account_id: accountId,
+        account_id: activeAccount.accountId,
+        public_key: activeAccount.publicKey,
+        display_name: activeAccount.displayName
       }));
-  }, [accountId, selector?.options]);
+  }, [activeAccount, selector?.options]);
 
   useEffect(() => {
     const initWalletSelector = async () => {
@@ -84,7 +93,7 @@ export const AuthWalletContextProvider = ({ children }: PropsWithChildren) => {
 
   // set account
   useEffect(() => {
-    if (!accountId) {
+    if (!activeAccount) {
       setAccount(null);
       return;
     }
@@ -93,12 +102,13 @@ export const AuthWalletContextProvider = ({ children }: PropsWithChildren) => {
 
     getAccount()
       .then((nextAccount) => {
+        console.log("Next account: ", nextAccount)
         sessionStorage.setItem('account', JSON.stringify(nextAccount));
         setAccount(nextAccount);
         // setLoading(false);
       })
       .catch(console.error); // eslint-disable-line no-console
-  }, [accountId, getAccount]);
+  }, [activeAccount, getAccount]);
 
   selector?.on('signedIn', () => {
     const newAccountState: AccountState[] = selector.store.getState().accounts;
@@ -118,7 +128,7 @@ export const AuthWalletContextProvider = ({ children }: PropsWithChildren) => {
     modal: modal as WalletSelectorModal,
     selector: selector as WalletSelector,
     accounts,
-    accountId,
+    accountId: activeAccount?.accountId || null,
     isLoggedIn: Boolean(selector ? selector.isSignedIn() : true), // selector?.isSignedIn(), with null, cant login. with undefined, cant signout properly
     account: account as Account,
   };

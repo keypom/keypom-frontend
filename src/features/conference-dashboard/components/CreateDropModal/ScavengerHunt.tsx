@@ -31,7 +31,7 @@ export const ScavengerHunt = ({
       <HStack justify="space-between" my="4">
         <Tooltip label="Scavenger hunts require users to collect all the pieces before the reward is given.">
           <HStack spacing={4}>
-            <Text>Enable Scavenger Hunt</Text>
+            <Text>Make it a Scavenger Hunt!</Text>
             <Switch
               id="scavenger-hunt"
               isChecked={isScavengerHunt}

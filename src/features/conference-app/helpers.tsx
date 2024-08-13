@@ -31,22 +31,46 @@ export const claimEventDrop = async ({
     scavId = qrDataSplit[2];
   }
 
+  // Fetch the drop information
   const claimedDropInfo = await eventHelperInstance.viewCall({
     contractId: TOKEN_FACTORY_CONTRACT,
     methodName: 'get_drop_information',
     args: { drop_id: dropId },
   });
+  console.log("Claimed drop info: ", claimedDropInfo);
 
-  const claimsForAccount: string[] = await eventHelperInstance.viewCall({
+  // Fetch claimed drops for the account
+  const claimsForAccount = await eventHelperInstance.viewCall({
     contractId: TOKEN_FACTORY_CONTRACT,
-    methodName: 'claims_for_account',
+    methodName: 'get_claimed_drops_for_account',
     args: { account_id: accountId, drop_id: dropId },
   });
+  console.log("Claims for account: ", claimsForAccount);
 
-  // If it's a scavenger hunt, the scavID will be in the claims for account when claimed
-  // If it's a regular drop, when claiming, the drop ID will be in the list as well
-  // So all we need to check is if the scavenger ID is in the list (since it defaults to the drop ID)
-  if (claimsForAccount.includes(scavId || dropId)) {
+  let curDropClaimData = claimsForAccount.find(drop => drop.drop_id === dropId);
+  console.log("Cur drop claim data: ", curDropClaimData);
+
+  let alreadyClaimed = false;
+
+  // If drop has no scavenger hunt, check if it was already claimed
+  if (!claimedDropInfo?.base?.scavenger_hunt || claimedDropInfo === undefined) {
+    alreadyClaimed = curDropClaimData !== undefined;
+  } else {
+    // Validate scavenger ID
+    const validScavengerIds = claimedDropInfo.base.scavenger_hunt.map(item => item.piece);
+    const isValidScavengerId = validScavengerIds.includes(scavId);
+    if (!isValidScavengerId) {
+      setScanStatus('error');
+      setStatusMessage('Invalid scavenger piece');
+      return { alreadyClaimed: true, error: 'Invalid scavenger piece' };
+    }
+
+    // Check if the scavenger piece has already been claimed
+    let piecesToCheck = curDropClaimData?.found_scavenger_ids || [];
+    alreadyClaimed = piecesToCheck.includes(scavId);
+  }
+
+  if (alreadyClaimed) {
     setScanStatus('error');
     setStatusMessage('You already scanned this drop');
     return {
@@ -54,20 +78,24 @@ export const claimEventDrop = async ({
     };
   }
 
+  // If not already claimed, proceed to claim the drop
   await eventHelperInstance.claimEventTokenDrop({
     secretKey,
-    accountId,
     dropId,
     scavId,
   });
 
+  console.log("is Scav: ", scavId);
+  console.log("Claims for account: ", claimsForAccount);
+  console.log("Claimed drop info: ", claimedDropInfo);
+
   return {
     alreadyClaimed: false,
     isScavenger: scavId !== undefined,
-    numFound: claimsForAccount.length + 1,
-    numRequired: claimedDropInfo?.scavenger_ids?.length || 0,
-    image: claimedDropInfo?.image,
-    name: claimedDropInfo?.name,
+    numFound: (curDropClaimData?.found_scavenger_ids || []).length + 1,
+    numRequired: claimedDropInfo?.base.scavenger_hunt?.length || 0,
+    image: claimedDropInfo?.base?.image,
+    name: claimedDropInfo?.base?.name,
     amount: claimedDropInfo?.amount,
   };
 };

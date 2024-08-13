@@ -1,21 +1,18 @@
 import { Box, Center, Image, Progress, Text, VStack, Badge, HStack } from '@chakra-ui/react';
 import { CheckIcon } from '@chakra-ui/icons';
 
-interface ScavengerHunt {
-  id: string;
-  name: string;
-  image: string;
-  found: string[];
-  scavenger_ids: string[];
-}
-
 interface ScavengerCardProps {
-  scavenger: ScavengerHunt;
+  scavenger: {
+    id: string;
+    name: string;
+    image: string;
+    found: string[];
+    scavenger_ids: string[];
+  };
 }
 
-export const ScavengerCard: React.FC<ScavengerCardProps> = ({ scavenger }: ScavengerCardProps) => {
+export const ScavengerCard: React.FC<ScavengerCardProps> = ({ scavenger }) => {
   const isCompleted = scavenger.found.length >= scavenger.scavenger_ids.length;
-  const imageUrl = `/assets/demos/consensus/${scavenger.image}`;
 
   return (
     <Box
@@ -33,7 +30,7 @@ export const ScavengerCard: React.FC<ScavengerCardProps> = ({ scavenger }: Scave
             borderRadius="md"
             boxSize="80px"
             objectFit="cover"
-            src={imageUrl}
+            src={scavenger.image}
           />
         </Center>
         <VStack align="stretch" spacing={1}>
@@ -54,14 +51,14 @@ export const ScavengerCard: React.FC<ScavengerCardProps> = ({ scavenger }: Scave
           </HStack>
         </VStack>
         {isCompleted && (
-          <Box position="absolute" right="2" top="2">
-            <CheckIcon color="green.500" />
-          </Box>
-        )}
-        {isCompleted && (
-          <Badge borderRadius="4" colorScheme="blue" left="2" position="absolute" size="sm" top="2">
-            Complete
-          </Badge>
+          <>
+            <Box position="absolute" right="2" top="2">
+              <CheckIcon color="green.500" />
+            </Box>
+            <Badge borderRadius="4" colorScheme="blue" position="absolute" top="2" left="2">
+              Complete
+            </Badge>
+          </>
         )}
       </VStack>
     </Box>

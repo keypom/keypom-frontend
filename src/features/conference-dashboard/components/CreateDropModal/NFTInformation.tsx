@@ -7,6 +7,7 @@ interface NFTInformationProps {
   createdDrop: any;
   setCreatedDrop: React.Dispatch<React.SetStateAction<any>>;
   errors: any;
+  setErrors: React.Dispatch<React.SetStateAction<any>>;
 }
 
 export const NFTInformation: React.FC<NFTInformationProps> = ({
@@ -47,7 +48,6 @@ export const NFTInformation: React.FC<NFTInformationProps> = ({
           createdDrop={createdDrop}
           setCreatedDrop={setCreatedDrop}
           errors={errors}
-          setErrors={setErrors}
         />
       </VStack>
     </>

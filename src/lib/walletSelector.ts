@@ -15,6 +15,8 @@ import { setupMeteorWallet } from '@near-wallet-selector/meteor-wallet';
 
 // import { KEYPOM_EVENTS_CONTRACT } from '@/constants/common';
 import getConfig from '@/config/config';
+import { setupOneClickConnect } from '@keypom/one-click-connect';
+import { TOKEN_FACTORY_CONTRACT } from '@/constants/common';
 
 const NETWORK_ID = process.env.REACT_APP_NETWORK_ID ?? 'testnet';
 
@@ -41,6 +43,10 @@ export class NearWalletSelector {
         // setupNearSnap(),
         // setupSender(),
         setupMyNearWallet(),
+        setupOneClickConnect({
+          networkId: "testnet",
+          contractId: TOKEN_FACTORY_CONTRACT,
+        })
         // setupHereWallet(),
       ],
     });
