@@ -17,8 +17,8 @@ const AllEventsPage = React.lazy(
   async () => await import('./features/all-drops/routes/AllEventsPage'),
 );
 
-const SponsorDashboardPage = React.lazy(
-  async () => await import('./features/conference-dashboard/routes/SponsorDashboardPage'),
+const AdminDashboardPage = React.lazy(
+  async () => await import('./features/conference-dashboard/routes/AdminDashboardPage'),
 );
 const TicketPage = React.lazy(async () => await import('@/features/ticket-qr/TicketPage'));
 const ConferencePage = React.lazy(
@@ -51,7 +51,7 @@ export const router = createBrowserRouter([
         children: [
           {
             path: 'dashboard', // Match /events/event/:id
-            element: <SponsorDashboardPage />,
+            element: <AdminDashboardPage />,
           },
           {
             path: 'drop/:id', // Match /events/ticket/:id

@@ -1,6 +1,6 @@
 import { type EventDrop } from '@/lib/eventsHelpers';
 import { type AttendeeKeyItem } from '@/lib/keypom';
-import { EventData } from '../routes/SponsorDashboardPage';
+import { EventData } from '../routes/AdminDashboardPage';
 import { CLAIM_STATUS } from '@/features/drop-manager/routes/ticket/TicketDropManagerPage';
 
 export const handleExportCSVClick = async ({

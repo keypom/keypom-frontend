@@ -47,6 +47,13 @@ interface NftMetadata {
   description: string;
 }
 
+export interface ExtAccountDetails {
+  account_id: string;
+  ft_balance: string;
+  vendor_data?: any;
+  account_status?: 'Basic' | 'Vendor' | 'Sponsor' | 'Admin'
+}
+
 const connectionConfig = {
   networkId,
   keyStore: myKeyStore,
@@ -126,6 +133,15 @@ class EventJS {
   decryptMetadata = async ({ privKey, data }) => {
     const decryptedData = await decryptWithPrivateKey(data, privKey);
     return decryptedData;
+  };
+
+  getAccountDetails = async ({ keyOrAccountId }): Promise<ExtAccountDetails> => {
+      const accountDetails: ExtAccountDetails = await this.viewCall({
+        contractId: TOKEN_FACTORY_CONTRACT,
+        methodName: 'recover_account',
+        args: { key_or_account_id: keyOrAccountId },
+      });
+      return accountDetails
   };
 
   getEventInfo = async ({

@@ -147,24 +147,15 @@ const SponsorDashboardPage = () => {
 
   const getAccountInformation = async () => {
     try {
-      const recoveredAccount = await eventHelperInstance.viewCall({
-        contractId: TOKEN_FACTORY_CONTRACT,
-        methodName: 'recover_account',
-        args: { key: account?.public_key },
-      });
-      setAccountId(recoveredAccount);
-
-      const tokens = await eventHelperInstance.viewCall({
-        contractId: TOKEN_FACTORY_CONTRACT,
-        methodName: 'ft_balance_of',
-        args: { account_id: recoveredAccount },
-      });
-      setTokensAvailable(eventHelperInstance.yoctoToNearWith4Decimals(tokens));
+      const accountDetails = await eventHelperInstance.getAccountDetails({keyOrAccountId: account?.public_key })
+      console.log("Account Details: ", accountDetails)
+      setAccountId(accountDetails.account_id);
+      setTokensAvailable(eventHelperInstance.yoctoToNearWith4Decimals(accountDetails.ft_balance));
 
       const drops = await eventHelperInstance.viewCall({
         contractId: TOKEN_FACTORY_CONTRACT,
         methodName: 'get_drops_created_by_account',
-        args: { account_id: recoveredAccount },
+        args: { account_id: accountDetails.account_id },
       });
       setDropsCreated(drops);
     } catch (e) {
