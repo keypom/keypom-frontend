@@ -115,7 +115,7 @@ const capitalizeFirstLetter = (string) => {
   return `${string.charAt(0).toUpperCase() as string}${string.slice(1).toString() as string}`;
 };
 
-const SponsorDashboardPage = () => {
+const AdminDashboardPage = () => {
   const { setAppModal } = useAppContext();
   const { selector, account } = useAuthWalletContext();
 
@@ -123,13 +123,14 @@ const SponsorDashboardPage = () => {
   const [isErr, setIsErr] = useState(false);
   const [isCreateDropModalOpen, setIsCreateDropModalOpen] = useState(false);
   const [tokensAvailable, setTokensAvailable] = useState<string>();
-  const [accountId, setAccountId] = useState<string>();
   const [dropsCreated, setDropsCreated] = useState<CreatedConferenceDrop[]>([]);
   const [dropType, setDropType] = useState<'nft' | 'token'>('token');
   const toast = useToast();
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [qrCodeUrls, setQrCodeUrls] = useState<string[]>([]);
+  const [dropName, setDropName] = useState<string>('');
   const [wallet, setWallet] = useState<Wallet>();
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     async function fetchWallet() {
@@ -147,10 +148,20 @@ const SponsorDashboardPage = () => {
 
   const getAccountInformation = async () => {
     try {
-      const accountDetails = await eventHelperInstance.getAccountDetails({keyOrAccountId: account?.public_key })
-      console.log("Account Details: ", accountDetails)
-      setAccountId(accountDetails.account_id);
+      let keyOrAccountId = account?.public_key;
+
+      // We're not in one click connect therefore default to using the logged in user
+      if (wallet?.id !== 'keypom') {
+        keyOrAccountId = account.account_id;
+      }
+
+      const accountDetails = await eventHelperInstance.getAccountDetails({ keyOrAccountId });
       setTokensAvailable(eventHelperInstance.yoctoToNearWith4Decimals(accountDetails.ft_balance));
+
+      // Assuming account status is used to determine admin role
+      if (accountDetails.account_status === 'Admin') {
+        setIsAdmin(true);
+      }
 
       const drops = await eventHelperInstance.viewCall({
         contractId: TOKEN_FACTORY_CONTRACT,
@@ -232,7 +243,7 @@ const SponsorDashboardPage = () => {
             variant="icon"
             onClick={(e) => {
               e.stopPropagation();
-              generateQRCode(item.base.id, isTokenDrop(item) ? 'token' : 'nft', item.base.scavenger_hunt);
+              generateQRCode(item.base.name, item.base.id, isTokenDrop(item) ? 'token' : 'nft', item.base.scavenger_hunt);
               onOpen();
             }}
           >
@@ -254,8 +265,9 @@ const SponsorDashboardPage = () => {
     }));
   };
 
-  const generateQRCode = async (dropId: string, type: 'nft' | 'token', scavengerHunt?: ScavengerHunt[]) => {
+  const generateQRCode = async (dropName: string, dropId: string, type: 'nft' | 'token', scavengerHunt?: ScavengerHunt[]) => {
     try {
+      setDropName(dropName)
       if (scavengerHunt && scavengerHunt.length > 0) {
         const qrCodes = await Promise.all(
           scavengerHunt.map(({ piece }) => QRCode.toDataURL(`${type}:${dropId}:${piece}`)),
@@ -271,20 +283,20 @@ const SponsorDashboardPage = () => {
     }
   };
 
-  const handleDownloadQrCode = (url: string) => {
+  const handleDownloadQrCode = (name: string, url: string) => {
     const link = document.createElement('a');
     link.href = url;
-    link.download = 'qr-code.png';
+    link.download = `${name}.png`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
   };
 
-  const handleDownloadAllQrCodes = (urls: string[]) => {
+  const handleDownloadAllQrCodes = (name: string, urls: string[]) => {
     urls.forEach((url, index) => {
       const link = document.createElement('a');
       link.href = url;
-      link.download = `qr-code-${index + 1}.png`;
+      link.download = `${name}-piece-${index + 1}.png`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -302,7 +314,7 @@ const SponsorDashboardPage = () => {
     if (dropCreated) {
       setIsModalLoading(true);
       try {
-        const {dropId, completeScavengerHunt} = await eventHelperInstance.createConferenceDrop({
+        const { dropId, completeScavengerHunt } = await eventHelperInstance.createConferenceDrop({
           wallet: wallet!,
           createdDrop: dropCreated,
           isScavengerHunt,
@@ -317,9 +329,9 @@ const SponsorDashboardPage = () => {
         await getAccountInformation(); // Refresh the drop list
         const type = isTokenDrop(dropCreated) ? 'token' : 'nft';
         if (isScavengerHunt) {
-          generateQRCode(dropId, type, completeScavengerHunt);
+          generateQRCode(dropCreated.name, dropId, type, completeScavengerHunt);
         } else {
-          generateQRCode(dropId, type);
+          generateQRCode(dropCreated.name, dropId, type);
         }
       } catch (e) {
         console.error('Error creating drop:', e);
@@ -335,6 +347,76 @@ const SponsorDashboardPage = () => {
 
     setIsCreateDropModalOpen(false);
   };
+
+  const TokensAvailableSection = ({ isAdmin, tokensAvailable }) => (
+    <VStack align="left" paddingTop="4" spacing="6">
+      <VStack align="left" w="50%">
+        <Box
+          bg="border.box"
+          border="2px solid transparent"
+          borderRadius="12"
+          borderWidth="2px"
+          p={4}
+          w="100%"
+        >
+          <VStack align="start" spacing={1}>
+            <Text color="gray.700" fontSize="lg" fontWeight="medium">
+              Tokens Available
+            </Text>
+            {isAdmin ? (
+              <Heading>Infinite</Heading>
+              ) : (
+                <Heading>{formatTokensAvailable(tokensAvailable)}</Heading>
+              )}            
+          </VStack>
+        </Box>
+      </VStack>
+    </VStack>
+  );
+
+  const DropActionsSection = ({ allowAction, onCreateDrop, setDropType }) => (
+    <>
+      <Show above="md">
+        <HStack justify="space-between">
+          <Heading paddingBottom="0" paddingTop="4">
+            All Drops
+          </Heading>
+          <Menu>
+            <MenuButton as={Button} variant="primary">
+              Create Drop
+            </MenuButton>
+            <MenuList>
+              <MenuItem
+                key="token"
+                icon={<LinkIcon h="4" w="4" />}
+                onClick={() => {
+                  setDropType('token');
+                  onCreateDrop();
+                }}
+              >
+                Token Drop
+              </MenuItem>
+              <MenuItem
+                key="nft"
+                icon={<NFTIcon h="4" w="4" />}
+                onClick={() => {
+                  setDropType('nft');
+                  onCreateDrop();
+                }}
+              >
+                NFT Drop
+              </MenuItem>
+            </MenuList>
+          </Menu>
+        </HStack>
+      </Show>
+      <Hide above="md">
+        <Heading paddingTop="20px" size="2xl" textAlign="left" w="full">
+          All Drops
+        </Heading>
+      </Hide>
+    </>
+  );
 
   if (isErr) {
     return (
@@ -363,7 +445,7 @@ const SponsorDashboardPage = () => {
       {isLoading ? (
         <Skeleton height="80px" mb="4" width="100%" />
       ) : (
-        <TokensAvailableSection tokensAvailable={tokensAvailable} />
+        <TokensAvailableSection isAdmin={isAdmin} tokensAvailable={tokensAvailable} />
       )}
       <DropActionsSection
         allowAction={data.length > 0}
@@ -375,88 +457,43 @@ const SponsorDashboardPage = () => {
       <DataTable
         columns={eventTableColumns}
         data={data}
-        excludeMobileColumns={[]}
+        excludeMobileColumns={['rewards', 'dropType', 'scavengers']}
         loading={isLoading}
         mt={{ base: '6', md: '4' }}
         showColumns={true}
-        showMobileTitles={['price', 'numTickets']}
+        showMobileTitles={['dropName', 'numClaimed']}
         type="conference-drops"
       />
       <QRViewerModal
         isOpen={isOpen}
         onClose={onClose}
         qrCodeUrls={qrCodeUrls}
-        onDownload={(url) => handleDownloadQrCode(url)}
-        onDownloadAll={(urls) => handleDownloadAllQrCodes(urls)}
+        dropName={dropName}
+        onDownload={(name, url) => handleDownloadQrCode(name, url)}
+        onDownloadAll={(name, urls) => handleDownloadAllQrCodes(name, urls)}
       />
+
+      {/* Admin-Specific Features */}
+      {isAdmin && (
+        <>
+          <Heading size="md" mt="8">
+            Admin Controls
+          </Heading>
+          <VStack align="start" spacing="4" mt="4">
+            <Button onClick={() => {/* Functionality to set agenda */}}>
+              Set Event Agenda
+            </Button>
+            <Button onClick={() => {/* Functionality to set alerts */}}>
+              Set Alerts
+            </Button>
+            <Button onClick={() => {/* Functionality to manage sponsors */}}>
+              Manage Sponsors
+            </Button>
+          </VStack>
+        </>
+      )}
     </Box>
   );
 };
 
-const TokensAvailableSection = ({ tokensAvailable }) => (
-  <VStack align="left" paddingTop="4" spacing="6">
-    <VStack align="left" w="50%">
-      <Box
-        bg="border.box"
-        border="2px solid transparent"
-        borderRadius="12"
-        borderWidth="2px"
-        p={4}
-        w="100%"
-      >
-        <VStack align="start" spacing={1}>
-          <Text color="gray.700" fontSize="lg" fontWeight="medium">
-            Tokens Available
-          </Text>
-          <Heading>{formatTokensAvailable(tokensAvailable)}</Heading>
-        </VStack>
-      </Box>
-    </VStack>
-  </VStack>
-);
-
-const DropActionsSection = ({ allowAction, onCreateDrop, setDropType }) => (
-  <>
-    <Show above="md">
-      <HStack justify="space-between">
-        <Heading paddingBottom="0" paddingTop="4">
-          All Drops
-        </Heading>
-        <Menu>
-          <MenuButton as={Button} variant="primary">
-            Create Drop
-          </MenuButton>
-          <MenuList>
-            <MenuItem
-              key="token"
-              icon={<LinkIcon h="4" w="4" />}
-              onClick={() => {
-                setDropType('token');
-                onCreateDrop();
-              }}
-            >
-              Token Drop
-            </MenuItem>
-            <MenuItem
-              key="nft"
-              icon={<NFTIcon h="4" w="4" />}
-              onClick={() => {
-                setDropType('nft');
-                onCreateDrop();
-              }}
-            >
-              NFT Drop
-            </MenuItem>
-          </MenuList>
-        </Menu>
-      </HStack>
-    </Show>
-    <Hide above="md">
-      <Heading paddingTop="20px" size="2xl" textAlign="left" w="full">
-        All Drops
-      </Heading>
-    </Hide>
-  </>
-);
-
-export default SponsorDashboardPage;
+export default AdminDashboardPage;

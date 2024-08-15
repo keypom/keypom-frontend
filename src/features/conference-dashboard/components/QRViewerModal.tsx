@@ -14,18 +14,27 @@ import {
 import { ChevronLeftIcon, ChevronRightIcon } from '@chakra-ui/icons';
 import { ModalWrapper } from './CreateDropModal/ModalWrapper';
 
+function generateDownloadName(input) {
+  return input
+    .toLowerCase() // Convert to lowercase
+    .replace(/\s+/g, '_') // Replace spaces with underscores
+    .replace(/[^a-z0-9_]/g, ''); // Remove any character that is not a letter, number, or underscore
+}
+
 interface QRCodeModalProps {
   isOpen: boolean;
   onClose: () => void;
+  dropName: string;
   qrCodeUrls: string[]; // Array of QR code URLs
-  onDownload: (url: string) => void;
-  onDownloadAll: (urls: string[]) => void;
+  onDownload: (name: string, url: string) => void;
+  onDownloadAll: (name: string, urls: string[]) => void;
 }
 
 const QRViewerModal: React.FC<QRCodeModalProps> = ({
   isOpen,
   onClose,
   qrCodeUrls,
+  dropName,
   onDownload,
   onDownloadAll,
 }) => {
@@ -85,12 +94,12 @@ const QRViewerModal: React.FC<QRCodeModalProps> = ({
       </ModalBody>
       <ModalFooter>
         {totalQrCodes > 1 && (
-          <Button colorScheme="blue" mr={3} onClick={() => onDownloadAll(qrCodeUrls)}>
+          <Button colorScheme="blue" mr={3} onClick={() => onDownloadAll(generateDownloadName(dropName), qrCodeUrls)}>
             Download All
           </Button>
         )}
         {totalQrCodes > 0 && (
-          <Button colorScheme="blue" mr={3} onClick={() => onDownload(qrCodeUrls[currentIndex])}>
+          <Button colorScheme="blue" mr={3} onClick={() => onDownload(generateDownloadName(dropName), qrCodeUrls[currentIndex])}>
             Download
           </Button>
         )}

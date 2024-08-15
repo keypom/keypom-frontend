@@ -9,7 +9,6 @@ import {
 } from 'react';
 import { getPubFromSecret } from '@keypom/core';
 
-import keypomInstance from '@/lib/keypom';
 import {
   type TicketInfoMetadata,
   type TicketMetadataExtra,
@@ -26,6 +25,7 @@ import ScanningPage from '@/features/conference-app/ScanningPage';
 import AssetsPageManager from '@/features/conference-app/AssetsPages/AssetsPageManager';
 import { CameraIcon } from '@/components/Icons/CameraIcon';
 import { TOKEN_FACTORY_CONTRACT } from '@/constants/common';
+import eventHelperInstance from '@/lib/event';
 
 export const conferenceFooterMenuItems = [
   {
@@ -131,20 +131,9 @@ export const ConferenceProvider = ({
     const recoverAccount = async () => {
       if (!isLoading && dropInfo.drop_id !== 'loading') {
         console.log('Secret Key: ', secretKey);
-        const recoveredAccountId = await keypomInstance.viewCall({
-          contractId: TOKEN_FACTORY_CONTRACT,
-          methodName: 'recover_account',
-          args: { key: getPubFromSecret(secretKey) },
-        });
-        const balance = await keypomInstance.viewCall({
-          contractId: TOKEN_FACTORY_CONTRACT,
-          methodName: 'ft_balance_of',
-          args: { account_id: recoveredAccountId },
-        });
-        console.log('recovered account id: ', recoveredAccountId);
-        console.log('balance: ', balance);
-        setTokensAvailable(keypomInstance.yoctoToNearWith4Decimals(balance));
-        setAccountId(recoveredAccountId);
+        const accountDetails = await eventHelperInstance.getAccountDetails({ keyOrAccountId: getPubFromSecret(secretKey) });
+        setTokensAvailable(eventHelperInstance.yoctoToNearWith4Decimals(accountDetails.ft_balance));
+        setAccountId(accountDetails.account_id);
       }
     };
     recoverAccount();
