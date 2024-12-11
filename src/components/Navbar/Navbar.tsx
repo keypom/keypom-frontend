@@ -30,10 +30,6 @@ export const Navbar = (props: NavbarProps) => {
 
   const MENU_ITEMS = [
     {
-      name: 'Gallery',
-      href: '/gallery',
-    },
-    {
       name: 'Docs',
       href: 'https://docs.keypom.xyz',
       isExternal: true,
