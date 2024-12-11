@@ -419,6 +419,10 @@ export default function NewTicketDrop() {
       return formData.tickets.length < 1;
     }
 
+    if (currentStep === 4) {
+      return true;
+    }
+
     return false;
   };
 
@@ -506,7 +510,7 @@ export default function NewTicketDrop() {
               isLoading={isSettingKey}
               onClick={nextStep}
             >
-              {currentStep === formSteps.length - 1 ? 'Create event' : 'Next'}
+              {currentStep === formSteps.length - 1 ? 'Coming Soon' : 'Next'}
             </Button>
           </HStack>
         </HStack>
